@@ -3,6 +3,7 @@ import fc from "fast-check";
 import {
   OFERTAS_BASE,
   OFERTAS_VERIFICADO,
+  diasDesdeVerificacion,
   diasRestantes,
   estadoOferta,
   filtrarOfertas,
@@ -10,6 +11,7 @@ import {
   novedadesOfertas,
   resumenOfertas,
   validarOfertas,
+  verificacionVieja,
   type Oferta,
 } from "../../src/lib/prism/ofertas";
 import { sumarDias } from "../../src/lib/prism/repaso";
@@ -215,8 +217,10 @@ describe("catálogo base", () => {
       expect(o.titulo.length).toBeGreaterThan(0);
       expect(o.descripcion.length).toBeGreaterThan(0);
       expect(o.valor.length).toBeGreaterThan(0);
-      expect(o.verificado).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(o.verificado).toBe(OFERTAS_VERIFICADO);
+      // Antes esta línea EXIGÍA que todas llevaran la misma fecha, que es
+      // justo el sello falso que se ha quitado: o hay una fecha real de
+      // cuando se miró esa oferta, o no hay ninguna y se dice.
+      if (o.verificado !== null) expect(o.verificado).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       if (o.termina) expect(o.termina).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
   });
@@ -236,5 +240,58 @@ describe("propiedad: el estado solo depende de los días que faltan", () => {
         expect(estadoOferta(o, hoy, aviso)).toBe(faltan <= aviso ? "porExpirar" : "vigente");
       })
     );
+  });
+});
+
+/** ——— La fecha de verificación no puede ponerse sola ———
+ *
+ * Antes TODAS las entradas heredaban `OFERTAS_VERIFICADO`, y una fuente propia
+ * sin fecha se sellaba con la nuestra. Al publicar una versión, catorce
+ * ofertas pasaban a decir «verificado hoy» sin que nadie hubiera mirado
+ * ninguna: un sello de frescura falso, que es peor que no poner fecha.
+ */
+describe("la verificación no se inventa", () => {
+  it("una oferta de fuera SIN fecha se queda sin sello, no con el nuestro", () => {
+    const [o] = validarOfertas([
+      {
+        id: "x",
+        proveedor: "P",
+        titulo: "T",
+        tipo: "gratis",
+        valor: "Gratis",
+        descripcion: "d",
+        url: "https://ejemplo.com",
+      },
+    ]);
+    expect(o.verificado).toBeNull();
+  });
+
+  it("si trae fecha propia, se respeta", () => {
+    const [o] = validarOfertas([
+      {
+        id: "x",
+        proveedor: "P",
+        titulo: "T",
+        tipo: "gratis",
+        valor: "Gratis",
+        descripcion: "d",
+        url: "https://ejemplo.com",
+        verificado: "2026-01-15",
+      },
+    ]);
+    expect(o.verificado).toBe("2026-01-15");
+  });
+
+  it("la edad se cuenta en días y avisa cuando ya es vieja", () => {
+    expect(diasDesdeVerificacion("2026-09-01", "2026-09-06")).toBe(5);
+    expect(verificacionVieja("2026-09-01", "2026-09-06")).toBe(false);
+    expect(verificacionVieja("2026-01-01", "2026-09-06")).toBe(true);
+  });
+
+  it("la oferta que nadie pudo comprobar va marcada, no maquillada", () => {
+    const glm = OFERTAS_BASE.find((o) => o.id === "of-zai-coding-plan");
+    expect(glm, "Z.ai tiene que estar en el catálogo").toBeTruthy();
+    expect(glm!.verificado, "sin comprobar = sin fecha").toBeNull();
+    expect(glm!.descripcion).toMatch(/no se ha podido comprobar/i);
   });
 });

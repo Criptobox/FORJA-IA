@@ -36,11 +36,15 @@ export const PROVIDERS: ProviderDef[] = [
     keyUrl: "https://platform.moonshot.ai/console/api-keys",
     docsUrl: "https://platform.moonshot.ai/docs",
     hint: "Pega la clave de platform.moonshot.ai. En China cambia la URL a https://api.moonshot.cn/v1.",
+    // Los dos kimi-k2-*-preview constaban retirados el 2026-05-25. «-preview»
+    // se queda: que un catálogo de terceros no lo tenga fichado no prueba que
+    // esté muerto, y solo se quita lo que una fuente dice que se retiró.
     defaultModels: [
       "kimi-k3",
       "kimi-k3-preview",
-      "kimi-k2-0905-preview",
-      "kimi-k2-turbo-preview",
+      "kimi-k2.7-code",
+      "kimi-k2.6",
+      "kimi-k2.5",
       "moonshot-v1-128k",
       "moonshot-v1-32k",
     ],
@@ -104,6 +108,7 @@ export const PROVIDERS: ProviderDef[] = [
     // lo que pregunta a Google por la lista real. Comprobado en agosto de 2026;
     // la serie 2.5 se quedó atrás y no aparecía nada de la 3.x.
     defaultModels: [
+      "gemini-3.8-flash",
       "gemini-3.7-flash",
       "gemini-3.6-flash",
       "gemini-3.5-flash-lite",
@@ -163,10 +168,13 @@ export const PROVIDERS: ProviderDef[] = [
     protocol: "openai",
     baseUrl: "https://api.groq.com/openai/v1",
     keyUrl: "https://console.groq.com/keys",
+    // Los dos llama constaban retirados el 2026-08-16 y qwen3-32b el
+    // 2026-07-17. Los vivos los dice `npm run modelos`.
     defaultModels: [
-      "llama-3.3-70b-versatile",
-      "llama-3.1-8b-instant",
-      "qwen/qwen3-32b",
+      "gpt-oss-120b",
+      "gpt-oss-20b",
+      "qwen3.8-27b",
+      "qwen3.6-27b",
       "moonshotai/kimi-k2-instruct",
     ],
     color: "#F55036",
@@ -197,12 +205,13 @@ export const PROVIDERS: ProviderDef[] = [
     keyUrl: "https://console.mistral.ai/api-keys",
     docsUrl: "https://docs.mistral.ai",
     hint: "Plan experimental gratis: 1 req/s · 500 req/día. Clave en console.mistral.ai.",
+    // pixtral-12b-2409 constaba retirado desde el 2025-12-31.
     defaultModels: [
       "mistral-small-latest",
-      "mistral-nemo",
+      "mistral-medium-latest",
+      "magistral-medium-latest",
       "codestral-latest",
-      "open-mistral-nemo",
-      "pixtral-12b-2409",
+      "devstral-medium-latest",
     ],
     color: "#FF8205",
   },
@@ -213,7 +222,10 @@ export const PROVIDERS: ProviderDef[] = [
     protocol: "openai",
     baseUrl: "https://api.x.ai/v1",
     keyUrl: "https://console.x.ai",
-    defaultModels: ["grok-4", "grok-3", "grok-3-mini"],
+    // grok-4, grok-3 y grok-3-mini constaban retirados (mayo y febrero de
+    // 2026) y seguían ofreciéndose. Sustituidos por los vivos que da el
+    // catálogo; `npm run modelos` vuelve a comprobarlo.
+    defaultModels: ["grok-4.6", "grok-4.5", "grok-4.3", "grok-4.20"],
     color: "#FFFFFF",
   },
   {

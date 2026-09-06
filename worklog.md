@@ -4524,3 +4524,108 @@ primeras en el reloj— y **fusionar Repaso y Ofertas encima**.
   pasan las suyas, pero nadie ha escrito todavía una prueba que cruce Repaso con
   los checkpoints o las ofertas con la memoria `.prism/`. No hay motivo para
   creer que choquen; simplemente no está comprobado.
+
+## v4.3.0 — Datos que envejecen solos: modelos retirados y sellos de frescura falsos
+
+El aviso vino de fuera y con dos ejemplos concretos: «GLM tiene oferta de 3
+meses por 20 USD y ahí no sale; ya salió Gemini 3.8 y ahí sigue con los viejos,
+como si estuvieran escritos, en vez de buscar de los sitios oficiales». Es el
+mismo fallo que ya me señaló con los precios, y esta vez estaba en dos sitios
+más.
+
+### Lo que se encontró al ir a mirar
+
+Escribí un auditor (`npm run modelos`) que compara las listas de la app con el
+catálogo público de LiteLLM, que publica `deprecation_date` por modelo. El
+resultado, medido y no supuesto:
+
+- **`grok-4`, `grok-3` y `grok-3-mini`** — retirados en mayo y febrero de 2026.
+- **`llama-3.3-70b-versatile` y `llama-3.1-8b-instant`** (Groq) — 2026-08-16.
+- **`kimi-k2-0905-preview` y `kimi-k2-turbo-preview`** — 2026-05-25.
+- **`pixtral-12b-2409`** (Mistral) — **2025-12-31**. Nueve meses muerto y ahí
+  seguía, ofreciéndose el primero de la lista a quien conectara una clave.
+- Y `gemini-3.8-flash`, publicado y sin ofrecer. Tenía razón también en eso.
+
+Ocho modelos muertos. Nadie se enteraba hasta que una petición volvía con un
+404 que parecía culpa de la clave.
+
+### Lo que se hizo, para que no vuelva a pasar solo
+
+- **`npm run modelos`**: informe (qué está retirado, qué no tiene ficha, con
+  fechas) y genera `modelos-datos.ts` con 161 retiradas. **No reescribe las
+  listas por su cuenta**: están curadas a mano —el orden importa, los sufijos
+  `-free` de cada pasarela no salen en ningún catálogo— y una generación ciega
+  las estropearía. El script dice qué cambiar; el cambio lo revisa una persona.
+- **El selector marca los muertos**: chip rojo «retirado» o ámbar «se retira»
+  con la fecha y la del catálogo en el tooltip. No bloquea: un modelo retirado
+  puede seguir respondiendo semanas, y un catálogo ajeno puede equivocarse.
+- **Las listas, arregladas** con lo que dijo el auditor. Y `kimi-k3-preview` se
+  quedó: **«sin ficha» no es «retirado»**. Que un catálogo de terceros no lo
+  tenga no prueba que esté muerto, y solo se quita lo que una fuente afirma.
+  Lo destapó un test que ya existía y falló cuando lo quité de más.
+- **Un unitario recorre PROVIDERS entero** y falla si vuelve a colarse uno
+  retirado. Ese test encontró `qwen/qwen3-32b` (retirado el 2026-07-17) que
+  **mi propio script no había visto**: el script comparaba el id crudo y el
+  módulo lo pela igual que la app. Dos formas de pelar un id son dos verdades
+  distintas; ahora comparten la misma.
+
+### El sello de frescura que se ponía solo
+
+Buscando lo de GLM salió algo peor que una lista vieja. Las 14 ofertas del
+catálogo heredaban una constante, `OFERTAS_VERIFICADO`, puesta a la fecha de la
+entrega. Es decir: **al publicar una versión, las catorce pasaban a decir
+«verificado hoy» sin que nadie hubiera comprobado ninguna.** Y una oferta que
+tú añadías por tu fuente propia, sin fecha, se sellaba con la nuestra: firmar
+por otro.
+
+Una fecha de verificación que se pone sola no es una verificación. Es un sello
+de frescura falso, y de los peores, porque invita justo a fiarse. Ahora:
+
+- `verificado` puede ser `null` y eso significa **«nadie lo ha comprobado»**;
+- la tarjeta dice «comprobado hace N días» o **«sin verificar»** en ámbar;
+- lo que llega de tu fuente sin fecha se queda sin sello, no con el nuestro;
+- la prueba que **exigía** el sello uniforme se ha reescrito: exigía el error.
+
+### GLM · Z.ai: lo que se pudo y lo que no
+
+- **Lo verificable** entra como oferta normal: Z.ai sirve su familia Flash sin
+  coste por token, que es la misma API que usa Prism con ese proveedor.
+- **La promoción de tres meses por ~20 $ NO se ha podido comprobar.** La página
+  de Z.ai y el archivo de la web están bloqueados por la política de red de
+  este entorno, y las cifras que dan los blogs de terceros no son la fuente.
+  Así que entra marcada **«sin verificar»**, diciendo en la propia tarjeta que
+  no se ha podido comprobar y que el precio vigente lo publica Z.ai. Lo que no
+  se hace es escribir «20 $ / 3 meses» como si fuera un dato.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 687** unitarios (1 674 antes) ·
+  ✓ **201** E2E, suite completa dos veces
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+- Verificado en rojo: sin el chip, el modelo retirado pasa sin marca.
+
+**Y una prueba que escribí mal y quité.** Puse una E2E de «ninguna lista de
+fábrica ofrece un modelo muerto» que sembraba los modelos a mano: así medía la
+siembra, no la lista. Al intentar arreglarla haría falta arrancar sin modelo
+elegido, y entonces el selector ni se pinta. La quité: esa invariante ya la
+comprueba el unitario recorriendo PROVIDERS de verdad, que es el que encontró
+el `qwen3-32b`. Una prueba que hay que retorcer para que corra vale menos que
+la de al lado que sí falla cuando toca.
+
+**Y otra que se rompió por lo mismo que arregla esta versión:** la E2E de
+ofertas llevaba los ids del catálogo **copiados a mano**, daba por hecho «una
+sola novedad», y al añadir las dos de Z.ai había tres. Ahora los deriva de
+`OFERTAS_BASE`.
+
+### Lo que sigue sin resolverse
+
+- **Las ofertas no tienen API.** No existe un catálogo público de promociones
+  como el de precios: lo que hay es un archivo curado a mano, ahora con la edad
+  de cada comprobación a la vista. Mientras no exista una fuente, esto seguirá
+  dependiendo de que alguien mire — la diferencia es que ahora se ve cuándo fue
+  la última vez.
+- **El catálogo de modelos es de terceros.** Es bueno y va al día, pero no es
+  la web de cada proveedor. Donde no llega —los `:free` de OpenRouter, los
+  nombres propios de Cerebras— el informe dice «sin ficha», que significa «no
+  se sabe», no «está mal».

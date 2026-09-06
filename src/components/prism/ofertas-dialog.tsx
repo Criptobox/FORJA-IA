@@ -39,6 +39,8 @@ import {
   ETIQUETA_TIPO,
   OFERTAS_BASE,
   OFERTAS_VERIFICADO,
+  diasDesdeVerificacion,
+  verificacionVieja,
   estadoOferta,
   filtrarOfertas,
   fusionarOfertas,
@@ -435,6 +437,34 @@ function TarjetaOferta({
               <span>·</span>
               <span className="font-medium text-amber-600 dark:text-amber-400">termina pronto</span>
             </>
+          )}
+          {/* La edad de la comprobación, por oferta. Antes todas heredaban la
+              fecha del catálogo y al publicar una versión nueva las catorce
+              decían «verificado hoy» sin que nadie hubiera mirado ninguna. */}
+          <span>·</span>
+          {oferta.verificado == null ? (
+            <span
+              className="font-medium text-amber-600 dark:text-amber-400"
+              title="Nadie ha comprobado esta oferta: viene de tu fuente propia o de un aviso. Ábrela antes de fiarte."
+            >
+              sin verificar
+            </span>
+          ) : (
+            <span
+              className={
+                verificacionVieja(oferta.verificado, hoy)
+                  ? "text-amber-600 dark:text-amber-400"
+                  : undefined
+              }
+              title={`Comprobado el ${oferta.verificado}. Las condiciones cambian sin avisar.`}
+            >
+              {(() => {
+                const d = diasDesdeVerificacion(oferta.verificado, hoy);
+                if (d <= 0) return "comprobado hoy";
+                if (d === 1) return "comprobado ayer";
+                return `comprobado hace ${d} días`;
+              })()}
+            </span>
           )}
         </p>
       </div>

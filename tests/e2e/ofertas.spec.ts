@@ -1,3 +1,4 @@
+import { OFERTAS_BASE } from "../../src/lib/prism/ofertas";
 import { expect, test } from "./fixtures";
 
 /** Prism AI — Caza de ofertas IA: ofertas vigentes de los proveedores, con
@@ -24,24 +25,17 @@ const HOY = (() => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 })();
 
-/** ids del catálogo base: la fuente de verdad vive en src/lib/prism/ofertas.ts.
- * El último (of-together) es el que falta en la prueba 1 para forzar la novedad. */
-const TODOS_LOS_IDS = [
-  "of-google-aistudio",
-  "of-github-copilot-free",
-  "of-mistral-lechat",
-  "of-openrouter-free",
-  "of-perplexity",
-  "of-groq",
-  "of-cerebras",
-  "of-huggingface",
-  "of-mistral-api",
-  "of-cohere",
-  "of-deepseek",
-  "of-gemini-estudiantes",
-  "of-github-student",
-  "of-together",
-];
+/** ids del catálogo base, SACADOS del catálogo.
+ *
+ * Antes estaban copiados a mano aquí, y al añadir dos ofertas nuevas la
+ * prueba se rompió: daba por hecho «exactamente una novedad» y había tres.
+ * Es el mismo mal que esta versión arregla un piso más arriba —datos escritos
+ * a mano que envejecen solos—, así que la lista se deriva y no se teclea. */
+const TODOS_LOS_IDS = OFERTAS_BASE.map((o) => o.id);
+
+/** La que se deja fuera para forzar UNA novedad. La última del catálogo,
+ * sea cual sea: así sigue habiendo exactamente una aunque entren más. */
+const NOVEDAD = TODOS_LOS_IDS[TODOS_LOS_IDS.length - 1];
 
 function seedOfertas(extra: Record<string, unknown>) {
   return JSON.stringify({
@@ -90,7 +84,7 @@ test("avisa de la novedad al cargar, abre con insignia y la marca como vista", a
     {
       principal: seedPrincipal(),
       ofertas: seedOfertas({
-        conocidasIds: TODOS_LOS_IDS.filter((id) => id !== "of-together"),
+        conocidasIds: TODOS_LOS_IDS.filter((id) => id !== NOVEDAD),
         ultimaComprobacion: null,
       }),
     }
@@ -117,7 +111,7 @@ test("avisa de la novedad al cargar, abre con insignia y la marca como vista", a
         }),
       { timeout: 15_000 }
     )
-    .toContain("of-together");
+    .toContain(NOVEDAD);
 
   // La puerta de la barra lateral lleva la insignia con la novedad
   const boton = page.getByRole("button", { name: /Ofertas/ }).first();

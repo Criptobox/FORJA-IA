@@ -18,6 +18,7 @@ import { PROVIDERS } from "@/lib/prism/providers";
 import { makeModelKey, splitModelKey, type ProviderId } from "@/lib/prism/types";
 import { usePrism } from "@/lib/prism/store";
 import { isFreeModel } from "@/lib/prism/free-models";
+import { estadoModelo, MODELOS_FECHA } from "@/lib/prism/modelos-viejos";
 import { estaRoto, useModelosRotos } from "@/lib/prism/modelos-rotos";
 import { useHealth, cooldownRemaining } from "@/lib/prism/health";
 import { AUTO_MODEL_KEY, isAutoKey, pickManualModel } from "@/lib/prism/types";
@@ -373,6 +374,32 @@ export function ModelPicker({
                           gratis
                         </span>
                       )}
+                      {/* Un modelo retirado seguía apareciendo como cualquier
+                          otro y solo se descubría con un 404 que parecía culpa
+                          de la clave. La fecha viene del catálogo, con la suya
+                          al lado: es una foto, no una verdad eterna. */}
+                      {(() => {
+                        const est = estadoModelo(
+                          m.providerId,
+                          m.modelId,
+                          new Date().toISOString().slice(0, 10)
+                        );
+                        if (est.estado === "vivo") return null;
+                        const muerto = est.estado === "retirado";
+                        return (
+                          <span
+                            className={cn(
+                              "shrink-0 rounded-full px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide",
+                              muerto
+                                ? "bg-red-500/15 text-red-500"
+                                : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                            )}
+                            title={`${muerto ? "Retirado" : "Retirada anunciada"} el ${est.fecha}, según el catálogo público de modelos (foto del ${MODELOS_FECHA}). Puede seguir respondiendo unos días.`}
+                          >
+                            {muerto ? "retirado" : "se retira"}
+                          </span>
+                        );
+                      })()}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

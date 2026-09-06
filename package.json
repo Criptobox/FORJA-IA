@@ -1,6 +1,6 @@
 {
   "name": "prism-ai",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "engines": {
     "node": ">=20.9"
   },
@@ -18,7 +18,8 @@
     "bump": "node scripts/version.mjs",
     "knip": "knip --include files,dependencies,unlisted",
     "knip:todo": "knip",
-    "precios": "node scripts/precios.mjs"
+    "precios": "node scripts/precios.mjs",
+    "modelos": "node --experimental-strip-types scripts/modelos.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.2",

@@ -48,19 +48,76 @@ export interface Oferta {
   url: string;
   /** día local de fin «YYYY-MM-DD» o null si el programa es permanente */
   termina: string | null;
-  /** día en que se verificó a mano el enlace y las condiciones */
-  verificado: string;
+  /** día en que se verificó a mano el enlace y las condiciones, o `null` si
+   * NADIE lo ha verificado: una oferta que llega de tu fuente propia o de un
+   * aviso no lleva sello de nadie, y ponerle uno sería falsificarlo. */
+  verificado: string | null;
 }
 
 /** Día de la última revisión a mano del catálogo base. Se muestra en el
- * diálogo: las condiciones cambian sin aviso y esto da el marco. */
+ * diálogo: las condiciones cambian sin aviso y esto da el marco.
+ *
+ * ——— Lo que esta fecha significa, y lo que NO ———
+ *
+ * Significa: «este día alguien miró los enlaces y las condiciones de las
+ * entradas que la llevan». No significa que las ofertas sigan igual hoy: un
+ * proveedor puede cambiar su plan la tarde siguiente y aquí nadie se entera.
+ *
+ * Y hay una trampa que esta versión corrige: antes TODAS las entradas
+ * heredaban esta constante, así que al publicar una versión nueva las catorce
+ * pasaban a decir «verificado hoy» sin que nadie hubiera comprobado ninguna.
+ * Una fecha de verificación que se pone sola no es una verificación: es un
+ * sello de frescura falso, y de los peores, porque invita a fiarse. Ahora cada
+ * oferta lleva la SUYA, la del día en que se miró de verdad. */
 export const OFERTAS_VERIFICADO = "2026-09-06";
+
+/** A partir de cuántos días una verificación deja de valer como garantía.
+ * Ni se esconde la oferta ni se finge que está fresca: se dice la edad. */
+export const DIAS_VERIFICACION_VIEJA = 60;
+
+/** Días desde que se verificó una oferta. */
+export function diasDesdeVerificacion(verificado: string, hoy: string): number {
+  const a = Date.parse(`${verificado}T00:00:00Z`);
+  const b = Date.parse(`${hoy}T00:00:00Z`);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return Number.POSITIVE_INFINITY;
+  return Math.max(0, Math.round((b - a) / 86_400_000));
+}
+
+/** ¿Hay que avisar de que esta comprobación ya tiene años? */
+export function verificacionVieja(verificado: string, hoy: string): boolean {
+  return diasDesdeVerificacion(verificado, hoy) > DIAS_VERIFICACION_VIEJA;
+}
 
 /** El catálogo que viaja con la app: programas de larga vida, publicados por
  * cada proveedor, sin fechas de fin (termina: null). Nada de cifras que
  * nadie garantiza: donde la cuota exacta no está fijada por contrato, se
  * dice qué es y se manda al panel del proveedor. */
 export const OFERTAS_BASE: Oferta[] = [
+  {
+    id: "of-zai-glm-flash",
+    proveedor: "GLM · Z.ai",
+    titulo: "Modelos GLM Flash sin coste",
+    tipo: "gratis",
+    valor: "Gratis",
+    descripcion:
+      "Z.ai sirve su familia Flash (GLM-4.5-Flash y siguientes) sin coste por token en su API, que es la misma que Prism usa cuando eliges ese proveedor. La cuota por minuto la publica Z.ai.",
+    url: "https://z.ai",
+    termina: null,
+    verificado: OFERTAS_VERIFICADO,
+  },
+  {
+    id: "of-zai-coding-plan",
+    proveedor: "GLM · Z.ai",
+    titulo: "GLM Coding Plan (suscripción)",
+    tipo: "descuento",
+    valor: "Sin verificar",
+    descripcion:
+      "Suscripción para programar con GLM, con cuota de peticiones que se renueva cada pocas horas y endpoint compatible con clientes de código. Se avisó de una promoción de tres meses por unos 20 $, pero NO se ha podido comprobar en la página de Z.ai: el precio y la promoción vigentes los publica solo ella. Abre el enlace antes de pagar nada.",
+    url: "https://z.ai/subscribe",
+    termina: null,
+    // A propósito sin fecha: nadie lo ha verificado, y la tarjeta lo dice.
+    verificado: null,
+  },
   {
     id: "of-google-aistudio",
     proveedor: "Google AI Studio",
@@ -376,7 +433,9 @@ function normalizarOferta(bruta: unknown): Oferta | null {
     descripcion: recortada,
     url,
     termina: esFecha(o.termina) ? o.termina : null,
-    verificado: esFecha(o.verificado) ? o.verificado : OFERTAS_VERIFICADO,
+    // Sin fecha propia, `null` — NO la del catálogo. Estampar nuestra fecha
+    // de revisión sobre una entrada que trae otro es firmar por él.
+    verificado: esFecha(o.verificado) ? o.verificado : null,
   };
 }
 
