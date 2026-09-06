@@ -4695,3 +4695,93 @@ proveedor disfrazado de respuesta— tiene su propio camino (`decidirTrasVacio`,
 `decidirTrasCuotaEnTexto`) y no se ha tocado aquí. Y el failover sigue sin
 poder saltar a un proveedor que no tengas conectado: si el único que tienes se
 queda sin modelos vivos, no hay a dónde ir.
+
+## v4.5.0 — La polaridad estaba del revés: se enumeraba lo que merecía seguir
+
+Tres capturas seguidas, tres errores distintos, los tres terminando la
+conversación con cuatro proveedores conectados al lado:
+
+    OpenRouter 404: No endpoints found for google/gemini-2.0-flash-exp:free
+    Groq 413: Request too large … ITPM: Limit 7000, Requested 21138
+    OpenRouter 400: Provider returned error
+
+Ayer arreglé el primero. Fue un error de diagnóstico: traté un síntoma. La
+causa era la misma para los tres y estaba una capa más abajo.
+
+### El fallo de fondo
+
+`decidirTrasError` **enumeraba los fallos que merecen reintento** —pasajeros
+(0, 408, 5xx), cuota, y desde ayer el modelo retirado— y paraba en todo lo
+demás. Con esa forma, *cada error que el mundo invente entra por defecto en el
+saco de «ríndete»*. Por eso, arreglado el 404, al día siguiente aparecieron un
+413 y un 400 haciendo exactamente lo mismo. Y aparecerían más.
+
+Ahora se enumera lo contrario, que es la lista corta y estable: **lo único que
+para es una petición que hicimos mal nosotros** —JSON inválido, un parámetro
+que ese proveedor no admite—, porque ahí probar otro modelo esconde el error de
+verdad. Todo lo demás tiene otro modelo esperando.
+
+Dos trampas que había que separar con cuidado:
+
+- **El 400 de un router no es culpa de la petición.** OpenRouter contesta 400
+  «Provider returned error» cuando el que falló fue el proveedor de detrás.
+  Meter todos los 400 en «petición inválida» habría dejado el mismo callejón
+  con otro nombre; por eso se mira el texto, no solo el código.
+- **Un mensaje demasiado grande tampoco lo es**, aunque llegue con un 400: la
+  petición está perfectamente formada, solo que no cabe.
+
+### «No te cabe» es su propia categoría
+
+El 413 de Groq no es un fallo del modelo ni de la clave: `qwen3.8-27b` está
+perfecto y la conversación pesaba 21.138 tokens contra un tope de 7.000 por
+minuto de esa cuenta. Elegir ese modelo otra vez para la misma conversación es
+repetir el error a sabiendas, y eso es lo que pasaba.
+
+`limites-medidos.ts` lo recuerda, separando lo que se sabe de lo que se supone:
+
+- si el proveedor **dijo el número** («Limit 7000»), se guarda el suyo;
+- si solo dijo «demasiado grande», se guarda **lo que se le pidió**, y a partir
+  de ahí solo se descarta para mensajes igual de grandes o más — prohibir por
+  debajo sería inventarse un límite que nadie dijo;
+- y **caduca a las seis horas**, porque muchos de estos topes son por minuto:
+  sin caducidad, un pico de tráfico de un martes apartaría ese modelo para
+  siempre.
+
+El failover ya no salta a un modelo que acaba de decir que no le cabe, y el
+aviso dice «la conversación no le cabe a X» en vez de «X falló», que manda a
+mirar la clave.
+
+### Pruebas
+
+- 13 unitarios nuevos: los tres errores de las capturas, con su texto literal,
+  comprobando que los tres **siguen** (con cadena y sin ella); que el 400 del
+  router no cuenta como petición inválida; y que el número del error se extrae
+  sin inventarlo cuando no está.
+- 7 unitarios de `limites-medidos.ts`, incluido que dos negativas seguidas no
+  pueden ampliar un límite.
+- 2 E2E con el 413 **literal de Groq** servido por el mock: que acaba habiendo
+  respuesta, y que el 7000 que se guarda es el que dijo el proveedor.
+- Verificado en rojo: con la polaridad vieja, las dos E2E fallan.
+
+**Cuatro pruebas viejas se han reescrito, y hay que decirlo claro**: fijaban la
+polaridad anterior («un modelo manual solo avanza en fallos pasajeros», «un 400
+o un 404 NO»). No se han tocado para que pasen: la regla cambió a propósito y
+ahora dicen la nueva, con el caso que sí para —petición inválida— explícito en
+cada una. Una de ellas era mía, de ayer.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 708** unitarios (1 694 antes) ·
+  ✓ **205** E2E, suite completa dos veces
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+
+### Lo que sigue sin resolverse
+
+- **Si la conversación no le cabe a NINGUNO de tus modelos**, no hay a dónde
+  ir. Lo que tocaría entonces es recortar el contexto y reintentar —el modo
+  ahorro y la ventana de contexto ya existen, pero nadie los aplica solo—.
+  Queda pendiente y dicho.
+- **El tope se estima con caracteres ÷ 4** para decidir a quién saltar. Es la
+  misma regla del medidor de contexto y es aproximada; sirve para descartar lo
+  que seguro no cabe, no para prometer que lo demás sí.

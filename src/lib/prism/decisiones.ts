@@ -34,6 +34,8 @@ export interface EstadoIntento {
   mensajeCuota: boolean;
   /** el proveedor dijo que ese modelo no existe (404, «no endpoints found»…) */
   modeloMuerto?: boolean;
+  /** la petición estaba mal hecha por nosotros: es lo ÚNICO que se para */
+  peticionInvalida?: boolean;
   /** modelo «Auto»: recorre la cadena en cualquier fallo */
   auto: boolean;
   /** saltos ya dados por esta misma respuesta */
@@ -87,6 +89,48 @@ export function esModeloMuerto(status: number, mensaje: string): boolean {
   return status === 404;
 }
 
+/** Frases con las que un proveedor dice «este mensaje no te cabe».
+ *
+ * Groq: «Request too large … input tokens per minute (ITPM): Limit 7000,
+ * Requested 21138». OpenAI y compatibles: «maximum context length is …».
+ * No es un fallo del modelo ni de la petición: es que ESTE modelo, con ESTA
+ * cuenta, no admite un mensaje de este tamaño. */
+const TEXTO_DEMASIADO_GRANDE =
+  /(request too large|too many tokens|maximum context length|context.{0,20}too long|reduce your message size|tokens per minute|\bITPM\b|\bTPM\b|payload too large)/i;
+
+export function esDemasiadoGrande(status: number, mensaje: string): boolean {
+  return status === 413 || TEXTO_DEMASIADO_GRANDE.test(mensaje);
+}
+
+/** Lo que el proveedor dijo que admite y lo que le pedimos, si lo dice.
+ *
+ * Groq lo escribe en el propio error, y es el dato con el que se puede evitar
+ * volver a elegir ese modelo para un mensaje igual de grande. Sin números
+ * reconocibles devuelve `null`: adivinarlos sería inventarse el límite. */
+export function limiteDelMensaje(mensaje: string): { limite: number; pedido: number } | null {
+  const m = mensaje.match(/limit\s+(\d[\d.,]*)[^\d]{0,40}?requested\s+(\d[\d.,]*)/i);
+  if (!m) return null;
+  const limite = Number(m[1].replace(/[.,]/g, ""));
+  const pedido = Number(m[2].replace(/[.,]/g, ""));
+  if (!Number.isFinite(limite) || !Number.isFinite(pedido) || limite <= 0) return null;
+  return { limite, pedido };
+}
+
+/** Frases que sí delatan que la petición estaba mal HECHA por nosotros.
+ *
+ * Es la única familia que merece parar, y por eso se enumera explícitamente en
+ * vez de darla por supuesta. Ojo con los routers: OpenRouter contesta 400
+ * «Provider returned error» cuando el que falló fue el proveedor de detrás —
+ * eso NO es culpa de la petición y no puede caer aquí. */
+const TEXTO_PETICION_INVALIDA =
+  /(invalid json|malformed|unsupported (?:parameter|value|field)|unrecognized (?:request )?argument|missing required (?:parameter|field)|invalid_request_error|is not a valid|failed to parse)/i;
+
+export function esPeticionInvalida(status: number, mensaje: string): boolean {
+  if (esDemasiadoGrande(status, mensaje)) return false;
+  if (status !== 400 && status !== 422) return false;
+  return TEXTO_PETICION_INVALIDA.test(mensaje);
+}
+
 /**
  * Siguiente candidato de la cadena.
  *
@@ -113,17 +157,22 @@ export function decidirTrasError(e: EstadoIntento): Decision {
   const indice = siguienteIndice(e);
   const hayMas = indice >= 0;
 
-  // Auto avanza en CUALQUIER fallo: para eso lo eligió el usuario.
-  if (e.auto && hayMas) return { tipo: "siguiente", indice };
+  // ——— La regla, del revés que antes ———
+  //
+  // Esto enumeraba los fallos que MERECEN reintento y paraba en todo lo demás.
+  // Con eso, cada error nuevo que aparecía —un 413 de Groq por tamaño, un 400
+  // «Provider returned error» de OpenRouter— caía en el saco de «ríndete» y
+  // dejaba la conversación muerta con cuatro proveedores conectados al lado.
+  // Tres capturas seguidas, tres errores distintos, tres callejones.
+  //
+  // Ahora se enumera lo contrario: lo único que para es una petición que
+  // NOSOTROS hicimos mal, porque ahí probar otro modelo esconde el error de
+  // verdad. Todo lo demás —el proveedor caído, el modelo retirado, el mensaje
+  // demasiado grande, el router que devuelve el fallo de otro— tiene otro
+  // modelo esperando, y no usarlo es justo lo que molestaba.
+  if (e.peticionInvalida) return { tipo: "parar" };
 
-  // Con modelo manual se avanza en fallos pasajeros… y también cuando el
-  // modelo elegido YA NO EXISTE. Antes esto último paraba, con el argumento de
-  // «no escondas el problema»; pero pararse tampoco lo enseña, solo deja al
-  // usuario con un error rojo. Se sigue con otro y se le dice cuál murió, que
-  // es lo que le deja arreglarlo.
-  if (!e.auto && hayMas && (esPasajero(e.status) || e.modeloMuerto) && e.depth < e.maxSaltos) {
-    return { tipo: "siguiente", indice };
-  }
+  if (hayMas && (e.auto || e.depth < e.maxSaltos)) return { tipo: "siguiente", indice };
 
   if (e.depth >= e.maxSaltos) return { tipo: "parar" };
 
@@ -141,24 +190,27 @@ export function decidirTrasError(e: EstadoIntento): Decision {
   // Lo mismo con un modelo que ya no existe, que es donde se paraba incluso
   // con Auto puesto: agotada la cadena, un 404 se rendía en vez de mirar a los
   // otros proveedores conectados. Un modelo retirado no vuelve por esperar.
-  if (esPasajero(e.status) || e.modeloMuerto) return { tipo: "failover" };
-
-  return { tipo: "parar" };
+  // Sin cadena que seguir, se sale a buscar otro proveedor conectado. Antes
+  // esto solo pasaba con fallos pasajeros: un 413 o un 400 del router se
+  // rendían teniendo a dónde ir.
+  return { tipo: "failover" };
 }
 
 /** Por qué se está saltando de proveedor. Lo pide la interfaz: hasta ahora
  *  TODOS los avisos del failover decían «cuota gratis agotada», también cuando
  *  el proveedor estaba caído o la clave era de pago. Decirle a alguien con una
  *  clave Pro que se le acabó la cuota gratis manda a mirar donde no es. */
-export type MotivoFailover = "cuota" | "caido" | "retirado" | "otro";
+export type MotivoFailover = "cuota" | "caido" | "retirado" | "grande" | "otro";
 
 export function motivoDelFallo(
   status: number,
   mensajeCuota: boolean,
-  modeloMuerto = false
+  modeloMuerto = false,
+  demasiadoGrande = false
 ): MotivoFailover {
   if (status === 402 || status === 429 || mensajeCuota) return "cuota";
   if (modeloMuerto) return "retirado";
+  if (demasiadoGrande) return "grande";
   if (esPasajero(status)) return "caido";
   return "otro";
 }
@@ -169,6 +221,7 @@ export function tituloFailover(motivo: MotivoFailover, proveedor: string): strin
   if (motivo === "caido") return `${proveedor} no está respondiendo`;
   // Decir «falló» de un modelo retirado manda a mirar la clave, que está bien.
   if (motivo === "retirado") return `Ese modelo ya no existe en ${proveedor}`;
+  if (motivo === "grande") return `La conversación no le cabe a ese modelo`;
   return `${proveedor} falló`;
 }
 
@@ -177,6 +230,7 @@ export function tituloSinAlternativa(motivo: MotivoFailover, proveedor: string):
   if (motivo === "cuota") return `${proveedor} se quedó sin cuota`;
   if (motivo === "caido") return `${proveedor} no está respondiendo`;
   if (motivo === "retirado") return `Ese modelo ya no existe en ${proveedor}`;
+  if (motivo === "grande") return `La conversación no le cabe a ese modelo`;
   return `${proveedor} falló`;
 }
 

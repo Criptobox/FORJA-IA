@@ -46,6 +46,7 @@ import {
 } from "./health";
 import { useUsage } from "./usage";
 import { estaRoto, useModelosRotos } from "./modelos-rotos";
+import { cabe, useLimites } from "./limites-medidos";
 import { permitido } from "./vetados";
 import {
   avisoPrevio,
@@ -88,7 +89,10 @@ import { runProjectInMemory } from "./sandbox-runner";
 import {
   decidirTrasCuotaEnTexto,
   decidirTrasError,
+  esDemasiadoGrande,
   esModeloMuerto,
+  esPeticionInvalida,
+  limiteDelMensaje,
   decidirTrasVacio,
   motivoDelFallo,
   tituloFailover,
@@ -336,6 +340,14 @@ export function useGeneration(ctx: CtxGeneracion) {
       const session = st.sessions.find((s) => s.id === sessionId);
       const task = classifyTask(lastUserPrompt(session?.messages ?? []));
       const rotos = useModelosRotos.getState().rotos;
+      const limites = useLimites.getState().limites;
+      const ahora = Date.now();
+      // Tamaño del turno, con la misma regla del medidor de contexto
+      // (caracteres ÷ 4). Aproximado y dicho: sirve para descartar lo que
+      // seguro no cabe, no para prometer que lo demás sí.
+      const tokensDelTurno = Math.round(
+        (session?.messages ?? []).reduce((a, m) => a + m.content.length, 0) / 4
+      );
       const vetados = st.settings.proveedoresVetados ?? [];
       const blocked = (pid: ProviderId, mid: string) => {
         const h = useHealth.getState();
@@ -345,6 +357,9 @@ export function useGeneration(ctx: CtxGeneracion) {
         // saltar a un modelo que ya sabemos que el proveedor no reconoce es
         // cambiar un error por otro
         if (estaRoto(rotos, makeModelKey(pid, mid))) return true;
+        // Ni a uno que ya demostró que esta conversación no le cabe. Saltar a
+        // él sería cambiar un error por el mismo error.
+        if (!cabe(limites, makeModelKey(pid, mid), tokensDelTurno, ahora)) return true;
         // cuota a dos niveles: el modelo enfriado Y el proveedor entero (429/402)
         if (cooldownRemaining(h.entries[makeModelKey(pid, mid)]) > 0) return true;
         return providerCooldownRemaining(h.providerEntries[pid]) > 0;
@@ -752,6 +767,19 @@ export function useGeneration(ctx: CtxGeneracion) {
             // falta es el modelo. Antes caía en el mismo saco que una petición
             // inválida y la app se paraba con otros proveedores conectados.
             const muerto = esModeloMuerto(status, msg);
+            // «No te cabe» es su propia categoría: el modelo está bien, la
+            // clave está bien, y lo que sobra es la conversación. Se apunta lo
+            // que el proveedor dijo para no volver a elegirlo con un mensaje
+            // igual de grande — que era el caso de la captura de Groq.
+            const grande = esDemasiadoGrande(status, msg);
+            if (grande) {
+              const nums = limiteDelMensaje(msg);
+              useLimites.getState().anotar(makeModelKey(candidate.providerId, candidate.modelId), {
+                limite: nums?.limite ?? null,
+                rechazado: nums?.pedido ?? Math.max(1, Math.round(origChars / 4)),
+                at: Date.now(),
+              });
+            }
             if (muerto) {
               // Que Auto deje de elegirlo. Hasta ahora esto solo lo marcaba
               // «Probar modelos» desde Ajustes, así que un modelo retirado
@@ -769,6 +797,7 @@ export function useGeneration(ctx: CtxGeneracion) {
               status,
               mensajeCuota: isQuotaError(msg),
               modeloMuerto: muerto,
+              peticionInvalida: esPeticionInvalida(status, msg),
               auto,
               depth,
               maxSaltos: MAX_SALTOS,
@@ -782,8 +811,10 @@ export function useGeneration(ctx: CtxGeneracion) {
             if (decision.tipo === "siguiente") {
               const sig = chain[decision.indice];
               toast.warning(
-                muerto
-                  ? `${candidate.modelId} ya no existe`
+                grande
+                  ? `La conversación no le cabe a ${candidate.modelId}`
+                  : muerto
+                    ? `${candidate.modelId} ya no existe`
                   : auto
                     ? `Auto: ${candidate.modelId} falló`
                     : `${candidate.modelId} no respondió`,
@@ -809,7 +840,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                 depth,
                 continuaciones,
                 content,
-                motivoDelFallo(status, isQuotaError(msg), muerto)
+                motivoDelFallo(status, isQuotaError(msg), muerto, grande)
               );
             }
             break;

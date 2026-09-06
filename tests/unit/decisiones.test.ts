@@ -17,6 +17,9 @@ import {
   tituloSinAlternativa,
   type EstadoIntento,
   esModeloMuerto,
+  esDemasiadoGrande,
+  esPeticionInvalida,
+  limiteDelMensaje,
 } from "../../src/lib/prism/decisiones";
 
 const CADENA = [
@@ -72,11 +75,16 @@ describe("decidirTrasError", () => {
     expect(decidirTrasError(base({ status: 400 }))).toEqual({ tipo: "siguiente", indice: 1 });
   });
 
-  it("un modelo manual solo avanza en fallos pasajeros", () => {
+  it("un modelo manual también avanza: lo único que para es culpa nuestra", () => {
+    // Antes esto decía «solo avanza en fallos pasajeros», y por eso un 413 de
+    // Groq o un 400 de un router dejaban la conversación muerta. Ahora avanza
+    // en todo salvo cuando la petición estaba mal HECHA por nosotros.
     const manual = base({ auto: false });
     expect(decidirTrasError({ ...manual, status: 503 })).toEqual({ tipo: "siguiente", indice: 1 });
-    // un 400 con modelo manual no se esconde probando otro
-    expect(decidirTrasError({ ...manual, status: 400 })).toEqual({ tipo: "parar" });
+    expect(decidirTrasError({ ...manual, status: 413 })).toEqual({ tipo: "siguiente", indice: 1 });
+    expect(
+      decidirTrasError({ ...manual, status: 400, peticionInvalida: true })
+    ).toEqual({ tipo: "parar" });
   });
 
   it("agotada la cadena y sin cuota, se busca otro proveedor", () => {
@@ -89,8 +97,16 @@ describe("decidirTrasError", () => {
     ).toEqual({ tipo: "failover" });
   });
 
-  it("sin nada que rescatar y sin cuota, se para y se enseña el error", () => {
-    expect(decidirTrasError(base({ indice: 2, status: 400 }))).toEqual({ tipo: "parar" });
+  it("sin nada que rescatar, se busca fuera: hay proveedores conectados", () => {
+    // Aquí se paraba. Con un error cualquiera y la cadena agotada, la app se
+    // rendía teniendo a dónde ir — que es de lo que vinieron las capturas.
+    expect(decidirTrasError(base({ indice: 2, status: 400 }))).toEqual({ tipo: "failover" });
+  });
+
+  it("…salvo si la petición estaba mal hecha, que entonces sí para", () => {
+    expect(
+      decidirTrasError(base({ indice: 2, status: 400, peticionInvalida: true }))
+    ).toEqual({ tipo: "parar" });
   });
 
   it("el tope de saltos se respeta: no se encadena para siempre", () => {
@@ -153,9 +169,16 @@ describe("un fallo pasajero sin cadena salta de proveedor, no se para", () => {
     expect(decidirTrasError({ ...base, status: 0 }).tipo).toBe("failover");
   });
 
-  it("pero un 400 o un 404 NO: ahí el problema es la petición, no el momento", () => {
-    expect(decidirTrasError({ ...base, status: 400 }).tipo).toBe("parar");
-    expect(decidirTrasError({ ...base, status: 404 }).tipo).toBe("parar");
+  it("y un 400 o un 404 TAMBIÉN: un modelo caído no es motivo para rendirse", () => {
+    // Lo contrario de lo que decía esta prueba antes. El cambio es a propósito:
+    // enumerar los fallos «buenos» dejaba fuera todos los que aún no habían
+    // aparecido, y cada uno nuevo era un callejón sin salida.
+    expect(decidirTrasError({ ...base, status: 400 }).tipo).toBe("failover");
+    expect(decidirTrasError({ ...base, status: 404 }).tipo).toBe("failover");
+    // lo que sí para, y es lo único
+    expect(
+      decidirTrasError({ ...base, status: 400, peticionInvalida: true }).tipo
+    ).toBe("parar");
   });
 
   it("y el tope de saltos sigue mandando", () => {
@@ -245,9 +268,13 @@ describe("un modelo retirado no es un callejón sin salida", () => {
     expect(d.tipo, "un modelo retirado no vuelve por esperar").toBe("failover");
   });
 
-  it("sin la marca, ese mismo 404 se rendía: la prueba de que era eso", () => {
+  it("y ya no hace falta la marca: por defecto se busca otro", () => {
+    // Cuando se escribió esta prueba, sin `modeloMuerto` el 404 devolvía
+    // «parar». Al invertir la polaridad dejó de hacer falta la marca para no
+    // rendirse; la marca sigue valiendo para DECIR que el modelo está
+    // retirado en vez de «falló», y para apartarlo de futuras elecciones.
     const d = decidirTrasError({ ...base, status: 404, auto: true, cadena: uno });
-    expect(d.tipo).toBe("parar");
+    expect(d.tipo).toBe("failover");
   });
 
   it("una petición inválida SÍ se para: ahí probar otro esconde tu error", () => {
@@ -255,6 +282,9 @@ describe("un modelo retirado no es un callejón sin salida", () => {
       ...base,
       status: 400,
       modeloMuerto: false,
+      // el 400 por sí solo ya no basta para parar (un router devuelve 400 con
+      // el fallo de OTRO): hay que reconocer que la petición estaba mal hecha
+      peticionInvalida: true,
       auto: false,
       cadena: dos,
     });
@@ -267,5 +297,95 @@ describe("un modelo retirado no es un callejón sin salida", () => {
     expect(tituloSinAlternativa("retirado", "OpenRouter")).toMatch(/ya no existe/);
     // y sin la marca sigue diciendo lo de siempre
     expect(motivoDelFallo(503, false, false)).toBe("caido");
+  });
+});
+
+/** ——— Tres capturas, tres errores distintos, tres callejones ———
+ *
+ * El mismo día llegaron tres pantallazos seguidos: un 404 de OpenRouter, un
+ * 413 de Groq por tamaño y un 400 «Provider returned error». Los tres códigos
+ * distintos, los tres terminando la conversación con cuatro proveedores
+ * conectados al lado.
+ *
+ * La causa no era cada error: era la POLARIDAD. `decidirTrasError` enumeraba
+ * los fallos que merecen reintento y paraba en todo lo demás, así que cada
+ * error nuevo del mundo entraba por defecto en «ríndete». Ahora se enumera lo
+ * contrario, y lo único que para es una petición mal hecha por nosotros.
+ */
+describe("la polaridad: solo para lo que es culpa nuestra", () => {
+  const base = {
+    mensajeCuota: false,
+    depth: 0,
+    maxSaltos: 3,
+    indice: 0,
+    parcial: "",
+    rescatable: false,
+    auto: true,
+  };
+  const uno = [{ providerId: "groq", modelId: "qwen/qwen3.8-27b" }];
+  const dos = [...uno, { providerId: "gemini", modelId: "gemini-3.8-flash" }];
+
+  const GROQ_413 =
+    "Groq 413: Request too large for model `qwen/qwen3.8-27b` in organization `org_x` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Requested 21138, please reduce your message size and try again.";
+  const ROUTER_400 = "OpenRouter 400: Provider returned error";
+
+  it("el 413 de Groq se reconoce como «no te cabe», no como fallo del modelo", () => {
+    expect(esDemasiadoGrande(413, GROQ_413)).toBe(true);
+    expect(esDemasiadoGrande(400, "maximum context length is 8192 tokens")).toBe(true);
+    expect(esDemasiadoGrande(500, "internal error")).toBe(false);
+  });
+
+  it("y se le saca el número que el proveedor dijo, sin adivinar el que no", () => {
+    expect(limiteDelMensaje(GROQ_413)).toEqual({ limite: 7000, pedido: 21138 });
+    expect(limiteDelMensaje("Request too large, try again")).toBeNull();
+  });
+
+  it("el 400 del router NO es culpa de la petición: el que falló fue el de detrás", () => {
+    expect(esPeticionInvalida(400, ROUTER_400)).toBe(false);
+    expect(esPeticionInvalida(400, "Invalid JSON in request body")).toBe(true);
+    expect(esPeticionInvalida(422, "unsupported parameter: top_k")).toBe(true);
+    // un mensaje demasiado grande nunca es «petición inválida», aunque venga con 400
+    expect(esPeticionInvalida(400, "maximum context length is 8192")).toBe(false);
+  });
+
+  it("los tres casos de las capturas siguen, en vez de pararse", () => {
+    for (const [status, msg] of [
+      [404, "OpenRouter 404: No endpoints found for google/gemini-2.0-flash-exp:free"],
+      [413, GROQ_413],
+      [400, ROUTER_400],
+    ] as const) {
+      const conCadena = decidirTrasError({
+        ...base,
+        status,
+        cadena: dos,
+        modeloMuerto: esModeloMuerto(status, msg),
+        peticionInvalida: esPeticionInvalida(status, msg),
+      });
+      expect(conCadena, `${status} con cadena`).toEqual({ tipo: "siguiente", indice: 1 });
+
+      const sinCadena = decidirTrasError({
+        ...base,
+        status,
+        cadena: uno,
+        modeloMuerto: esModeloMuerto(status, msg),
+        peticionInvalida: esPeticionInvalida(status, msg),
+      });
+      expect(sinCadena.tipo, `${status} sin cadena`).toBe("failover");
+    }
+  });
+
+  it("una petición mal hecha SÍ para, aunque haya diez modelos esperando", () => {
+    const d = decidirTrasError({
+      ...base,
+      status: 400,
+      cadena: dos,
+      peticionInvalida: true,
+    });
+    expect(d.tipo, "probar otro escondería nuestro error").toBe("parar");
+  });
+
+  it("el aviso del tamaño no dice «falló»: dice que no cabe", () => {
+    expect(motivoDelFallo(413, false, false, true)).toBe("grande");
+    expect(tituloFailover("grande", "Groq")).toMatch(/no le cabe/);
   });
 });

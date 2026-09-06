@@ -18,6 +18,7 @@ const KEY = "test-key-123";
 /** Los modelos que este mock reconoce. Cualquier otro se rechaza, igual que
  *  haría un proveedor real. */
 const MODELOS = [
+  "mock-limite-7000",
   "mock-mini-free",
   "mock-big-free",
   "mock-pro-free",
@@ -492,6 +493,21 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
     return Response.json(
       { error: { message: `The model \`${body.model}\` does not exist`, code: "model_not_found" } },
       { status: 404 }
+    );
+  }
+  /* El 413 real de Groq, con su texto: «Request too large … input tokens per
+   * minute (ITPM): Limit 7000, Requested 21138». No es un fallo del modelo ni
+   * de la clave: es que la conversación no cabe, y hasta la v4.5.0 dejaba la
+   * pantalla en rojo sin probar nada más. */
+  if ((body.model ?? "").includes("mock-limite-7000")) {
+    return Response.json(
+      {
+        error: {
+          message:
+            "Request too large for model `mock-limite-7000` in organization `org_mock` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Requested 21138, please reduce your message size and try again.",
+        },
+      },
+      { status: 413 }
     );
   }
   // Simulación del límite real de AiHubMix: «cuentas sin recargar solo 10 intentos»
