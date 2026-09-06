@@ -88,6 +88,7 @@ import { runProjectInMemory } from "./sandbox-runner";
 import {
   decidirTrasCuotaEnTexto,
   decidirTrasError,
+  esModeloMuerto,
   decidirTrasVacio,
   motivoDelFallo,
   tituloFailover,
@@ -746,12 +747,28 @@ export function useGeneration(ctx: CtxGeneracion) {
             );
             settle(candidate, false, 0);
             const msg = err instanceof Error ? err.message : String(err);
+            // ¿El proveedor ha dicho que ese modelo ya no existe? Es una
+            // categoría aparte de «falló»: la petición estaba bien y lo que
+            // falta es el modelo. Antes caía en el mismo saco que una petición
+            // inválida y la app se paraba con otros proveedores conectados.
+            const muerto = esModeloMuerto(status, msg);
+            if (muerto) {
+              // Que Auto deje de elegirlo. Hasta ahora esto solo lo marcaba
+              // «Probar modelos» desde Ajustes, así que un modelo retirado
+              // seguía saliendo elegido turno tras turno.
+              useModelosRotos.getState().marcar(makeModelKey(candidate.providerId, candidate.modelId), {
+                status,
+                detail: msg.slice(0, 200),
+                at: Date.now(),
+              });
+            }
             // La decisión (¿otro modelo? ¿otro proveedor? ¿me rindo?) vive en
             // `decisiones.ts`, sin React de por medio y con sus propios tests.
             // Aquí solo queda ejecutarla y contarlo.
             const decision = decidirTrasError({
               status,
               mensajeCuota: isQuotaError(msg),
+              modeloMuerto: muerto,
               auto,
               depth,
               maxSaltos: MAX_SALTOS,
@@ -765,7 +782,11 @@ export function useGeneration(ctx: CtxGeneracion) {
             if (decision.tipo === "siguiente") {
               const sig = chain[decision.indice];
               toast.warning(
-                auto ? `Auto: ${candidate.modelId} falló` : `${candidate.modelId} no respondió`,
+                muerto
+                  ? `${candidate.modelId} ya no existe`
+                  : auto
+                    ? `Auto: ${candidate.modelId} falló`
+                    : `${candidate.modelId} no respondió`,
                 {
                   description: `Saltando a ${sig.modelId} · ${PROVIDER_MAP[sig.providerId]?.name ?? ""}`,
                   duration: 6000,
@@ -788,7 +809,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                 depth,
                 continuaciones,
                 content,
-                motivoDelFallo(status, isQuotaError(msg))
+                motivoDelFallo(status, isQuotaError(msg), muerto)
               );
             }
             break;

@@ -16,6 +16,7 @@ import {
   tituloFailover,
   tituloSinAlternativa,
   type EstadoIntento,
+  esModeloMuerto,
 } from "../../src/lib/prism/decisiones";
 
 const CADENA = [
@@ -185,5 +186,86 @@ describe("el aviso del failover dice la causa real", () => {
   it("un 400 no es ni cuota ni caída", () => {
     expect(motivoDelFallo(400, false)).toBe("otro");
     expect(tituloFailover("otro", "X")).not.toMatch(/cuota/i);
+  });
+});
+
+/** ——— El modelo que ya no existe ———
+ *
+ * Caso real, con captura: Auto eligió `google/gemini-2.0-flash-exp:free` en
+ * OpenRouter, llegó «404 No endpoints found» y la app **se paró en seco**,
+ * teniendo otros cuatro proveedores conectados. Un 404 no es pasajero, cierto,
+ * pero es justo el fallo que se arregla probando otro modelo: la petición
+ * estaba bien y lo que falta es el modelo.
+ */
+describe("un modelo retirado no es un callejón sin salida", () => {
+  const base = {
+    mensajeCuota: false,
+    depth: 0,
+    maxSaltos: 3,
+    indice: 0,
+    parcial: "",
+    rescatable: false,
+  };
+  const uno = [{ providerId: "openrouter", modelId: "google/gemini-2.0-flash-exp:free" }];
+  const dos = [...uno, { providerId: "gemini", modelId: "gemini-3.8-flash" }];
+
+  it("reconoce las frases con las que lo dicen los proveedores", () => {
+    expect(esModeloMuerto(404, "OpenRouter 404: No endpoints found for google/x:free")).toBe(true);
+    expect(esModeloMuerto(400, "The model `gpt-9` does not exist")).toBe(true);
+    expect(esModeloMuerto(400, "model_not_found")).toBe(true);
+    expect(esModeloMuerto(404, "cualquier cosa")).toBe(true);
+  });
+
+  it("y NO confunde con un fallo normal ni con una petición mal hecha", () => {
+    expect(esModeloMuerto(400, "Invalid JSON in request body")).toBe(false);
+    expect(esModeloMuerto(429, "rate limit")).toBe(false);
+    expect(esModeloMuerto(503, "high demand")).toBe(false);
+  });
+
+  it("con cadena, salta al siguiente modelo aunque el modelo sea manual", () => {
+    const d = decidirTrasError({
+      ...base,
+      status: 404,
+      modeloMuerto: true,
+      auto: false,
+      cadena: dos,
+    });
+    expect(d).toEqual({ tipo: "siguiente", indice: 1 });
+  });
+
+  it("SIN cadena busca fuera, que es lo que no hacía", () => {
+    // Este es el caso de la captura: Auto, último de la cadena, 404.
+    const d = decidirTrasError({
+      ...base,
+      status: 404,
+      modeloMuerto: true,
+      auto: true,
+      cadena: uno,
+    });
+    expect(d.tipo, "un modelo retirado no vuelve por esperar").toBe("failover");
+  });
+
+  it("sin la marca, ese mismo 404 se rendía: la prueba de que era eso", () => {
+    const d = decidirTrasError({ ...base, status: 404, auto: true, cadena: uno });
+    expect(d.tipo).toBe("parar");
+  });
+
+  it("una petición inválida SÍ se para: ahí probar otro esconde tu error", () => {
+    const d = decidirTrasError({
+      ...base,
+      status: 400,
+      modeloMuerto: false,
+      auto: false,
+      cadena: dos,
+    });
+    expect(d.tipo).toBe("parar");
+  });
+
+  it("el aviso dice que el modelo está retirado, no que la clave falló", () => {
+    expect(motivoDelFallo(404, false, true)).toBe("retirado");
+    expect(tituloFailover("retirado", "OpenRouter")).toMatch(/ya no existe/);
+    expect(tituloSinAlternativa("retirado", "OpenRouter")).toMatch(/ya no existe/);
+    // y sin la marca sigue diciendo lo de siempre
+    expect(motivoDelFallo(503, false, false)).toBe("caido");
   });
 });

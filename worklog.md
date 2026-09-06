@@ -4629,3 +4629,69 @@ sola novedad», y al añadir las dos de Z.ai había tres. Ahora los deriva de
   la web de cada proveedor. Donde no llega —los `:free` de OpenRouter, los
   nombres propios de Cerebras— el informe dice «sin ficha», que significa «no
   se sabe», no «está mal».
+
+## v4.4.0 — Un modelo retirado dejaba la conversación muerta
+
+Llega una captura: Auto elige `google/gemini-2.0-flash-exp:free` en OpenRouter,
+el proveedor contesta **«404 No endpoints found»**… y ahí se queda. Error rojo,
+fin. Con otros cuatro proveedores conectados y sin intentar ninguno.
+
+### Por qué se paraba
+
+`decidirTrasError` tenía dos categorías: **pasajero** (0, 408, 5xx → reintenta)
+y todo lo demás (ríndete). Un 404 caía en el segundo saco, junto a una petición
+mal formada. Y son lo contrario:
+
+- **petición inválida** → probar otro modelo esconde TU error, y parar es lo
+  correcto;
+- **modelo que ya no existe** → la petición estaba perfecta; lo que falta es el
+  modelo. Probar otro no esconde nada: es lo único sensato.
+
+Faltaba la categoría. `esModeloMuerto(status, mensaje)` la añade, mirando el
+código **y** el texto —«no endpoints found», «does not exist», «model_not_found»,
+«no longer available»…—, porque ni el 404 solo ni la frase sola bastan: hay
+proveedores que dicen «no existe» con un 400.
+
+### Lo que ahora pasa
+
+- **Con cadena**: salta al siguiente modelo. También con modelo elegido a mano;
+  antes eso paraba «para no esconder el problema», pero pararse tampoco lo
+  enseña — solo te deja un error rojo. Se sigue, y se dice cuál murió.
+- **Sin cadena**: sale a buscar a otro proveedor conectado. Este era el caso de
+  la captura, y el que se rendía incluso con Auto puesto.
+- **Se marca el modelo como roto**, así que Auto deja de elegirlo. Hasta ahora
+  eso solo lo hacía «Probar modelos» desde Ajustes: en una conversación normal,
+  un modelo retirado volvía a salir elegido turno tras turno.
+- **El aviso dice la verdad**: «Ese modelo ya no existe en OpenRouter», no
+  «OpenRouter falló», que manda a mirar la clave, que está bien.
+
+### Y el modelo concreto de la captura
+
+`google/gemini-2.0-flash-exp:free` sale de la lista de OpenRouter. Aquí sí hay
+prueba de primera mano —un 404 del proveedor en una conversación real—, que es
+distinto de los otros `:free` de esa lista: el auditor de la v4.3.0 los da como
+«sin ficha», y eso significa «no se sabe», no «está muerto». Esos se quedan.
+
+### Pruebas
+
+- 7 unitarios nuevos en `decisiones.test.ts`, incluido el que fija la conducta
+  vieja: **sin la marca, ese mismo 404 devuelve «parar»**. Es la prueba de que
+  la causa era esa y no otra.
+- 2 E2E con el 404 de verdad del mock: que acaba **habiendo respuesta** (no un
+  error rojo) y que el modelo muerto queda marcado en el almacén.
+- Verificado en rojo: devolviendo la conducta anterior, las dos fallan.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 694** unitarios (1 687 antes) ·
+  ✓ **203** E2E, suite completa dos veces
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+
+### Lo que sigue sin cubrirse
+
+Un modelo que existe pero devuelve basura —200 con texto vacío o un aviso del
+proveedor disfrazado de respuesta— tiene su propio camino (`decidirTrasVacio`,
+`decidirTrasCuotaEnTexto`) y no se ha tocado aquí. Y el failover sigue sin
+poder saltar a un proveedor que no tengas conectado: si el único que tienes se
+queda sin modelos vivos, no hay a dónde ir.

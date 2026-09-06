@@ -137,7 +137,9 @@ export const PROVIDERS: ProviderDef[] = [
     defaultModels: [
       "deepseek/deepseek-chat-v3-0324:free",
       "meta-llama/llama-3.3-70b-instruct:free",
-      "google/gemini-2.0-flash-exp:free",
+      // «google/gemini-2.0-flash-exp:free» quitado: OpenRouter contestó
+      // «404 No endpoints found» en una conversación real. Los demás «:free»
+      // se quedan — nadie ha demostrado que estén muertos.
       "qwen/qwen3-coder:free",
       "z-ai/glm-4.5-air:free",
     ],

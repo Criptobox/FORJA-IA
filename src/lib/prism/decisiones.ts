@@ -32,6 +32,8 @@ export interface EstadoIntento {
   status: number;
   /** mensaje del proveedor, para reconocer la cuota escrita en texto */
   mensajeCuota: boolean;
+  /** el proveedor dijo que ese modelo no existe (404, «no endpoints found»…) */
+  modeloMuerto?: boolean;
   /** modelo «Auto»: recorre la cadena en cualquier fallo */
   auto: boolean;
   /** saltos ya dados por esta misma respuesta */
@@ -48,9 +50,41 @@ export interface EstadoIntento {
 }
 
 /** Un fallo pasajero: merece reintentar con otro modelo aunque el modelo sea
- *  manual. Un 400 o un 404 no — ahí el problema es la petición, no el momento. */
+ *  manual. Un 400 no — ahí el problema es la petición, no el momento. */
 export function esPasajero(status: number): boolean {
   return status === 0 || status === 408 || status >= 500;
+}
+
+/** Frases con las que los proveedores dicen «ese modelo no existe».
+ *
+ * OpenRouter contesta «No endpoints found for google/gemini-2.0-flash-exp:free»
+ * con un 404; OpenAI y los compatibles, «The model ... does not exist» —a veces
+ * con 404 y a veces con 400—. El código solo no basta, y el texto solo tampoco:
+ * se miran los dos. */
+const TEXTO_MODELO_MUERTO =
+  /(no endpoints found|does not exist|model_not_found|unknown model|no such model|model .{0,40}not found|deprecated|no longer (?:available|supported)|has been (?:retired|removed|sunset))/i;
+
+/**
+ * ¿El modelo que se pidió ya no está?
+ *
+ * Es la categoría que faltaba y por la que la app se paraba en seco. Antes solo
+ * había dos: «pasajero» (reintenta) y todo lo demás (ríndete). Un modelo
+ * retirado caía en el segundo saco junto a una petición mal formada, y son lo
+ * contrario:
+ *
+ *  · petición inválida → probar otro modelo esconde TU error;
+ *  · modelo que ya no existe → la petición estaba bien, lo que falta es el
+ *    modelo, y probar otro es exactamente lo que hay que hacer.
+ *
+ * Se vio con Auto puesto: eligió un modelo retirado de OpenRouter, llegó el
+ * 404 y la respuesta se quedó ahí, en rojo, teniendo el usuario otros cuatro
+ * proveedores conectados.
+ */
+export function esModeloMuerto(status: number, mensaje: string): boolean {
+  if (TEXTO_MODELO_MUERTO.test(mensaje)) return true;
+  // Un 404 pelado del endpoint de chat es «ese modelo no está aquí»: la ruta
+  // existe (si no, no habríamos llegado a hablar con el proveedor).
+  return status === 404;
 }
 
 /**
@@ -82,9 +116,12 @@ export function decidirTrasError(e: EstadoIntento): Decision {
   // Auto avanza en CUALQUIER fallo: para eso lo eligió el usuario.
   if (e.auto && hayMas) return { tipo: "siguiente", indice };
 
-  // Con modelo manual solo se avanza en fallos pasajeros: si el modelo no
-  // existe o la petición es inválida, probar otro es esconder el problema.
-  if (!e.auto && hayMas && esPasajero(e.status) && e.depth < e.maxSaltos) {
+  // Con modelo manual se avanza en fallos pasajeros… y también cuando el
+  // modelo elegido YA NO EXISTE. Antes esto último paraba, con el argumento de
+  // «no escondas el problema»; pero pararse tampoco lo enseña, solo deja al
+  // usuario con un error rojo. Se sigue con otro y se le dice cuál murió, que
+  // es lo que le deja arreglarlo.
+  if (!e.auto && hayMas && (esPasajero(e.status) || e.modeloMuerto) && e.depth < e.maxSaltos) {
     return { tipo: "siguiente", indice };
   }
 
@@ -100,7 +137,11 @@ export function decidirTrasError(e: EstadoIntento): Decision {
   // uno solo y el error se quedaba en pantalla sin intentar nada más. Tener
   // otros proveedores conectados y no usarlos cuando el tuyo está caído es
   // justo lo que el failover existe para evitar.
-  if (esPasajero(e.status)) return { tipo: "failover" };
+  //
+  // Lo mismo con un modelo que ya no existe, que es donde se paraba incluso
+  // con Auto puesto: agotada la cadena, un 404 se rendía en vez de mirar a los
+  // otros proveedores conectados. Un modelo retirado no vuelve por esperar.
+  if (esPasajero(e.status) || e.modeloMuerto) return { tipo: "failover" };
 
   return { tipo: "parar" };
 }
@@ -109,10 +150,15 @@ export function decidirTrasError(e: EstadoIntento): Decision {
  *  TODOS los avisos del failover decían «cuota gratis agotada», también cuando
  *  el proveedor estaba caído o la clave era de pago. Decirle a alguien con una
  *  clave Pro que se le acabó la cuota gratis manda a mirar donde no es. */
-export type MotivoFailover = "cuota" | "caido" | "otro";
+export type MotivoFailover = "cuota" | "caido" | "retirado" | "otro";
 
-export function motivoDelFallo(status: number, mensajeCuota: boolean): MotivoFailover {
+export function motivoDelFallo(
+  status: number,
+  mensajeCuota: boolean,
+  modeloMuerto = false
+): MotivoFailover {
   if (status === 402 || status === 429 || mensajeCuota) return "cuota";
+  if (modeloMuerto) return "retirado";
   if (esPasajero(status)) return "caido";
   return "otro";
 }
@@ -121,6 +167,8 @@ export function motivoDelFallo(status: number, mensajeCuota: boolean): MotivoFai
 export function tituloFailover(motivo: MotivoFailover, proveedor: string): string {
   if (motivo === "cuota") return `Cuota agotada en ${proveedor}`;
   if (motivo === "caido") return `${proveedor} no está respondiendo`;
+  // Decir «falló» de un modelo retirado manda a mirar la clave, que está bien.
+  if (motivo === "retirado") return `Ese modelo ya no existe en ${proveedor}`;
   return `${proveedor} falló`;
 }
 
@@ -128,6 +176,7 @@ export function tituloFailover(motivo: MotivoFailover, proveedor: string): strin
 export function tituloSinAlternativa(motivo: MotivoFailover, proveedor: string): string {
   if (motivo === "cuota") return `${proveedor} se quedó sin cuota`;
   if (motivo === "caido") return `${proveedor} no está respondiendo`;
+  if (motivo === "retirado") return `Ese modelo ya no existe en ${proveedor}`;
   return `${proveedor} falló`;
 }
 
