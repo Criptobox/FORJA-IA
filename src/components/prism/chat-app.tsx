@@ -52,6 +52,7 @@ import { SandboxStudio } from "./sandbox-studio";
 import { ConvoTabs } from "./convo-tabs";
 import { abrirTab, cerrarTab } from "@/lib/prism/tabs";
 import type { PublishSeed, SandboxSeed } from "@/lib/prism/sandbox";
+import { conKit } from "@/lib/prism/efectos";
 import { OnboardingDialog } from "./onboarding";
 import { PreviewPanel } from "./preview-panel";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/prism/use-media-query";
@@ -640,7 +641,9 @@ export function ChatApp() {
    * guarda como pendiente y se ofrece con un toast con botón. */
   const aplicarArchivosAgente = useCallback(
     (files: Record<string, string>) => {
-      const entradas = Object.entries(files);
+      // el kit de efectos viaja también al Sandbox: si el agente lo enlaza y
+      // no lo escribió, el proyecto que abres tiene que traerlo
+      const entradas = Object.entries(conKit(files));
       if (!entradas.length) return;
       const seed: SandboxSeed = {
         name: sandboxInitial?.name ?? "proyecto del agente",

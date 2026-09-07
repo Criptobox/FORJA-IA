@@ -17,6 +17,8 @@
  * proyectos se guarda en `memoria-proyecto.ts` (DisenoUsado).
  */
 
+import { efectosDe, promptEfectos } from "./efectos";
+
 /** Una dirección visual completa y autocontenida. */
 export interface DireccionVisual {
   id: string;
@@ -251,6 +253,17 @@ export function aDesignMd(d: DireccionVisual, nombreProyecto?: string): string {
     "## Detalles con intención",
     d.detalle,
     "",
+    "## Efectos (kit local `prism-fx`)",
+    ...(() => {
+      const { usa, evita } = efectosDe(d.id);
+      if (!usa.length) return ["Esta dirección no usa el kit de efectos."];
+      return [
+        `Propios: ${usa.map((e) => e.id).join(", ")}.`,
+        `Prohibidos: ${evita.join(", ")} — romperían el mundo visual de esta dirección.`,
+        "Los archivos `prism-fx.css` y `prism-fx.js` viajan con el proyecto: son locales, no un CDN.",
+      ];
+    })(),
+    "",
   ].join("\n");
 }
 
@@ -287,9 +300,16 @@ export function promptDireccion(e: EleccionDireccion): string {
     `Detalles: ${d.detalle}.`,
     anuncio,
     "",
+    // Los efectos van ATADOS a la dirección: un catálogo suelto produce el
+    // mismo AI-slop con más brillo. Cada mundo trae los suyos y prohíbe los
+    // que lo desmontarían.
+    promptEfectos(d.id),
+    "",
     "Antes de entregar, corrígete contra esta checklist y arregla lo que falle:",
     CHECKLIST_ANTI_SLOP,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /** Variación forzada: ¿el encargo pide UI nueva (y no un retoque)?

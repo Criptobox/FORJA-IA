@@ -4995,3 +4995,132 @@ comprobado».
   aviso, pero una página generada que guarda datos «funciona» hasta que
   recargas. Persistirlo de verdad exige un puente al padre, y eso es superficie
   nueva entre el iframe y la app: no se ha hecho a la ligera.
+
+---
+
+## v4.8.0 — Un kit de efectos propio, atado a la dirección visual
+
+La pregunta era: «¿podemos añadir una librería de efectos para hacer diseños
+más pro en las páginas?». Sí, y se nota. Pero **no por CDN**, y no como
+catálogo suelto.
+
+### Por qué no un CDN
+
+La página generada acaba en tres sitios donde una dependencia de terceros es un
+problema distinto:
+
+1. **La vista previa**, un iframe con `srcdoc` y sin `allow-same-origin`. Un
+   `<script src="https://cdn…">` carga, sí — hasta el día que no. Y entonces la
+   página se ve rota **sin decir por qué**: Prism no sabe distinguir «tu código
+   falla» de «no cargó la librería», así que el agente intentaría «arreglar»
+   código que está perfecto.
+2. **El ZIP que te descargas**, que tiene que abrirse con doble clic y ya.
+3. **Tu GitHub Pages**, donde esa dependencia pasa a ser tuya para siempre.
+
+El kit son dos archivos de ~5,7 KB y ~6 KB que **viajan dentro del proyecto**.
+Sin red, sin versiones que se rompen, sin licencias que explicar. Lo que ves en
+la vista previa es exactamente lo que se publica.
+
+### Por qué atados a la dirección visual
+
+Un catálogo de efectos suelto produce el mismo AI-slop, solo que con brillo:
+todas las páginas con el mismo desvanecido al hacer scroll. Cada una de las
+cinco direcciones declara ahora **los suyos y los que tiene prohibidos**, y la
+lista negra importa tanto como la otra — sin ella el modelo mete el fade suave
+en todas partes, porque es lo que ha visto un millón de veces. Un neobrutalismo
+con desvanecidos deja de ser neobrutalismo; un editorial con inclinación 3D es
+una web de plantilla.
+
+- **editorial** — reveal, stagger, split, underline, parallax, noise. Prohibido:
+  tilt, spotlight, sheen, float, mesh, marquee.
+- **minimal** — reveal, stagger, count, underline, float. Prohibido: marquee,
+  noise, tilt, spotlight, sheen, pop.
+- **tech** — reveal, count, spotlight, sheen, grid, tilt. Prohibido: float,
+  blob, noise, split, marquee.
+- **brutalista** — pop (corte seco, sin desvanecido), marquee, tilt, sheen,
+  split. Prohibido: reveal, float, blob, spotlight, mesh, noise.
+- **calido** — reveal, stagger, float, blob, noise, parallax. Prohibido:
+  marquee, grid, spotlight, sheen, pop, tilt.
+
+Un unitario comprueba que **ninguna dirección repite la receta de otra**: si un
+día todas usan lo mismo, el kit se ha convertido en otra plantilla.
+
+### La regla de oro: todo se ve sin JavaScript
+
+Los efectos **quitan** un estado, no lo ponen. El CSS solo esconde bajo la clase
+`.fx-on`, que pone el script **después** de comprobar que puede animar. Sin JS,
+sin `IntersectionObserver` o con `prefers-reduced-motion`, no se esconde nada y
+la página se ve entera. Hay un unitario que recorre el CSS regla a regla —cada
+selector por separado, no el bloque entero— y falla si aparece un `opacity: 0`
+fuera de esa guarda.
+
+Y una red de seguridad: si el observer no llega a disparar (un iframe que no se
+desplaza, una pestaña en segundo plano), a los 1,2 s se revela todo. Un efecto
+que se pierde es una molestia; contenido invisible es un fallo.
+
+### Lo que casi rompe esto, y no se vio venir
+
+El QA visual y el barrido de botones **ignoran a propósito lo que tiene
+`opacity: 0`** —no se mide lo que no se ve—, y una sección que aún no ha
+entrado por scroll está exactamente así. Sin tocar nada, una página con efectos
+se habría revisado solo en el primer pantallazo y el informe habría dicho «sin
+problemas» de lo que nunca miró: el peor resultado posible, porque parece una
+comprobación y no lo es.
+
+Así que antes de medir se **asienta** la página: todos los `[data-fx]` marcados
+como ya entrados y las transiciones apagadas (`html.fx-medir`) para que el
+estilo calculado sea el final **en ese mismo instante** — con la transición
+corriendo, medir justo después seguiría leyendo opacidad 0.
+
+Y se deshace al terminar. Esto salió de la propia prueba: la primera versión
+asentaba y no restauraba, así que el medidor le revelaba los efectos al usuario
+y en la vista previa no se veía ni una animación. **Medir no puede cambiar lo
+medido.**
+
+### El modelo no escribe el kit
+
+Solo lo enlaza (`<link href="prism-fx.css">`, `<script src="prism-fx.js">`) y
+Prism añade los dos archivos al proyecto por su cuenta, en el mismo embudo por
+el que pasan la vista previa, el ZIP y la revisión automática — y también al
+Sandbox cuando lo escribe el agente. Escribirlo costaría unos 2.500 tokens de
+salida **por respuesta**, saldría distinto cada vez y con erratas.
+
+Nunca pisa un archivo que ya venga: si el modelo escribió el suyo, o tú lo
+editaste en el Sandbox, manda el tuyo.
+
+### Pruebas
+
+- 22 unitarios de `efectos.ts`: que lo empaquetado es idéntico a `assets/`, que
+  no hay ni un `url(https:` ni un `fetch(`, que el JS no toca almacenamiento
+  (en la vista previa lanzaría `SecurityError`), que nada se esconde sin
+  `.fx-on`, que cada dirección tiene receta propia y sin contradicciones, y que
+  el bloque del prompt no engorda por encima de 1.200 caracteres.
+- 3 E2E: que Prism añade los dos archivos (medido en el menú de descarga, que
+  cuenta los archivos **reales** — el nombre del archivo sale en el chat de
+  todas formas y comprobar eso no probaba nada), que sin JS el titular se ve, y
+  que lo que entra por scroll acaba visible aunque nadie haga scroll.
+- Verificados en rojo los tres. El de la red de seguridad **no lo estaba** al
+  principio: pasaba igual con la red quitada, porque quien revelaba era el
+  asentador del QA. Se vio al restaurar la página después de medir, que es lo
+  que había que hacer de todas formas.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 775** unitarios (1 753 antes) ·
+  ✓ **217** E2E, suite completa dos veces
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+
+### Lo que sigue sin hacerse
+
+- **Nadie comprueba que el modelo respeta la lista negra.** El prompt dice qué
+  está prohibido en cada dirección, y eso es todo: si un modelo mete `float` en
+  un neobrutalismo, la página se publica igual. Se podría revisar el HTML
+  entregado contra la lista y devolvérselo, como ya se hace con los errores de
+  consola.
+- **El kit no se ve en ninguna parte antes de usarlo.** No hay una página de
+  muestra donde mirar los diecisiete efectos y decidir. Hoy se descubren
+  leyendo el `DESIGN.md` del proyecto.
+- **Los efectos no entran en el medidor del prompt.** El bloque suma unos 400
+  caracteres en cada generación de UI y se paga en cada llamada; está acotado y
+  probado, pero no aparece desglosado en el HUD de contexto.

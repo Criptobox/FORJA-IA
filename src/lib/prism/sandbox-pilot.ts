@@ -19,6 +19,7 @@
  */
 
 import { QA_WIDTHS, type QAResult } from "./visual-qa";
+import { FX_ASENTAR } from "./efectos";
 
 /* ------------------------------------------------------------------ */
 /* tipos                                                              */
@@ -225,6 +226,7 @@ export function describePaso(paso: PilotPaso): string {
 /* ------------------------------------------------------------------ */
 
 export const PILOT_SCRIPT = `(function(){
+${FX_ASENTAR}
 if (window.__prismPilot) return;
 window.__prismPilot = true;
 function recorta(s,n){ s=String(s==null?"":s); return s.length>n ? s.slice(0,n)+"…" : s; }
@@ -324,6 +326,10 @@ function lee(){
    se puede saber: si al pulsarlo salta un error y si la página cambió. */
 var __prismBotones = null;
 function enumeraBotones(){
+  /* un botón dentro de una sección que aún no ha entrado por scroll está a
+     opacity 0 y el filtro de visibilidad lo descarta: sin asentar los efectos,
+     el barrido probaría media página y diría que la probó entera */
+  asentarFx();
   var q = 'button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"]';
   var todos = document.querySelectorAll(q);
   var out = [];

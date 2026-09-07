@@ -35,6 +35,7 @@ const MODELOS = [
   "mock-prosa-cortada",
   "mock-lee-url",
   "mock-codigo-roto",
+  "mock-efectos",
   "mock-boton-roto",
   "mock-enlace-roto",
   "mock-mide",
@@ -236,6 +237,35 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<answer>",
       leCorrigieron ? "Corregido tras ejecutarlo." : "Aquí tienes la página.",
       "</answer>",
+    ].join("\n");
+  }
+
+  // `mock-efectos`: una página que ENLAZA el kit de efectos sin escribirlo,
+  // que es exactamente lo que se le pide al modelo real. Sirve para comprobar
+  // dos cosas: que Prism añade `prism-fx.css`/`prism-fx.js` al proyecto por su
+  // cuenta, y que el contenido dentro de un `data-fx="reveal"` se ve — con o
+  // sin JavaScript.
+  if (modelo === "mock-efectos") {
+    return [
+      "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8">',
+      '<meta name="viewport" content="width=device-width, initial-scale=1">',
+      "<title>Con efectos</title>",
+      '<link rel="stylesheet" href="prism-fx.css">',
+      "</head>",
+      '<body style="font-family:system-ui;margin:0;padding:24px">',
+      '<section data-fx="reveal"><h1>Titular que entra al hacer scroll</h1></section>',
+      '<section data-fx="stagger" style="margin-top:4000px">',
+      "<p>Primero</p><p>Segundo</p>",
+      '<button id="b" onclick="document.getElementById(\'n\').textContent=\'pulsado\'">Púlsame</button>',
+      '<span id="n">sin pulsar</span>',
+      "</section>",
+      '<script src="prism-fx.js" defer></script>',
+      "</body></html>",
+      "```",
     ].join("\n");
   }
 

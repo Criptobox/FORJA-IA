@@ -24,6 +24,12 @@ describe("todo dato que envejece: fecha, fuente y comando", () => {
     expect(pkg.scripts[comando], `npm run ${comando} regenera el dato`).toBeTruthy();
   });
 
+  it("el kit de efectos no se separa de su fuente", () => {
+    // No envejece solo, pero sí puede separarse: si alguien edita el CSS y no
+    // ejecuta `npm run efectos`, la app sirve el de antes y nada avisa.
+    expect(pkg.scripts.efectos, "npm run efectos regenera el kit").toBeTruthy();
+  });
+
   it("las ofertas llevan fecha PROPIA, no una constante compartida", () => {
     // El fallo real: una sola `OFERTAS_VERIFICADO` para las catorce ofertas.
     // Comprobabas una y todas pasaban a decir «verificado hoy».

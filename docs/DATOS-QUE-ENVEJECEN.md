@@ -43,7 +43,14 @@ Las tres, y por qué cada una:
 | --- | --- | --- | --- | --- |
 | Tarifas por token | `src/lib/prism/precios-datos.ts` | `PRECIOS_FECHA` | `PRECIOS_FUENTE` (catálogo de LiteLLM, MIT) | `npm run precios` |
 | Retiradas de modelos | `src/lib/prism/modelos-datos.ts` | `MODELOS_FECHA` | `MODELOS_FUENTE` | `npm run modelos` |
+| Kit de efectos | `src/lib/prism/efectos-datos.ts` | — (es fuente propia, no caduca) | `assets/prism-fx.css` y `assets/prism-fx.js` | `npm run efectos` |
 | Ofertas de proveedores | `src/lib/prism/ofertas.ts` | `verificado` **por oferta**, `null` si nadie la ha comprobado | el enlace de cada oferta | a mano, y por eso lleva `verificado: null` hasta que alguien mira |
+
+El kit de efectos es un caso distinto y por eso está en la tabla: no envejece
+solo —nadie lo cambia por su cuenta—, pero sí puede **separarse** de su fuente.
+Si alguien edita `assets/prism-fx.css` y no ejecuta el comando, la app sigue
+sirviendo el de antes y nada avisa. Un unitario compara los dos y falla si se
+han separado: misma enfermedad, misma vacuna.
 
 Las ofertas son el caso interesante: no hay catálogo público que las liste, así
 que **no** hay comando. La regla no se salta por eso — se cumple por el otro

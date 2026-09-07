@@ -1,0 +1,121 @@
+/* prism-fx — kit de efectos de Prism AI. Local, sin dependencias, ~5 KB.
+   Regla de oro: TODO se ve sin JavaScript. Los efectos QUITAN un estado, no
+   lo ponen: si el script no corre (o el visitante pidió menos animación), la
+   página se ve entera igual. */
+
+:root{
+  --fx-dur: 700ms;
+  --fx-ease: cubic-bezier(.22,.61,.36,1);
+  --fx-rise: 18px;
+}
+
+/* ——— entradas al hacer scroll ———
+   Solo se esconden cuando el JS ha declarado que puede animar (.fx-on en
+   <html>). Sin JS, sin observer o con reduced-motion, esta regla no aplica. */
+.fx-on [data-fx="reveal"]:not(.fx-in),
+.fx-on [data-fx="stagger"]:not(.fx-in) > *{
+  opacity:0;
+  transform: translateY(var(--fx-rise));
+}
+.fx-on [data-fx="reveal"],
+.fx-on [data-fx="stagger"] > *{
+  transition: opacity var(--fx-dur) var(--fx-ease), transform var(--fx-dur) var(--fx-ease);
+}
+.fx-on [data-fx="stagger"].fx-in > *{ transition-delay: calc(var(--fx-i, 0) * 90ms); }
+.fx-on [data-fx="reveal"].fx-in,
+.fx-on [data-fx="stagger"].fx-in > *{ opacity:1; transform:none; }
+
+/* corte seco, sin desvanecido: para mundos que no admiten elegancia suave */
+.fx-on [data-fx="pop"]:not(.fx-in){ transform: translate(-6px,10px); opacity:0; }
+.fx-on [data-fx="pop"]{ transition: transform 220ms steps(3,end), opacity 1ms 120ms; }
+.fx-on [data-fx="pop"].fx-in{ transform:none; opacity:1; }
+
+/* titular partido en palabras que suben escalonadas */
+.fx-word{ display:inline-block; }
+.fx-on [data-fx="split"]:not(.fx-in) .fx-word{ opacity:0; transform: translateY(.5em); }
+.fx-on [data-fx="split"] .fx-word{
+  transition: opacity 520ms var(--fx-ease), transform 520ms var(--fx-ease);
+  transition-delay: calc(var(--fx-i, 0) * 55ms);
+}
+.fx-on [data-fx="split"].fx-in .fx-word{ opacity:1; transform:none; }
+
+/* ——— con el puntero ——— */
+[data-fx="tilt"]{ transform-style: preserve-3d; transition: transform 200ms var(--fx-ease); will-change: transform; }
+[data-fx="tilt"].fx-tilting{ transition: none; }
+[data-fx="magnetic"]{ transition: transform 260ms var(--fx-ease); }
+[data-fx="spotlight"]{ position:relative; overflow:hidden; }
+[data-fx="spotlight"]::after{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:0;
+  transition: opacity 300ms ease;
+  background: radial-gradient(320px circle at var(--fx-x,50%) var(--fx-y,50%), currentColor, transparent 65%);
+  mix-blend-mode: plus-lighter;
+}
+[data-fx="spotlight"]:hover::after{ opacity:.10; }
+
+/* ——— fondos y texturas ——— */
+.fx-noise{ position:relative; }
+.fx-noise::before{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.05; z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.fx-mesh{
+  background-image:
+    radial-gradient(60% 60% at 15% 20%, color-mix(in oklch, currentColor 22%, transparent), transparent 70%),
+    radial-gradient(50% 50% at 85% 10%, color-mix(in oklch, currentColor 16%, transparent), transparent 70%),
+    radial-gradient(70% 70% at 60% 95%, color-mix(in oklch, currentColor 14%, transparent), transparent 70%);
+}
+.fx-grid{
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, currentColor 8%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, currentColor 8%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.fx-dots{
+  background-image: radial-gradient(color-mix(in oklch, currentColor 14%, transparent) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* ——— detalles ——— */
+.fx-underline{
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0 1.5px; background-position: 0 100%; background-repeat: no-repeat;
+  transition: background-size 320ms var(--fx-ease);
+  text-decoration: none;
+}
+.fx-underline:hover, .fx-underline:focus-visible{ background-size: 100% 1.5px; }
+
+.fx-sheen{ position:relative; overflow:hidden; }
+.fx-sheen::before{
+  content:""; position:absolute; top:0; left:-120%; width:60%; height:100%;
+  background: linear-gradient(100deg, transparent, color-mix(in oklch, white 55%, transparent), transparent);
+  transform: skewX(-18deg);
+}
+.fx-sheen:hover::before{ animation: fx-sheen 780ms var(--fx-ease); }
+@keyframes fx-sheen{ to{ left:140%; } }
+
+.fx-float{ animation: fx-float 5.5s ease-in-out infinite; }
+@keyframes fx-float{ 50%{ transform: translateY(-10px); } }
+
+.fx-blob{ border-radius: 42% 58% 63% 37% / 46% 38% 62% 54%; animation: fx-blob 14s ease-in-out infinite; }
+@keyframes fx-blob{ 50%{ border-radius: 58% 42% 37% 63% / 38% 54% 46% 62%; } }
+
+/* marquesina: se duplica el contenido en el HTML para que el bucle no salte */
+.fx-marquee{ display:flex; overflow:hidden; gap:2rem; white-space:nowrap; }
+.fx-marquee > *{ animation: fx-marquee 22s linear infinite; flex:none; min-width:100%; display:flex; gap:2rem; }
+@keyframes fx-marquee{ to{ transform: translateX(-100%); } }
+
+/* Medición: el QA y el barrido de botones necesitan el estado FINAL en el
+   mismo instante en que lo miran. Con la transición corriendo, leerían
+   opacidad 0 y darían por invisible media página. */
+html.fx-medir *, html.fx-medir *::before, html.fx-medir *::after{
+  transition: none !important;
+  animation: none !important;
+}
+
+/* ——— el freno ———
+   Nadie tiene que aguantar movimiento que no pidió. Y es lo que corre en las
+   pruebas: sin esto, cada E2E pelearía contra una animación. */
+@media (prefers-reduced-motion: reduce){
+  .fx-float, .fx-blob, .fx-marquee > *, .fx-sheen:hover::before{ animation: none !important; }
+  [data-fx], [data-fx] *{ transition: none !important; }
+}

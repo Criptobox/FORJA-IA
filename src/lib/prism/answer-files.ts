@@ -15,6 +15,7 @@
  */
 
 import { buildRunHtml, encodeText, pickEntryPath } from "./sandbox";
+import { faltanDelKit } from "./efectos";
 
 export interface AnswerFile {
   path: string;
@@ -175,7 +176,18 @@ export function filesFromAnswer(content: string | null | undefined): AnswerFile[
     porRuta.set(ruta, { path: ruta, text: codigo, inferido });
   }
 
-  return [...porRuta.values()];
+  const salida = [...porRuta.values()];
+  // El kit de efectos viaja CON el proyecto. El modelo solo lo enlaza —
+  // escribirlo entero costaría miles de tokens por respuesta y saldría
+  // distinto cada vez—, así que si lo enlaza y no está, se pone aquí. Este es
+  // el embudo por el que pasan la vista previa, el ZIP y la revisión
+  // automática: poniéndolo una vez, aparece en los tres.
+  const extra = faltanDelKit(
+    salida.map((f) => f.path),
+    salida.map((f) => f.text)
+  );
+  for (const f of extra) salida.push({ path: f.path, text: f.text, inferido: true });
+  return salida;
 }
 
 /** «app.js» + 2 → «app-2.js» */

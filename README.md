@@ -113,6 +113,9 @@ Prism AI es un chat de IA **100% local y privado**: tus claves API se guardan ú
 | 🧪 **El código se ejecuta antes de enseñártelo** | Ya no hace falta encender el modo agente: si la respuesta trae algo abrible, Prism lo carga en el Sandbox, **pulsa sus botones** y le devuelve al modelo los errores de consola que salgan (dos rondas como mucho). Ejecutar es local y gratis; solo cuesta una llamada si de verdad hay que corregir. |
 | 🧷 **Los botones de la vista previa funcionan** | El iframe sigue **sin** `allow-same-origin` —esa línea sostiene que tus claves no salen del dispositivo—, y por eso el navegador prohíbe ahí `localStorage` y las cookies: cualquier página generada que las tocara reventaba en el primer clic. Ahora se les da un almacenamiento **en memoria**, con un aviso de que no persiste. Aislamiento intacto, botones vivos. |
 | 📝 **Lo que se recorta viaja como resumen** | Cuando el historial no cabe y hay que apartar mensajes viejos, el tramo se resume con el mismo modelo y entra marcado como resumen, en vez de perderse. No se resume lo que no llega a 1 200 caracteres, ni se resume un resumen; si la llamada falla, el recorte a secas sigue funcionando. |
+| 🎬 **Kit de efectos propio (`prism-fx`)** | Diecisiete efectos —entradas al hacer scroll, titulares partidos en palabras, inclinación 3D, botón imán, foco que sigue al cursor, contadores, parallax, marquesina, grano, mesh, retícula, subrayado que se dibuja, destello, flotar, blob— en dos archivos de ~6 KB que **viajan dentro del proyecto**. Nada de CDN: la página acaba en un iframe sin `allow-same-origin`, en tu ZIP y en tu GitHub Pages, y en los tres una dependencia de terceros se rompe en silencio el día que no responde. El modelo solo los enlaza; Prism añade los archivos. |
+| 🎭 **Los efectos son de la dirección, no del catálogo** | Cada una de las cinco direcciones visuales declara **los suyos y los que tiene prohibidos**: el neobrutalismo entra a corte seco y con marquesina, el editorial con subrayados que se dibujan, y ninguno puede usar los del otro. Sin esa lista negra, un catálogo de efectos es AI-slop con brillo — todas las páginas con el mismo desvanecido. Un unitario impide que dos direcciones acaben con la misma receta. |
+| ♿ **Todo se ve sin JavaScript** | La regla de oro del kit: los efectos **quitan** un estado, no lo ponen. Sin JS, sin `IntersectionObserver` o con `prefers-reduced-motion`, no se esconde nada. Y si el observer no llega a disparar, a los 1,2 s se revela todo igual: un efecto perdido es una molestia, contenido invisible es un fallo. |
 | 🪟 **Aurora glass** | El `.glass` gana volumen y las burbujas estrenan cristal: la del asistente es translúcida y la tuya, un lavado violeta-cian de marca. Todo por CSS, el layout intacto. |
 | ✂️ **Parches SEARCH/REPLACE (`apply_patch`)** | El agente edita con bloques `<<<<<<< SEARCH / ======= / REPLACE` que Prism aplica LOCALMENTE: menos tokens, menos fallos, y si un bloque no casa se le dice cuál y cómo reintentarlo — nunca reescribir el archivo. Tolerante a sangría distinta y a rutas en la primera línea del bloque. |
 | 🕰 **Checkpoints automáticos + Deshacer de un clic** | Antes de cada tarea del agente se guarda un punto de restauración (por conversación). Cada respuesta del agente trae botón «Deshacer» que devuelve el proyecto al estado anterior — y deshacer es reversible. Panel «Puntos de restauración» en la cabecera con diff antes/después. |
@@ -226,6 +229,7 @@ prism-ai/
 │   │   └── api/mock-llm/       # mock para pruebas E2E
 │   ├── components/prism/       # UI: chat, radar, onboarding, repos, ajustes, agente…
 │   └── lib/prism/              # motor: store, proveedores, gratis, agente, voz, temas…
+├── assets/                     # fuente del kit de efectos (prism-fx.css/.js)
 ├── docs/                       # planes por versión y las reglas de la casa
 │   └── DATOS-QUE-ENVEJECEN.md  # fecha + fuente + `npm run` para todo dato que caduca
 ├── .github/workflows/          # CI (lint, knip, build, unitarios y E2E)
@@ -245,6 +249,7 @@ prism-ai/
 | `npm run lint` | revisión de código con ESLint |
 | `npm run precios` | regenera el catálogo de tarifas (fuente pública, con su fecha) |
 | `npm run modelos` | audita las listas contra las retiradas publicadas |
+| `npm run efectos` | reempaqueta el kit `prism-fx` desde `assets/` |
 
 ## ❗ Problemas frecuentes
 

@@ -15,6 +15,8 @@
  * hace red, solo escucha una petición de medida y responde.
  */
 
+import { FX_ASENTAR } from "./efectos";
+
 export type QATipo = "scroll" | "fuera" | "texto" | "contraste";
 
 export interface QAItem {
@@ -107,7 +109,12 @@ function fondoDe(el){
 function recorta(s, n){
   return s.length > n ? s.slice(0, n) + "…" : s;
 }
+${FX_ASENTAR}
 function medir(){
+  /* los efectos, en su estado final: si no, se mide solo el primer pantallazo
+     y el informe diría "sin problemas" de lo que nunca miró. Se deshace al
+     salir: medir no puede cambiar lo medido. */
+  var tocadosFx = asentarFx();
   var issues = [];
   var de = document.documentElement;
   var vw = de.clientWidth;
@@ -164,6 +171,7 @@ function medir(){
     contras.push(el3.tagName.toLowerCase() + " «" + recorta(txt3, 18) + "» " + ratio.toFixed(2) + ":1");
   }
   if (contras.length) issues.push({ tipo:"contraste", detalle:"Contraste insuficiente: " + contras.join("; ") + "." });
+  desasentarFx(tocadosFx);
   return { width: vw, ok: issues.length === 0, items: issues, at: Date.now() };
 }
 function responder(token){
