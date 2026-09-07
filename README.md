@@ -108,6 +108,11 @@ Prism AI es un chat de IA **100% local y privado**: tus claves API se guardan ú
 | 🔀 **Un modelo retirado ya no corta la conversación** | Si el proveedor contesta «no existe» (404, «no endpoints found»), Prism **sigue con otro** en vez de dejarte el error en rojo, marca ese modelo para que Auto deje de elegirlo, y te dice cuál murió — no «falló tu clave», que manda a mirar donde no es. Una petición mal formada sí para: ahí probar otro escondería tu error. |
 | 🧱 **Ningún error deja la conversación muerta** | La regla se invirtió: antes se enumeraban los fallos que merecían reintento y se paraba en todo lo demás, así que cada error nuevo del mundo era un callejón. Ahora **lo único que para es una petición mal hecha por nosotros**; con todo lo demás —proveedor caído, modelo retirado, router que devuelve el fallo de otro, mensaje demasiado grande— se sigue con otro modelo. Y si el proveedor dijo el tope («Limit 7000, Requested 21138»), se recuerda para no volver a elegir ese modelo con un mensaje igual de grande. |
 | ✂️ **Si no cabe, recorta y reintenta** | Cuando un proveedor dice «Limit 7000, Requested 21138», la app quita los mensajes **más viejos** —turnos enteros, nunca la pregunta que acabas de escribir— y vuelve a probar **con el mismo modelo**: el que sobra es el historial, no el modelo que elegiste. Y lo dice, con cuántos quitó. Si el proveedor no dice su tope, no hay a qué recortar y entonces sí cambia de modelo. |
+| 🧾 **«¿Por qué me contestó esto?»** | Cada respuesta lleva su expediente en un botón del pie: qué modelos fallaron **antes** (con su código y qué se decidió), qué contexto viajó, cuánto historial se apartó y si se resumió, los tokens que dijo **el proveedor** y el coste con la fecha de sus precios. Lo que no se sabe no sale, y el importe solo aparece con sus dos mitades: si falta una, se dice **cuál**. |
+| 🩺 **Lo que ya sabíamos del modelo, antes de elegirlo** | El selector marca «techo» o «falla» en los modelos que ya rechazaron por tamaño o que fallan a menudo, con el detalle encima; el Panel → Uso lista «Modelos con pegas medidas», lo peor primero. Con dos frenos: por debajo de cinco llamadas **no se afirma un porcentaje**, y un techo medido caduca a las 6 h porque muchos de esos topes son por minuto. |
+| 🧪 **El código se ejecuta antes de enseñártelo** | Ya no hace falta encender el modo agente: si la respuesta trae algo abrible, Prism lo carga en el Sandbox, **pulsa sus botones** y le devuelve al modelo los errores de consola que salgan (dos rondas como mucho). Ejecutar es local y gratis; solo cuesta una llamada si de verdad hay que corregir. |
+| 🧷 **Los botones de la vista previa funcionan** | El iframe sigue **sin** `allow-same-origin` —esa línea sostiene que tus claves no salen del dispositivo—, y por eso el navegador prohíbe ahí `localStorage` y las cookies: cualquier página generada que las tocara reventaba en el primer clic. Ahora se les da un almacenamiento **en memoria**, con un aviso de que no persiste. Aislamiento intacto, botones vivos. |
+| 📝 **Lo que se recorta viaja como resumen** | Cuando el historial no cabe y hay que apartar mensajes viejos, el tramo se resume con el mismo modelo y entra marcado como resumen, en vez de perderse. No se resume lo que no llega a 1 200 caracteres, ni se resume un resumen; si la llamada falla, el recorte a secas sigue funcionando. |
 | 🪟 **Aurora glass** | El `.glass` gana volumen y las burbujas estrenan cristal: la del asistente es translúcida y la tuya, un lavado violeta-cian de marca. Todo por CSS, el layout intacto. |
 | ✂️ **Parches SEARCH/REPLACE (`apply_patch`)** | El agente edita con bloques `<<<<<<< SEARCH / ======= / REPLACE` que Prism aplica LOCALMENTE: menos tokens, menos fallos, y si un bloque no casa se le dice cuál y cómo reintentarlo — nunca reescribir el archivo. Tolerante a sangría distinta y a rutas en la primera línea del bloque. |
 | 🕰 **Checkpoints automáticos + Deshacer de un clic** | Antes de cada tarea del agente se guarda un punto de restauración (por conversación). Cada respuesta del agente trae botón «Deshacer» que devuelve el proyecto al estado anterior — y deshacer es reversible. Panel «Puntos de restauración» en la cabecera con diff antes/después. |
@@ -221,6 +226,8 @@ prism-ai/
 │   │   └── api/mock-llm/       # mock para pruebas E2E
 │   ├── components/prism/       # UI: chat, radar, onboarding, repos, ajustes, agente…
 │   └── lib/prism/              # motor: store, proveedores, gratis, agente, voz, temas…
+├── docs/                       # planes por versión y las reglas de la casa
+│   └── DATOS-QUE-ENVEJECEN.md  # fecha + fuente + `npm run` para todo dato que caduca
 ├── .github/workflows/          # CI (lint, knip, build, unitarios y E2E)
 ├── tests/                      # unitarios (vitest) y E2E (playwright)
 └── public/                     # PWA: manifest, service worker, iconos, logo,
@@ -236,6 +243,8 @@ prism-ai/
 | `npm run build` | build de producción (standalone) |
 | `npm start` | sirve el build de producción |
 | `npm run lint` | revisión de código con ESLint |
+| `npm run precios` | regenera el catálogo de tarifas (fuente pública, con su fecha) |
+| `npm run modelos` | audita las listas contra las retiradas publicadas |
 
 ## ❗ Problemas frecuentes
 

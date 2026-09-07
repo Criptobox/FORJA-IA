@@ -264,6 +264,55 @@ function rewriteCssUrls(css: string, baseDir: string, resolver: Resolver, res: R
 
 export const CONSOLE_BRIDGE = `(function(){
   var O=${JSON.stringify(SANDBOX_ORIGIN)};
+
+  /* ——— Almacenamiento de mentira, para que la página no se muera ———
+
+     El iframe corre SIN allow-same-origin, y tiene que seguir así: con él, la
+     página generada sería del mismo origen que Prism y podría leer tus claves
+     del localStorage. El precio es que ahí dentro **tocar localStorage lanza
+     una excepción**.
+
+     Y ahí estaba un fallo que parecía de otra cosa: media web generada guarda
+     el tema o el estado en localStorage antes de nada. La excepción mataba el
+     script en su primera línea, los addEventListener de detrás no llegaban a
+     ejecutarse, y los botones se veían perfectos sin hacer nada. «Toco Ajustes
+     y no entra».
+
+     Se sustituye por uno en memoria. Dura lo que dura la vista previa —al
+     recargar se vacía—, y se dice por consola una vez para que nadie crea que
+     ahí se guardó algo de verdad. */
+  function memoria(){
+    var d={};
+    return {
+      getItem:function(k){return Object.prototype.hasOwnProperty.call(d,String(k))?d[String(k)]:null;},
+      setItem:function(k,v){d[String(k)]=String(v);},
+      removeItem:function(k){delete d[String(k)];},
+      clear:function(){d={};},
+      key:function(i){var ks=Object.keys(d);return i<ks.length?ks[i]:null;},
+      get length(){return Object.keys(d).length;}
+    };
+  }
+  var simulados=[];
+  ['localStorage','sessionStorage'].forEach(function(n){
+    var ok=false;
+    try{ var s=window[n]; s.setItem('__prism__','1'); s.removeItem('__prism__'); ok=true; }catch(e){ ok=false; }
+    if(!ok){
+      try{ Object.defineProperty(window,n,{value:memoria(),configurable:true,writable:false}); simulados.push(n); }catch(e){}
+    }
+  });
+  /* document.cookie también lanza en un origen opaco. Se neutraliza para que
+     asignarle algo no tire la página entera. */
+  try{ void document.cookie; }catch(e){
+    try{
+      var galletas='';
+      Object.defineProperty(document,'cookie',{
+        get:function(){return galletas;},
+        set:function(v){galletas=galletas?galletas+'; '+v:String(v);},
+        configurable:true
+      });
+      simulados.push('cookie');
+    }catch(e2){}
+  }
   function send(level,args){
     try{
       var text=Array.prototype.map.call(args,function(a){
@@ -284,6 +333,10 @@ export const CONSOLE_BRIDGE = `(function(){
   /* Qué acaba de tocar el usuario. Sirve para que un error tenga contexto:
      «al pulsar Guardar» le dice al modelo dónde mirar; un stack trace suelto,
      no. Va en captura para enterarse ANTES de que el manejador reviente. */
+  if(simulados.length){
+    send('info',['Prism: '+simulados.join(' y ')+' simulados en memoria dentro de la vista previa (el iframe no tiene origen propio). La página funciona; lo que guardes aquí no persiste.']);
+  }
+
   document.addEventListener('click',function(e){
     try{
       var el=e.target;

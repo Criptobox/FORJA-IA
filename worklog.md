@@ -4850,3 +4850,148 @@ proveedor **no se inventa un tope**, se guarda `null` y lo que se le pidió.
 - **El recorte no mira el prompt de sistema**, que viaja aparte y también ocupa
   (mapa del proyecto, notas, reglas, skills). Si el que no cabe es él, esto no
   ayuda: hay que apagar piezas en Ajustes.
+
+---
+
+## v4.7.0 — Cinco cosas que Prism ya sabía y no decía
+
+Cuatro recomendaciones mías y un fallo que contó el usuario. Todas comparten
+raíz: **la app ya tenía el dato medido y no lo enseñaba en ninguna parte**, o
+lo tenía detrás de un interruptor apagado. No es código nuevo por gusto; es
+sacar a la superficie lo que ya se estaba pagando por medir.
+
+### 1. Los botones de la vista previa no hacían nada
+
+Lo que contó el usuario: «en los preview los botones se tocan pero no ejecutan
+función, si necesito entrar a ajustes para ver cómo quedó el diseño lo toco y
+no entra».
+
+El iframe de la vista previa corre con `sandbox="allow-scripts"` y **sin**
+`allow-same-origin`, y eso no se toca: con `allow-same-origin` la página
+generada sería del mismo origen que Prism y podría leer tus claves de API del
+`localStorage`. Es la línea que sostiene «las claves solo en tu dispositivo».
+
+El precio de esa línea es que el navegador prohíbe ahí dentro `localStorage`,
+`sessionStorage` y las cookies, y **lanza `SecurityError` solo al tocarlas**.
+Una página generada las toca en el primer clic —guardar la pestaña activa,
+recordar un contador—, así que el manejador reventaba a mitad y el botón se
+quedaba muerto. Sin error visible: el fallo ocurría dentro del iframe.
+
+Ahora el puente de consola instala un almacenamiento **en memoria** antes de
+que corra el código de la página, y avisa una vez de que lo que se guarde ahí
+no persiste. Los botones funcionan; el aislamiento no se ha movido un
+milímetro.
+
+### 2. Lo que se recorta ya no se tira: se resume
+
+La v4.6.0 recortaba el historial cuando no cabía, y su propio worklog decía qué
+faltaba: «lo que se quita, se pierde». Faltaba porque cuesta otra llamada.
+
+Ahora el tramo que se aparta viaja como **resumen**, hecho por el mismo modelo
+que va a contestar (que ahora sí traga, porque solo se le manda ese tramo) y
+marcado como resumen para que nadie lo confunda con algo que dijiste tú. Con
+sus límites: no se resume lo que no llega a 1 200 caracteres —no compensa—, no
+se resume un resumen, y si la llamada falla el recorte a secas ya funcionaba.
+
+### 3. «¿Por qué me contestó esto?»
+
+Prism medía casi todo y lo tenía **todo repartido**: un chip para el contexto,
+un panel para el gasto, el failover en un aviso que desaparece a los seis
+segundos y varias cosas en ningún sitio. Cuando una respuesta salía rara no
+había forma de reconstruir qué había pasado.
+
+Cada respuesta lleva ahora su expediente, en un botón «por qué» del pie:
+
+- qué modelos fallaron **antes**, con su código y qué se decidió con cada uno;
+- qué contexto viajó y cuántos caracteres tenía el prompt de sistema;
+- cuántos mensajes se apartaron por tamaño y si se resumieron;
+- los tokens que dijo **el proveedor** (no nuestra estimación);
+- el coste, con la fecha de los precios usados.
+
+Con la regla de siempre: lo que no se sabe **no sale**, y el importe solo
+aparece si están sus dos mitades —tokens del proveedor × precio fechado—. Si
+falta una, se dice cuál falta en vez del número.
+
+Un detalle que costó encontrar: la lista de intentos fallidos vivía en una
+variable del bucle, y un failover de proveedor **no es una vuelta más del
+bucle** —borra la burbuja y vuelve a llamar a la generación con otra cadena—.
+El expediente de la respuesta buena decía «respondió el primero» justo cuando
+habían fallado tres. Ahora vive fuera del bucle y se vacía al empezar un turno
+de verdad.
+
+### 4. Lo que ya sabíamos del modelo, dicho ANTES de elegirlo
+
+Lo que contó el usuario: «hay modelos que me los da como que están buenos y al
+final no funcionan». Y era literalmente cierto: el techo de entrada de cada
+modelo se medía la primera vez que rechazaba por tamaño, se guardaba, se usaba
+para no volver a elegirlo… y no se enseñaba en ningún sitio. El selector los
+pintaba a todos iguales.
+
+`perfil-modelo.ts` junta las tres memorias que ya existían —modelos que el
+proveedor no reconoce, techos medidos, historial de aciertos y tiempos— en una
+ficha por modelo. Sale en dos sitios: una marca en el selector («techo»,
+«falla») con el detalle al pasar por encima, y un bloque «Modelos con pegas
+medidas» en el Panel → Uso, lo peor primero.
+
+Con dos frenos contra afirmar de más: con menos de cinco llamadas **no se dice
+un porcentaje** (dos intentos y un fallo darían «50 % fiable», que no significa
+nada), y una medición de techo caduca a las seis horas —muchos de esos topes
+son **por minuto**, y marcar para siempre por un pico de un martes sería
+apartar un modelo que hoy iría bien—.
+
+### 5. El código se ejecuta antes de enseñártelo, siempre
+
+Esto ya estaba hecho… dentro del modo agente. Y el modo agente **viene
+apagado**. O sea que el caso más común —abres la app, escribes «hazme una
+página», te llega el HTML— salía sin ejecutarse ni una vez, y el fallo lo
+descubrías tú al abrirlo. La comprobación estaba escrita, probada y puesta
+detrás de un interruptor que casi nadie toca.
+
+Ahora se ejecuta siempre que la respuesta traiga algo abrible, con modo agente
+o sin él: se carga la página, se pulsan sus botones, y si algo revienta se le
+devuelven los errores al modelo (dos rondas como mucho). Ejecutar es local y
+gratis; solo cuesta una llamada si de verdad hay que corregir.
+
+### La regla de la casa, escrita y comprobada
+
+`docs/DATOS-QUE-ENVEJECEN.md`: **todo dato que envejece necesita fecha, fuente
+y un `npm run` que lo regenere.** Sale de cuatro fallos de estos días con la
+misma raíz —modelos retirados en el catálogo, tarifas a mano, un sello de
+«verificado» compartido por catorce ofertas, ids copiados dentro de una
+prueba—. Ninguno fue un error de programación: los cuatro son un dato que
+cambia solo guardado en un sitio que no cambia solo.
+
+Y como un documento que dice eso y nadie comprueba es exactamente el tipo de
+dato que la regla prohíbe, lleva su prueba: que los módulos generados exportan
+fecha ISO y fuente `https://`, que existe el `npm run` que los regenera, y que
+las ofertas llevan sello **propio** y admiten `null` para «nadie lo ha
+comprobado».
+
+### Pruebas
+
+- 35 unitarios nuevos: `ficha-respuesta` (9), `perfil-modelo` (12),
+  `resumen-recorte` (10), `datos-que-envejecen` (4).
+- 7 E2E nuevos: el expediente con un failover real de por medio; que el importe
+  nunca sale sin la fecha de sus precios; la marca del techo en el selector y
+  que **caduca**; el bloque del Panel → Uso; que el código se ejecuta y se
+  corrige **con el modo agente apagado**; los botones de la vista previa.
+- Verificados en rojo los cinco que prueban algo nuevo: sin el cambio, fallan.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 753** unitarios (1 718 antes) ·
+  ✓ **214** E2E, suite completa dos veces
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+
+### Lo que sigue sin hacerse
+
+- **El expediente no se puede copiar ni exportar.** Se lee y ya. Para pegarlo
+  en un issue habría que transcribirlo a mano.
+- **El perfil por modelo no cambia a quién elige Auto.** Auto ya evita lo roto
+  y lo que no cabe, pero «este modelo va mejor en webs que en código» se
+  enseña y no se usa para decidir. Es lo siguiente natural.
+- **El almacenamiento simulado de la vista previa no persiste.** Se dice en un
+  aviso, pero una página generada que guarda datos «funciona» hasta que
+  recargas. Persistirlo de verdad exige un puente al padre, y eso es superficie
+  nueva entre el iframe y la app: no se ha hecho a la ligera.

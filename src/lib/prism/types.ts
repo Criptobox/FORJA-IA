@@ -37,6 +37,12 @@ export interface ChatMessage {
   /** esta respuesta la dirigió un equipo: cuántos ejecutores hubo, cuántos
    * entregaron y cuántas llamadas costó en total (ver `orquesta.ts`). */
   orquesta?: { ejecutores: number; entregaron: number; llamadas: number };
+  /** La ficha técnica de esta respuesta: por qué salió lo que salió.
+   *
+   * Todo esto ya se medía y vivía en sitios distintos —o en ninguno—. Junto,
+   * responde a la pregunta que nadie podía responder: qué se envió, con qué,
+   * qué se quitó por el camino y qué costó. Ver `ficha-respuesta.ts`. */
+  ficha?: import("./ficha-respuesta").FichaRespuesta;
   /** mensaje que escribe la app, no la persona (p. ej. «continúa el trabajo»).
    * Viaja al modelo igual, pero se pinta en pequeño para no parecer tuyo. */
   instruction?: boolean;

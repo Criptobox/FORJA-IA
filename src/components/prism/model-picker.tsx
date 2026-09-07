@@ -20,6 +20,9 @@ import { usePrism } from "@/lib/prism/store";
 import { isFreeModel } from "@/lib/prism/free-models";
 import { estadoModelo, MODELOS_FECHA } from "@/lib/prism/modelos-viejos";
 import { estaRoto, useModelosRotos } from "@/lib/prism/modelos-rotos";
+import { useUsage } from "@/lib/prism/usage";
+import { useLimites } from "@/lib/prism/limites-medidos";
+import { avisoDePerfil, lineasDePerfil, perfilDe } from "@/lib/prism/perfil-modelo";
 import { useHealth, cooldownRemaining } from "@/lib/prism/health";
 import { AUTO_MODEL_KEY, isAutoKey, pickManualModel } from "@/lib/prism/types";
 import { ModelLogo } from "@/components/prism/model-logo";
@@ -103,6 +106,11 @@ export function ModelPicker({
   const [open, setOpen] = useState(false);
   const models = useAvailableModels(value);
   const healthEntries = useHealth((s) => s.entries);
+  // Lo que la app ya había medido de cada modelo y no enseñaba en ninguna
+  // parte: aciertos, tiempos y el techo de entrada que demostró tener. Es la
+  // diferencia entre elegir a ciegas y elegir sabiendo.
+  const usoPorModelo = useUsage((s) => s.byModel);
+  const techos = useLimites((s) => s.limites);
   const lastGood = useHealth((s) => s.lastGood);
   const totalEnabled = usePrism((s) =>
     Object.values(s.providers)
@@ -397,6 +405,26 @@ export function ModelPicker({
                             title={`${muerto ? "Retirado" : "Retirada anunciada"} el ${est.fecha}, según el catálogo público de modelos (foto del ${MODELOS_FECHA}). Puede seguir respondiendo unos días.`}
                           >
                             {muerto ? "retirado" : "se retira"}
+                          </span>
+                        );
+                      })()}
+                      {/* Lo que ya se sabía de este modelo por haberlo usado.
+                          El caso del usuario: «hay modelos que me los da como
+                          que están buenos y al final no funcionan». La app lo
+                          había medido esa misma mañana y no lo decía. */}
+                      {(() => {
+                        const p = perfilDe(m.key, usoPorModelo[m.key], undefined, techos[m.key], now);
+                        const aviso = avisoDePerfil(p, now);
+                        if (!aviso) return null;
+                        const detalle = lineasDePerfil(p)
+                          .map((l) => `${l.etiqueta}: ${l.valor}`)
+                          .join("\n");
+                        return (
+                          <span
+                            className="shrink-0 rounded-full bg-orange-500/15 px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-400"
+                            title={`${aviso}\n\n${detalle}`}
+                          >
+                            {p.techo && p.techoVigente ? "techo" : "falla"}
                           </span>
                         );
                       })()}

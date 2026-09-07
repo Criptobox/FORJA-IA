@@ -28,6 +28,7 @@ import { AgentAnswer, AgentTraceView } from "./agent-trace";
 import type { ChatMessage } from "@/lib/prism/types";
 import { MAX_RENDER_CHARS, splitModelKey, speechState } from "@/lib/prism/types";
 import { hayContexto, lineaContexto, detalleContexto } from "@/lib/prism/contexto-usado";
+import { hayFicha, lineasDeFicha, titularDeFicha } from "@/lib/prism/ficha-respuesta";
 import { agentStalled, parseAgentTrace } from "@/lib/prism/agent-loop";
 import { citasDe } from "@/lib/prism/evidencia";
 import { instructionLabel, TRANSLATE_LANGS, type TargetLang } from "@/lib/prism/recap";
@@ -106,6 +107,9 @@ export const MessageItem = memo(function MessageItem({
   /** El desglose del contexto empieza cerrado: la línea de resumen ya dice lo
    * que hace falta para saber si conviene mirar. */
   const [ctxAbierto, setCtxAbierto] = useState(false);
+  /** El expediente de la respuesta. También cerrado: se abre cuando algo no
+   * cuadra, que es justo cuando hace falta. */
+  const [fichaAbierta, setFichaAbierta] = useState(false);
 
   const isUser = msg.role === "user";
 
@@ -416,6 +420,29 @@ export const MessageItem = memo(function MessageItem({
             ))}
           </ul>
         )}
+        {/* ——— Por qué te contestó esto ———
+         *
+         * Todo lo que pasó con ESTA respuesta, junto y en un sitio: qué modelos
+         * fallaron antes, qué contexto viajó, cuánto historial se apartó, qué
+         * tokens dijo el proveedor y cuánto costó con qué precios. Lo que no se
+         * sabe no sale, y el dinero solo aparece con sus dos mitades. */}
+        {!streaming && msg.ficha && fichaAbierta && (
+          <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/[0.06] px-2.5 py-1.5 text-[10.5px] leading-relaxed">
+            {titularDeFicha(msg.ficha) && (
+              <p className="mb-1 font-medium text-sky-700 dark:text-sky-300">
+                {titularDeFicha(msg.ficha)}
+              </p>
+            )}
+            <dl className="space-y-0.5">
+              {lineasDeFicha(msg.ficha).map((l) => (
+                <div key={l.etiqueta} className="flex flex-wrap gap-x-1.5">
+                  <dt className="shrink-0 text-muted-foreground/70">{l.etiqueta}:</dt>
+                  <dd className="min-w-0 break-words text-muted-foreground">{l.valor}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
         {/* La fila del pie ENVUELVE y cada trozo trunca.
          *
          * Antes era `flex h-6` sin envolver: en un móvil estrecho, con el
@@ -468,6 +495,17 @@ export const MessageItem = memo(function MessageItem({
             >
               equipo {msg.orquesta.entregaron}/{msg.orquesta.ejecutores} · {msg.orquesta.llamadas} llamadas
             </span>
+          )}
+          {!streaming && hayFicha(msg.ficha) && (
+            <button
+              type="button"
+              onClick={() => setFichaAbierta((v) => !v)}
+              aria-expanded={fichaAbierta}
+              className="shrink-0 whitespace-nowrap rounded-full bg-sky-500/10 px-1.5 text-[10px] font-medium text-sky-700 transition hover:bg-sky-500/20 dark:text-sky-400"
+              title="Qué pasó para que salga esta respuesta"
+            >
+              por qué
+            </button>
           )}
           {!streaming && msg.piiMasked != null && msg.piiMasked > 0 && (
             <span

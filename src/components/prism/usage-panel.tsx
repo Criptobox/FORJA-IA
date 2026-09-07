@@ -37,6 +37,9 @@ import {
   subscribeRequests,
   type RequestLogEntry,
 } from "@/lib/prism/request-log";
+import { useModelosRotos } from "@/lib/prism/modelos-rotos";
+import { useLimites } from "@/lib/prism/limites-medidos";
+import { avisoDePerfil, lineasDePerfil, perfiles, type PerfilModelo } from "@/lib/prism/perfil-modelo";
 import { ModelLogo } from "./model-logo";
 import { ABORTED } from "@/lib/prism/chat-client";
 
@@ -94,6 +97,8 @@ function WeekSparkline({ days }: { days: Record<string, number> }) {
  *  Aquí vive toda la lógica; el diálogo de arriba es solo el envoltorio. */
 export function UsagePanelBody() {
   const byModel = useUsage((s) => s.byModel);
+  const rotos = useModelosRotos((s) => s.rotos);
+  const techos = useLimites((s) => s.limites);
   const days = useUsage((s) => s.days);
   const reset = useUsage((s) => s.reset);
   const requests = useRequestLog();
@@ -128,6 +133,16 @@ export function UsagePanelBody() {
     }
     return n;
   }, [days]);
+
+  /** Los modelos con algo que reprocharles, lo peor primero. Prism medía esto
+   * desde hacía versiones y solo lo usaba para decidir por dentro: el usuario
+   * no tenía forma de saber por qué su modelo «bueno» no funcionaba. */
+  const conAvisos = useMemo(() => {
+    const ahora = Date.now();
+    return perfiles(byModel, rotos, techos, ahora)
+      .map((p) => ({ p, aviso: avisoDePerfil(p, ahora) }))
+      .filter((x): x is { p: PerfilModelo; aviso: string } => x.aviso != null);
+  }, [byModel, rotos, techos]);
 
   const savedPct = totals.charsIn > 0 ? Math.round((totals.savedChars / totals.charsIn) * 100) : 0;
 
@@ -177,6 +192,34 @@ export function UsagePanelBody() {
               <p className="text-[10px] text-muted-foreground">{fmtChars(totals.savedChars)} car.</p>
             </div>
           </div>
+
+          {/* ——— Lo que ya sabíamos y no decíamos ———
+              «Hay modelos que me los da como que están buenos y al final no
+              funcionan». Y era verdad: el techo de entrada y los fallos
+              estaban medidos y guardados, solo que nadie los veía. */}
+          {conAvisos.length > 0 && (
+            <div className="mx-5 mb-2 space-y-1.5 rounded-xl border border-orange-500/30 bg-orange-500/[0.06] p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-400">
+                Modelos con pegas medidas
+              </p>
+              {conAvisos.map(({ p, aviso }) => (
+                <div key={p.modelKey} className="text-[11.5px] leading-relaxed">
+                  <p className="font-medium">
+                    {p.modelId}{" "}
+                    <span className="font-normal text-muted-foreground">
+                      {PROVIDER_MAP[p.providerId as keyof typeof PROVIDER_MAP]?.name ?? p.providerId}
+                    </span>
+                  </p>
+                  <p className="text-muted-foreground">{aviso}</p>
+                  <p className="text-[10.5px] text-muted-foreground/70">
+                    {lineasDePerfil(p)
+                      .map((l) => `${l.etiqueta}: ${l.valor}`)
+                      .join(" · ")}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
 
           <ScrollArea className="min-h-0 flex-1 px-5 pb-2">
             {rows.length === 0 ? (

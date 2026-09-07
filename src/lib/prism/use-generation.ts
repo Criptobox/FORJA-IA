@@ -48,6 +48,15 @@ import { useUsage } from "./usage";
 import { estaRoto, useModelosRotos } from "./modelos-rotos";
 import { cabe, useLimites } from "./limites-medidos";
 import { avisoNoCabeNiRecortando, avisoRecorte, recortar } from "./recorte-contexto";
+import type { FichaRespuesta, IntentoFallido } from "./ficha-respuesta";
+import { costeDeModelo, PRECIOS_FECHA } from "./precios";
+import {
+  mereceResumen,
+  notaDeResumen,
+  promptDeResumen,
+  resumenUtil,
+  textoDelTramo,
+} from "./resumen-recorte";
 import { permitido } from "./vetados";
 import {
   avisoPrevio,
@@ -236,6 +245,14 @@ export function useGeneration(ctx: CtxGeneracion) {
   // tool_calls + la reinyección, encapsulados. runGeneration lo llama igual
   // que lo hacía el componente.
   const { runWithTools } = useAgentTools();
+  /** Los modelos que fallaron en ESTE turno, vivan donde vivan.
+   *
+   * Va en un ref y no en una variable del bucle porque un failover de
+   * proveedor no es una vuelta más del bucle: borra la burbuja y **vuelve a
+   * llamar** a `runGeneration` con otra cadena. Con la lista dentro, el
+   * expediente de la respuesta buena decía «respondió el primero» justo cuando
+   * habían fallado tres. Se vacía solo al empezar un turno nuevo de verdad. */
+  const intentosRef = useRef<IntentoFallido[]>([]);
   /** referencia fresca a runGeneration para reintentos de failover (evita dependencia circular) */
   const runGenRef = useRef<
     | ((
@@ -432,6 +449,10 @@ export function useGeneration(ctx: CtxGeneracion) {
       const session = state.sessions.find((s) => s.id === sessionId);
       if (!session) return;
 
+      // Turno nuevo de verdad (ni failover, ni continuación, ni revisión):
+      // el expediente empieza en blanco.
+      if (depth === 0 && continuaciones === 0 && revisiones === 0) intentosRef.current = [];
+
       // clave fresca del store (importante tras un failover que cambió el modelo)
       const freshKey = session.modelKey ?? state.settings.defaultModelKey ?? undefined;
       const auto = isAutoKey(freshKey);
@@ -617,6 +638,10 @@ export function useGeneration(ctx: CtxGeneracion) {
       // candidato: si el primero falla y responde el segundo, la cuenta del
       // caído no puede acabar sumada al que respondió.
       let usoDelIntento: UsoProveedor | null = null;
+      // Se lee por función a propósito: TypeScript no sigue las asignaciones
+      // hechas dentro del callback `onUsage`, y leyendo la variable directa la
+      // estrecha a `null` en el punto donde se arma la ficha.
+      const usoActual = (): UsoProveedor | null => usoDelIntento;
 
       /** registra el resultado en métricas y salud */
       const settle = (candidate: Candidate, ok: boolean, ms: number) => {
@@ -650,6 +675,13 @@ export function useGeneration(ctx: CtxGeneracion) {
         // suele ser el que quieres; el que sobra es el historial viejo.
         let mensajesDelIntento: typeof trimmed = trimmed;
         let recortesHechos = 0;
+        // ——— El expediente de esta respuesta ———
+        // Se va llenando con lo que PASA de verdad; al final viaja con el
+        // mensaje. Es lo que permite responder «¿por qué me contestó esto?»
+        // sin tener que adivinarlo después.
+        const intentosFallidos = intentosRef.current;
+        let recortadosTotal = 0;
+        let huboResumen = false;
         for (let ci = 0; ci < chain.length; ci++) {
           const candidate = chain[ci];
           const attemptStart = Date.now();
@@ -797,12 +829,46 @@ export function useGeneration(ctx: CtxGeneracion) {
                 const r = recortar(mensajesDelIntento, nums.limite);
                 recortesHechos++;
                 if (r.cabe && r.quitados > 0) {
-                  mensajesDelIntento = r.mensajes;
+                  // ——— Resumir lo que se va, en vez de tirarlo ———
+                  //
+                  // Recortar a secas hace que la app «se olvide»: lo acordado
+                  // en el turno 3 desaparece en el 40 y el modelo empieza a
+                  // contradecirse. Una llamada más, con el MISMO modelo (que
+                  // ahora sí traga porque solo se le manda el tramo), y el
+                  // hueco lo ocupa un resumen marcado como tal.
+                  const tramo = mensajesDelIntento.slice(0, r.quitados);
+                  let nota: { role: "user"; content: string } | null = null;
+                  if (mereceResumen(tramo)) {
+                    try {
+                      const texto = await streamChat({
+                        providerId: candidate.providerId,
+                        config: usePrism.getState().providers[candidate.providerId],
+                        modelId: candidate.modelId,
+                        messages: [{ role: "user", content: promptDeResumen(textoDelTramo(tramo)) }],
+                        settings: { ...composeSettings(sessionId), stream: false, systemPrompt: "" },
+                        signal: controller.signal,
+                        onDelta: () => {},
+                        onDone: () => {},
+                      });
+                      if (resumenUtil(texto)) {
+                        const n = notaDeResumen(texto, r.quitados);
+                        nota = { role: "user", content: n.content };
+                      }
+                    } catch {
+                      // Un resumen es una mejora, no un requisito: si el modelo
+                      // no contesta, el recorte a secas ya funcionaba.
+                    }
+                  }
+                  mensajesDelIntento = nota ? [nota, ...r.mensajes] : r.mensajes;
+                  recortadosTotal += r.quitados;
+                  huboResumen = huboResumen || nota != null;
                   // Se DICE lo que se quitó. Un recorte silencioso deja al
                   // modelo sin hilo, la respuesta sale rara y no hay forma de
                   // saber por qué.
                   toast.warning(`Historial recortado para ${candidate.modelId}`, {
-                    description: avisoRecorte(r, candidate.modelId) ?? "",
+                    description:
+                      (avisoRecorte(r, candidate.modelId) ?? "") +
+                      (nota ? " Lo apartado va como resumen." : ""),
                     duration: 8000,
                   });
                   ci--; // el mismo candidato, con menos historial
@@ -826,6 +892,13 @@ export function useGeneration(ctx: CtxGeneracion) {
                 at: Date.now(),
               });
             }
+            intentosFallidos.push({
+              modelo: candidate.modelId,
+              proveedor: PROVIDER_MAP[candidate.providerId]?.name ?? candidate.providerId,
+              status,
+              decision: "",
+              motivo: msg.slice(0, 140),
+            });
             // La decisión (¿otro modelo? ¿otro proveedor? ¿me rindo?) vive en
             // `decisiones.ts`, sin React de por medio y con sus propios tests.
             // Aquí solo queda ejecutarla y contarlo.
@@ -844,6 +917,8 @@ export function useGeneration(ctx: CtxGeneracion) {
                 content.trim().length >= MIN_RESCATE && respuestaCortada(content).cortada,
             });
 
+            const ultimo = intentosFallidos[intentosFallidos.length - 1];
+            if (ultimo) ultimo.decision = decision.tipo;
             if (decision.tipo === "siguiente") {
               const sig = chain[decision.indice];
               toast.warning(
@@ -1077,6 +1152,11 @@ export function useGeneration(ctx: CtxGeneracion) {
           }
 
           settle(candidate, true, elapsed);
+          const uso = usoActual();
+          // Las dos mitades del dinero: tokens dichos por el proveedor y
+          // precio fechado del catálogo. Si falta cualquiera, se guarda el
+          // motivo en vez de un número inventado.
+          const dinero = costeDeModelo(candidate.providerId, candidate.modelId, uso);
           updateMessage(sessionId, assistantId, {
             content,
             reasoning: reasoning || undefined,
@@ -1084,6 +1164,21 @@ export function useGeneration(ctx: CtxGeneracion) {
             ...(savedPct >= 5 ? { ctxSaved: savedPct } : {}),
             ...(escudo.total > 0 ? { piiMasked: escudo.total } : {}),
             ...(hayContexto(contextoUsado) ? { contexto: contextoUsado } : {}),
+            ficha: {
+              modelo: `${PROVIDER_MAP[candidate.providerId]?.name ?? candidate.providerId} · ${candidate.modelId}`,
+              ...(intentosFallidos.length ? { intentos: [...intentosFallidos] } : {}),
+              ...(hayContexto(contextoUsado) ? { contexto: contextoUsado } : {}),
+              charsSistema: contextoUsado.chars,
+              mensajesEnviados: mensajesDelIntento.length,
+              ...(recortadosTotal ? { recortados: recortadosTotal, resumido: huboResumen } : {}),
+              ...(uso?.entrada != null ? { tokensEntrada: uso.entrada } : {}),
+              ...(uso?.salida != null ? { tokensSalida: uso.salida } : {}),
+              ...(uso?.cacheLeido ? { tokensCache: uso.cacheLeido } : {}),
+              ...(dinero.coste
+                ? { coste: dinero.coste.total, precioDe: PRECIOS_FECHA }
+                : { sinCoste: dinero.motivo ?? "sin dato" }),
+              ms: elapsed,
+            } satisfies FichaRespuesta,
           });
           updateProjectMap(sessionId, content);
           // ——— Task DNA + memoria del proyecto (plan técnico §4, Pilar 3) ———
@@ -1135,6 +1230,10 @@ export function useGeneration(ctx: CtxGeneracion) {
           // Memoria de fallos: un trabajo del agente que se quedó a medias es un
           // fallo verificable (hay traza, no hay <answer>). Se apunta la regla para
           // la próxima vez — y caduca sola para no envenenar el contexto.
+          // Si se ha relanzado para retomar un trabajo a medias, lo escrito
+          // todavía no es la entrega: revisarlo ahora sería corregir un
+          // borrador y gastar una de las dos vueltas que hay.
+          let retomando = false;
           if (usePrism.getState().settings.agentMode) {
             // `true`: el stream ya acabó, así que una etiqueta abierta no es
             // que esté escribiendo — es que se cortó a mitad.
@@ -1163,79 +1262,84 @@ export function useGeneration(ctx: CtxGeneracion) {
                   duration: 5000,
                 });
                 relanzar(sessionId, depth, continuaciones + 1);
+                retomando = true;
               }
-            } else {
-              // ——— el agente prueba su propio código ———
-              //
-              // PLAN-V4 §3: «hoy el agente escribe código y te pregunta a TI
-              // si funciona». Se arregló solo para los modelos que soportan
-              // `tools` y llaman a `run_project`; la mayoría de los gratis van
-              // por el camino XML, o sea que el arreglo llegaba justo a los
-              // modelos para los que Prism NO existe.
-              //
-              // Ejecutar es local y gratis: solo cuesta una llamada al modelo
-              // si de verdad hay errores que corregir.
-              const proyecto = proyectoDeLaRespuesta(content);
-              if (proyecto && revisiones < MAX_REVISIONES) {
-                void (async () => {
-                  // `botones: true`: además de cargar la página, se pulsan
-                  // sus botones. La revisión de carga solo caza lo que revienta
-                  // al abrir, y en una web generada la mayoría de los fallos
-                  // están detrás de un clic.
-                  const salida = await runProjectInMemory(proyecto.files, { botones: true });
-                  const inf = salida.botones;
+            }
+          }
+          // ——— el código se ejecuta ANTES de dárselo por bueno ———
+          //
+          // PLAN-V4 §3: «hoy el agente escribe código y te pregunta a TI
+          // si funciona». Se arregló solo para los modelos que soportan
+          // `tools` y llaman a `run_project`; la mayoría de los gratis van
+          // por el camino XML, o sea que el arreglo llegaba justo a los
+          // modelos para los que Prism NO existe.
+          //
+          // Y quedaba una puerta más: esto vivía DENTRO del modo agente.
+          // Con el modo agente apagado —que es como se pide «hazme una web
+          // de recetas», el caso más común— el código salía sin ejecutarse
+          // ni una vez, y el fallo lo descubrías tú al abrirlo.
+          //
+          // Ejecutar es local y gratis: solo cuesta una llamada al modelo
+          // si de verdad hay errores que corregir.
+          const proyecto = proyectoDeLaRespuesta(content);
+          if (!retomando && proyecto && revisiones < MAX_REVISIONES) {
+            void (async () => {
+              // `botones: true`: además de cargar la página, se pulsan
+              // sus botones. La revisión de carga solo caza lo que revienta
+              // al abrir, y en una web generada la mayoría de los fallos
+              // están detrás de un clic.
+              const salida = await runProjectInMemory(proyecto.files, { botones: true });
+              const inf = salida.botones;
 
-                  if (!hayQueCorregir(salida)) {
-                    // La carga fue limpia, pero puede haber botones que revienten.
-                    if (inf && hayBotonesQueCorregir(inf)) {
-                      const reglaB = reglaDeBotones(inf);
-                      if (reglaB) {
-                        useFailures.getState().record("sandbox", reglaB.titulo, reglaB.regla, "error");
-                      }
-                      addMessage(sessionId, {
-                        id: uid(),
-                        role: "user",
-                        content: promptDeBotones(inf, proyecto.entry),
-                        createdAt: Date.now(),
-                        instruction: true,
-                      });
-                      toast.warning("Botones que fallan", {
-                        description: `${resumenBotones(inf)} Corrigiéndolo solo (${revisiones + 1} de ${MAX_REVISIONES}).`,
-                        duration: 7000,
-                      });
-                      relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
-                      return;
-                    }
-                    if (salida.ejecutado) {
-                      toast.success("El agente probó su código", {
-                        description: `${resumenRevision(salida)}${inf?.hecho ? ` ${resumenBotones(inf)}` : ""}`,
-                        duration: 6000,
-                      });
-                    }
-                    return;
-                  }
-                  // Memoria de fallos: esto ha salido de EJECUTAR el código,
-                  // no de una impresión. Es exactamente lo que esa memoria
-                  // debe guardar.
-                  const regla = reglaDeFallo(salida);
-                  if (regla) {
-                    useFailures.getState().record("sandbox", regla.titulo, regla.regla, "error");
+              if (!hayQueCorregir(salida)) {
+                // La carga fue limpia, pero puede haber botones que revienten.
+                if (inf && hayBotonesQueCorregir(inf)) {
+                  const reglaB = reglaDeBotones(inf);
+                  if (reglaB) {
+                    useFailures.getState().record("sandbox", reglaB.titulo, reglaB.regla, "error");
                   }
                   addMessage(sessionId, {
                     id: uid(),
                     role: "user",
-                    content: promptDeCorreccion(salida, proyecto.entry),
+                    content: promptDeBotones(inf, proyecto.entry),
                     createdAt: Date.now(),
                     instruction: true,
                   });
-                  toast.warning("El agente encontró errores en su código", {
-                    description: `${resumenRevision(salida)} Corrigiéndolo solo (${revisiones + 1} de ${MAX_REVISIONES}).`,
+                  toast.warning("Botones que fallan", {
+                    description: `${resumenBotones(inf)} Corrigiéndolo solo (${revisiones + 1} de ${MAX_REVISIONES}).`,
                     duration: 7000,
                   });
                   relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
-                })();
+                  return;
+                }
+                if (salida.ejecutado) {
+                  toast.success("El agente probó su código", {
+                    description: `${resumenRevision(salida)}${inf?.hecho ? ` ${resumenBotones(inf)}` : ""}`,
+                    duration: 6000,
+                  });
+                }
+                return;
               }
-            }
+              // Memoria de fallos: esto ha salido de EJECUTAR el código,
+              // no de una impresión. Es exactamente lo que esa memoria
+              // debe guardar.
+              const regla = reglaDeFallo(salida);
+              if (regla) {
+                useFailures.getState().record("sandbox", regla.titulo, regla.regla, "error");
+              }
+              addMessage(sessionId, {
+                id: uid(),
+                role: "user",
+                content: promptDeCorreccion(salida, proyecto.entry),
+                createdAt: Date.now(),
+                instruction: true,
+              });
+              toast.warning("El agente encontró errores en su código", {
+                description: `${resumenRevision(salida)} Corrigiéndolo solo (${revisiones + 1} de ${MAX_REVISIONES}).`,
+                duration: 7000,
+              });
+              relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
+            })();
           }
           // Lectura automática de la respuesta (Ajustes → Chat)
           if (usePrism.getState().settings.autoSpeak && content.trim()) {
