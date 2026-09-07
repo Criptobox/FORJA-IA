@@ -4785,3 +4785,68 @@ cada una. Una de ellas era mía, de ayer.
 - **El tope se estima con caracteres ÷ 4** para decidir a quién saltar. Es la
   misma regla del medidor de contexto y es aproximada; sirve para descartar lo
   que seguro no cabe, no para prometer que lo demás sí.
+
+## v4.6.0 — Si no cabe, se recorta y se reintenta con el mismo modelo
+
+Lo que quedó pendiente ayer y era lo siguiente que haría: cuando la
+conversación no le cabe a ningún modelo, no hay a dónde saltar. Y saltar
+tampoco era la mejor respuesta cuando el que no puede es justo el que quieres:
+el problema no es el modelo, es que le estás mandando veintiún mil tokens de
+historial para preguntarle «qué hacemos».
+
+Ahora hace lo que haría cualquiera a mano: **quitar lo viejo y volver a
+probar**, con el mismo modelo.
+
+### Las reglas, y por qué cada una
+
+- **La pregunta viva no se toca nunca.** Es lo único que acabas de escribir;
+  recortarla sería contestar a otra cosa.
+- **Se quitan turnos ENTEROS, de los más viejos.** Cortar un mensaje por la
+  mitad deja al modelo leyendo una frase sin final y respondiendo a un
+  fantasma.
+- **Se dice qué se quitó.** Un recorte en silencio es la peor versión de esto:
+  el modelo pierde el hilo, la respuesta sale rara y no hay forma de saber por
+  qué. El aviso dice cuántos mensajes se fueron y que tu pregunta va entera.
+- **Solo si el proveedor dijo su tope.** Sin número no hay a qué recortar, y
+  ahí sí toca cambiar de modelo — que es el camino de la v4.5.0 y sigue.
+- **Una sola vez por turno.** Reintentar en bucle contra un tope que no se
+  conoce bien es gastar peticiones.
+- **Con margen del 15 %.** La cuenta es caracteres ÷ 4, aproximada; apurar al
+  límite exacto con una medida aproximada garantiza un segundo rechazo.
+- **Si ni así cabe, se dice.** Cuando lo único que queda es la pregunta viva y
+  sigue sin entrar, no hay recorte posible y hay que cambiar de modelo. Eso se
+  cuenta distinto del apaño que funcionó: uno explica un arreglo, el otro un
+  callejón.
+
+### Pruebas
+
+- 10 unitarios de `recorte-contexto.ts`: que quita los viejos y no la pregunta
+  viva (ni siendo enorme), que respeta el margen, que solo quita turnos
+  enteros, y que avisa distinto en cada caso.
+- 2 E2E con el 413 **literal** de Groq servido por el mock, que ahora rechaza
+  solo lo que de verdad no cabe: la misma petición, con menos historial, entra.
+  Se comprueba que responde **el mismo modelo** (eso es el recorte, no un
+  salto) y que el aviso sale.
+- Verificado en rojo: sin el recorte, las dos fallan.
+
+**Dos pruebas de ayer se han reescrito.** Comprobaban «413 → salta a otro
+modelo» con un mensaje corto, y ya no aplica: ahora la app recorta primero. Se
+han apuntado al caso que sigue siendo suyo —un 413 **sin números**, donde no
+hay a qué recortar— y de paso comprueban algo mejor: que sin número del
+proveedor **no se inventa un tope**, se guarda `null` y lo que se le pidió.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 718** unitarios (1 708 antes) ·
+  ✓ **207** E2E, suite completa dos veces
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+
+### Lo que sigue sin hacerse
+
+- **Lo que se quita, se pierde.** No se resume: se corta. Un resumen del tramo
+  viejo conservaría el hilo, pero cuesta otra llamada y hay que decidir con qué
+  modelo se hace. Es la evolución natural de esto y no está.
+- **El recorte no mira el prompt de sistema**, que viaja aparte y también ocupa
+  (mapa del proyecto, notas, reglas, skills). Si el que no cabe es él, esto no
+  ayuda: hay que apagar piezas en Ajustes.

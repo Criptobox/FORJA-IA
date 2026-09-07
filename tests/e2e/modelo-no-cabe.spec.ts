@@ -2,6 +2,10 @@ import { expect, test, type Page } from "./fixtures";
 
 /** Prism AI — «No te cabe» no es «ríndete».
  *
+ * Este caso es el del proveedor que NO dice cuánto admite: sin ese número no
+ * hay a qué recortar (ver `recorte-y-reintento.spec.ts` para el que sí lo
+ * dice), así que lo único sensato es cambiar de modelo.
+ *
  * De una captura: Groq contestó 413 «Request too large … ITPM: Limit 7000,
  * Requested 21138» y la conversación se quedó ahí, en rojo. El modelo estaba
  * perfecto y la clave también: lo que sobraba era la conversación. Con otro
@@ -23,7 +27,7 @@ async function seed(page: Page) {
             radarSeenIds: [],
             skills: [],
             settings: {
-              defaultModelKey: "custom::mock-limite-7000",
+              defaultModelKey: "custom::mock-413-sin-numeros",
               accessCode: "",
               agentModes: [],
               agentMode: false,
@@ -37,7 +41,7 @@ async function seed(page: Page) {
                 apiKey: "test-key-123",
                 baseUrl: "/api/mock-llm",
                 enabled: true,
-                models: ["mock-limite-7000"],
+                models: ["mock-413-sin-numeros"],
                 useProxy: false,
               },
               groq: {
@@ -80,7 +84,7 @@ test("un 413 por tamaño sigue con otro modelo en vez de pararse", async ({ page
   await expect(page.locator("main")).toContainText("mock-mini-free");
 });
 
-test("y recuerda el límite que el proveedor dijo, para no repetir el error", async ({ page }) => {
+test("y recuerda que rechazó un mensaje de este tamaño, sin inventarse el tope", async ({ page }) => {
   test.setTimeout(180_000);
   await seed(page);
   await page.goto("/");
@@ -99,15 +103,16 @@ test("y recuerda el límite que el proveedor dijo, para no repetir el error", as
         }),
       { timeout: 90_000 }
     )
-    .toHaveProperty("custom::mock-limite-7000")
+    .toHaveProperty("custom::mock-413-sin-numeros")
     .then(() =>
       page.evaluate(() => {
         const raw = localStorage.getItem("prism-limites-v1") ?? "{}";
-        return JSON.parse(raw).state.limites["custom::mock-limite-7000"];
+        return JSON.parse(raw).state.limites["custom::mock-413-sin-numeros"];
       })
     );
 
-  // el número es el que dijo el proveedor, no uno estimado por nosotros
-  expect(medido.limite).toBe(7000);
-  expect(medido.rechazado).toBe(21138);
+  // Sin número del proveedor NO se inventa uno: se guarda `null` y lo que se
+  // le pidió, que es lo único que se sabe de verdad.
+  expect(medido.limite, "nadie dijo el tope: no se inventa").toBeNull();
+  expect(medido.rechazado).toBeGreaterThan(0);
 });

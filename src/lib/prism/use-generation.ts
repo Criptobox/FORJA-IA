@@ -47,6 +47,7 @@ import {
 import { useUsage } from "./usage";
 import { estaRoto, useModelosRotos } from "./modelos-rotos";
 import { cabe, useLimites } from "./limites-medidos";
+import { avisoNoCabeNiRecortando, avisoRecorte, recortar } from "./recorte-contexto";
 import { permitido } from "./vetados";
 import {
   avisoPrevio,
@@ -643,6 +644,12 @@ export function useGeneration(ctx: CtxGeneracion) {
       };
 
       try {
+        // Lo que se manda en el intento actual. Deja de ser `trimmed` fijo:
+        // cuando un modelo dice que no le cabe, se recorta el historial y se
+        // vuelve a probar CON ÉL antes de irse a otro. El modelo que elegiste
+        // suele ser el que quieres; el que sobra es el historial viejo.
+        let mensajesDelIntento: typeof trimmed = trimmed;
+        let recortesHechos = 0;
         for (let ci = 0; ci < chain.length; ci++) {
           const candidate = chain[ci];
           const attemptStart = Date.now();
@@ -700,7 +707,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                 providerId: candidate.providerId,
                 config: cfg,
                 modelId: candidate.modelId,
-                messages: trimmed,
+                messages: mensajesDelIntento,
                 settings: composeSettings(sessionId),
                 signal: controller.signal,
                 onDelta: (text) => {
@@ -779,6 +786,35 @@ export function useGeneration(ctx: CtxGeneracion) {
                 rechazado: nums?.pedido ?? Math.max(1, Math.round(origChars / 4)),
                 at: Date.now(),
               });
+
+              // ——— Recortar y reintentar con el MISMO modelo ———
+              //
+              // Es lo que haría cualquiera a mano: quitar lo viejo y volver a
+              // probar. Solo si el proveedor dijo su límite (si no, no hay a
+              // qué recortar) y UNA vez por turno: reintentar en bucle contra
+              // un tope que no se conoce bien es gastar peticiones.
+              if (nums && recortesHechos === 0) {
+                const r = recortar(mensajesDelIntento, nums.limite);
+                recortesHechos++;
+                if (r.cabe && r.quitados > 0) {
+                  mensajesDelIntento = r.mensajes;
+                  // Se DICE lo que se quitó. Un recorte silencioso deja al
+                  // modelo sin hilo, la respuesta sale rara y no hay forma de
+                  // saber por qué.
+                  toast.warning(`Historial recortado para ${candidate.modelId}`, {
+                    description: avisoRecorte(r, candidate.modelId) ?? "",
+                    duration: 8000,
+                  });
+                  ci--; // el mismo candidato, con menos historial
+                  continue;
+                }
+                if (!r.cabe) {
+                  toast.error("Ni recortando cabe", {
+                    description: avisoNoCabeNiRecortando(candidate.modelId, nums.limite),
+                    duration: 8000,
+                  });
+                }
+              }
             }
             if (muerto) {
               // Que Auto deje de elegirlo. Hasta ahora esto solo lo marcaba

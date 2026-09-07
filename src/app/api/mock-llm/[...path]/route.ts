@@ -19,6 +19,7 @@ const KEY = "test-key-123";
  *  haría un proveedor real. */
 const MODELOS = [
   "mock-limite-7000",
+  "mock-413-sin-numeros",
   "mock-mini-free",
   "mock-big-free",
   "mock-pro-free",
@@ -499,16 +500,31 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
    * minute (ITPM): Limit 7000, Requested 21138». No es un fallo del modelo ni
    * de la clave: es que la conversación no cabe, y hasta la v4.5.0 dejaba la
    * pantalla en rojo sin probar nada más. */
-  if ((body.model ?? "").includes("mock-limite-7000")) {
+  /* Un 413 SIN números: el proveedor dice que no cabe pero no dice cuánto
+   * admite. Sin ese dato no hay a qué recortar, y lo único que queda es
+   * cambiar de modelo — que es el otro camino y también hay que probarlo. */
+  if ((body.model ?? "").includes("mock-413-sin-numeros")) {
     return Response.json(
-      {
-        error: {
-          message:
-            "Request too large for model `mock-limite-7000` in organization `org_mock` service tier `on_demand` on input tokens per minute (ITPM): Limit 7000, Requested 21138, please reduce your message size and try again.",
-        },
-      },
+      { error: { message: "Request too large, please reduce your message size and try again." } },
       { status: 413 }
     );
+  }
+  if ((body.model ?? "").includes("mock-limite-7000")) {
+    // Rechaza SOLO lo que no le cabe, como haría el de verdad. Así se puede
+    // probar el recorte: la misma petición, con menos historial, sí entra.
+    const tokens = Math.ceil(
+      (body.messages ?? []).reduce((a, m) => a + String(m.content ?? "").length, 0) / 4
+    );
+    if (tokens > 7000) {
+      return Response.json(
+        {
+          error: {
+            message: `Request too large for model \`mock-limite-7000\` in organization \`org_mock\` service tier \`on_demand\` on input tokens per minute (ITPM): Limit 7000, Requested ${tokens}, please reduce your message size and try again.`,
+          },
+        },
+        { status: 413 }
+      );
+    }
   }
   // Simulación del límite real de AiHubMix: «cuentas sin recargar solo 10 intentos»
   if ((body.model ?? "").toLowerCase().includes("kimi-k3")) {
