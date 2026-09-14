@@ -22,6 +22,7 @@ import { buildToolResultMessage } from "./tools-translate";
 import { runProjectInMemory } from "./sandbox-runner";
 import { runJsInMemory } from "./js-repl";
 import { promptCritica } from "./screenshot";
+import { parseLlamadasEnTexto, pareceLlamadaEnTexto, quitarLlamadasEnTexto } from "./tool-calls-texto";
 import type { ProviderId, ProjectMap, ProviderConfig, AppSettings, Attachment } from "./types";
 import { PROVIDER_MAP } from "./providers";
 import type { SandboxSeed } from "./sandbox";
@@ -274,7 +275,24 @@ export async function ejecutarConTools(
   for (let loop = 0; loop < loops; loop++) {
     if (baseOpts.signal.aborted) break;
 
-    const pendingToolCalls = await vuelta(useToolPath, loop === 0);
+    let pendingToolCalls = await vuelta(useToolPath, loop === 0);
+
+    // Fallback: el modelo pidió la herramienta como TEXTO plano, con SU
+    // PROPIA plantilla de function-calling (`<function=…><parameter=…>`),
+    // en vez de rellenar `tool_calls` de la API — confirmado con
+    // nvidia/nemotron vía OpenRouter, que la sirve así aunque haya pasado
+    // el probe de soporte. Sin esto, esa plantilla se enseñaba literal en
+    // la burbuja y la herramienta nunca se ejecutaba.
+    if (useToolPath && !pendingToolCalls.length && pareceLlamadaEnTexto(content)) {
+      const llamadasTexto = parseLlamadasEnTexto(content);
+      if (llamadasTexto.length) {
+        pendingToolCalls = llamadasTexto;
+        // lo que sobre de texto (normalmente nada) sí se enseña; la
+        // plantilla de la llamada, no.
+        content = quitarLlamadasEnTexto(content);
+        baseOpts.onDelta(content);
+      }
+    }
 
     // Si no pidió tools, el bucle termina aquí.
     if (!pendingToolCalls.length || !useToolPath) return content;

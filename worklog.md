@@ -6127,3 +6127,131 @@ usa el camino reactivo). Solo cablea tres piezas que ya vivían separadas.
   antes), suite completa
 - ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone`
   y con el `.nft.json`
+
+## v4.15.0 — La herramienta pedida como texto, no como `tool_calls`
+
+El usuario, tras dos capturas seguidas mostrando el mismo patrón: *"Siguen
+los errores cada vez está peor no se que estás haciendo"*. Con razón —esta
+vez no era una variación del bug de contexto de v4.14.0, era uno distinto
+y peor: la burbuja del chat enseñaba, literal, `<function=write_file>
+<parameter=path> index.html </parameter> <parameter=content>...` en vez de
+escribir la página. Pasó dos veces en la misma conversación, con
+`nvidia/nemotron` vía OpenRouter en modo agente.
+
+### El diagnóstico
+
+El modelo SÍ intentaba llamar a la herramienta —no se quedó callado, no
+alucinó texto suelto— pero con la plantilla de function-calling de su
+PROPIO entrenamiento (variante Llama-3/Hermes: `<function=NOMBRE>
+<parameter=CLAVE>valor</parameter></function>`), no con el campo
+`tool_calls` que pide la API estilo OpenAI. `tools-translate.ts`
+(`parseToolCallsFromChunk`, protocolo `openai`) solo lee
+`delta.tool_calls`; si no es un array, devuelve `[]` y ya. La plantilla
+nunca pasa por ahí: entra como `delta.content`, y `delta.content` es
+exactamente lo que se enseña en la burbuja.
+
+`tools-probe.ts` (`probeTools`) tampoco lo habría cazado: solo comprueba
+que el proveedor ACEPTA el parámetro `tools` en la petición (un código
+HTTP), nunca confirma que el modelo vaya a rellenar `tool_calls` de
+verdad en una respuesta con contenido real. Un modelo puede pasar el
+probe como "sí soporta tools" y aun así, en la práctica, servir su propia
+plantilla como texto — que es justo lo que hace `nvidia/nemotron` aquí.
+
+### El arreglo: reconocer la plantilla, no perseguir el proveedor
+
+Nuevo módulo `tool-calls-texto.ts`: reconoce ESE patrón concreto y
+confirmado (`pareceLlamadaEnTexto` para una comprobación barata antes de
+correr el parser completo; `parseLlamadasEnTexto` extrae nombre+parámetros
+como `ToolCall[]` de verdad; `quitarLlamadasEnTexto` deja solo el texto
+que de verdad acompañaba a la llamada, normalmente nada). Nunca lanza: una
+llamada CORTADA a mitad —una respuesta truncada, sin `</function>` de
+cierre— no cuenta como llamada. Mejor no ejecutar nada que ejecutar con un
+argumento a medias.
+
+Se engancha en `ejecutarConTools` (`use-agent-tools.ts`), justo después de
+pedir la vuelta al modelo: si la vía estructurada no trajo ningún
+`tool_calls` pero el texto SÍ parece la plantilla, se parsea, se limpia el
+texto visible (`baseOpts.onDelta(content)` con el contenido ya sin la
+plantilla — `onDelta` REEMPLAZA lo mostrado, no lo añade, así que el
+texto crudo desaparece de la burbuja en el mismo instante) y se sigue el
+MISMO camino que una llamada estructurada: mismo `runTools`, misma
+reinyección al modelo en la siguiente vuelta, mismo límite de
+`agentMaxLoops`. Cero camino paralelo.
+
+### Pruebas
+
+- 9 unitarios nuevos (`tool-calls-texto.test.ts`): la plantilla real
+  reportada, con espacios sueltos entre etiquetas (como llegó de verdad),
+  varias llamadas en el mismo texto, una llamada cortada que NO cuenta, y
+  que `quitarLlamadasEnTexto` conserva el texto que de verdad acompañaba
+  a la llamada.
+- 3 unitarios nuevos en `agent-tools-loop.test.ts`: el archivo se escribe
+  de VERDAD (no solo se "detecta" la plantilla), la respuesta final es
+  la de la segunda vuelta y no la plantilla cruda, el mensaje reinyectado
+  al modelo no lleva la plantilla rota como si fuera su propio texto
+  (reinyectarle su propio error es invitarlo a repetirlo), y una llamada
+  cortada a mitad se trata como texto normal, no se ejecuta.
+- 1 E2E nuevo (`llamada-en-texto.spec.ts`) con un modelo mock nuevo
+  (`mock-llamada-en-texto`) que nunca llama a `onToolCalls` —manda la
+  plantilla cruda como único contenido, igual que el proveedor real—:
+  comprueba que el chat responde "Página escrita." tras ejecutar la
+  herramienta y que `<function=`/`<parameter=` NUNCA aparecen literales
+  en el texto visible.
+- Verificado en rojo: revertido solo `use-agent-tools.ts` (`git stash`),
+  confirmado que los 2 tests unitarios nuevos fallaban por la razón
+  correcta (`volcados.length` en 0 — el archivo nunca se escribía;
+  `registro[1]` indefinido — nunca hubo segunda vuelta) y que el E2E
+  reproducía el bug real tal cual lo vio el usuario (el selector de
+  "Página escrita." nunca aparecía, timeout a los 90s), restaurado y
+  confirmado en verde.
+
+### Errores propios de este arreglo, documentados sin maquillar
+
+- Al añadir el modelo mock `mock-llamada-en-texto` a
+  `src/app/api/mock-llm/[...path]/route.ts`, la primera versión comparaba
+  contra `modelo` —una variable local de `buildReply(body)`, una función
+  distinta— en vez de `body.model`, que es lo que existe en el handler
+  `POST` donde vive el bloque nuevo (junto a `mock-visual-review` y los
+  demás casos especiales). `npx tsc --noEmit` no lo cazó porque `modelo`
+  SÍ existe en el archivo —solo que en otro alcance—, así que no fue un
+  error de tipos sino de lectura propia del código; se detectó releyendo
+  el bloque antes de confiar en él, se corrigió a `body.model` y se
+  reverificó.
+- La primera versión del E2E incluía una aserción final contra el iframe
+  de vista previa del Sandbox (`iframe[title="Vista previa de la página
+  generada"]`), esperando ver ahí el texto escrito por la herramienta.
+  Falló: ese iframe está cableado a bloques ` ```html ` detectados en
+  respuestas normales del chat, no a escrituras de `write_file` del
+  agente hacia el Sandbox —dos rutas distintas que no se sincronizan
+  entre sí, y no es parte de este bug. Se quitó esa aserción en vez de
+  cablear una sincronización que no se pidió; el test unitario (via
+  `onProjectFiles`) ya prueba que el archivo se escribió de verdad.
+
+### Lo que sigue sin cubrir
+
+- Se reconoce ÚNICAMENTE la plantilla confirmada
+  (`<function=NOMBRE><parameter=CLAVE>valor</parameter></function>`,
+  variante Llama-3/Hermes). Otros formatos de function-calling en texto
+  plano que algún otro modelo pueda usar (JSON suelto en el contenido,
+  XML con otra forma, etc.) no se reconocen —no hay evidencia real de
+  ellos todavía, y adivinar formatos sin un caso confirmado es el mismo
+  error que llevó a este bug (un probe que confía sin comprobar).
+- Sigue sin haber forma de saber, ANTES de que ocurra, que un modelo va a
+  usar su propia plantilla en vez de `tool_calls` —`tools-probe.ts` no
+  cambia con este arreglo. Esto es una red de seguridad DESPUÉS del
+  hecho, no una detección temprana.
+- No se probó un tercer nivel de anidado (una llamada con un parámetro
+  cuyo VALOR contenga, a su vez, la palabra `</parameter>` o
+  `</function>` literal dentro de código HTML generado) —el regex no
+  máximo-perezoso podría cortar antes de tiempo en ese caso extremo. No
+  apareció en el reporte real ni en las pruebas, queda como hueco
+  conocido.
+
+### Puerta
+
+- ✓ lint · ✓ knip (solo huecos preexistentes, ninguno de los archivos
+  nuevos) · ✓ tsc
+- ✓ **1 890** unitarios (1 878 antes) · ✓ **243** E2E (241 antes), suite
+  completa
+- ✓ build · ✓ `npm start` + `/api/version` (`4.15.0`) · ✓ `VERCEL=1` sin
+  `standalone` y con el `.nft.json`

@@ -51,6 +51,7 @@ const MODELOS = [
   "mock-mide",
   "mock-visual-review",
   "mock-visual-review-sin-vision",
+  "mock-llamada-en-texto",
   "mock-toca-header",
   "mock-director",
   "mock-obrero",
@@ -1151,6 +1152,27 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
     return Response.json({
       choices: [{ message: { content: `Crítica visual: ${dicho}` }, index: 0 }],
     });
+  }
+
+  // `mock-llamada-en-texto`: el modelo pide la herramienta como TEXTO, con
+  // SU PROPIA plantilla de function-calling (`<function=…><parameter=…>`),
+  // en vez de rellenar `tool_calls` de la API — el caso real reportado por
+  // un usuario con nvidia/nemotron vía OpenRouter, dos veces seguidas en
+  // la misma conversación. Nunca llama a `onToolCalls`: el texto crudo es
+  // TODO lo que manda. Sirve para comprobar que Prism reconoce esa
+  // plantilla como una llamada de verdad (`tool-calls-texto.ts`), la
+  // ejecuta, y no la enseña literal en el chat.
+  if (body.model === "mock-llamada-en-texto") {
+    if (lastIsToolResult) {
+      return Response.json({
+        choices: [{ message: { content: "Página escrita." }, index: 0 }],
+      });
+    }
+    const llamada =
+      "<function=write_file><parameter=path>index.html</parameter>" +
+      '<parameter=content><!DOCTYPE html><html lang="es"><body><h1>Bienvenido a la tienda</h1></body></html></parameter></function>';
+    if (body.stream) return sse(llamada);
+    return Response.json({ choices: [{ message: { content: llamada }, index: 0 }] });
   }
 
   if (body.tools && (body.model === "mock-tools" || body.model === "mock-lee-url") && !lastIsToolResult) {

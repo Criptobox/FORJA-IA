@@ -212,6 +212,100 @@ describe("ejecutarConTools — persistencia entre vueltas (v3.32)", () => {
   });
 });
 
+describe("ejecutarConTools — la llamada pedida como TEXTO (no tool_calls) se ejecuta igual", () => {
+  /** Lo que reportó un usuario dos veces seguidas: nvidia/nemotron vía
+   * OpenRouter escribe la llamada con SU plantilla de function-calling en
+   * vez de rellenar `tool_calls` — sin `pideTool`, sin `onToolCalls`, el
+   * texto trae literal `<function=write_file>…</function>`. */
+  const LLAMADA_TEXTO =
+    "<function=write_file><parameter=path>index.html</parameter>" +
+    '<parameter=content><!DOCTYPE html><html lang="es"><body><h1>Hola</h1></body></html></parameter></function>';
+
+  function depsLlamadaEnTexto(
+    registro: Array<{ messages: StreamMessage[]; conTools: boolean }>
+  ): DepsTools {
+    let vuelta = 0;
+    return {
+      probe: vi.fn(async () => ({
+        support: "ok" as const,
+        verdict: "ok" as const,
+        status: 200,
+        ms: 1,
+        at: Date.now(),
+      })),
+      stream: vi.fn(async (opts: StreamOptions) => {
+        vuelta++;
+        registro.push({ messages: opts.messages, conTools: !!opts.tools });
+        if (vuelta === 1) {
+          // el modelo NO llama a onToolCalls: la plantilla viene como texto
+          opts.onDelta(LLAMADA_TEXTO);
+          return LLAMADA_TEXTO;
+        }
+        opts.onDelta("Página escrita.");
+        return "Página escrita.";
+      }) as unknown as DepsTools["stream"],
+    };
+  }
+
+  it("se reconoce, se ejecuta de verdad (el archivo se escribe) y no queda como texto final", async () => {
+    const registro: Array<{ messages: StreamMessage[]; conTools: boolean }> = [];
+    const volcados: Array<Record<string, string>> = [];
+
+    const salida = await ejecutarConTools(
+      opciones(),
+      true,
+      3,
+      null,
+      { apiKey: "k" },
+      undefined,
+      depsLlamadaEnTexto(registro),
+      (files) => volcados.push(files)
+    );
+
+    // el archivo se escribió de verdad, no solo se "leyó" la plantilla
+    expect(volcados.length).toBeGreaterThan(0);
+    expect(volcados[0]["index.html"]).toContain("<h1>Hola</h1>");
+
+    // dos vueltas: la que trajo la llamada en texto + la que responde
+    // tras ejecutarla — no una sola vuelta que se rinde con el texto crudo
+    expect(registro).toHaveLength(2);
+
+    // la respuesta final es la de la SEGUNDA vuelta, no la plantilla cruda
+    expect(salida).toBe("Página escrita.");
+    expect(salida).not.toContain("<function=");
+  });
+
+  it("el mensaje reinyectado al modelo no lleva la plantilla cruda como su propio texto", async () => {
+    const registro: Array<{ messages: StreamMessage[]; conTools: boolean }> = [];
+    await ejecutarConTools(opciones(), true, 3, null, { apiKey: "k" }, undefined, depsLlamadaEnTexto(registro));
+
+    const segunda = registro[1].messages;
+    const asistente = segunda.find((m) => m.role === "assistant");
+    // vacío (o sin la plantilla): reinyectarle su propio texto roto es
+    // invitarlo a repetir el mismo patrón
+    expect(asistente?.content ?? "").not.toContain("<function=");
+  });
+
+  it("una llamada de verdad cortada a mitad (respuesta truncada) no se ejecuta: se trata como texto normal", async () => {
+    const registro: Array<{ messages: StreamMessage[]; conTools: boolean }> = [];
+    const cortada = "<function=write_file><parameter=path>index.html</parameter><parameter=content><!DOCTYPE";
+    const d: DepsTools = {
+      probe: vi.fn(async () => ({ support: "ok" as const, verdict: "ok" as const, status: 200, ms: 1, at: Date.now() })),
+      stream: vi.fn(async (opts: StreamOptions) => {
+        registro.push({ messages: opts.messages, conTools: !!opts.tools });
+        opts.onDelta(cortada);
+        return cortada;
+      }) as unknown as DepsTools["stream"],
+    };
+
+    const salida = await ejecutarConTools(opciones(), true, 3, null, { apiKey: "k" }, undefined, d);
+    // sin cierre `</function>` no hay llamada reconocible: el bucle termina
+    // en la primera vuelta con el texto tal cual (ni mejor ni peor que hoy)
+    expect(salida).toBe(cortada);
+    expect(registro).toHaveLength(1);
+  });
+});
+
 describe("ejecutarConTools — los permisos recortan lo que se le OFRECE al modelo", () => {
   /** El catálogo que viajó en cada vuelta con `tools`. */
   function depsQueApunta(catalogos: Array<string[]>): DepsTools {
