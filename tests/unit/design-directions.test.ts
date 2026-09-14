@@ -10,9 +10,12 @@ import {
 } from "../../src/lib/prism/design-directions";
 
 describe("direcciones curadas", () => {
-  it("son exactamente las 5 del plan, con ids únicos", () => {
-    expect(DIRECCIONES.length).toBe(5);
-    expect(new Set(DIRECCIONES.map((d) => d.id)).size).toBe(5);
+  it("tienen ids únicos, uno por cada una", () => {
+    // el número cambia si se añade una dirección nueva: lo que importa es que
+    // no haya dos con el mismo id, no un recuento fijo que hay que acordarse
+    // de tocar cada vez.
+    expect(DIRECCIONES.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(DIRECCIONES.map((d) => d.id)).size).toBe(DIRECCIONES.length);
   });
 
   it("todas tienen tokens completos y coherentes", () => {
@@ -48,14 +51,19 @@ describe("elegirDireccion", () => {
     expect(elegirDireccion("póster brutalista para un festival").direccion.id).toBe("brutalista");
     expect(elegirDireccion("dashboard técnico para devs").direccion.id).toBe("tech");
     expect(elegirDireccion("portfolio editorial de escritura").direccion.id).toBe("editorial");
+    expect(elegirDireccion("sitio inmersivo para una agencia premiada").direccion.id).toBe("experimental");
     const e = elegirDireccion("landing minimalista para fintech");
     expect(e.origen).toBe("usuario");
   });
 
   it("sin dirección clara decide sola, y evita las recientes", () => {
-    const e = elegirDireccion("hazme una web", ["editorial", "minimal", "tech", "brutalista"]);
+    const evitar = ["editorial", "minimal", "tech", "brutalista"];
+    const e = elegirDireccion("hazme una web", evitar);
     expect(e.origen).toBe("sistema");
-    expect(e.direccion.id).toBe("calido");
+    // no una dirección concreta a mano —eso es justo lo que se rompe al
+    // añadir una dirección nueva—, sino la propiedad que importa: que de
+    // verdad evitó las recientes.
+    expect(evitar).not.toContain(e.direccion.id);
   });
 
   it("si todas están quemadas, decide igual (no se bloquea)", () => {
@@ -71,6 +79,12 @@ describe("elegirDireccion", () => {
 });
 
 describe("DESIGN.md y prompt", () => {
+  it("el DESIGN.md solo menciona prism-3d.js cuando la dirección puede usarlo", () => {
+    expect(aDesignMd(direccionPorId("experimental")!)).toContain("prism-3d.js");
+    expect(aDesignMd(direccionPorId("tech")!)).toContain("prism-3d.js"); // usa 3d-particulas
+    expect(aDesignMd(direccionPorId("calido")!)).not.toContain("prism-3d.js");
+  });
+
   it("aDesignMd produce un documento completo", () => {
     const md = aDesignMd(DIRECCIONES[0], "Mi café");
     expect(md).toContain("# DESIGN.md");

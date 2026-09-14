@@ -27,13 +27,17 @@
  * con desvanecidos suaves deja de ser neobrutalismo, y un editorial con
  * inclinación 3D es una web de plantilla.
  */
-import { FX_CSS, FX_JS } from "./efectos-datos";
+import { FX3D_JS, FX_CSS, FX_JS } from "./efectos-datos";
 
-export { FX_CSS, FX_JS } from "./efectos-datos";
+export { FX3D_JS, FX_CSS, FX_JS } from "./efectos-datos";
 
 /** Los nombres con los que el kit viaja en el proyecto. */
 export const FX_CSS_PATH = "prism-fx.css";
 export const FX_JS_PATH = "prism-fx.js";
+/** El motor 3D es un tercer archivo, aparte: es el único que pesa (WebGL de
+ * verdad), así que solo se añade cuando algo lo enlaza — una landing tranquila
+ * no tiene por qué cargar 12 KB de un motor que nunca usa. */
+export const FX3D_JS_PATH = "prism-3d.js";
 
 /** Cuántos efectos como mucho por página. Con más, todo se mueve y nada
  * destaca — que es el fallo opuesto al que esto viene a arreglar. */
@@ -67,6 +71,36 @@ export const EFECTOS: readonly Efecto[] = [
   { id: "sheen", uso: 'class="fx-sheen" en un botón: destello que lo cruza al hover', soloCss: true },
   { id: "float", uso: 'class="fx-float": flota despacio en bucle', soloCss: true },
   { id: "blob", uso: 'class="fx-blob" en una imagen: máscara orgánica que respira', soloCss: true },
+  {
+    id: "pin",
+    uso:
+      'data-fx="pin" en una sección alta (height:300vh) con data-fx="pin-inner" dentro: se ancla al hacer scroll. [data-fx-step] en los hijos los revela en orden',
+  },
+  {
+    id: "horizontal",
+    uso:
+      'data-fx="horizontal" con data-fx="horizontal-track" dentro (paneles en fila): el scroll vertical los desliza en horizontal',
+  },
+  {
+    id: "cursor",
+    uso: 'data-fx="cursor" en <body>: cursor propio. data-fx-cursor="Ver" en un hijo lo agranda con esa etiqueta',
+  },
+  {
+    id: "scramble",
+    uso: 'data-fx="scramble" en un titular corto: se revela con caracteres al azar antes de asentarse',
+  },
+  {
+    id: "3d-particulas",
+    uso: '<canvas data-fx3d="3d-particulas" class="fx-mesh">: partículas WebGL propias que reaccionan al cursor (tiñe con el CSS `color` del canvas)',
+  },
+  {
+    id: "3d-malla",
+    uso: '<canvas data-fx3d="3d-malla" class="fx-mesh">: un globo de líneas que gira despacio y sigue el cursor',
+  },
+  {
+    id: "3d-shader",
+    uso: '<canvas data-fx3d="3d-shader" class="fx-mesh">: fondo con un blob de gradiente fluido, sin geometría 3D',
+  },
 ];
 
 const POR_ID = new Map(EFECTOS.map((e) => [e.id, e]));
@@ -85,24 +119,48 @@ export const EFECTOS_POR_DIRECCION: Record<
   { usa: readonly string[]; evita: readonly string[] }
 > = {
   editorial: {
-    usa: ["reveal", "stagger", "split", "underline", "parallax", "noise"],
-    evita: ["tilt", "spotlight", "sheen", "float", "mesh", "marquee"],
+    // «pin»: la narrativa larga de una revista es justo lo que un scroll
+    // anclado sabe contar — un reportaje, no un producto.
+    usa: ["reveal", "stagger", "split", "underline", "parallax", "noise", "pin"],
+    evita: [
+      "tilt", "spotlight", "sheen", "float", "mesh", "marquee",
+      "cursor", "scramble", "horizontal", "3d-particulas", "3d-malla", "3d-shader",
+    ],
   },
   minimal: {
     usa: ["reveal", "stagger", "count", "underline", "float"],
-    evita: ["marquee", "noise", "tilt", "spotlight", "sheen", "pop"],
+    evita: [
+      "marquee", "noise", "tilt", "spotlight", "sheen", "pop",
+      "cursor", "scramble", "pin", "horizontal", "3d-particulas", "3d-malla", "3d-shader",
+    ],
   },
   tech: {
-    usa: ["reveal", "count", "spotlight", "sheen", "grid", "tilt"],
-    evita: ["float", "blob", "noise", "split", "marquee"],
+    // el campo de partículas encaja con la estética de dashboard/red de datos.
+    usa: ["reveal", "count", "spotlight", "sheen", "grid", "tilt", "cursor", "scramble", "3d-particulas"],
+    evita: ["float", "blob", "noise", "split", "marquee", "pin", "horizontal", "3d-malla", "3d-shader"],
   },
   brutalista: {
-    usa: ["pop", "marquee", "tilt", "sheen", "split"],
-    evita: ["reveal", "float", "blob", "spotlight", "mesh", "noise"],
+    // el scroll horizontal a golpes y el texto que se «hackea» son bordes,
+    // no elegancia — encajan con bloques que chocan entre sí.
+    usa: ["pop", "marquee", "tilt", "sheen", "split", "horizontal", "scramble"],
+    evita: [
+      "reveal", "float", "blob", "spotlight", "mesh", "noise",
+      "cursor", "pin", "3d-particulas", "3d-malla", "3d-shader",
+    ],
   },
   calido: {
     usa: ["reveal", "stagger", "float", "blob", "noise", "parallax"],
-    evita: ["marquee", "grid", "spotlight", "sheen", "pop", "tilt"],
+    evita: [
+      "marquee", "grid", "spotlight", "sheen", "pop", "tilt",
+      "cursor", "scramble", "pin", "horizontal", "3d-particulas", "3d-malla", "3d-shader",
+    ],
+  },
+  // La sexta dirección (`design-directions.ts`): la única con permiso de usar
+  // el motor 3D, el cursor propio y el scroll narrativo a la vez. En las
+  // otras cinco, cualquiera de estos rompería el mundo que ya tienen resuelto.
+  experimental: {
+    usa: ["cursor", "scramble", "pin", "horizontal", "3d-particulas", "3d-malla", "3d-shader", "tilt", "spotlight"],
+    evita: ["marquee", "blob", "float", "noise", "underline", "pop"],
   },
 };
 
@@ -172,12 +230,14 @@ function desasentarFx(t){try{document.documentElement.classList.remove("fx-medir
 
 /** ¿Alguno de los archivos enlaza el kit? Acepta las tres formas en que un
  * modelo escribe una ruta hermana: `prism-fx.css`, `./prism-fx.css`,
- * `/prism-fx.css`. */
-export function usaKit(textos: readonly string[]): { css: boolean; js: boolean } {
+ * `/prism-fx.css`. El motor 3D se detecta aparte: es el único de los tres que
+ * pesa, así que solo se añade cuando de verdad hace falta. */
+export function usaKit(textos: readonly string[]): { css: boolean; js: boolean; js3d: boolean } {
   const todo = textos.join("\n");
   return {
     css: new RegExp(`["'(/.]${FX_CSS_PATH}`).test(todo),
     js: new RegExp(`["'(/.]${FX_JS_PATH}`).test(todo),
+    js3d: new RegExp(`["'(/.]${FX3D_JS_PATH}`).test(todo),
   };
 }
 
@@ -187,10 +247,11 @@ export function usaKit(textos: readonly string[]): { css: boolean; js: boolean }
  * usuario lo editó en el Sandbox), manda el suyo. Esto rellena huecos, no
  * impone. */
 export function conKit(files: Record<string, string>): Record<string, string> {
-  const { css, js } = usaKit(Object.values(files));
+  const { css, js, js3d } = usaKit(Object.values(files));
   const falta: Record<string, string> = {};
   if (css && files[FX_CSS_PATH] == null) falta[FX_CSS_PATH] = FX_CSS;
   if (js && files[FX_JS_PATH] == null) falta[FX_JS_PATH] = FX_JS;
+  if (js3d && files[FX3D_JS_PATH] == null) falta[FX3D_JS_PATH] = FX3D_JS;
   if (!Object.keys(falta).length) return files;
   return { ...files, ...falta };
 }
@@ -201,9 +262,10 @@ export function faltanDelKit(
   rutas: readonly string[],
   textos: readonly string[]
 ): { path: string; text: string }[] {
-  const { css, js } = usaKit(textos);
+  const { css, js, js3d } = usaKit(textos);
   const out: { path: string; text: string }[] = [];
   if (css && !rutas.includes(FX_CSS_PATH)) out.push({ path: FX_CSS_PATH, text: FX_CSS });
   if (js && !rutas.includes(FX_JS_PATH)) out.push({ path: FX_JS_PATH, text: FX_JS });
+  if (js3d && !rutas.includes(FX3D_JS_PATH)) out.push({ path: FX3D_JS_PATH, text: FX3D_JS });
   return out;
 }

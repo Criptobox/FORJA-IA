@@ -37,6 +37,8 @@ const MODELOS = [
   "mock-codigo-roto",
   "mock-efectos",
   "mock-generica",
+  "mock-3d",
+  "mock-scroll",
   "mock-boton-roto",
   "mock-enlace-roto",
   "mock-mide",
@@ -301,6 +303,52 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<html lang="es"><head><meta charset="utf-8"><title>Demo</title></head>',
       '<body style="font-family:system-ui;margin:0;padding:24px">',
       cuerpo,
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-3d`: enlaza el motor 3D (canvas con globo de líneas) sin
+  // escribirlo — igual que `mock-efectos` para el kit normal, pero para
+  // comprobar que Prism también añade `prism-3d.js` cuando hace falta.
+  if (modelo === "mock-3d") {
+    return [
+      "Aquí tienes la escena.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8">',
+      "<title>Con 3D</title>",
+      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<body style="margin:0;color:oklch(0.7 0.2 280)">',
+      '<canvas data-fx3d="3d-malla" class="fx-mesh" style="width:100%;height:400px;display:block"></canvas>',
+      '<script src="prism-3d.js" defer></script>',
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-scroll`: una sección anclada (`pin`) con tres pasos y una sección
+  // que se desliza en horizontal — para comprobar el scroll narrativo.
+  if (modelo === "mock-scroll") {
+    return [
+      "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8">',
+      "<title>Scroll narrativo</title>",
+      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<body style="margin:0;font-family:system-ui">',
+      '<section data-fx="pin" style="height:300vh">',
+      '<div data-fx="pin-inner" style="display:flex;align-items:center;justify-content:center">',
+      '<p data-fx-step>Paso uno</p><p data-fx-step>Paso dos</p><p data-fx-step>Paso tres</p>',
+      "</div></section>",
+      '<section data-fx="horizontal" style="height:300vh">',
+      '<div data-fx="horizontal-track">',
+      '<div style="width:100vw;flex:none">Panel A</div><div style="width:100vw;flex:none">Panel B</div><div style="width:100vw;flex:none">Panel C</div>',
+      "</div></section>",
+      '<script src="prism-fx.js" defer></script>',
       "</body></html>",
       "```",
     ].join("\n");

@@ -104,6 +104,61 @@
 .fx-marquee > *{ animation: fx-marquee 22s linear infinite; flex:none; min-width:100%; display:flex; gap:2rem; }
 @keyframes fx-marquee{ to{ transform: translateX(-100%); } }
 
+/* ——— scrollytelling: anclar y desplazar en horizontal ———
+ *
+ * `pin`: una sección alta (300vh, la pone el autor) con un `pin-inner`
+ * pegajoso dentro. Mientras se hace scroll por esa altura, el interior se
+ * queda fijo y JS escribe el avance en `--fx-p` (0 a 1) — el autor la usa
+ * para animar lo que quiera dentro, y si trae `[data-fx-step]` los va
+ * revelando en orden, como una narración.
+ *
+ * `horizontal`: lo mismo pero el interior se desliza a los lados. El
+ * `overflow:hidden` del carril es lo que evita que esto cuente como scroll
+ * horizontal de la página — sin él, el medidor de QA lo marcaría como fallo.
+ *
+ * Los dos quedan en flujo normal (sin fijar nada) si el motor no puede
+ * animar: sin esto, quien pide menos movimiento se quedaba desplazando
+ * cientos de píxeles de página vacía por un efecto que nunca se activaba. */
+html:not(.fx-on) [data-fx="pin"],
+html:not(.fx-on) [data-fx="horizontal"]{ height: auto !important; }
+
+.fx-on [data-fx="pin-inner"],
+.fx-on [data-fx="horizontal-track"]{ position: sticky; top: 0; min-height: 100vh; }
+.fx-on [data-fx="horizontal-track"]{ overflow: hidden; display: flex; will-change: transform; }
+
+.fx-on [data-fx-step]{ opacity: 0; transition: opacity 380ms var(--fx-ease); }
+.fx-on [data-fx-step].fx-active{ opacity: 1; }
+
+/* ——— cursor propio ———
+ * Solo se reemplaza el del sistema cuando el motor está activo: con menos
+ * movimiento permitido, el cursor normal sigue ahí — quitarlo sin poner
+ * nada en su lugar dejaría a alguien navegando a ciegas. */
+.fx-on [data-fx="cursor"],
+.fx-on [data-fx="cursor"] *{ cursor: none; }
+.fx-cursor{
+  position: fixed; top: 0; left: 0; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border-radius: 50%; background: currentColor; opacity: .9; pointer-events: none;
+  z-index: 2147483647; display: flex; align-items: center; justify-content: center;
+  transition: width 220ms var(--fx-ease), height 220ms var(--fx-ease), margin 220ms var(--fx-ease), background-color 220ms;
+}
+.fx-cursor-label{
+  font: 600 11px/1 system-ui, sans-serif; color: Canvas; transition: opacity 200ms; white-space: nowrap;
+}
+/* el propio `.fx-cursor` solo existe en el DOM si `listo()` llegó a crearlo
+   —motion permitido—, pero se gatea igual que todo lo demás: una regla que
+   esconde algo sin pasar por `.fx-on` es justo el patrón que no se quiere. */
+.fx-on .fx-cursor-label{ opacity: 0; }
+.fx-cursor.fx-cursor-active{ width: 68px; height: 68px; margin: -34px 0 0 -34px; }
+.fx-on .fx-cursor.fx-cursor-active .fx-cursor-label{ opacity: 1; }
+
+/* ——— transición de página nativa ———
+ * `window.prismFx.transition()` envuelve `document.startViewTransition`.
+ * Solo el aspecto por defecto: el autor puede afinarlo con sus propios
+ * `::view-transition-*` si quiere algo distinto. */
+@media (prefers-reduced-motion: reduce){
+  ::view-transition-old(root), ::view-transition-new(root){ animation: none !important; }
+}
+
 /* Medición: el QA y el barrido de botones necesitan el estado FINAL en el
    mismo instante en que lo miran. Con la transición corriendo, leerían
    opacidad 0 y darían por invisible media página. */

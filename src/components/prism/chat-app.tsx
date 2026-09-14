@@ -55,6 +55,7 @@ import type { PublishSeed, SandboxSeed } from "@/lib/prism/sandbox";
 import { conKit } from "@/lib/prism/efectos";
 import { OnboardingDialog } from "./onboarding";
 import { PreviewPanel } from "./preview-panel";
+import { aplicarEdicionTexto } from "@/lib/prism/editar-preview";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/prism/use-media-query";
 import { Welcome } from "./welcome";
 import { registerServiceWorker } from "./pwa";
@@ -848,6 +849,25 @@ export function ChatApp() {
       void runGeneration(sessionId);
     },
     [streamingMsgId, addMessage, runGeneration]
+  );
+
+  /** Un texto tocado y editado en la propia vista previa.
+   *
+   * El cambio se localiza en el CÓDIGO de la respuesta —no en el DOM del
+   * iframe, que se pierde en cuanto se repinta— y se persiste ahí: por eso
+   * sigue estando cuando descargas el ZIP o subes a GitHub. Si el texto no es
+   * único, o no se encuentra, se dice por qué en vez de adivinar cuál. */
+  const editarTextoDePreview = useCallback(
+    (original: string, nuevo: string): { ok: boolean; motivo?: string } => {
+      if (!activeSession || !previewMsg) {
+        return { ok: false, motivo: "no hay ninguna vista previa abierta" };
+      }
+      const r = aplicarEdicionTexto(previewMsg.content, original, nuevo);
+      if (!r.ok || r.contenido == null) return { ok: false, motivo: r.motivo };
+      updateMessage(activeSession.id, previewMsg.id, { content: r.contenido });
+      return { ok: true };
+    },
+    [activeSession, previewMsg, updateMessage]
   );
 
   /** Retoma un trabajo del agente que se quedó a medias, sin empezar de cero. */
@@ -1881,6 +1901,7 @@ export function ChatApp() {
               onRemoveNote={(i) => activeSession && removeProjectNote(activeSession.id, i)}
               onRestoreSnapshot={(i) => activeSession && restoreMapSnapshot(activeSession.id, i)}
               onFixLive={arreglarErroresEnVivo}
+              onEditText={editarTextoDePreview}
             />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -1911,6 +1932,7 @@ export function ChatApp() {
               onRemoveNote={(i) => activeSession && removeProjectNote(activeSession.id, i)}
               onRestoreSnapshot={(i) => activeSession && restoreMapSnapshot(activeSession.id, i)}
               onFixLive={arreglarErroresEnVivo}
+              onEditText={editarTextoDePreview}
             />
           )}
         </SheetContent>

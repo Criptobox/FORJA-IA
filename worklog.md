@@ -5263,3 +5263,162 @@ consejo.**
   Contents API, que respeta la rama por defecto), pero veinte archivos son
   veinte commits. Debería pasar por la misma Git Data API que la subida de
   carpetas.
+
+---
+
+## v4.10.0 — Scrollytelling, motor 3D propio, sexta dirección y editar tocando la vista previa
+
+La pregunta del usuario fue directa: *«sugerencias… webs como Open Design o
+Claude Design, sitios 3D con animaciones»*. La respuesta, en la conversación
+anterior, fue una lista de lo que valía la pena y lo que no. Esta versión es
+esa lista, hecha — más una función que pidió aparte: tocar un texto de la
+vista previa y editarlo ahí mismo.
+
+### El kit de efectos crece: scrollytelling
+
+Dos efectos nuevos en `prism-fx`, sin cambiar el criterio de siempre (local,
+sin CDN, todo se ve sin JavaScript):
+
+- **`pin`** — una sección alta se ancla mientras se hace scroll y dice su
+  avance (`--fx-p`, de 0 a 1) en una variable CSS. Con `[data-fx-step]` en los
+  hijos, los va revelando en orden: es el mecanismo detrás de un reportaje
+  largo o una demo contada paso a paso.
+- **`horizontal`** — lo mismo pero deslizando en horizontal. El
+  `overflow:hidden` del carril es lo que evita que esto cuente como scroll
+  horizontal de la página: sin él, el propio QA visual lo marcaría como fallo.
+
+Sin animación (o sin JavaScript), las dos se apagan de verdad: la altura de
+300vh se anula (`height: auto`) para que nadie desplace cientos de píxeles de
+página vacía por un efecto que nunca se activó.
+
+### Cursor propio, texto que se revela con caracteres al azar, transición nativa
+
+- **`cursor`** — reemplaza el del sistema solo cuando el motor está activo
+  (la regla que lo oculta vive detrás de `.fx-on`, igual que todo lo demás);
+  con `data-fx-cursor="Ver"` se agranda con esa etiqueta al pasar por encima.
+- **`scramble`** — un titular se revela con letras al azar antes de asentarse
+  en el texto real. No necesita esconder nada con CSS: el texto ya es visible,
+  es su contenido el que cambia.
+- **`window.prismFx.transition()`** — envuelve `document.startViewTransition`
+  con respaldo si el navegador no lo soporta. Va siempre disponible, incluso
+  con menos movimiento permitido (ahí Chrome ya desactiva la animación solo).
+
+### Un motor 3D propio — no Three.js recortado
+
+`prism-3d.js`: WebGL2 crudo, sin librería, ~12 KB. Cámara en perspectiva
+(matriz 4×4 verificada a mano: near→-1, far→1 en NDC, comprobado con números
+reales antes de escribir una línea de shader), un campo de partículas que
+reacciona al cursor, un globo de líneas que gira, y un shader de fondo con un
+blob de gradiente fluido. El color de la escena sale del CSS `color` del
+propio `<canvas>` — el mismo convenio que ya usaban `fx-mesh` y `fx-noise`.
+
+Tres frenos, en este orden:
+
+1. **Sin motion, no dibuja.** Igual que el resto del kit.
+2. **Sin WebGL2, se queda vacío.** Se ve lo que haya detrás — un gradiente
+   CSS de respaldo, que es justo lo que dice el catálogo que hay que poner.
+3. **En un equipo de gama baja, tampoco.** `navigator.deviceMemory < 4` o
+   `hardwareConcurrency < 4` bastan para no dibujar. Una escena que hace ir un
+   móvil a 12 fps no es «más pro»: es peor que no tenerla.
+
+`window.__prism3dActivo` es la única señal que expone el motor, y solo se
+pone a `true` DESPUÉS de comprobar el contexto y que el shader compiló —
+nunca antes, o mentiría. Es lo que usan las pruebas para saber si decidió
+dibujar sin tener que leer píxeles.
+
+**Lo que no se pudo verificar en E2E, y por qué (dicho aquí en vez de
+callado):** la detección de gama baja SÍ está probada — en el unitario, que
+es determinista. En Playwright no: para simularla hay que sobrescribir
+`navigator.hardwareConcurrency` justo cuando el iframe de la vista previa
+recarga su `srcdoc` — y ese recargado ocurre dos veces mientras el modelo
+escribe (una vacío, luego con el HTML final). Playwright pierde la
+sobrescritura en la segunda recarga una vez de cada dos: es una carrera del
+arnés de pruebas con `srcdoc`, confirmada leyendo `hardwareConcurrency` en el
+punto exacto donde se decide (si la sobrescritura llega, el motor SÍ se
+calla — se vio pasar en varias ejecuciones). Forzarlo a base de reintentos
+habría escondido la causa en vez de decirla.
+
+### La sexta dirección: Estudio experimental
+
+Las cinco direcciones de antes no cambian. Se añade una sexta, la única con
+permiso de usar el motor 3D, el cursor propio y el scroll narrativo juntos:
+fondo casi negro, acento violeta-cian, tipografía `Unbounded` + `Manrope`,
+composición de una sola pieza dominante por pantalla en vez del grid de tres
+columnas. `tech` puede usar el campo de partículas —encaja con un dashboard—,
+pero el globo de líneas 3D y el shader de fondo se quedan para experimental:
+son los que de verdad cambian el tono de una página.
+
+Detectada por palabra clave (agencia, premiada, awwwards, inmersivo,
+experimental…) igual que las otras cinco; sin dirección clara, entra en la
+misma rotación para no repetirse entre proyectos.
+
+### Otro fallo que se destapó de paso: el QA nunca llegaba al modelo también aquí
+
+Al escribir la prueba del scroll horizontal se confirmó lo mismo que en
+v4.9.0 con `runProjectInMemory`: el CSS solo esconde `opacity:0` bajo `.fx-on`
+(un unitario recorre el CSS regla a regla comprobándolo), y una regla nueva
+que se saltara esa guarda se habría colado igual sin la prueba — pasó de
+verdad con `.fx-cursor-label`, que en el primer intento llevaba `opacity: 0`
+sin el gateo. El unitario lo cazó antes de llegar a ningún E2E.
+
+### Editar tocando la vista previa
+
+Lo que pidió el usuario aparte: un botón «Editar» en la barra de la vista
+previa. Al activarlo, el texto que se pasa por encima se marca; al tocarlo,
+se vuelve editable; Enter confirma, Escape descarta.
+
+El cambio **no** se guarda en el DOM del iframe —se pierde en cuanto se
+repinta—, se localiza en el CÓDIGO de la respuesta y se persiste ahí: por eso
+sigue estando cuando se descarga el ZIP o se sube a GitHub.
+
+Dos reglas de seguridad, no solo de comportamiento:
+
+- **Solo hojas del árbol.** El piloto únicamente deja editables los elementos
+  SIN hijos —un `<h1>`, un botón con una palabra—. Nunca un contenedor con más
+  elementos dentro: tocar su `textContent` habría borrado lo que hay adentro.
+- **Nunca se rellena a ciegas.** Localizar el texto en el código es buscar una
+  cadena. Si aparece más de una vez —un botón «Ver más» repetido tres
+  veces—, se rechaza con el motivo («aparece 3 veces: edítalo desde el
+  Sandbox para elegir cuál») en vez de sustituir la primera por suerte. Si no
+  aparece —el HTML fuente puede llevar entidades que el navegador ya
+  decodificó—, se prueba también la forma escapada antes de rendirse.
+
+El motivo del rechazo se queda escrito en pantalla (`toast.error`), nunca se
+traga en silencio.
+
+### Pruebas
+
+- 22 unitarios de `efectos.ts` ampliados (nuevos ids, tercer archivo,
+  dirección experimental) + 13 de `editar-preview.ts`.
+- 9 E2E con mocks nuevos (`mock-3d`, `mock-scroll`): que Prism añade
+  `prism-3d.js` solo cuando se enlaza, que la escena arranca con movimiento
+  permitido y se calla sin él, que el avance del `pin` sigue al scroll de
+  verdad y revela los pasos en orden, que el carril horizontal se desplaza sin
+  generar scroll real de página.
+- 2 E2E de la edición en preview: tocar el titular lo cambia y el cambio
+  queda en el código (comprobado en la pestaña «Ver código», no solo en el
+  DOM); un texto duplicado se rechaza con el motivo.
+- Verificados en rojo: los tres de scrollytelling, el de que la escena 3D no
+  arranca sin motion, y los dos de edición.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 825** unitarios (1 806 antes) ·
+  ✓ **228** E2E, suite completa dos veces
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+
+### Lo que sigue sin hacerse
+
+- **Nadie comprueba que el modelo use el motor 3D solo en «experimental».**
+  Igual que con la lista negra de efectos 2D: el prompt lo prohíbe en las
+  otras cinco direcciones, pero si un modelo lo mete igual, la página se
+  publica tal cual.
+- **La edición no admite deshacer.** Un cambio aplicado se puede corregir
+  volviendo a tocar el texto, pero no hay un botón «deshacer la última
+  edición» — el checkpoint automático del agente no cubre esto porque no pasó
+  por una generación.
+- **Solo se edita texto de la página HTML principal**, nunca de un CSS o JS
+  hermano ni de un atributo (un `alt`, un `title`). Es una limitación
+  deliberada de la primera versión, no un descuido: ampliar el alcance sin
+  ampliar el riesgo de una sustitución equivocada necesita más que una tarde.

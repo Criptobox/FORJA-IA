@@ -155,6 +155,27 @@ export const DIRECCIONES: readonly DireccionVisual[] = [
     detalle:
       "transiciones suaves de 300ms, texturas de papel sutil en el fondo, iconografía redondeada, botones con estado hover que crece 2%",
   },
+  {
+    id: "experimental",
+    nombre: "Estudio experimental",
+    cuando: "agencias creativas, portfolios que quieren impresionar, lanzamientos que se recuerdan",
+    paleta: {
+      fondo: "oklch(0.13 0.012 270)",
+      superficie: "oklch(0.19 0.016 270)",
+      texto: "oklch(0.97 0.004 270)",
+      textoSuave: "oklch(0.64 0.02 270)",
+      acento: "oklch(0.7 0.21 295)",
+      acento2: "oklch(0.8 0.15 195)",
+    },
+    fuentes: { display: "Unbounded", cuerpo: "Manrope", mono: "Fragment Mono" },
+    radios: "0px en bloques grandes, 999px en botones — sin término medio",
+    sombras: "ninguna difusa: el brillo lo pone el propio efecto (spotlight, shader), no una caja",
+    espaciado: "secciones a pantalla completa (100vh); el scroll cuenta una historia, no reparte contenido",
+    composicion:
+      "PROHIBIDO el grid predecible de tres columnas. Una sola pieza domina cada pantalla —un titular a tamaño de cartel, una escena 3D, un carril horizontal—, con el scroll como narrativa (secciones ancladas) y no como lista",
+    detalle:
+      "cursor propio con etiqueta al pasar sobre lo importante, texto que se revela con caracteres al azar, transición nativa entre vistas. El motor 3D solo si el encargo lo pide de verdad — meterlo porque se puede es el mismo vicio que el hero centrado",
+  },
 ] as const;
 
 export const IDS_DIRECCIONES = DIRECCIONES.map((d) => d.id);
@@ -178,6 +199,8 @@ const SEÑALES: Record<string, RegExp> = {
   tech: /\b(tech|t[ée]cnic|developer|c[óo]digo|dashboard|herramienta|terminal|devtool|dark mode)/i,
   brutalista: /\b(brutalis|neobrutal|atrevido|llamativo|bold|joven|punk|festival|cultura)/i,
   calido: /\b(c[áa]lid|org[áa]nic|natural|restaurant|gastronom|bienestar|spa|artesan[íi]a|ecol[óo]gic|cafeter[íi]a|pasteler[íi]a)/i,
+  experimental:
+    /\b(agencia|premiada|awwwards|inmersiv|experimental|estudio creativo|portfolio creativo|portafolio creativo|tridimensional|animaciones? 3d|efecto 3d)/i,
 };
 
 export interface EleccionDireccion {
@@ -257,10 +280,16 @@ export function aDesignMd(d: DireccionVisual, nombreProyecto?: string): string {
     ...(() => {
       const { usa, evita } = efectosDe(d.id);
       if (!usa.length) return ["Esta dirección no usa el kit de efectos."];
+      // El motor 3D es un archivo aparte (`prism-3d.js`): solo se menciona
+      // cuando la dirección de verdad puede usarlo, para no decir que un
+      // documento de una landing tranquila va a cargar WebGL.
+      const con3d = usa.some((e) => e.id.startsWith("3d-"));
       return [
         `Propios: ${usa.map((e) => e.id).join(", ")}.`,
         `Prohibidos: ${evita.join(", ")} — romperían el mundo visual de esta dirección.`,
-        "Los archivos `prism-fx.css` y `prism-fx.js` viajan con el proyecto: son locales, no un CDN.",
+        con3d
+          ? "Los archivos `prism-fx.css`, `prism-fx.js` y `prism-3d.js` (el motor WebGL) viajan con el proyecto: son locales, no un CDN."
+          : "Los archivos `prism-fx.css` y `prism-fx.js` viajan con el proyecto: son locales, no un CDN.",
       ];
     })(),
     "",

@@ -10,6 +10,7 @@ import {
   FileText,
   Map as MapIcon,
   Monitor,
+  Pencil,
   RefreshCw,
   ScanSearch,
   Smartphone,
@@ -41,6 +42,8 @@ import {
 } from "@/lib/prism/visual-qa";
 import { useFailures } from "@/lib/prism/failures";
 import { SANDBOX_ORIGIN, injectConsoleBridge } from "@/lib/prism/sandbox";
+import { injectEditPilot } from "@/lib/prism/editar-preview";
+import { toast } from "sonner";
 import {
   registrarError,
   resumenErroresVivos,
@@ -66,6 +69,7 @@ export function PreviewPanel({
   onRemoveRegla,
   onRestoreSnapshot,
   onFixLive,
+  onEditText,
 }: {
   code: string | null;
   /** respuesta completa de la que salió el HTML: de ahí salen los DEMÁS archivos
@@ -91,6 +95,10 @@ export function PreviewPanel({
   /** Manda al chat los errores que salieron usando la página, para que el
    *  modelo los corrija. Sin esto el aviso solo informa. */
   onFixLive?: (prompt: string) => void;
+  /** Aplica un cambio de texto tocado en la vista previa al código fuente de
+   *  la respuesta. Devuelve por qué no se pudo, si no se pudo — el motivo se
+   *  enseña tal cual, no se traga. */
+  onEditText?: (original: string, nuevo: string) => { ok: boolean; motivo?: string };
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
@@ -120,9 +128,50 @@ export function PreviewPanel({
    *  del iframe sin que se enterara nadie. Solo en lo que se PINTA; lo que se
    *  descarga o se abre en pestaña sigue yendo limpio. */
   const paraPintar = useMemo(
-    () => (bundle ? injectConsoleBridge(injectVisualQA(bundle)) : ""),
+    () => (bundle ? injectEditPilot(injectConsoleBridge(injectVisualQA(bundle))) : ""),
     [bundle]
   );
+
+  /* ------- tocar un texto y editarlo ahí mismo ------- */
+  const [editando, setEditando] = useState(false);
+  // se apaga solo al cambiar de respuesta: editar la anterior y aparecer ya
+  // en la siguiente sería tocar algo que ni se está mirando
+  useEffect(() => setEditando(false), [source]);
+
+  const enviarComandoEdicion = (on: boolean) => {
+    try {
+      iframeRef.current?.contentWindow?.postMessage({ source: "prism-edit-cmd", op: "toggle", on }, "*");
+    } catch {
+      /* el iframe puede no estar listo todavía; el aviso de «listo» reintenta */
+    }
+  };
+
+  useEffect(() => {
+    enviarComandoEdicion(editando);
+  }, [editando]);
+
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data as { source?: string; type?: string; original?: string; nuevo?: string } | null;
+      if (!d || d.source !== "prism-edit") return;
+      if (d.type === "listo") {
+        // el iframe acaba de cargar un documento NUEVO (cada `srcdoc` es una
+        // recarga): si el modo edición seguía activo, hay que decírselo otra
+        // vez, o quien estaba editando se encuentra con que dejó de funcionar
+        // sin que nadie se lo avisara.
+        if (editando) enviarComandoEdicion(true);
+        return;
+      }
+      if (d.type === "cambio" && typeof d.original === "string" && typeof d.nuevo === "string") {
+        const r = onEditText?.(d.original, d.nuevo);
+        if (r && !r.ok) {
+          toast.error("No se pudo aplicar el cambio", { description: r.motivo });
+        }
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [editando, onEditText]);
 
   /* ------- errores mientras TÚ la usas ------- */
   const [erroresVivos, setErroresVivos] = useState<ErrorEnVivo[]>([]);
@@ -288,6 +337,21 @@ export function PreviewPanel({
         </Button>
         <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => setReloadKey((k) => k + 1)} title="Recargar" aria-label="Recargar vista previa">
           <RefreshCw className="size-3.5" />
+        </Button>
+        {/* Tocar un texto de la vista previa y editarlo ahí mismo. El cambio
+            se busca en el código de la respuesta y se guarda ahí — por eso
+            sigue estando cuando descargas o subes a GitHub, no es un retoque
+            que se pierde al repintar. */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn("size-8 shrink-0", editando && "bg-muted text-foreground")}
+          onClick={() => setEditando((v) => !v)}
+          title={editando ? "Dejar de editar" : "Editar: toca un texto de la vista previa para cambiarlo"}
+          aria-label={editando ? "Dejar de editar la vista previa" : "Editar la vista previa"}
+          aria-pressed={editando}
+        >
+          <Pencil className="size-3.5" />
         </Button>
         <Button
           variant="ghost"
@@ -460,6 +524,14 @@ export function PreviewPanel({
               className="size-full border-0"
             />
           </div>
+
+          {editando && (
+            <div className="pointer-events-none sticky top-2 z-10 flex justify-center px-2">
+              <div className="pointer-events-none rounded-full border border-primary/40 bg-background/95 px-3 py-1.5 text-[11px] font-medium text-foreground shadow-lg backdrop-blur">
+                Toca un texto para editarlo · Enter para guardar, Esc para deshacer
+              </div>
+            </div>
+          )}
 
           {/* Lo que falla mientras TÚ la usas. El barrido automático pulsa a
               ciegas y sin datos; esto recoge tu orden real y tus datos. */}

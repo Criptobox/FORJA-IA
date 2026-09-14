@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import {
   EFECTOS,
   EFECTOS_POR_DIRECCION,
+  FX3D_JS,
+  FX3D_JS_PATH,
   FX_ASENTAR,
   FX_CSS,
   FX_CSS_PATH,
@@ -26,15 +28,16 @@ describe("kit de efectos", () => {
     // sirviendo el de antes. Esto es lo que lo caza.
     expect(FX_CSS).toBe(leer("assets/prism-fx.css"));
     expect(FX_JS).toBe(leer("assets/prism-fx.js"));
+    expect(FX3D_JS).toBe(leer("assets/prism-3d.js"));
   });
 
-  it("no depende de ningún CDN ni pide red", () => {
+  it("no depende de ningún CDN ni pide red — tampoco el motor 3D", () => {
     // El motivo entero de tener kit propio. Un `https://` aquí sería volver
     // al problema: página rota en silencio el día que ese dominio no está.
     // Ojo: el CSS lleva `http://www.w3.org/2000/svg` dentro del data-URI del
     // grano. Eso es un espacio de nombres XML, no una descarga — el navegador
     // no lo pide nunca. Lo que se prohíbe es cargar algo de fuera.
-    for (const fuente of [FX_CSS, FX_JS]) {
+    for (const fuente of [FX_CSS, FX_JS, FX3D_JS]) {
       expect(fuente).not.toMatch(/url\(\s*["']?https?:/);
       expect(fuente).not.toMatch(/@import/);
       expect(fuente).not.toMatch(/\bfetch\(|XMLHttpRequest|importScripts|<script/);
@@ -43,6 +46,31 @@ describe("kit de efectos", () => {
 
   it("el JS no toca almacenamiento: en la vista previa lanzaría SecurityError", () => {
     expect(FX_JS).not.toMatch(/localStorage|sessionStorage|indexedDB|document\.cookie/);
+    expect(FX3D_JS).not.toMatch(/localStorage|sessionStorage|indexedDB|document\.cookie/);
+  });
+
+  it("el motor 3D no dibuja con menos movimiento permitido", () => {
+    expect(FX3D_JS).toContain("prefers-reduced-motion: reduce");
+  });
+
+  it("el motor 3D se aparta en un equipo de gama baja", () => {
+    // El mismo criterio que el resto del kit, llevado a lo que de verdad
+    // cuesta caro en 3D: memoria y núcleos. Una escena que hace ir el móvil a
+    // 12 fps no es «más pro», es peor que no tenerla.
+    expect(FX3D_JS).toMatch(/deviceMemory/);
+    expect(FX3D_JS).toMatch(/hardwareConcurrency/);
+  });
+
+  it("el motor 3D se queda callado sin WebGL2: nunca finge que dibujó", () => {
+    expect(FX3D_JS).toMatch(/getContext\(\s*["']webgl2["']/);
+    // `__prism3dActivo = true` solo se escribe DESPUÉS de comprobar el
+    // contexto y de que el shader compiló — nunca antes, o la señal
+    // mentiría. Se busca la ASIGNACIÓN (no el nombre, que también sale en el
+    // comentario de cabecera, antes que el propio código).
+    const asignacion = FX3D_JS.indexOf("__prism3dActivo = true");
+    const gl = FX3D_JS.indexOf('getContext("webgl2"');
+    expect(gl).toBeGreaterThanOrEqual(0);
+    expect(asignacion).toBeGreaterThan(gl);
   });
 
   it("nada se esconde sin JavaScript: el CSS solo oculta bajo .fx-on", () => {
@@ -114,8 +142,12 @@ describe("kit de efectos", () => {
   });
 
   it("el bloque cabe en un prompt: no puede engordar sin que se note", () => {
+    // 1700 y no 1200: la dirección «experimental» reparte de verdad 9 efectos
+    // distintos (motor 3D incluido) y necesita más espacio que las otras
+    // cinco. El límite sigue existiendo — es la barrera contra que CUALQUIER
+    // dirección crezca sin que nadie se entere, no un tope fijo sin motivo.
     for (const d of DIRECCIONES) {
-      expect(promptEfectos(d.id).length, `${d.id} demasiado largo`).toBeLessThan(1200);
+      expect(promptEfectos(d.id).length, `${d.id} demasiado largo`).toBeLessThan(1700);
     }
   });
 
@@ -136,15 +168,44 @@ describe("kit de efectos", () => {
     expect(new Set(EFECTOS.map((e) => e.id)).size).toBe(EFECTOS.length);
     for (const e of EFECTOS) expect(e.uso.length).toBeGreaterThan(10);
   });
+
+  it("la dirección experimental es la única con la escena 3D completa", () => {
+    const suya = efectosDe("experimental").usa.map((e) => e.id);
+    expect(suya).toContain("3d-particulas");
+    expect(suya).toContain("3d-malla");
+    expect(suya).toContain("3d-shader");
+    expect(suya).toContain("cursor");
+    // «tech» sí puede usar el campo de partículas —encaja con un dashboard—,
+    // pero el globo de líneas y el shader de fondo se quedan para
+    // experimental: son los que de verdad cambian el tono de la página.
+    for (const id of Object.keys(EFECTOS_POR_DIRECCION)) {
+      if (id === "experimental") continue;
+      expect(EFECTOS_POR_DIRECCION[id].evita, `${id} debería prohibir el globo 3D`).toContain("3d-malla");
+    }
+  });
+
+  it("los efectos de scroll narrativo (pin, horizontal) están en el catálogo con su markup", () => {
+    expect(efectoPorId("pin")?.uso).toMatch(/pin-inner/);
+    expect(efectoPorId("horizontal")?.uso).toMatch(/horizontal-track/);
+  });
 });
 
 describe("el kit viaja con el proyecto", () => {
   const html = `<link rel="stylesheet" href="${FX_CSS_PATH}"><script src="${FX_JS_PATH}"></script>`;
 
   it("se detecta el enlace en sus tres formas", () => {
-    expect(usaKit([html])).toEqual({ css: true, js: true });
+    expect(usaKit([html])).toEqual({ css: true, js: true, js3d: false });
     expect(usaKit([`<link href="./${FX_CSS_PATH}">`]).css).toBe(true);
     expect(usaKit([`<script src="/${FX_JS_PATH}">`]).js).toBe(true);
+    expect(usaKit([`<script src="${FX3D_JS_PATH}">`]).js3d).toBe(true);
+  });
+
+  it("el motor 3D solo se añade cuando se enlaza — pesa, y no toda página lo usa", () => {
+    const soloCanvas = `<canvas data-fx3d="3d-malla"></canvas><script src="${FX3D_JS_PATH}"></script>`;
+    const out = conKit({ "index.html": soloCanvas });
+    expect(out[FX3D_JS_PATH]).toBe(FX3D_JS);
+    // y una página sin canvas 3D no lo arrastra
+    expect(conKit({ "index.html": html })[FX3D_JS_PATH]).toBeUndefined();
   });
 
   it("una página que no lo enlaza NO se llena de archivos que no pidió", () => {
