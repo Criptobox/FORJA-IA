@@ -47,7 +47,8 @@ import {
 import { useUsage } from "./usage";
 import { estaRoto, useModelosRotos } from "./modelos-rotos";
 import { cabe, useLimites } from "./limites-medidos";
-import { avisoNoCabeNiRecortando, avisoRecorte, recortar } from "./recorte-contexto";
+import { avisoNoCabeNiRecortando, avisoRecorte, recortar, tokensDe } from "./recorte-contexto";
+import { calcularHud, VENTANA_DEFECTO } from "./ctx-hud";
 import type { FichaRespuesta, IntentoFallido } from "./ficha-respuesta";
 import { costeDeModelo, PRECIOS_FECHA } from "./precios";
 import {
@@ -695,6 +696,39 @@ export function useGeneration(ctx: CtxGeneracion) {
         const intentosFallidos = intentosRef.current;
         let recortadosTotal = 0;
         let huboResumen = false;
+
+        // ——— Recorte PROACTIVO: no esperar a que el proveedor se queje ———
+        //
+        // Hasta ahora solo se recortaba REACTIVAMENTE, cuando un proveedor
+        // contestaba «no cabe» de forma explícita (esDemasiadoGrande, más
+        // abajo). Pero un contexto casi lleno no siempre falla así: puede
+        // devolver un 200 con el stream VACÍO, sin queja ninguna — el caso
+        // real que destapó este hueco (nvidia/nemotron vía OpenRouter al
+        // 92,5% de la ventana, 182s de espera y respuesta en blanco). El
+        // camino reactivo nunca llega a dispararse ahí, porque no hay error
+        // que lo dispare.
+        //
+        // En vez de adivinar la causa de una respuesta vacía (que podría
+        // deberse a otra cosa), se actúa sobre un dato que la app YA calcula
+        // y ya le enseña al usuario: el mismo umbral de «zona roja» del HUD
+        // de contexto (ctx-hud.ts), la misma ventana de referencia
+        // (`ventanaCtx`, Ajustes) y el mismo `recortar()` del camino
+        // reactivo — sin la llamada de resumen aparte, que costaría una
+        // petición extra en CADA turno con el contexto lleno, no solo en el
+        // recorte ocasional de un modelo concreto.
+        const ventanaRef = usePrism.getState().settings.ventanaCtx || VENTANA_DEFECTO;
+        const hudAntes = calcularHud(tokensDe(mensajesDelIntento), ventanaRef);
+        if (hudAntes.nivel === "rojo") {
+          const rProactivo = recortar(mensajesDelIntento, ventanaRef);
+          if (rProactivo.quitados > 0) {
+            mensajesDelIntento = rProactivo.mensajes;
+            recortadosTotal += rProactivo.quitados;
+            toast.warning("Historial recortado antes de enviar", {
+              description: `El contexto estaba casi lleno (${hudAntes.pct}% de tu ventana de referencia): se quitaron ${rProactivo.quitados} mensaje${rProactivo.quitados === 1 ? "" : "s"} viejo${rProactivo.quitados === 1 ? "" : "s"} antes de mandar nada. Lo que acabas de escribir va entero.`,
+              duration: 8000,
+            });
+          }
+        }
         for (let ci = 0; ci < chain.length; ci++) {
           const candidate = chain[ci];
           const attemptStart = Date.now();

@@ -6042,3 +6042,88 @@ el relleno queda tapado por lo que se dibuja después.
   ✓ **241** E2E, suite completa
 - ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone`
   y con el `.nft.json`
+
+## v4.14.0 — Recorte proactivo: no esperar a que el proveedor se queje
+
+Un usuario reportó, en la app real, exactamente el hueco que el worklog de
+v4.6.0 dejó anotado: *"si la conversación no le cabe a NINGUNO de tus
+modelos, no hay a dónde ir... el modo ahorro y la ventana de contexto ya
+existen, pero nadie los aplica solo"*. Captura de pantalla: `ctx ≈29,6k ·
+92,5%` (zona roja del HUD), un `nvidia/nemotron` vía OpenRouter tardando
+182s y devolviendo el error *"El modelo cerró la respuesta sin escribir
+nada."*
+
+### El diagnóstico, con datos, no con suposición
+
+Prism ya recorta el historial cuando un proveedor se queja EXPLÍCITAMENTE
+de que no cabe (`esDemasiadoGrande`, `decisiones.ts:101` — un 413, o texto
+tipo «maximum context length»): quita turnos viejos con `recortar()`
+(`recorte-contexto.ts`) y reintenta con el MISMO modelo. Pero la respuesta
+del usuario no fue un error — fue un **HTTP 200 con el stream vacío**. Ese
+camino (`use-generation.ts`, el `if (!aportado.trim())`) nunca comprueba
+el tamaño del contexto: solo decide si saltar al siguiente modelo de la
+cadena o rendirse. Y como probablemente cargaban el mismo historial
+gigante, todos los candidatos de Auto fallaron igual — de ahí los 182s,
+varios intentos y no uno.
+
+### El arreglo: actuar sobre lo que ya se mide, no sobre lo que se supone
+
+En vez de intentar adivinar la CAUSA de una respuesta vacía (podría ser
+otra cosa), se actúa sobre un dato que la app YA calcula y ya le enseña al
+usuario: el HUD de contexto (`ctx-hud.ts`) tiene su propio umbral de "zona
+roja" (`UMBRAL_ROJO = 95`), pintado en el compositor antes de que el
+usuario ni pulse enviar. Ahora, justo antes del primer intento de cada
+turno, si ese nivel ya es rojo, se recorta con el mismo `recortar()` del
+camino reactivo (misma `ventanaCtx` de Ajustes, mismo aviso «se quitaron N
+mensajes viejos»), ANTES de mandar nada — sin esperar a que el proveedor
+falle, calle, o tarde 182 segundos en decir que no tiene nada que decir.
+
+Deliberadamente SIN la llamada de resumen que sí tiene el camino reactivo
+(`mereceResumen`/`promptDeResumen`): esa cuesta una petición extra al
+modelo, y aquí se dispararía en CADA turno con el contexto lleno, no solo
+en el recorte ocasional de un modelo concreto — coste que no se pidió
+asumir sin más.
+
+### Reutilizado, no reinventado
+
+Cero funciones nuevas para medir o decidir: `tokensDe` (ya existía en
+`recorte-contexto.ts`), `calcularHud`/`VENTANA_DEFECTO` (ya existían en
+`ctx-hud.ts`, ya usados por el HUD visible), `recortar()` (el mismo que
+usa el camino reactivo). Solo cablea tres piezas que ya vivían separadas.
+
+### Pruebas
+
+- 1 E2E nuevo (`recorte-proactivo.spec.ts`): una sesión sembrada con
+  `ventanaCtx: 1000` y suficiente historial para cruzar la zona roja,
+  contra `mock-mini-free` (un modelo que NUNCA falla por tamaño — a
+  propósito, para dejar claro que el disparo es el NIVEL de contexto, no
+  un error del proveedor). Comprueba que el aviso «Historial recortado
+  antes de enviar» sale ANTES de la respuesta, que responde a la primera
+  con el mismo modelo, y que la PRIMERA petición que salió por red ya
+  iba recortada (no hay un intento grande fallido antes).
+- Verificado en rojo: revertido solo `use-generation.ts`, confirmado que
+  el test nuevo fallaba (el aviso nunca aparecía) contra el código de
+  v4.13.1, restaurado y confirmado en verde.
+- Los dos tests de `recorte-y-reintento.spec.ts` (el camino REACTIVO, con
+  `esDemasiadoGrande`) se corrieron junto al nuevo para comprobar que no
+  interfieren: su sesión sembrada usa la ventana por defecto (32k) y se
+  queda muy por debajo de zona roja, así que el recorte proactivo no
+  actúa ahí — sigue siendo el 413 quien dispara ese camino.
+
+### Lo que sigue sin cubrir
+
+- Sin resumen en el camino proactivo (explicado arriba): lo que se
+  recorta se pierde, no se resume. Si hiciera falta, es una extensión del
+  mismo `mereceResumen` ya existente, no una pieza nueva.
+- La ventana de referencia (`ventanaCtx`) sigue siendo una ESTIMACIÓN
+  local (caracteres ÷ 4) contra un número configurable, no el límite real
+  del proveedor — el mismo límite honesto que ya tenía el HUD antes de
+  esto. Un modelo con una ventana real mucho más pequeña que la de
+  referencia puede seguir fallando antes de llegar a zona roja.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ **1 878** unitarios · ✓ **242** E2E (241
+  antes), suite completa
+- ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone`
+  y con el `.nft.json`
