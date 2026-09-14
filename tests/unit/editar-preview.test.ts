@@ -94,4 +94,23 @@ describe("el piloto de edición inyectado en la vista previa", () => {
     const html = "<h1>x</h1>";
     expect(injectEditPilot(html)).toContain("__prismEdit");
   });
+
+  it("nunca vuelve editable un CONTENEDOR: el texto suelto se envuelve, el <em> vecino no se toca", () => {
+    // Hallazgo del dogfooding: <h1>El café,<em>despacio.</em></h1> no es
+    // hoja, así que la regla de arriba lo descarta entero. Esto comprueba
+    // que el piloto detecta el nodo de texto SUELTO por separado —sin que
+    // el <h1> ni el <em> se vuelvan nunca `contentEditable` como bloque—.
+    expect(EDIT_PILOT_SCRIPT).toContain("elegibleTexto");
+    expect(EDIT_PILOT_SCRIPT).toMatch(/nodeType !== 3/);
+    // detecta el nodo exacto bajo el puntero, no solo `ev.target`
+    expect(EDIT_PILOT_SCRIPT).toMatch(/caretRangeFromPoint|caretPositionFromPoint/);
+  });
+
+  it("el <span> que envuelve un nodo de texto suelto se deshace siempre, se guarde o se cancele", () => {
+    // Si quedara un <span> colgado, el próximo QA vería una etiqueta que el
+    // modelo nunca escribió, y `aplicarEdicionTexto` fallaría al no
+    // encontrar el texto en el código fuente la próxima vez.
+    expect(EDIT_PILOT_SCRIPT).toContain("createTextNode");
+    expect(EDIT_PILOT_SCRIPT).toContain("replaceChild");
+  });
 });

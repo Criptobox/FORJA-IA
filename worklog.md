@@ -5502,3 +5502,59 @@ riesgo de estropear algo que ya funciona bien para el caso normal.
 - **El punto ciego de `pageerror` sigue abierto para el resto de la app.**
   Este test cubre el caso encontrado; no hay una aserción genérica de «cero
   `pageerror`» que corra en todos los E2E que generan una página de verdad.
+
+## v4.10.2 — El texto suelto también se puede tocar
+
+Se pidió construir lo que la v4.10.1 dejó como límite documentado: hacer
+editable un nodo de texto que vive SUELTO junto a otros elementos dentro del
+mismo contenedor —`<h1>El café,<em>despacio.</em></h1>` dejaba tocar
+«despacio.» (hoja) pero nunca «El café,», sin ninguna pista de por qué.
+
+### Cómo se hizo sin tocar la regla de «solo hojas»
+
+La regla sigue en pie: nunca se vuelve editable un CONTENEDOR completo —eso
+seguiría borrando lo que hay dentro. Lo que cambia es que ahora el piloto
+también localiza el nodo de texto EXACTO bajo el cursor:
+
+- **`caretRangeFromPoint`/`caretPositionFromPoint`** (con su alternativa
+  estándar) dicen qué nodo hay en un punto concreto de la pantalla — hacía
+  falta, porque un nodo de texto no recibe sus propios eventos de ratón: el
+  `target` de un clic sobre «El café,» es el `<h1>` entero, igual que si se
+  hubiera tocado «despacio.».
+- **Antes de tocar nada**, pasar el ratón por encima ya deja una marca — una
+  caja superpuesta (`position:fixed`, calculada con `Range.getClientRects()`)
+  en vez de envolver el nodo en cada `mousemove`, que habría movido el
+  layout constantemente.
+- **Al tocarlo**, el nodo de texto se envuelve en un `<span>` de usar y
+  tirar: se edita exactamente igual que una hoja de verdad (mismo
+  `contentEditable`, mismo Enter/Escape). El `<h1>` y el `<em>` de al lado
+  nunca se tocan.
+- **Al terminar** —se guarde o se cancele— el `<span>` se deshace: el nodo
+  de texto vuelve a quedar suelto tal cual estaba. Si quedara colgado, el
+  próximo QA vería una etiqueta que el modelo nunca escribió, y la próxima
+  edición no encontraría el texto en el código fuente al buscarlo.
+
+La localización del cambio en el CÓDIGO fuente (`aplicarEdicionTexto`) no
+cambió ni un carácter: el mensaje que sale del iframe es el mismo
+`{original, nuevo}` de siempre, venga de una hoja real o de un nodo de texto
+recién envuelto.
+
+### Pruebas
+
+- 2 unitarios nuevos en `editar-preview.test.ts`: que el piloto detecta el
+  nodo de texto por separado (sin volver editable el contenedor) y que el
+  `<span>` desechable siempre se deshace.
+- 2 E2E nuevos (`editar-texto-mixto.spec.ts`, mock `mock-texto-mixto`): tocar
+  el texto suelto lo marca al pasar por encima, lo edita sin tocar al `<em>`
+  vecino y el cambio queda en el código; la hoja de al lado se sigue editando
+  igual que siempre, en la MISMA página.
+- Verificados en rojo revirtiendo `editar-preview.ts`: sin el cambio, el
+  primer E2E fallaba ya en la marca de hover (nunca aparecía), antes incluso
+  de intentar el clic.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 833** unitarios (1 831 antes) ·
+  ✓ **230** E2E (228 antes), suite completa
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`

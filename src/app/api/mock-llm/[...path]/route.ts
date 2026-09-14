@@ -40,6 +40,7 @@ const MODELOS = [
   "mock-3d",
   "mock-scroll",
   "mock-tema-en-head",
+  "mock-texto-mixto",
   "mock-boton-roto",
   "mock-enlace-roto",
   "mock-mide",
@@ -347,6 +348,25 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "</script>",
       "<title>Con detección de tema</title></head>",
       "<body><h1>Hola</h1></body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-texto-mixto`: un <h1> que NO es una hoja — trae un <em> dentro,
+  // junto a texto suelto — para comprobar el gap de dogfooding v4.10.0/.1:
+  // tocar la vista previa solo dejaba editar «despacio.» (la hoja), nunca
+  // «El café,» (el texto suelto de al lado). data-testid en cada pieza para
+  // que el E2E pueda verificar el DOM sin depender del texto exacto.
+  if (modelo === "mock-texto-mixto") {
+    return [
+      "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Café</title></head>',
+      "<body>",
+      '<h1 data-testid="titular">El café,<em data-testid="hoja">despacio.</em></h1>',
+      "</body></html>",
       "```",
     ].join("\n");
   }
