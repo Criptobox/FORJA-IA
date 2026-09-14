@@ -3,6 +3,7 @@ import {
   ancestorDirs,
   buildRunHtml,
   buildTree,
+  injectConsoleBridge,
   isTextPath,
   localRef,
   pickEntryPath,
@@ -201,6 +202,52 @@ describe("buildRunHtml — correcciones", () => {
     });
     const res = buildRunHtml("index.html", files);
     expect(res.missing.filter((m) => m === "no.png")).toHaveLength(1);
+  });
+
+  it("el puente de consola corre ANTES que cualquier script propio del <head>", () => {
+    // Patrón real y frecuente en páginas generadas: detectar el tema oscuro
+    // tocando localStorage antes del primer pintado. Si el puente se metiera
+    // al FINAL del <head> (como antes), este script correría primero, contra
+    // el localStorage real del iframe sandboxed, y reventaría con
+    // «lacks the allow-same-origin flag» antes de que el puente lo pudiera
+    // sustituir por el de mentira.
+    const marcaDelProyecto = "___script_del_proyecto___";
+    const files = filesOf({
+      "index.html": `<html><head><script>${marcaDelProyecto}</script></head><body></body></html>`,
+    });
+    const res = buildRunHtml("index.html", files);
+    const posPuente = res.html.indexOf(SANDBOX_ORIGIN);
+    const posProyecto = res.html.indexOf(marcaDelProyecto);
+    expect(posPuente).toBeGreaterThan(-1);
+    expect(posProyecto).toBeGreaterThan(-1);
+    expect(posPuente).toBeLessThan(posProyecto);
+  });
+});
+
+describe("injectConsoleBridge — orden de inserción", () => {
+  it("se mete al ABRIR <head>, no antes de cerrarlo", () => {
+    const html = "<html><head><title>x</title></head><body></body></html>";
+    const res = injectConsoleBridge(html);
+    expect(res.indexOf(SANDBOX_ORIGIN)).toBeLessThan(res.indexOf("<title>"));
+  });
+
+  it("sin <head>, se mete al abrir <html>", () => {
+    const html = "<html><body>hola</body></html>";
+    const res = injectConsoleBridge(html);
+    expect(res.indexOf(SANDBOX_ORIGIN)).toBeLessThan(res.indexOf("hola"));
+  });
+
+  it("sin <head> ni <html>, se mete al abrir <body>", () => {
+    const html = "<body>hola</body>";
+    const res = injectConsoleBridge(html);
+    expect(res.indexOf(SANDBOX_ORIGIN)).toBeLessThan(res.indexOf("hola"));
+  });
+
+  it("es idempotente: no se mete dos veces", () => {
+    const html = "<html><head></head><body></body></html>";
+    const una = injectConsoleBridge(html);
+    const dos = injectConsoleBridge(una);
+    expect(dos).toBe(una);
   });
 });
 

@@ -5422,3 +5422,83 @@ traga en silencio.
   hermano ni de un atributo (un `alt`, un `title`). Es una limitación
   deliberada de la primera versión, no un descuido: ampliar el alcance sin
   ampliar el riesgo de una sustitución equivocada necesita más que una tarde.
+
+## v4.10.1 — Dogfooding: un `pageerror` de verdad que ningún test veía
+
+Se pidió probar la app usando la app, no la batería de tests, y decir qué
+falta. Con 1 826 unitarios y 227 E2E en verde no salió nada — pero generando
+una página DE VERDAD (proveedor propio, sin mocks aislados) sí: la vista
+previa soltaba un `pageerror` real, `Failed to read the 'localStorage'
+property from 'Window': The document is sandboxed and lacks the
+'allow-same-origin' flag`, con el `mock-3d` como disparador.
+
+### La causa
+
+`injectConsoleBridge` — el puente que sustituye `localStorage` por uno de
+mentira dentro del iframe sandboxed, para que la página generada no se
+muera al tocarlo — se metía justo ANTES de `</head>`. El patrón más común en
+una web generada (comprobado en la práctica, no en teoría): un script en
+`<head>`, ANTES de cualquier otra cosa, que lee el tema guardado antes del
+primer pintado para no dar el flash del tema equivocado. Ese script vive
+antes en el documento que el puente, así que corría primero, tocaba el
+`localStorage` real del iframe y reventaba — exactamente el fallo que el
+propio puente existe para evitar, solo que llegaba tarde.
+
+Y pasaba en LAS DOS vistas previas a la vez: la visible (donde se ve) y la
+oculta que `sandbox-runner.ts` monta para «ejecutar el código antes de
+enseñarlo» (v4.7.0) — las dos construyen su HTML con la misma función.
+
+Arreglo: el puente se mete al ABRIR `<head>`, no antes de cerrarlo. Ningún
+script del proyecto puede ir por delante.
+
+### El hueco que esto destapa en la propia batería de pruebas
+
+Ni un solo test, de los 1 826 + 227 que había, escuchaba
+`page.on('pageerror')` durante una generación real: los unitarios de
+`sandbox-runner.ts` corren en Node (sin `document`, no hay forma de montar
+el iframe de verdad) y los E2E comprobaban resultados concretos del DOM sin
+una aserción general de «cero errores sin capturar». Es un punto ciego real
+del arnés de pruebas, no solo de este fallo — cubierto ahora con
+`tests/e2e/tema-en-head.spec.ts`, que sí escucha `pageerror` de principio a
+fin de una generación con el mock `mock-tema-en-head` (un `<head>` con
+detección de tema, igual que el caso real).
+
+### Lo segundo que salió tocando la vista previa a mano
+
+Editar tocando el texto (v4.10.0) solo deja editables las hojas del árbol —
+documentado ya en su propio worklog. Un `<h1>El café,<em>despacio.</em></h1>`
+deja tocar «despacio.» (hoja) pero no «El café,» (texto suelto junto a otro
+hijo), sin ninguna señal visual de por qué uno sí y el otro no. Es la
+consecuencia directa y esperada de esa regla, no un fallo nuevo: se deja
+anotado aquí como ejemplo concreto en vez de construir edición parcial de
+texto mixto sin que nadie lo haya pedido — es una pieza bastante más grande
+(hay que aislar el nodo de texto con un `Range`, dibujar su resaltado propio
+al pasar el ratón, envolver y desenvolver un `<span>` temporal) y con más
+riesgo de estropear algo que ya funciona bien para el caso normal.
+
+### Pruebas
+
+- 4 unitarios nuevos en `sandbox.test.ts` para el orden de inserción del
+  puente (con `<head>`, con solo `<html>`, con solo `<body>`, idempotencia)
+  + 1 sobre `buildRunHtml` que comprueba la posición real del puente frente
+  a un script del proyecto.
+- 1 E2E (`tema-en-head.spec.ts`) con un mock nuevo (`mock-tema-en-head`) que
+  reproduce el patrón exacto que salió en el dogfooding.
+- Verificados en rojo los cinco: revirtiendo el orden de inserción, el
+  unitario de `buildRunHtml` fallaba (84 antes que 20) y el E2E reproducía
+  el `pageerror` real DOS veces (la vista visible y la oculta).
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 831** unitarios (1 826 antes) ·
+  ✓ **228** E2E (227 antes), suite completa
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+
+### Lo que sigue sin hacerse
+
+- **La edición de texto mixto** (texto suelto junto a otros elementos)
+  sigue sin poder tocarse, por diseño — ver arriba.
+- **El punto ciego de `pageerror` sigue abierto para el resto de la app.**
+  Este test cubre el caso encontrado; no hay una aserción genérica de «cero
+  `pageerror`» que corra en todos los E2E que generan una página de verdad.

@@ -39,6 +39,7 @@ const MODELOS = [
   "mock-generica",
   "mock-3d",
   "mock-scroll",
+  "mock-tema-en-head",
   "mock-boton-roto",
   "mock-enlace-roto",
   "mock-mide",
@@ -324,6 +325,28 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<canvas data-fx3d="3d-malla" class="fx-mesh" style="width:100%;height:400px;display:block"></canvas>',
       '<script src="prism-3d.js" defer></script>',
       "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-tema-en-head`: el patrón MÁS común en una web generada por un
+  // modelo de verdad — leer el tema guardado ANTES del primer pintado, para
+  // no dar el flash del tema equivocado. El script vive en `<head>`, antes
+  // de cualquier cosa que Prism inyecte. Sirve para comprobar que el puente
+  // de consola gana esa carrera (dogfooding v4.10.0: un `pageerror` de
+  // localStorage sandboxed salía justo con este patrón).
+  if (modelo === "mock-tema-en-head") {
+    return [
+      "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8">',
+      "<script>",
+      "  if (localStorage.getItem('tema') === 'oscuro') document.documentElement.classList.add('oscuro');",
+      "</script>",
+      "<title>Con detección de tema</title></head>",
+      "<body><h1>Hola</h1></body></html>",
       "```",
     ].join("\n");
   }

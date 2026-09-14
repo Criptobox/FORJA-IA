@@ -354,11 +354,21 @@ export const CONSOLE_BRIDGE = `(function(){
  * VIVO lo necesita igual: hasta ahora, si algo reventaba mientras usabas la
  * página generada, el error moría dentro del iframe y no se enteraba nadie.
  *
+ * Se inserta justo al ABRIR `<head>`, no antes de cerrarlo. Se metía al
+ * final del `<head>` y medio proyecto generado trae su propio script ahí
+ * dentro —típicamente para poner el tema oscuro antes del primer
+ * pintado— que toca `localStorage` de verdad. Ese script vive ANTES en el
+ * documento que el puente, así que corría primero, lanzaba la excepción
+ * que el propio puente existe para evitar, y moría en su primera línea.
+ * Yendo el puente delante de todo lo demás del `<head>`, ningún script del
+ * proyecto lo adelanta.
+ *
  * Idempotente: no se mete dos veces. */
 export function injectConsoleBridge(html: string): string {
   if (!html || html.includes(SANDBOX_ORIGIN)) return html;
   const tag = `<script>${CONSOLE_BRIDGE}</script>`;
-  if (/<\/head>/i.test(html)) return html.replace(/<\/head>/i, `${tag}\n</head>`);
+  if (/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, (m) => `${m}\n${tag}`);
+  if (/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, (m) => `${m}\n${tag}`);
   if (/<body[^>]*>/i.test(html)) return html.replace(/<body[^>]*>/i, (m) => `${m}\n${tag}`);
   return `${tag}\n${html}`;
 }
