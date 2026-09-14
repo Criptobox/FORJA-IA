@@ -27,6 +27,7 @@ import {
 } from "./design-directions";
 import { INSTRUCCION_EVIDENCIA } from "./evidencia";
 import { INSTRUCCION_VARIOS_ARCHIVOS, pideVariosArchivos } from "./multi-archivo";
+import { esEncargoDeTiendaOCatalogo, INSTRUCCION_TIENDA_INTERACTIVA } from "./catalogo-interactivo";
 
 /** Textos de los estilos de salida. Fuera de la función para que se puedan
  *  medir sin montar nada. */
@@ -68,6 +69,10 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
         // resto de encargos se quedan en un solo archivo, que es lo que
         // hace que la vista previa en vivo funcione sin fricción.
         !trivial && pideVariosArchivos(promptUsuario) ? INSTRUCCION_VARIOS_ARCHIVOS : null,
+        // Solo para tienda/menú/catálogo: sin esto la skill de desarrollador
+        // web entrega una landing bonita pero sin carrito, detalle de
+        // producto ni pedido que de verdad funcionen.
+        !trivial && esEncargoDeTiendaOCatalogo(promptUsuario) ? INSTRUCCION_TIENDA_INTERACTIVA : null,
       ]
         .filter(Boolean)
         .join("\n\n")

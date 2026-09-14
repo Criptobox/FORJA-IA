@@ -6255,3 +6255,108 @@ reinyección al modelo en la siguiente vuelta, mismo límite de
   completa
 - ✓ build · ✓ `npm start` + `/api/version` (`4.15.0`) · ✓ `VERCEL=1` sin
   `standalone` y con el `.nft.json`
+
+## v4.16.0 — Una tienda o un menú tienen que FUNCIONAR, no solo enseñarse
+
+El usuario pidió probar la app de principio a fin, sin dejar nada sin
+tocar: *"si se le manda a hacer una página, por qué no la hace completa,
+hace las cosas a medias [...] que cuando se mande a hacer una página, ya
+él haga la página con todo lo que lleva carrito, órdenes de compra,
+reseña [...] que puedas tocar, accionar para entrar, a ver las cosas del
+producto"*. No traía una captura de un fallo puntual — pedía una revisión
+completa para encontrar por qué esto pasa siempre.
+
+### La causa, encontrada leyendo lo que de verdad viaja al modelo
+
+Grep de `carrito|checkout` en todo `src/lib/prism`: CERO resultados fuera
+de un comentario de CI (`deploy.ts:47`, «Checkout» de una GitHub Action).
+La skill que arranca activada por defecto y decide cómo se construye
+cualquier página, **"Desarrollador web experto"** (`skills-data.ts:13-19`),
+solo pide: un único HTML autónomo, responsive, con animaciones y
+hover/focus cuidados. Nada dice que un carrito tenga que sumar de verdad,
+que una tarjeta de producto lleve a su detalle, o que un botón de "Pedir"
+tenga que hacer algo. `multi-archivo.ts` (v3.x) ya había resuelto el
+mismo tipo de hueco pero para OTRA cosa —cuántos archivos entregar—, no
+para esto. Sin la instrucción, el modelo entrega la landing bonita que ya
+sabe hacer: exactamente el síntoma reportado, y no un bug de un turno
+suelto — un hueco real en lo que se le pide siempre que el encargo es de
+este tipo.
+
+### El arreglo: la misma técnica que `multi-archivo.ts`, para otro hueco
+
+`catalogo-interactivo.ts` detecta cuándo el encargo es una tienda, menú o
+catálogo (`tienda`, `carrito`, `restaurante`, `menú`, `delivery`,
+`marketplace`, `pedidos`, `checkout`…) y añade, como AMPLIACIÓN de la
+skill activa —igual que hace `INSTRUCCION_VARIOS_ARCHIVOS`—, la exigencia
+concreta: al menos 6-8 productos reales del rubro, cada tarjeta CLICABLE
+con su vista de detalle, un carrito que suma de verdad (contador, panel,
+cantidad +/-, total recalculado), un checkout que TERMINA en una
+confirmación real (no un botón decorativo), y una sección de reseñas con
+ejemplos realistas — todo con `addEventListener` de verdad, nunca
+`href="#"` sin manejador. Se engancha en `prompt-actual.ts` junto a
+`pideVariosArchivos`, con la misma condición (`!trivial`, dentro del
+bloque de skills activas): una carta de presentación o un blog no lo
+disparan, pedirles carrito sería ruido.
+
+### Verificación: no solo que el texto viaje, que la interacción funcione de verdad
+
+Antes de tocar el prompt, se comprobó con la app real (`npm run dev`) que
+el HUECO no era técnico: se montó una tienda de zapatillas con carrito,
+detalle de producto, checkout y confirmación —JavaScript real, sin
+backend— y se condujo el navegador como una persona contra la vista
+previa en vivo (iframe sandboxed, `allow-scripts` sin `allow-same-origin`):
+clic en una tarjeta → abre el detalle, "Añadir al carrito" → sube el
+contador, abrir el carrito → total correcto, "Confirmar pedido" → número
+de pedido real. Los seis pasos funcionaron a la primera, cero errores de
+consola — confirma que el sandbox de Prism no bloquea nada de esto; el
+hueco era SOLO la instrucción que faltaba, no una limitación técnica.
+Curiosamente, esa misma prueba disparó de forma genuina el detector de
+páginas genéricas (`generico.ts`, señal `sin-pareja`: titular y cuerpo
+con la misma tipografía, cosa cierta en el HTML de prueba) y hasta pidió
+al modelo "continuar el trabajo" para corregirlo — confirma que ESE
+sistema de calidad, ya existente, funciona con normalidad y es
+independiente de este arreglo.
+
+### Pruebas
+
+- 5 unitarios nuevos (`catalogo-interactivo.test.ts`): detecta tienda,
+  restaurante, catálogo, menú, delivery y marketplace; NO se dispara con
+  un portfolio, una landing de software o un blog; la instrucción exige
+  carrito, tarjetas clicables, checkout que termina y reseñas, y prohíbe
+  explícitamente los botones sin manejador.
+- 3 E2E nuevos (`tienda-interactiva.spec.ts`), mismo patrón que
+  `saludo-sin-agente.spec.ts` (leer lo que VIAJA al modelo, no lo que se
+  ve): pedir una tienda o un menú SÍ lleva la instrucción en el cuerpo de
+  la petición; una landing normal (portfolio) NO la lleva.
+- Verificado en rojo: revertido solo el cableado en `prompt-actual.ts`
+  (`git stash`), confirmado que 2 de los 3 E2E fallaban por la razón
+  correcta (la skill SÍ viajaba — «Desarrollador web experto» — pero sin
+  la ampliación de tienda), restaurado y confirmado en verde.
+
+### Lo que sigue sin cubrir
+
+- La instrucción solo se activa si hay al menos una skill activa
+  (`activas.length`, la misma condición que ya tenía
+  `INSTRUCCION_VARIOS_ARCHIVOS`): si el usuario apaga TODAS las skills
+  —incluida la de desarrollador web, que va encendida por defecto—, la
+  instrucción tampoco viaja. Es coherente con lo que ya existía (la
+  ampliación no tiene sentido sin la skill base que la usa), pero es una
+  dependencia real, no una elección de este arreglo.
+- Sigue sin haber forma de VERIFICAR después de generar que el modelo
+  cumplió la instrucción (que el carrito sume de verdad, que el checkout
+  no sea decorativo): esto es una instrucción más fuerte en el prompt, no
+  una comprobación posterior. `visual_review` (v4.13.0) podría mirarlo si
+  se le pide explícitamente, pero no se dispara solo para esto.
+- No se probó con un modelo real de pago o gratuito (sin clave configurada
+  en este entorno) — la verificación de "la instrucción viaja" y "el
+  sandbox soporta la interacción" es sólida, pero si un modelo concreto
+  la ignora o la cumple a medias sigue siendo comportamiento del modelo,
+  fuera del control de Prism.
+
+### Puerta
+
+- ✓ lint · ✓ knip (sin huecos en los archivos nuevos) · ✓ tsc
+- ✓ **1 895** unitarios (1 890 antes) · ✓ **246** E2E (243 antes), suite
+  completa
+- ✓ build · ✓ `npm start` + `/api/version` (`4.16.0`) · ✓ `VERCEL=1` sin
+  `standalone` y con el `.nft.json`
