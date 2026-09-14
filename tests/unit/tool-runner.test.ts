@@ -198,6 +198,121 @@ describe("herramientas desconocidas", () => {
   });
 });
 
+describe("visual_review", () => {
+  it("avisa si no hay Sandbox disponible", async () => {
+    const r = await runTool(call("visual_review", {}), ctx());
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("No hay Sandbox");
+  });
+
+  it("avisa si no hay forma de pedir la crítica (sin visionCritique)", async () => {
+    const c = ctx({
+      runProject: async () => ({ ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [] }),
+    });
+    const r = await runTool(call("visual_review", {}), c);
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("crítica visual");
+  });
+
+  it("si el proyecto no se ejecuta, lo dice y no llega a pedir captura", async () => {
+    let pidioCritica = false;
+    const c = ctx({
+      runProject: async () => ({
+        ok: false,
+        ejecutado: false,
+        logs: 0,
+        errors: 0,
+        logLines: [],
+        errorLines: [],
+        reason: "No hay ningún archivo .html en el proyecto.",
+      }),
+      visionCritique: async () => {
+        pidioCritica = true;
+        return { ok: true, texto: "no debería llegar aquí" };
+      },
+    });
+    const r = await runTool(call("visual_review", {}), c);
+    expect(r.content).toContain("No hay ningún archivo .html");
+    expect(pidioCritica, "no pide crítica de una página que no se ejecutó").toBe(false);
+  });
+
+  it("si la captura falla, lo dice con el motivo y no llega a pedir crítica", async () => {
+    let pidioCritica = false;
+    const c = ctx({
+      runProject: async () => ({
+        ok: true,
+        ejecutado: true,
+        logs: 0,
+        errors: 0,
+        logLines: [],
+        errorLines: [],
+        screenshot: { ok: false, error: "canvas contaminado" },
+      }),
+      visionCritique: async () => {
+        pidioCritica = true;
+        return { ok: true, texto: "no debería llegar aquí" };
+      },
+    });
+    const r = await runTool(call("visual_review", {}), c);
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("No se pudo capturar");
+    expect(r.content).toContain("canvas contaminado");
+    expect(pidioCritica, "no pide crítica sin una captura de verdad").toBe(false);
+  });
+
+  it("pide la captura con screenshot:true y pasa el dataUrl y el foco a la crítica", async () => {
+    let vistoOpts: { screenshot?: boolean } | undefined;
+    let vistoDataUrl = "";
+    let vistoFoco: string | undefined;
+    const c = ctx({
+      runProject: async (opts) => {
+        vistoOpts = opts;
+        return {
+          ok: true,
+          ejecutado: true,
+          logs: 0,
+          errors: 0,
+          logLines: [],
+          errorLines: [],
+          screenshot: { ok: true, dataUrl: "data:image/jpeg;base64,ABC123" },
+        };
+      },
+      visionCritique: async (dataUrl, foco) => {
+        vistoDataUrl = dataUrl;
+        vistoFoco = foco;
+        return { ok: true, texto: "El botón principal queda sin contraste contra el fondo." };
+      },
+    });
+    const r = await runTool(call("visual_review", { foco: "el CTA" }), c);
+    expect(vistoOpts?.screenshot).toBe(true);
+    expect(vistoDataUrl).toBe("data:image/jpeg;base64,ABC123");
+    expect(vistoFoco).toBe("el CTA");
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("sin contraste");
+  });
+
+  it("cuando el modelo activo no admite imágenes, la crítica lo dice y no se finge una respuesta", async () => {
+    const c = ctx({
+      runProject: async () => ({
+        ok: true,
+        ejecutado: true,
+        logs: 0,
+        errors: 0,
+        logLines: [],
+        errorLines: [],
+        screenshot: { ok: true, dataUrl: "data:image/jpeg;base64,ABC123" },
+      }),
+      visionCritique: async () => ({
+        ok: false,
+        texto: "El modelo activo no admite imágenes. Elige un modelo con visión para usar «visual_review».",
+      }),
+    });
+    const r = await runTool(call("visual_review", {}), c);
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("no admite imágenes");
+  });
+});
+
 describe("runTools (paralelo)", () => {
   it("ejecuta varias llamadas a la vez y devuelve en orden", async () => {
     const c = ctx();

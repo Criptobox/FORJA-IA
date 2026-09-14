@@ -68,7 +68,7 @@ export interface ToolContext {
   /** Ejecuta el proyecto actual y devuelve los logs + errores. La
    * implementación vive en `sandbox-studio.tsx` y se inyecta aquí para
    * no romper la separación. */
-  runProject?: (opts?: { qa?: boolean }) => Promise<RunOutcome>;
+  runProject?: (opts?: { qa?: boolean; screenshot?: boolean }) => Promise<RunOutcome>;
   /** Consulta la cuota del proveedor/modelo actual. La implementación
    * vive en `quota-panel.tsx` o similar; aquí solo se usa. */
   getQuota?: () => QuotaSnapshot | null;
@@ -92,6 +92,12 @@ export interface ToolContext {
    * `chat-app.tsx`; si no viene, la herramienta lo dice en vez de
    * responder con el vacío. */
   projectMap?: ProjectMap | null;
+  /** Le enseña una captura al modelo con visión y devuelve su crítica.
+   * La implementación real vive en `use-agent-tools.ts` (necesita el
+   * proveedor/modelo/clave de la conversación en curso, que el runner no
+   * tiene). Sin esto, `visual_review` lo dice en vez de fingir una
+   * respuesta. */
+  visionCritique?: (dataUrl: string, foco?: string) => Promise<VisionOutcome>;
   /** Permisos que el usuario tiene concedidos (Ajustes → Permisos del
    * agente). Se comprueban ANTES de ejecutar nada. Si no vienen, se aplican
    * los de por defecto: un contexto de test o una llamada antigua no debe
@@ -149,8 +155,19 @@ export interface RunOutcome {
   /** Última medida de QA que respondió, entera. `null` si no se pidió QA o
    * si el medidor no contestó — que no es lo mismo que «cero hallazgos». */
   qa?: QAResult | null;
+  /** Captura de la página YA PINTADA (`screenshot.ts`), si se pidió con
+   * `opts.screenshot`. `undefined` si no se pidió; `{ok:false}` si se pidió
+   * y falló (el capturador no respondió, o el canvas quedó contaminado). */
+  screenshot?: { ok: true; dataUrl: string } | { ok: false; error: string };
   /** Si no había proyecto, lo dice aquí. */
   reason?: string;
+}
+
+/** Lo que devuelve una crítica visual: éxito con el texto del modelo, o
+ * fallo con el motivo (p. ej. el modelo activo no admite imágenes). */
+export interface VisionOutcome {
+  ok: boolean;
+  texto: string;
 }
 
 /** Cuota del proveedor actual, simplificada. */
@@ -227,6 +244,8 @@ export async function runTool(
         return runSnapshotDiff(call, ctx);
       case "ask_memory":
         return runAskMemory(call, ctx);
+      case "visual_review":
+        return await runVisualReview(call, ctx);
       default:
         return toolError(call, `Herramienta no implementada: «${call.name}».`);
     }
@@ -878,6 +897,39 @@ function runAskMemory(call: ToolCall, ctx: ToolContext): ToolResult {
   }
   const limite = numArg(call, "limit", 1, 20) ?? MAX_RESULTADOS_MEMORIA;
   return toolOk(call, resumenMemoria(buscarEnMapa(map, q, limite), q));
+}
+
+/**
+ * `visual_review`: la mitad que le faltaba al QA — no medir el DOM, VER la
+ * página. Renderiza el proyecto, toma una captura real (`screenshot.ts`) y
+ * se la enseña a un modelo con visión para que la critique.
+ *
+ * A propósito NO entra en el bucle de auto-revisión (a diferencia de lo
+ * genérico o los efectos fuera de dirección): una crítica de visión es más
+ * subjetiva que un error de consola o un contraste medido, y reintentar en
+ * bucle contra algo que el modelo puede alucinar es peor que no reintentar.
+ * Esta herramienta solo informa; decide el agente (o el usuario) si corrige.
+ */
+async function runVisualReview(call: ToolCall, ctx: ToolContext): Promise<ToolResult> {
+  if (!ctx.runProject) {
+    return toolError(call, "No hay Sandbox disponible. El usuario no tiene un proyecto abierto en el Sandbox.");
+  }
+  if (!ctx.visionCritique) {
+    return toolError(call, "La crítica visual no está disponible en este contexto.");
+  }
+  const foco = strArg(call, "foco");
+  const outcome = await ctx.runProject({ screenshot: true });
+  if (!outcome.ejecutado) {
+    return toolOk(call, outcome.reason ?? "No se pudo ejecutar el proyecto, así que no hay nada que capturar.");
+  }
+  if (!outcome.screenshot?.ok) {
+    return toolOk(
+      call,
+      `No se pudo capturar la página: ${outcome.screenshot?.error ?? "motivo desconocido"}.`
+    );
+  }
+  const critica = await ctx.visionCritique(outcome.screenshot.dataUrl, foco);
+  return toolOk(call, critica.texto);
 }
 
 /* ------------------------------------------------------------------ */

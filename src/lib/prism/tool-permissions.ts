@@ -99,6 +99,12 @@ export const PERMISOS_TOOL: Record<string, PermisoTool> = {
     efectos: ["lee_proyecto", "ejecuta"],
     nota: "ejecuta la página y la compara con la anterior",
   },
+  // Ejecuta el proyecto para capturarlo (como run_project) Y sale a la red:
+  // la crítica es una llamada aparte a un modelo con visión.
+  visual_review: {
+    efectos: ["lee_proyecto", "ejecuta", "red"],
+    nota: "captura la página y pide una crítica visual a un modelo con visión",
+  },
 
   read_url: { efectos: ["red"], nota: "trae el texto de una página web" },
   search_web: { efectos: ["red"], nota: "busca en DuckDuckGo" },

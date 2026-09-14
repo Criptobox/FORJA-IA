@@ -343,6 +343,20 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
     },
   },
   {
+    name: "visual_review",
+    description:
+      "Toma una captura REAL de la página renderizada (no mide el DOM, la VE) y se la enseña a un modelo con visión para que la critique: jerarquía, alineación, espaciado, contraste, composición, algo que se vea roto o genérico. Distinta de «run_project» con «qa»: eso mide números; esto ve la página como un usuario. Úsala tras un cambio visual importante, no en cada turno — cuesta una llamada de visión aparte. Si el modelo activo no admite imágenes, te lo dice en vez de ejecutarse. Nota: no ve lo que pinta un <canvas> (el motor 3D incluido) — solo el DOM.",
+    parameters: {
+      type: "object",
+      properties: {
+        foco: {
+          type: "string",
+          description: "Opcional: en qué fijarse (p. ej. «el hero», «el formulario de contacto»). Sin esto, la crítica es general.",
+        },
+      },
+    },
+  },
+  {
     name: "ask_memory",
     description:
       "Pregunta al mapa del proyecto: archivos y para qué sirve cada uno, funcionalidades ya hechas, tecnologías, y las NOTAS DE MEMORIA (las decisiones que tomó el usuario). Úsala ANTES de rehacer algo, para no repetir trabajo ni contradecir una decisión ya tomada. Si no hay nada sobre lo que preguntas, se te dice: no se inventa una respuesta.",

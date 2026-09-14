@@ -131,9 +131,10 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
     const names = tools.map((t) => t.function.name).sort();
     // v3.32 (PLAN-V7): de 6 a 12. v3.40: 15, con las tres que miden y
     // consultan (run_regression, snapshot_diff, ask_memory). v4.0: 16, con
-    // apply_patch (edición por parches SEARCH/REPLACE). La lista va
-    // exacta a propósito: comprueba que el catálogo TRADUCIDO llega entero al
-    // modelo, que es distinto de que exista en `tools-catalog.ts`.
+    // apply_patch (edición por parches SEARCH/REPLACE). v4.13: 17, con
+    // visual_review (QA por visión). La lista va exacta a propósito:
+    // comprueba que el catálogo TRADUCIDO llega entero al modelo, que es
+    // distinto de que exista en `tools-catalog.ts`.
     expect(names).toEqual([
       "apply_patch",
       "ask_memory",
@@ -150,6 +151,7 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
       "run_regression",
       "search_web",
       "snapshot_diff",
+      "visual_review",
       "write_file",
     ]);
 

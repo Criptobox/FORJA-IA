@@ -22,6 +22,7 @@
  */
 import { buildRunHtml, pickEntryPath, isHtmlPath, SANDBOX_ORIGIN } from "./sandbox";
 import { injectVisualQA, type QAResult } from "./visual-qa";
+import { injectScreenshot } from "./screenshot";
 import { enviarCmdPiloto } from "./sandbox-pilot";
 import { esErrorDelEntorno } from "./auto-revision";
 import {
@@ -60,11 +61,15 @@ interface CollectedLog {
  *
  * @param files Mapa `path → content` (solo archivos de texto; los
  * binarios no se soportan aquí, el tool `read_file` ya los excluye).
- * @param opts `qa: true` para medir el QA visual móvil.
+ * @param opts `qa: true` para medir el QA visual móvil. `screenshot: true`
+ *   para capturar la página YA PINTADA (`screenshot.ts`) — pensado para
+ *   `visual_review`, no se activa por defecto: pesa más que medir (codifica
+ *   una imagen) y la mayoría de llamadas a `run_project`/`run_regression`
+ *   no la necesitan.
  */
 export async function runProjectInMemory(
   files: Record<string, string>,
-  opts: { qa?: boolean; botones?: boolean } = {}
+  opts: { qa?: boolean; botones?: boolean; screenshot?: boolean } = {}
 ): Promise<RunOutcome> {
   // 1. Construir el mapa que espera `buildRunHtml`: Map<path, Uint8Array>.
   const fileMap = new Map<string, Uint8Array>();
@@ -111,7 +116,8 @@ export async function runProjectInMemory(
   // Lo calcula `buildRunHtml`, que es el único sitio que ve el HTML antes
   // de que se le inyecte nada.
   const htmlBytes = built.htmlBytes;
-  const html = injectPilot(injectVisualQA(built.html));
+  let html = injectPilot(injectVisualQA(built.html));
+  if (opts.screenshot) html = injectScreenshot(html);
 
   // 5. Crear un iframe OCULTO en el body, ejecutar y recoger logs.
   return new Promise<RunOutcome>((resolve) => {
@@ -129,14 +135,20 @@ export async function runProjectInMemory(
      * ENTERAS (`QAResult`) y no un recuento: `run_regression` compara
      * hallazgo a hallazgo, y para eso necesita el `tipo` y el `detalle`. */
     let qaResults: QAResult[] | null = null;
+    /** Resultado de la captura, si se pidió (`opts.screenshot`). */
+    let screenshotResult: RunOutcome["screenshot"] = undefined;
 
     const iframe = document.createElement("iframe");
     iframe.setAttribute("aria-hidden", "true");
     iframe.style.position = "fixed";
     iframe.style.right = "0";
     iframe.style.bottom = "0";
-    iframe.style.width = "390px"; // ancho móvil por defecto para el QA
-    iframe.style.height = "600px";
+    // Una captura quiere ver la página como la vería alguien de verdad —
+    // escritorio, no el ancho móvil que usa el QA por defecto. Solo se
+    // ensancha cuando se pide screenshot: `run_project`/`run_regression`
+    // normales siguen midiendo a 390px, que es lo que ya prueban.
+    iframe.style.width = opts.screenshot ? "1280px" : "390px";
+    iframe.style.height = opts.screenshot ? "800px" : "600px";
     iframe.style.opacity = "0";
     iframe.style.pointerEvents = "none";
     iframe.style.zIndex = "-1";
@@ -178,6 +190,7 @@ export async function runProjectInMemory(
         htmlBytes,
         // la última medida que respondió: es la que compara `run_regression`
         qa: medidas.length ? medidas[medidas.length - 1] : null,
+        screenshot: screenshotResult,
       };
       // Destruir el iframe: si hay un error de runtime que cuelga el
       // script, el `remove()` libera el proceso.
@@ -211,6 +224,14 @@ export async function runProjectInMemory(
           qaResults = qaResults ?? [];
           qaResults.push(r);
         }
+      }
+      // Resultado del capturador (si se pidió). Uno solo: no hace falta
+      // acumular como el QA, que puede llegar a varios anchos.
+      if (d.type === "prism-shot-result" && opts.screenshot) {
+        const sd = e.data as { ok?: boolean; dataUrl?: string; error?: string };
+        screenshotResult = sd.ok && sd.dataUrl
+          ? { ok: true, dataUrl: sd.dataUrl }
+          : { ok: false, error: sd.error || "El capturador no respondió." };
       }
     };
     window.addEventListener("message", onMsg);

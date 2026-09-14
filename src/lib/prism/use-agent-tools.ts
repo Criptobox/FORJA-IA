@@ -16,12 +16,13 @@
 import { useCallback, useRef } from "react";
 import { streamChat, type StreamOptions, type StreamMessage } from "./chat-client";
 import { TOOL_CATALOG, type ToolCall, type ToolResult } from "./tools-catalog";
-import { runTools, type ToolContext } from "./tool-runner";
+import { runTools, type ToolContext, type VisionOutcome } from "./tool-runner";
 import { probeTools, supportsTools, type ToolsSupport } from "./tools-probe";
 import { buildToolResultMessage } from "./tools-translate";
 import { runProjectInMemory } from "./sandbox-runner";
 import { runJsInMemory } from "./js-repl";
-import type { ProviderId, ProjectMap } from "./types";
+import { promptCritica } from "./screenshot";
+import type { ProviderId, ProjectMap, ProviderConfig, AppSettings, Attachment } from "./types";
 import { PROVIDER_MAP } from "./providers";
 import type { SandboxSeed } from "./sandbox";
 import type { ReglaNo } from "./reglas-no";
@@ -30,6 +31,20 @@ import {
   filtrarCatalogo,
   type PermisosConcedidos,
 } from "./tool-permissions";
+
+/** Lo que `visual_review` necesita para llamar a un modelo con visión: el
+ * MISMO proveedor/modelo/clave de la conversación en curso (decisión: no
+ * hay un modelo de visión aparte, si el activo no admite imágenes la
+ * herramienta lo dice y no se ejecuta). `stream` es inyectable para poder
+ * testear sin red, igual que `DepsTools.stream`. */
+export interface VisionDeps {
+  providerId: ProviderId;
+  modelId: string;
+  config: ProviderConfig;
+  settings: AppSettings;
+  signal: AbortSignal;
+  stream: typeof streamChat;
+}
 
 export interface AgentToolsState {
   /** Último resultado del probe de tools (para UI: chip «Soporta tools»). */
@@ -53,7 +68,8 @@ export function buildToolContext(
   projectMap: ProjectMap | null = null,
   permisos: PermisosConcedidos = PERMISOS_POR_DEFECTO,
   reglasNo: readonly ReglaNo[] = [],
-  reglasAutorizadas: readonly string[] = []
+  reglasAutorizadas: readonly string[] = [],
+  vision?: VisionDeps
 ): ToolContext {
   const files = sandboxInitial?.files
     ? Object.fromEntries(sandboxInitial.files.map((f) => [f.path, f.content]))
@@ -73,7 +89,53 @@ export function buildToolContext(
     reglasNo,
     // …salvo lo que autorizó para ESTE envío (modal «Autorizar una vez»).
     reglasAutorizadas,
+    // `visual_review`: una llamada aparte de `streamChat` con la captura
+    // como adjunto, contra el MISMO modelo de la conversación. Sin `vision`
+    // (test, o llamador que no lo necesita) la herramienta lo dice en vez
+    // de fingir una crítica.
+    visionCritique: vision ? (dataUrl, foco) => pedirCritica(vision, dataUrl, foco) : undefined,
   };
+}
+
+/** La llamada de visión propiamente dicha: un `streamChat` de un solo turno,
+ * con la captura como adjunto. Si el proveedor rechaza la imagen,
+ * `streamChat` ya lanza con el aviso «no admite imágenes» incluido en el
+ * mensaje (`chat-client.ts`, `assertOk`) — aquí solo se reconoce ESE texto
+ * para no reinventar la detección de `esFalloDeImagen`. */
+async function pedirCritica(
+  vision: VisionDeps,
+  dataUrl: string,
+  foco?: string
+): Promise<VisionOutcome> {
+  const captura: Attachment = {
+    id: "captura-visual",
+    name: "captura.jpg",
+    mediaType: "image/jpeg",
+    dataUrl,
+    size: dataUrl.length,
+  };
+  try {
+    const texto = await vision.stream({
+      providerId: vision.providerId,
+      config: vision.config,
+      modelId: vision.modelId,
+      messages: [{ role: "user", content: promptCritica(foco), attachments: [captura] }] as StreamMessage[],
+      settings: vision.settings,
+      signal: vision.signal,
+      onDelta: () => {},
+      onDone: () => {},
+    });
+    return { ok: true, texto };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("no admite imágenes")) {
+      return {
+        ok: false,
+        texto: "El modelo activo no admite imágenes. Elige un modelo con visión para usar «visual_review».",
+      };
+    }
+    return { ok: false, texto: `No se pudo obtener la crítica visual: ${msg}` };
+  }
 }
 
 /** Inyectable en tests: por defecto el cliente real. */
@@ -175,7 +237,14 @@ export async function ejecutarConTools(
   // escribe o restaura en una vuelta existen en la siguiente. Antes se
   // reconstruía por vuelta desde el seed y el agente perdía su propio
   // trabajo entre iteraciones.
-  const tctx = buildToolContext(sandboxInitial, projectMap, permisos, reglasNo, reglasAutorizadas);
+  const tctx = buildToolContext(sandboxInitial, projectMap, permisos, reglasNo, reglasAutorizadas, {
+    providerId,
+    modelId: baseOpts.modelId,
+    config: baseOpts.config,
+    settings: baseOpts.settings,
+    signal: baseOpts.signal,
+    stream: deps.stream,
+  });
 
   /** Una vuelta de stream. Devuelve las tools que pidió el modelo.
    * El texto se guarda en `content`: antes se declaraba la variable y

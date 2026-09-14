@@ -5837,3 +5837,137 @@ nuevo de 2D no ejercita el mock viejo de 3D.
   ✓ **239** E2E (237 antes), suite completa
 - ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone`
   y con el `.nft.json`
+
+## v4.13.0 — QA por visión: `visual_review` VE la página, no la mide
+
+Auditoría contra el plan «Prism Web AI» que trajo el usuario: casi todo el
+MVP que describe ya existía en Prism con otro nombre (tools de archivos,
+sandbox, checkpoints con `git_snapshot`/`snapshot_diff`, memoria de
+proyecto persistida en `.prism/`, permisos por herramienta…). El hueco
+real, y el que el usuario eligió como primer paso: todo el QA visual de
+hoy —`generico.ts`, `efectos.ts`, `visual-qa.ts`— **mide el DOM**, nunca
+**ve la página**. Ningún selector detecta que un titular pesa poco frente
+al hero, o que dos bloques quedan descompensados: eso hace falta VERLO.
+
+### Cómo se captura, sin librería y sin red
+
+El mismo problema de origen que `visual-qa.ts`: el iframe corre con
+`sandbox="allow-scripts…"` SIN `allow-same-origin`, así que el padre no
+puede leer su DOM ni dibujarlo con un `html2canvas` que viva fuera. La
+captura (`screenshot.ts`) se hace DESDE DENTRO, con lo que ya da el
+navegador:
+
+1. `XMLSerializer` serializa el documento a XML.
+2. Se envuelve en `<svg><foreignObject>` — un SVG es una imagen válida y
+   su contenido HTML se pinta tal cual se ve.
+3. Ese SVG (como `data:` URI) se carga en una `Image` y se dibuja en un
+   `<canvas>` del MISMO documento — nunca una imagen ajena sin CORS, que
+   es justo lo que dejaría el canvas contaminado.
+4. `canvas.toDataURL('image/jpeg', 0.85)`, con el lado máximo capado a
+   1152 px — el mismo tope que ya usa `attachments.ts` para lo que sube
+   el usuario: la captura es para que un modelo la MIRE, no para
+   archivarla.
+
+Se probó primero AISLADO (un `parent.html` con un iframe sandbox idéntico
+al real, gradiente + sombra + fuente por `<link>`) antes de escribir una
+sola línea de la integración: la técnica podía fallar por «canvas
+contaminado» y mejor saberlo en un script de 40 líneas que a mitad de la
+tool. Funcionó a la primera — el resultado, con el gradiente y la sombra
+intactos, se mandó como archivo antes de seguir.
+
+**Límite honesto, documentado en el propio `screenshot.ts`**: un
+`<canvas>` con contenido pintado a mano (WebGL, 2D) NO sale en la
+captura — `foreignObject` serializa el DOM, no el bitmap que un canvas
+tiene encima. El motor 3D (`prism-3d.js`) sale en blanco dentro de la
+foto. No es un bug, es lo que la técnica puede dar.
+
+### La herramienta: bajo demanda, no automática
+
+Tres decisiones de producto, puestas al usuario antes de escribir código
+porque cambiaban bastante la implementación:
+
+- **Tool del agente, no un paso automático.** `visual_review` es una
+  herramienta más del catálogo (como `read_url` o `run_regression`): el
+  agente decide cuándo pedirla. No se dispara en cada generación —una
+  llamada de visión es cara, y el propio plan del usuario lo marcaba
+  como el driver de coste a vigilar.
+- **El mismo modelo de la conversación, no uno de visión aparte.**
+  `visionCritique` (`use-agent-tools.ts`) llama a `streamChat` con el
+  MISMO `providerId`/`modelId`/clave que ya está hablando con el
+  usuario. Si no admite imágenes, `chat-client.ts` ya arma el aviso «no
+  admite imágenes» en el mensaje del error (`assertOk`, vía
+  `esFalloDeImagen`) — la herramienta solo reconoce ESE texto en vez de
+  reinventar la detección, y responde con eso en lugar de fingir una
+  crítica.
+- **Informa, no reintenta.** A diferencia de lo genérico o los efectos
+  fuera de dirección, `visual_review` NO entra en el bucle de
+  auto-revisión (`MAX_REVISIONES`): una crítica de visión es más
+  subjetiva que un contraste medido, y reintentar en bucle contra algo
+  que el modelo puede alucinar es peor que no reintentar. Decide el
+  agente (o el usuario) si corrige.
+
+### Reutilizado, no duplicado
+
+`sandbox-runner.ts` ya montaba un iframe OCULTO para `run_project`
+(headless, sin tocar la vista previa visible): `opts.screenshot` es una
+tercera bandera junto a `qa`/`botones`, no un segundo ejecutor. Se
+ensancha a 1280×800 SOLO cuando se pide screenshot (`run_project`/
+`run_regression` normales siguen midiendo a 390px, que es lo que ya
+prueban). La captura reutiliza `FX_ASENTAR` (de `efectos.ts`) para dejar
+los efectos en su estado FINAL antes de disparar el obturador — sin eso
+la foto saldría a medio entrar, con secciones en `opacity:0` esperando el
+scroll.
+
+### Pruebas
+
+- 12 unitarios en `screenshot.test.ts` (inyección idempotente, sin
+  cerrar `</script>` por accidente, usa la técnica sin red, asienta y
+  desasienta los efectos, tope de 1152px, un fallo se reporta nunca se
+  calla) + 3 de `promptCritica`.
+- 4 unitarios en `visual-review.test.ts`: sin `vision` no hay
+  `visionCritique` (la tool lo dice en vez de fingir), llama al MISMO
+  proveedor/modelo con la captura como adjunto, reconoce «no admite
+  imágenes» sin confundirlo con otro fallo (clave inválida, red…).
+- 6 unitarios nuevos en `tool-runner.test.ts` (sin Sandbox, sin
+  `visionCritique`, proyecto que no se ejecuta, captura que falla, el
+  camino feliz con `foco`, el aviso de «no admite imágenes»).
+- 2 E2E (`visual-review.spec.ts`, mocks `mock-visual-review` /
+  `mock-visual-review-sin-vision`): el agente escribe una página, pide
+  `visual_review`, la captura real se toma en el sandbox oculto, la
+  llamada INTERNA de visión (con la imagen adjunta) vuelve al mismo mock
+  y la crítica llega al chat; con un modelo que "rechaza" la imagen, la
+  herramienta lo dice y no inventa nada.
+- Verificado en rojo: se apartó `screenshot.ts` y se revirtieron
+  `sandbox-runner.ts` + `tool-runner.ts` + `tools-catalog.ts` +
+  `tool-permissions.ts` + `use-agent-tools.ts` + el mock a la vez — los
+  dos E2E fallaban (herramienta/modelo inexistentes), confirmado antes de
+  restaurar.
+- El primer intento de gate completo destapó tres tests VIEJOS con listas
+  de herramientas escritas a mano (`tool-permissions.test.ts` ×3,
+  `tools-catalog.test.ts`, y en E2E `permisos-agente.spec.ts` ×2 y
+  `tools-agente.spec.ts`) que no contaban con una 17ª herramienta —
+  mantenimiento esperado, no un fallo real; se actualizaron todos.
+- Una segunda vuelta del gate completo tuvo un fallo aislado en
+  `preview-botones.spec.ts` (timing del barrido de botones, área que este
+  cambio no toca) que no se repitió ni en una tercera vuelta completa ni
+  en tres ejecuciones sueltas del mismo archivo: flake bajo carga, no
+  regresión.
+
+### Lo que sigue sin cubrir
+
+- El límite del canvas/WebGL documentado arriba: la escena 3D
+  (`prism-3d.js`) no aparece en la captura. Cubrirlo de verdad pediría
+  leer el framebuffer del propio motor, no esta técnica.
+- Sin botón manual: la decisión fue "tool del agente primero" — extender
+  el botón «QA visual» existente para disparar también esto queda fuera,
+  sin pedirse.
+- Responsive por visión (varios anchos, como ya hace el QA por DOM) no
+  entra: una sola captura a 1280px, la que decide qué ancho usar es el
+  propio `sandbox-runner.ts`, fijo.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ **1 877** unitarios (1 855 antes) ·
+  ✓ **241** E2E (239 antes), suite completa
+- ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone`
+  y con el `.nft.json`

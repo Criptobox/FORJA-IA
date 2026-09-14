@@ -63,10 +63,10 @@ describe("toolPermitida", () => {
     }
   });
 
-  it("apagar «red» deja fuera exactamente las tres que salen a internet", () => {
+  it("apagar «red» deja fuera exactamente las que salen a internet", () => {
     const p = { ...todo(true), red: false };
     const fuera = TOOL_CATALOG.filter((t) => !toolPermitida(t.name, p).permitida).map((t) => t.name);
-    expect(fuera.sort()).toEqual(["fetch_api", "read_url", "search_web"]);
+    expect(fuera.sort()).toEqual(["fetch_api", "read_url", "search_web", "visual_review"]);
   });
 
   it("apagar «escribir» deja fuera las que tocan archivos, y git_snapshot con ellas", () => {
@@ -80,7 +80,7 @@ describe("toolPermitida", () => {
   it("apagar «ejecutar» deja fuera las que corren código", () => {
     const p = { ...todo(true), ejecuta: false };
     const fuera = TOOL_CATALOG.filter((t) => !toolPermitida(t.name, p).permitida).map((t) => t.name);
-    expect(fuera.sort()).toEqual(["run_js", "run_project", "run_regression"]);
+    expect(fuera.sort()).toEqual(["run_js", "run_project", "run_regression", "visual_review"]);
   });
 
   it("una herramienta que necesita dos efectos cae si falta cualquiera", () => {
@@ -118,7 +118,7 @@ describe("motivoDenegado", () => {
 describe("filtrarCatalogo", () => {
   it("recorta a lo permitido", () => {
     const c = filtrarCatalogo(TOOL_CATALOG, { ...todo(true), red: false });
-    expect(c.length).toBe(TOOL_CATALOG.length - 3);
+    expect(c.length).toBe(TOOL_CATALOG.length - 4);
     expect(c.some((t) => t.name === "read_url")).toBe(false);
   });
 
@@ -154,7 +154,7 @@ describe("normalizarPermisos", () => {
 
 describe("toolsDelEfecto", () => {
   it("sale de la tabla, no de una lista escrita a mano", () => {
-    expect(toolsDelEfecto("red")).toEqual(["fetch_api", "read_url", "search_web"]);
+    expect(toolsDelEfecto("red")).toEqual(["fetch_api", "read_url", "search_web", "visual_review"]);
     // toda herramienta aparece bajo al menos un efecto
     const cubiertas = new Set(EFECTOS.flatMap((e) => toolsDelEfecto(e)));
     expect(cubiertas.size).toBe(TOOL_CATALOG.length);

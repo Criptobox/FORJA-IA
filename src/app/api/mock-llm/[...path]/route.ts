@@ -49,6 +49,8 @@ const MODELOS = [
   "mock-boton-roto",
   "mock-enlace-roto",
   "mock-mide",
+  "mock-visual-review",
+  "mock-visual-review-sin-vision",
   "mock-toca-header",
   "mock-director",
   "mock-obrero",
@@ -1053,6 +1055,101 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
       .join("\n\n---\n\n");
     return Response.json({
       choices: [{ message: { content: `Esto es lo que midieron las herramientas:\n\n${dicho}` }, index: 0 }],
+    });
+  }
+
+  // `mock-visual-review`: el agente pide `visual_review` (captura real +
+  // crítica de un modelo con visión) sobre el proyecto — la mitad "vea la
+  // página" del QA, no la mitad "mida el DOM" que ya prueban los mocks de
+  // arriba. Sirve para comprobar el mecanismo ENTERO: la captura de verdad
+  // dentro del sandbox oculto (sin `allow-same-origin`) y la llamada
+  // INTERNA de vuelta a este mismo mock que hace `visionCritique` por su
+  // cuenta, ya con la imagen — sin que el bucle de tools la vea pasar.
+  //
+  // Esa llamada interna se distingue de la del bucle principal por su
+  // FORMA, no por texto propenso a falsos positivos (la lección de "motor
+  // 3D"/"marquee" de `efectos.ts`): trae una imagen (`content` es un
+  // array) y nunca lleva `tools`, mientras que el bucle principal siempre
+  // lleva `tools` mientras dura.
+  //
+  // `mock-visual-review-sin-vision` es la MISMA escena, pero la llamada con
+  // imagen se rechaza como haría un proveedor real cuando el modelo no
+  // admite imágenes — para comprobar que la herramienta lo dice en vez de
+  // fingir una crítica.
+  if (body.model === "mock-visual-review" || body.model === "mock-visual-review-sin-vision") {
+    const conImagen = Array.isArray(lastMsg?.content);
+    if (conImagen) {
+      if (body.model === "mock-visual-review-sin-vision") {
+        return Response.json(
+          { error: { message: "This model does not support image input." } },
+          { status: 400 }
+        );
+      }
+      const critica =
+        "El botón principal casi no se distingue del fondo: el contraste es demasiado bajo. El resto de la jerarquía se ve clara.";
+      if (body.stream) return sse(critica);
+      return Response.json({ choices: [{ message: { content: critica }, index: 0 }] });
+    }
+    const rondas = (body.messages ?? []).filter(
+      (m) => Array.isArray((m as { tool_calls?: unknown[] }).tool_calls) &&
+        ((m as { tool_calls?: unknown[] }).tool_calls ?? []).length > 0
+    ).length;
+    // El proyecto empieza vacío: hace falta escribir una página ANTES de
+    // poder capturarla. Dos rondas — igual que `mock-mide` — no una: sin
+    // el `write_file`, `visual_review` no tendría nada que renderizar.
+    const guion = [
+      [
+        {
+          id: "call_visual_review_write",
+          type: "function",
+          function: {
+            name: "write_file",
+            arguments: JSON.stringify({
+              path: "index.html",
+              content:
+                '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Tienda</title></head><body style="margin:0;font-family:system-ui"><h1>Bienvenido a la tienda</h1><button style="background:#eee;color:#eee">Comprar</button></body></html>',
+            }),
+          },
+        },
+      ],
+      [
+        {
+          id: "call_visual_review_1",
+          type: "function",
+          function: { name: "visual_review", arguments: JSON.stringify({ foco: "el hero" }) },
+        },
+      ],
+    ];
+    if (body.tools && rondas < guion.length) {
+      const toolCalls = guion[rondas];
+      if (body.stream) {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ id: "mock-visual-review-1", choices: [{ delta: { tool_calls: toolCalls }, index: 0 }] })}\n\n`
+              )
+            );
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          },
+        });
+        return new Response(stream, {
+          headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" },
+        });
+      }
+      return Response.json({ choices: [{ message: { content: "", tool_calls: toolCalls }, index: 0 }] });
+    }
+    // La herramienta ya devolvió su resultado (crítica, o el aviso de que
+    // el modelo no admite imágenes): se entrega literal, para que el E2E
+    // pueda leer exactamente lo que dijo `visual_review`.
+    const dicho = (body.messages ?? [])
+      .filter((m) => m.role === "tool")
+      .map((m) => (typeof m.content === "string" ? m.content : ""))
+      .join("\n");
+    return Response.json({
+      choices: [{ message: { content: `Crítica visual: ${dicho}` }, index: 0 }],
     });
   }
 

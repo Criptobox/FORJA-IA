@@ -24,7 +24,7 @@ describe("TOOL_CATALOG", () => {
     expect(new Set(names).size, "sin duplicados").toBe(names.length);
   });
 
-  it("el catálogo es EXACTAMENTE este: las del PLAN-V4/V7, read_url, las de la v3.32, las tres de la v3.40 y apply_patch de la v4 (edición por parches)", () => {
+  it("el catálogo es EXACTAMENTE este: las del PLAN-V4/V7, read_url, las de la v3.32, las tres de la v3.40, apply_patch de la v4 (edición por parches) y visual_review (QA por visión)", () => {
     // La lista va cerrada a propósito: añadir una herramienta sin pasar por
     // aquí es añadirla sin decidir cómo se le explica al modelo.
     const names = TOOL_CATALOG.map((t) => t.name).sort();
@@ -44,6 +44,7 @@ describe("TOOL_CATALOG", () => {
       "run_regression",
       "search_web",
       "snapshot_diff",
+      "visual_review",
       "write_file",
     ]);
   });
