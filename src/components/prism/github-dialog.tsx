@@ -69,6 +69,8 @@ export function GitHubDialog({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<GhProgress | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  /** El último fallo de subida, tal cual lo dijo GitHub. Se queda a la vista. */
+  const [fallo, setFallo] = useState<string | null>(null);
   const [reviewing, setReviewing] = useState(false);
   const gate = useReviewGate();
 
@@ -193,6 +195,7 @@ export function GitHubDialog({
     ghSetToken(t);
     setUploading(true);
     setResultUrl(null);
+    setFallo(null);
     setProgress(null);
     try {
       const r = await uploadToGithub(t, {
@@ -202,9 +205,16 @@ export function GitHubDialog({
         onProgress: setProgress,
       });
       setResultUrl(r.url);
-      toast.success(`Subido a GitHub en ${r.commits} commit(s)`, { description: r.url });
+      setFallo(null);
+      // La rama se DICE. Si el repo era de los de «master», antes la subida
+      // fingía ir a main y no aparecía nada: saber a dónde fue es la mitad de
+      // poder comprobarlo.
+      toast.success(`Subido a ${r.branch} en ${r.commits} commit(s)`, { description: r.url });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      // El aviso flotante se va en seis segundos y con él el motivo. Un fallo
+      // de subida se queda escrito hasta que se arregle.
+      setFallo(msg);
       toast.error("La subida falló", { description: msg.slice(0, 220) });
     } finally {
       setUploading(false);
@@ -227,7 +237,8 @@ export function GitHubDialog({
           </DialogTitle>
           <DialogDescription className="text-xs">
             Sube la carpeta del proyecto completa — sin el límite de 100 archivos de la web de GitHub
-            (se sube por lotes a main). Conecta tu cuenta; no hace falta pegar un token.
+            (se sube por lotes a la rama por defecto del repo). Conecta tu cuenta; no hace falta
+            pegar un token.
           </DialogDescription>
         </DialogHeader>
 
@@ -328,6 +339,18 @@ export function GitHubDialog({
                 {uploading && <Loader2 className="size-3 animate-spin" />}
                 {progress?.message ?? "Preparando…"} {pct > 0 && `(${pct}%)`}
               </p>
+            </section>
+          )}
+
+          {/* El motivo del fallo, escrito y quieto. Un toast se lleva el único
+              dato que sirve para arreglarlo. */}
+          {fallo && !uploading && (
+            <section
+              data-testid="gh-fallo"
+              className="space-y-1 rounded-xl border border-destructive/40 bg-destructive/[0.06] px-3.5 py-3"
+            >
+              <p className="text-xs font-semibold text-destructive">No se subió nada</p>
+              <p className="break-words text-[11px] leading-relaxed text-muted-foreground">{fallo}</p>
             </section>
           )}
 

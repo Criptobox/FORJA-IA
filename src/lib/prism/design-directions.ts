@@ -274,6 +274,24 @@ export function aDesignMd(d: DireccionVisual, nombreProyecto?: string): string {
 /** Checklist anti-AI-slop: el modelo se autoevalúa ANTES de entregar
  * (plan §2.4, tercera fila). Cinco dimensiones, corrección antes de
  * mostrar. */
+/** Lo que separa una página profesional de una maqueta bonita: el CONTENIDO.
+ *
+ * Una página genérica se reconoce antes por lo que dice que por cómo se ve —
+ * «Bienvenido a nuestro sitio», «Característica 1», tres párrafos que valdrían
+ * para cualquier negocio del mundo—. Nada de eso lo arregla una paleta.
+ *
+ * Y estas reglas SE MIDEN después en la página pintada (`generico.ts`): el
+ * texto de relleno, la ausencia de escala tipográfica y las tarjetas clonadas
+ * vuelven al modelo como hallazgos, no como consejos. */
+export const REGLAS_DE_CONTENIDO = [
+  "CERO RELLENO. Ni «Lorem ipsum», ni «Característica 1», ni «Tu texto aquí». Cada frase se escribe PARA este encargo: nombres propios, cifras concretas, verbos del oficio. Si no sabes un dato, escribe algo específico y plausible — nunca un hueco.",
+  "TITULAR CON AFIRMACIÓN. El h1 dice qué es y para quién, no saluda. «Bienvenido a X» no es un titular.",
+  "JERARQUÍA MEDIBLE. Escala tipográfica de al menos cuatro escalones y el titular como mínimo al doble del cuerpo. Un solo tamaño repetido es una maqueta, no un diseño.",
+  "PAREJA TIPOGRÁFICA REAL. Display distinta del cuerpo, cargadas de Google Fonts. La fuente por defecto del navegador se nota.",
+  "NADA DE IMÁGENES PRESTADAS. Ni placehold.co ni unsplash aleatorio: SVG inline, gradientes o formas CSS propias. Lo de fuera no se ve sin internet.",
+  "COMPOSICIÓN CON UN PROTAGONISTA. Evita la fila de tres tarjetas idénticas y el hero centrado con un botón: son la composición por defecto de cualquier generador. Que un elemento domine y el resto lo acompañe.",
+] as const;
+
 export const CHECKLIST_ANTI_SLOP = [
   "JERARQUÍA — ¿un solo elemento domina la vista y el ojo sabe a dónde ir? Si todo pesa igual, falla.",
   "TIPOGRAFÍA — ¿la pareja tipográfica se usa con intención (pesos, tamaños, tracking) o es la de por defecto?",
@@ -304,6 +322,9 @@ export function promptDireccion(e: EleccionDireccion): string {
     // mismo AI-slop con más brillo. Cada mundo trae los suyos y prohíbe los
     // que lo desmontarían.
     promptEfectos(d.id),
+    "",
+    "### Contenido (esto se mide después en la página, no es un consejo)",
+    ...REGLAS_DE_CONTENIDO.map((r) => `- ${r}`),
     "",
     "Antes de entregar, corrígete contra esta checklist y arregla lo que falle:",
     CHECKLIST_ANTI_SLOP,

@@ -5124,3 +5124,142 @@ editaste en el Sandbox, manda el tuyo.
 - **Los efectos no entran en el medidor del prompt.** El bloque suma unos 400
   caracteres en cada generación de UI y se paga en cada llamada; está acotado y
   probado, pero no aparece desglosado en el HUD de contexto.
+
+---
+
+## v4.9.0 — El push a GitHub estaba roto, y lo genérico ahora se mide
+
+Dos encargos: «el apartado de hacer push a GitHub no funciona» y «que se
+puedan crear webs profesionales y no genéricas».
+
+## 1. El push a GitHub
+
+Tres fallos, y el peor no era que fallara: era que **decía que había ido
+bien**.
+
+### La rama estaba escrita a mano
+
+`ghGetHead` preguntaba por `refs/heads/main` y la subida movía `refs/heads/
+main`. Siempre. En un repo cuya rama por defecto es `master` —o cualquiera que
+la haya cambiado— pasaba esto:
+
+1. la rama `main` no existe → se toma por «repo vacío»;
+2. se crea un commit **sin padre**, huérfano, que no cuelga de nada;
+3. se intenta crear `refs/heads/main`;
+4. si `main` ya existía, GitHub devuelve 422… **y ese 422 se ignoraba**;
+5. la app decía «¡Completado!» y en GitHub no había cambiado nada.
+
+Ahora se pregunta por el repo y se usa **su** `default_branch`. Y el 422 ya no
+se traga: si la rama apareció mientras subíamos, se mueve; si no se puede, se
+dice.
+
+### Un error de red podía borrarte el repo
+
+`ghGetHead` devolvía `treeSha: ""` cuando no lograba leer el commit. Con el
+árbol vacío, el commit sale **sin `base_tree`** — y eso no es «subir unos
+archivos», es dejar el repo con exactamente los archivos del lote y borrar
+todos los demás. Silencioso. Ahora eso para la subida con un mensaje que dice
+por qué se para.
+
+### «Completado» quería decir «no saltó ninguna excepción»
+
+Al terminar se comprueba que la rama apunta **de verdad** al commit que
+acabamos de crear. Si no, es un error, no un éxito.
+
+Además: los mensajes de GitHub ahora traen el detalle de `errors[]` (sin él un
+422 es indescifrable) y una pista de qué hacer según el código —401 reconecta,
+403 falta el alcance «repo», 404 el token no ve ese repo, 5xx es cosa de
+GitHub—. Y el motivo del fallo se queda **escrito en el diálogo**, no en un
+aviso flotante que se va a los seis segundos con el único dato que servía.
+
+### Por qué sobrevivió tanto
+
+Porque toda la subida era código sin una sola prueba: hacía falta una cuenta de
+GitHub de verdad para ejecutarla. Ahora hay un GitHub de mentira que se
+comporta como el bueno en lo que importa (una rama por defecto que puede no
+llamarse main, el `base_tree` que conserva lo que había, y que solo cuenta como
+publicado lo que la rama apunta). Los tres fallos se han verificado en rojo
+contra él.
+
+## 2. Webs que no parezcan hechas por una IA
+
+El proyecto ya tenía direcciones de diseño con paleta, tipografía y
+composición, y una checklist anti-slop de cinco puntos. El problema: **esa
+checklist se la autoevaluaba el modelo**. Le pedíamos que se pusiera nota y la
+nota era siempre buena. El mismo fallo sistémico de siempre — un dato que nadie
+comprueba.
+
+### Ahora se mide en la página pintada
+
+`generico.ts` mide, sobre el DOM ya renderizado, las señas de identidad de una
+página de generador. Solo entra lo que se puede medir **y** admite una
+corrección concreta: «le falta personalidad» no es un hallazgo; «catorce
+elementos comparten exactamente el mismo redondeo» sí.
+
+- **relleno** — Lorem ipsum, «Característica 1», «Tu texto aquí», citado tal cual.
+- **imagen-relleno** — placehold.co, unsplash aleatorio y compañía.
+- **sin-escala** — menos de cuatro tamaños de letra, o el titular a menos del doble del cuerpo.
+- **sin-pareja** / **fuente-por-defecto** — titular y cuerpo con la misma fuente, o la del navegador.
+- **tarjetas-iguales** — filas de 3+ hermanos clonados en alto, ancho y forma.
+- **radio-uniforme** — ocho o más elementos con el mismo redondeo exacto.
+- **emoji-titulares** — dos o más titulares que empiezan por emoji.
+- **todo-centrado** y **hero-centrado** — con su salvedad dicha: si la dirección lo pide, que lo defienda y lo deje.
+
+Los hallazgos vuelven al modelo por el **mismo camino que los errores de
+consola**, que es el bucle que ya funcionaba, con el qué y el cómo arreglarlo.
+Y el mensaje le deja defender una decisión en vez de obedecer a ciegas.
+
+Dos frenos para que el medidor no se vuelva ruido: por debajo de 25 elementos
+no se juzga nada (una página corta no es genérica, es corta), y una página sin
+señas no gasta ni una vuelta de corrección.
+
+### Y de paso: el QA visual nunca llegaba al modelo
+
+La revisión automática llamaba a `runProjectInMemory(files, { botones: true })`
+— **sin `qa: true`**. El medidor visual se inyectaba en la página, medía y
+mandaba su resultado… y aquí no se pedía. Todo lo que medía (scroll horizontal,
+texto por debajo de 12 px, contraste) se tiraba. Ahora se pide.
+
+### Las reglas de contenido, en el prompt
+
+Una página genérica se reconoce antes por lo que dice que por cómo se ve, y eso
+no lo arregla ninguna paleta. Seis reglas nuevas en el bloque de dirección
+—cero relleno, titular que afirma, escala medible, pareja tipográfica real,
+nada de imágenes prestadas, composición con un protagonista— y encabezadas por
+lo que las hace distintas: **esto se mide después en la página, no es un
+consejo.**
+
+### Pruebas
+
+- 10 unitarios del push contra el GitHub de mentira: repo nuevo, repo con
+  `master`, que no se borra lo que había, que para si no puede leer el árbol
+  base, que no canta victoria si la rama no acabó apuntando a nuestro commit,
+  varios lotes encadenados y el 422 que no es «ya existe».
+- 20 unitarios del medidor de genérico: cada seña por separado, que una página
+  bien hecha no genera ninguna, que una corta no se juzga, y que cada hallazgo
+  trae QUÉ HACER.
+- 2 E2E con la página de manual de un generador: que Prism la mide, se la
+  devuelve citando el Lorem ipsum y las tarjetas clonadas, y que termina
+  pulida. Y que una página que ya está bien **no se toca**.
+- Verificados en rojo los seis que prueban algo nuevo.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 806** unitarios (1 776 antes) ·
+  ✓ **219** E2E, suite completa dos veces
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`
+
+### Lo que sigue sin hacerse
+
+- **No he podido reproducir el fallo del push contra GitHub de verdad.** Los
+  tres fallos son demostrables y están arreglados y probados contra un GitHub
+  simulado, pero si lo que te falla es la CONEXIÓN (el botón «Conectar») y no
+  la subida, esto no lo arregla: hay que ver el mensaje que sale.
+- **El medidor no sabe de composición.** Mide tipografía, relleno, clonado y
+  redondeo. No sabe si la retícula tiene ritmo ni si el espacio está pensado —
+  eso sigue dependiendo del modelo.
+- **`pushFilesToRepo` sigue haciendo un commit por archivo.** Funciona (usa la
+  Contents API, que respeta la rama por defecto), pero veinte archivos son
+  veinte commits. Debería pasar por la misma Git Data API que la subida de
+  carpetas.

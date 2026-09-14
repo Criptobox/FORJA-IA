@@ -36,6 +36,7 @@ const MODELOS = [
   "mock-lee-url",
   "mock-codigo-roto",
   "mock-efectos",
+  "mock-generica",
   "mock-boton-roto",
   "mock-enlace-roto",
   "mock-mide",
@@ -264,6 +265,42 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<span id="n">sin pulsar</span>',
       "</section>",
       '<script src="prism-fx.js" defer></script>',
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-generica`: la página de manual de un generador — Lorem ipsum, tres
+  // tarjetas clonadas, un solo tamaño de letra, la fuente del sistema y un
+  // hero centrado con su botón. La segunda entrega es la pulida. Sirve para
+  // comprobar que Prism MIDE lo genérico en la página pintada y se lo
+  // devuelve al modelo, en vez de fiarse de que se autoevalúe.
+  if (modelo === "mock-generica") {
+    const lePulieron = msgs.some(
+      (m) =>
+        typeof m.content === "string" &&
+        (m.content as string).includes("señas de página genérica")
+    );
+    const tarjeta = (n: number) =>
+      `<div style="width:220px;height:150px;border-radius:12px;background:#eee;padding:16px">` +
+      `<h3>Característica ${n}</h3><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></div>`;
+    const cuerpo = lePulieron
+      ? '<h1 style="font-family:Georgia,serif;font-size:64px">Pulida de verdad</h1>' +
+        '<p style="font-size:16px">Copia escrita para este encargo, sin relleno.</p>' +
+        '<p style="font-size:13px">Apoyo</p><h2 style="font-size:34px">Un segundo nivel</h2>'
+      : `<section style="text-align:center"><h1>Bienvenido a nuestro sitio</h1>` +
+        `<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>` +
+        `<a class="cta" href="#">Empezar</a></section>` +
+        `<div style="display:flex;gap:16px">${tarjeta(1)}${tarjeta(2)}${tarjeta(3)}</div>` +
+        Array.from({ length: 30 }, (_, i) => `<p>Texto de ejemplo ${i}</p>`).join("");
+    return [
+      lePulieron ? "Corregido tras medirla." : "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Demo</title></head>',
+      '<body style="font-family:system-ui;margin:0;padding:24px">',
+      cuerpo,
       "</body></html>",
       "```",
     ].join("\n");

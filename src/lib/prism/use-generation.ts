@@ -97,6 +97,13 @@ import {
 } from "./auto-revision";
 import { runProjectInMemory } from "./sandbox-runner";
 import {
+  MEDIDAS_VACIAS,
+  promptDeGenerico,
+  reglaDeGenerico,
+  resumenGenerico,
+  senasGenericas,
+} from "./generico";
+import {
   decidirTrasCuotaEnTexto,
   decidirTrasError,
   esDemasiadoGrande,
@@ -1288,8 +1295,13 @@ export function useGeneration(ctx: CtxGeneracion) {
               // sus botones. La revisión de carga solo caza lo que revienta
               // al abrir, y en una web generada la mayoría de los fallos
               // están detrás de un clic.
-              const salida = await runProjectInMemory(proyecto.files, { botones: true });
+              // `qa: true` faltaba. El medidor visual se inyectaba, medía y
+              // mandaba su resultado… y aquí no se pedía, así que nada de lo
+              // que medía llegaba nunca al modelo. Es también por donde vienen
+              // las señas de página genérica.
+              const salida = await runProjectInMemory(proyecto.files, { botones: true, qa: true });
               const inf = salida.botones;
+              const senas = senasGenericas(salida.qa?.generico ?? MEDIDAS_VACIAS);
 
               if (!hayQueCorregir(salida)) {
                 // La carga fue limpia, pero puede haber botones que revienten.
@@ -1308,6 +1320,31 @@ export function useGeneration(ctx: CtxGeneracion) {
                   toast.warning("Botones que fallan", {
                     description: `${resumenBotones(inf)} Corrigiéndolo solo (${revisiones + 1} de ${MAX_REVISIONES}).`,
                     duration: 7000,
+                  });
+                  relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
+                  return;
+                }
+                // ——— Y si funciona pero parece hecha por una IA ———
+                //
+                // La checklist anti-slop se la autoevaluaba el modelo, así que
+                // la nota siempre era buena. Esto lo MIDE en la página ya
+                // pintada y se lo devuelve por el mismo camino que los errores
+                // de consola, que es el bucle que sí funciona.
+                if (senas.length) {
+                  for (const sn of senas.slice(0, 3)) {
+                    const r = reglaDeGenerico(sn);
+                    useFailures.getState().record("sandbox", r.titulo, r.regla, "warn");
+                  }
+                  addMessage(sessionId, {
+                    id: uid(),
+                    role: "user",
+                    content: promptDeGenerico(senas, proyecto.entry),
+                    createdAt: Date.now(),
+                    instruction: true,
+                  });
+                  toast.warning("La página parece genérica", {
+                    description: `${resumenGenerico(senas)} Puliéndola sola (${revisiones + 1} de ${MAX_REVISIONES}).`,
+                    duration: 8000,
                   });
                   relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
                   return;

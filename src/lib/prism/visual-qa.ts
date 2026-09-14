@@ -16,6 +16,7 @@
  */
 
 import { FX_ASENTAR } from "./efectos";
+import { GENERICO_SCRIPT, type MedidasGenerico } from "./generico";
 
 export type QATipo = "scroll" | "fuera" | "texto" | "contraste";
 
@@ -32,6 +33,9 @@ export interface QAResult {
   at: number;
   /** true si el iframe no respondió (HTML sin el medidor dentro): no se mide, no se inventa */
   noRespondio?: boolean;
+  /** Señas de página genérica, en crudo. Se miden aquí y se JUZGAN fuera
+   * (`generico.ts`), que es donde se pueden probar. */
+  generico?: MedidasGenerico | null;
 }
 
 /** Anchos de la misma batería móvil que los tests E2E (320 = iPhone SE) */
@@ -110,6 +114,7 @@ function recorta(s, n){
   return s.length > n ? s.slice(0, n) + "…" : s;
 }
 ${FX_ASENTAR}
+${GENERICO_SCRIPT}
 function medir(){
   /* los efectos, en su estado final: si no, se mide solo el primer pantallazo
      y el informe diría "sin problemas" de lo que nunca miró. Se deshace al
@@ -171,8 +176,9 @@ function medir(){
     contras.push(el3.tagName.toLowerCase() + " «" + recorta(txt3, 18) + "» " + ratio.toFixed(2) + ":1");
   }
   if (contras.length) issues.push({ tipo:"contraste", detalle:"Contraste insuficiente: " + contras.join("; ") + "." });
+  var generico = medirGenerico();
   desasentarFx(tocadosFx);
-  return { width: vw, ok: issues.length === 0, items: issues, at: Date.now() };
+  return { width: vw, ok: issues.length === 0, items: issues, at: Date.now(), generico: generico };
 }
 function responder(token){
   try { parent.postMessage({ type:"prism-qa-result", token: token, result: medir() }, "*"); } catch (e) {}

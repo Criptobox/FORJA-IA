@@ -211,31 +211,72 @@ export function chunkFiles(
 }
 
 // ——— helpers HTTP ———
-async function ghFetch(token: string, path: string, init?: RequestInit): Promise<Response> {
-  const res = await fetch(path.startsWith("http") ? path : GH_API + path, {
-    ...init,
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${token}`,
-      "X-GitHub-Api-Version": "2022-11-28",
-      ...(init?.headers ?? {}),
-    },
-    signal: AbortSignal.timeout(30000),
-  });
-  return res;
+
+/** El `fetch` que usa la subida. Se puede sustituir para poder PROBAR esto.
+ *
+ * Sin esto, toda la subida a GitHub era código sin una sola prueba: el fallo
+ * de la rama fija vivió versiones enteras porque nada podía ejecutarlo sin
+ * una cuenta de GitHub de verdad delante. */
+export type GhFetch = (url: string, init?: RequestInit) => Promise<Response>;
+
+function ghFetchCon(fetchImpl?: GhFetch) {
+  const f: GhFetch = fetchImpl ?? ((u, i) => fetch(u, i));
+  return async (token: string, path: string, init?: RequestInit): Promise<Response> =>
+    f(path.startsWith("http") ? path : GH_API + path, {
+      ...init,
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(init?.headers ?? {}),
+      },
+      signal: AbortSignal.timeout(30000),
+    });
+}
+
+const ghFetch = ghFetchCon();
+
+/** Qué hacer, no solo qué pasó.
+ *
+ * «GitHub 403» no le dice nada a nadie. Cada código tiene una causa que se
+ * puede arreglar, y decirla es la diferencia entre volver a intentarlo y dar
+ * la app por rota. */
+export function pistaDeGithub(status: number, mensaje: string): string {
+  if (status === 401) {
+    return "tu conexión con GitHub caducó o se revocó: desconecta y vuelve a conectar";
+  }
+  if (status === 403) {
+    if (/rate limit/i.test(mensaje)) return "has llegado al límite de peticiones: espera unos minutos";
+    return "el token no tiene permiso de escritura en ese repo (hace falta el alcance «repo»)";
+  }
+  if (status === 404) {
+    return "el repo no existe o tu token no puede verlo (los privados necesitan el alcance «repo»)";
+  }
+  if (status === 409) return "el repositorio está vacío o la rama cambió mientras subías";
+  if (status === 422) return "GitHub rechazó los datos: mira el detalle de arriba";
+  if (status >= 500) return "falla GitHub, no tú: inténtalo en un rato";
+  return "";
 }
 
 async function ghJsonError(res: Response, fallback: string): Promise<never> {
   let msg = fallback;
   try {
-    const j = (await res.json()) as { message?: string };
+    const j = (await res.json()) as {
+      message?: string;
+      errors?: { message?: string; field?: string; code?: string }[];
+    };
     if (j?.message) msg = j.message;
+    // El detalle de verdad vive en `errors[]`; sin él un 422 es indescifrable.
+    const detalle = (j?.errors ?? [])
+      .map((e) => e.message || [e.field, e.code].filter(Boolean).join(" "))
+      .filter(Boolean)
+      .join("; ");
+    if (detalle) msg += ` (${detalle})`;
   } catch {
     /* sin cuerpo JSON */
   }
-  if (res.status === 401) msg += " — el token no es válido o expiró";
-  if (res.status === 403 && /rate limit/i.test(msg)) msg += " — espera unos minutos e inténtalo de nuevo";
-  throw new Error(`GitHub ${res.status}: ${msg}`);
+  const pista = pistaDeGithub(res.status, msg);
+  throw new Error(`GitHub ${res.status}: ${msg}${pista ? ` — ${pista}` : ""}`);
 }
 
 function isProbablyText(bytes: Uint8Array): boolean {
@@ -270,8 +311,8 @@ export const GH_TOKEN_URL =
 
 // ——— flujo de subida ———
 
-export async function ghWhoAmI(token: string): Promise<string> {
-  const res = await ghFetch(token, "/user");
+export async function ghWhoAmI(token: string, fetchImpl?: GhFetch): Promise<string> {
+  const res = await ghFetchCon(fetchImpl)(token, "/user");
   if (!res.ok) await ghJsonError(res, "No se pudo leer tu usuario");
   const j = (await res.json()) as { login?: string };
   return j.login ?? "";
@@ -315,14 +356,30 @@ export async function ghListRepos(token: string): Promise<
   }));
 }
 
-/** Crea el repo (con README) o devuelve el existente si ya estaba */
+export interface RepoDestino {
+  owner: string;
+  repo: string;
+  url: string;
+  created: boolean;
+  /** La rama de verdad del repo. NO se asume «main»: un repo con «master»
+   * —o con la rama por defecto cambiada a mano— hacía que la subida crease un
+   * commit huérfano y no apareciera nada. */
+  branch: string;
+}
+
+/** Crea el repo (con README) o devuelve el existente si ya estaba.
+ *
+ * Un 422 ya NO se interpreta como «existe y es mío»: 422 también es un nombre
+ * inválido, y el repo puede existir bajo otro dueño. Se pregunta a GitHub. */
 export async function ghEnsureRepo(
   token: string,
   name: string,
-  isPrivate: boolean
-): Promise<{ owner: string; repo: string; url: string; created: boolean }> {
-  const login = await ghWhoAmI(token);
-  const res = await ghFetch(token, "/user/repos", {
+  isPrivate: boolean,
+  fetchImpl?: GhFetch
+): Promise<RepoDestino> {
+  const gh = ghFetchCon(fetchImpl);
+  const login = await ghWhoAmI(token, fetchImpl);
+  const res = await gh(token, "/user/repos", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -336,33 +393,81 @@ export async function ghEnsureRepo(
     }),
   });
   if (res.ok) {
-    const j = (await res.json()) as { full_name?: string; html_url?: string; owner?: { login?: string } };
+    const j = (await res.json()) as {
+      html_url?: string;
+      owner?: { login?: string };
+      default_branch?: string;
+    };
     return {
       owner: j.owner?.login ?? login,
       repo: name,
       url: j.html_url ?? `https://github.com/${login}/${name}`,
       created: true,
+      branch: j.default_branch || "main",
     };
   }
   if (res.status === 422) {
-    // ya existe
-    return { owner: login, repo: name, url: `https://github.com/${login}/${name}`, created: false };
+    // Puede ser «ya existe» o un nombre que GitHub no acepta. Se comprueba
+    // mirando el repo: si está, se usa el suyo —con SU rama—; si no, el 422
+    // era de verdad y hay que contarlo.
+    const info = await gh(token, `/repos/${login}/${name}`);
+    if (info.ok) {
+      const j = (await info.json()) as {
+        html_url?: string;
+        owner?: { login?: string };
+        default_branch?: string;
+      };
+      return {
+        owner: j.owner?.login ?? login,
+        repo: name,
+        url: j.html_url ?? `https://github.com/${login}/${name}`,
+        created: false,
+        branch: j.default_branch || "main",
+      };
+    }
+    return await ghJsonError(res, `No se pudo crear el repositorio «${name}»`);
   }
   return await ghJsonError(res, "No se pudo crear el repositorio");
 }
 
 type Head = { sha: string; treeSha: string } | null;
 
-async function ghGetHead(token: string, owner: string, repo: string): Promise<Head> {
-  const res = await ghFetch(token, `/repos/${owner}/${repo}/git/ref/heads/main`);
-  if (!res.ok) return null;
+/** Dónde está la rama ahora mismo. `null` solo si la rama NO EXISTE (repo
+ * recién creado y vacío), que es el único caso en que un commit sin padre es
+ * lo correcto.
+ *
+ * Si la rama existe pero no se puede leer su árbol, esto FALLA en vez de
+ * devolver un árbol vacío. Antes devolvía `treeSha: ""`, el commit salía sin
+ * `base_tree` y eso no es «subir unos archivos»: es dejar el repo con
+ * exactamente los archivos del lote y **borrar todos los demás**. Un fallo de
+ * red a destiempo borraba el repo del usuario sin decir nada. */
+async function ghGetHead(
+  token: string,
+  owner: string,
+  repo: string,
+  branch: string,
+  fetchImpl?: GhFetch
+): Promise<Head> {
+  const gh = ghFetchCon(fetchImpl);
+  const res = await gh(token, `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`);
+  if (res.status === 404 || res.status === 409) return null; // rama sin crear / repo vacío
+  if (!res.ok) await ghJsonError(res, `No se pudo leer la rama ${branch}`);
   const j = (await res.json()) as { object?: { sha?: string } };
   const sha = j.object?.sha;
   if (!sha) return null;
-  const cRes = await ghFetch(token, `/repos/${owner}/${repo}/git/commits/${sha}`);
-  if (!cRes.ok) return { sha, treeSha: "" };
+  const cRes = await gh(token, `/repos/${owner}/${repo}/git/commits/${sha}`);
+  if (!cRes.ok) {
+    await ghJsonError(cRes, `No se pudo leer el último commit de ${branch}`);
+  }
   const c = (await cRes.json()) as { tree?: { sha?: string } };
-  return { sha, treeSha: c.tree?.sha ?? "" };
+  const treeSha = c.tree?.sha ?? "";
+  if (!treeSha) {
+    throw new Error(
+      `GitHub no devolvió el árbol del commit ${sha.slice(0, 7)}. Se para aquí a propósito: ` +
+        "seguir habría subido el lote BORRANDO el resto de archivos del repo."
+    );
+  }
+  return { sha, treeSha };
 }
 
 type TreeEntry =
@@ -375,8 +480,11 @@ async function ghCommitBatch(
   repo: string,
   batch: GhItem[],
   head: Head,
-  message: string
+  message: string,
+  branch: string,
+  fetchImpl?: GhFetch
 ): Promise<{ sha: string; treeSha: string }> {
+  const ghFetch = ghFetchCon(fetchImpl);
   // 1) blobs base64 solo para binarios con extensión conocida (en paralelo moderado)
   const entries: TreeEntry[] = [];
   const binaryItems = batch.filter((it) => it.file.size < 512 * 1024 && it.path.match(/\.(png|jpe?g|gif|webp|ico|pdf|woff2?|ttf|otf|mp3|mp4|webm|zip)$/i));
@@ -440,27 +548,63 @@ async function ghCommitBatch(
   if (!commitRes.ok) await ghJsonError(commitRes, "No se pudo crear el commit");
   const commit = (await commitRes.json()) as { sha?: string; tree?: { sha?: string } };
 
+  const rama = encodeURIComponent(branch);
   if (head) {
-    const refRes = await ghFetch(token, `/repos/${owner}/${repo}/git/refs/heads/main`, {
+    const refRes = await ghFetch(token, `/repos/${owner}/${repo}/git/refs/heads/${rama}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sha: commit.sha, force: false }),
     });
-    if (!refRes.ok) await ghJsonError(refRes, "No se pudo actualizar la rama main");
+    if (!refRes.ok) await ghJsonError(refRes, `No se pudo actualizar la rama ${branch}`);
   } else {
     const refRes = await ghFetch(token, `/repos/${owner}/${repo}/git/refs`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ref: "refs/heads/main", sha: commit.sha }),
+      body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: commit.sha }),
     });
-    if (!refRes.ok && refRes.status !== 422) {
-      await ghJsonError(refRes, "No se pudo crear la rama main");
+    // El 422 de aquí (la rama ya existía) se TRAGABA, y con él se tragaba la
+    // subida entera: la app decía «¡Completado!» y en GitHub no había nada.
+    // Si la rama apareció mientras subíamos, se mueve; si no se puede, se dice.
+    if (!refRes.ok) {
+      if (refRes.status !== 422) await ghJsonError(refRes, `No se pudo crear la rama ${branch}`);
+      const mover = await ghFetch(token, `/repos/${owner}/${repo}/git/refs/heads/${rama}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sha: commit.sha, force: false }),
+      });
+      if (!mover.ok) await ghJsonError(mover, `No se pudo apuntar la rama ${branch} al commit`);
     }
   }
   return { sha: commit.sha ?? "", treeSha: commit.tree?.sha ?? tree.sha ?? "" };
 }
 
-/** Sube todos los archivos en lotes. Devuelve la URL del repo. */
+/** Comprueba que la rama apunta DE VERDAD a lo que acabamos de subir.
+ *
+ * Es la única forma honesta de terminar: hasta ahora «¡Completado!» quería
+ * decir «no saltó ninguna excepción», que no es lo mismo que «está en
+ * GitHub». */
+async function ghVerificar(
+  token: string,
+  owner: string,
+  repo: string,
+  branch: string,
+  sha: string,
+  fetchImpl?: GhFetch
+): Promise<void> {
+  const gh = ghFetchCon(fetchImpl);
+  const res = await gh(token, `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`);
+  if (!res.ok) await ghJsonError(res, `No se pudo comprobar la rama ${branch} después de subir`);
+  const j = (await res.json()) as { object?: { sha?: string } };
+  if (j.object?.sha !== sha) {
+    throw new Error(
+      `La subida no quedó publicada: la rama ${branch} apunta a ${
+        j.object?.sha?.slice(0, 7) ?? "nada"
+      } y no al commit ${sha.slice(0, 7)}. Vuelve a intentarlo.`
+    );
+  }
+}
+
+/** Sube todos los archivos en lotes. Devuelve la URL del repo y la rama. */
 export async function uploadToGithub(
   token: string,
   opts: {
@@ -468,15 +612,21 @@ export async function uploadToGithub(
     isPrivate: boolean;
     items: GhItem[];
     onProgress?: (p: GhProgress) => void;
+    /** solo para pruebas: sustituye el `fetch` de la subida */
+    fetchImpl?: GhFetch;
   }
-): Promise<{ url: string; commits: number }> {
-  const { repoName, isPrivate, items, onProgress } = opts;
+): Promise<{ url: string; commits: number; branch: string; sha: string }> {
+  const { repoName, isPrivate, items, onProgress, fetchImpl } = opts;
   if (!items.length) throw new Error("No hay archivos para subir");
 
-  const repo = await ghEnsureRepo(token, repoName, isPrivate);
-  let head = await ghGetHead(token, repo.owner, repo.repo);
+  const repo = await ghEnsureRepo(token, repoName, isPrivate, fetchImpl);
+  // La rama del repo, no «main» a ciegas: ese era el fallo. En un repo con
+  // «master» se creaba un commit huérfano, el error de la rama se tragaba y la
+  // app cantaba victoria con GitHub intacto.
+  let head = await ghGetHead(token, repo.owner, repo.repo, repo.branch, fetchImpl);
   const batches = chunkFiles(items);
   let done = 0;
+  let ultimo = "";
 
   for (let i = 0; i < batches.length; i++) {
     const batch = batches[i];
@@ -491,10 +641,30 @@ export async function uploadToGithub(
       i === 0
         ? `Prism AI: subida inicial (${items.length} archivos)`
         : `Prism AI: lote ${i + 1}/${batches.length}`;
-    const newHead = await ghCommitBatch(token, repo.owner, repo.repo, batch, head, message);
+    const newHead = await ghCommitBatch(
+      token,
+      repo.owner,
+      repo.repo,
+      batch,
+      head,
+      message,
+      repo.branch,
+      fetchImpl
+    );
     head = { sha: newHead.sha, treeSha: newHead.treeSha };
+    ultimo = newHead.sha;
     done += batch.length;
   }
+
+  onProgress?.({
+    done,
+    total: items.length,
+    batch: batches.length,
+    batches: batches.length,
+    message: "Comprobando que quedó publicado…",
+  });
+  await ghVerificar(token, repo.owner, repo.repo, repo.branch, ultimo, fetchImpl);
+
   onProgress?.({ done, total: items.length, batch: batches.length, batches: batches.length, message: "¡Completado!" });
-  return { url: repo.url, commits: batches.length };
+  return { url: repo.url, commits: batches.length, branch: repo.branch, sha: ultimo };
 }
