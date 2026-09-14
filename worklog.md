@@ -6360,3 +6360,85 @@ independiente de este arreglo.
   completa
 - ✓ build · ✓ `npm start` + `/api/version` (`4.16.0`) · ✓ `VERCEL=1` sin
   `standalone` y con el `.nft.json`
+
+## v4.17.0 — Antimuestrario + paletas listas (skill opcional)
+
+El usuario preguntó por cuatro skills de la comunidad para agentes de
+código —DESIGN.md de Google, Awesome DESIGN.md, Impeccable (Taste Skill) y
+UI/UX Pro Max— y si valía la pena traer algo de eso a Prism. Tras mirar
+las tres más concretas (`agent-design-taste`, `ui-ux-pro-max-skill` en
+GitHub, y lo que documentan sobre Impeccable), la respuesta fue: sí, con
+una versión destilada — no copiar 97/192 paletas ni 57/74 parejas
+tipográficas tal cual, que es más peso del que el prompt necesita cargar
+en cada turno.
+
+### Primer intento, revertido: rompía el tope de presupuesto
+
+La primera versión amplió directamente «Diseños que no se repiten» (la
+skill que ya cubre el mismo terreno y va activada de fábrica) con un
+antimuestrario concreto y cuatro paletas completas. `presupuesto.test.ts`
+lo cazó al momento: el guardia de fábrica (`las skills de fábrica no se
+pasan de presupuesto`, tope 3 000 caracteres — puesto ahí en su día por
+una duplicación real, ver la nota del propio test) pasó de un total
+verificado a **4 587**, y con el modo agente encendido a **6 734** contra
+un aviso de **6 000**. Revertido: en vez de forzar el tope hacia arriba
+para que quepa, el contenido se movió a una skill NUEVA, desactivada por
+defecto — el mismo patrón que ya usan «Mentor de código» o «Analista de
+datos» para extras que no todo el mundo necesita pagar en cada turno.
+
+### La skill: `skill-anti-slop` — "Antimuestrario + paletas listas"
+
+Ampliación explícita de «Diseños que no se repiten» (lo dice en su primera
+línea), no una skill de variedad paralela — comprobado con un test que
+verifica que NO repite la frase que identifica a la otra («nunca se
+parezcan»). Trae, condensado de las tres fuentes:
+- Antimuestrario: la combinación por defecto de cualquier generador
+  (gradiente morado→azul + glassmorphism + radio uniforme de 24px + Inter
+  en todo + tres tarjetas idénticas + un blob 3D), iconos hechos con
+  emoji en vez de SVG, «+50.000 equipos confían en nosotros» sin fuente,
+  centrar todo en móvil en vez de reorganizar, el mismo hero repetido
+  sección tras sección.
+- Interacción que se nota: `cursor: pointer` en lo clicable,
+  `prefers-reduced-motion` respetado, contraste mínimo 4.5:1 comprobado.
+- Cuatro combinaciones completas de paleta + pareja tipográfica listas
+  para usar (spa/bienestar, fintech, editorial, dev tool) — con hex y
+  nombres de fuente reales, no solo categorías.
+
+### Pruebas
+
+- 3 unitarios (`skill-anti-slop.test.ts`): existe y va desactivada por
+  defecto, trae antimuestrario/paletas/reglas concretas, no duplica la
+  frase de la otra skill de variedad.
+- 1 E2E (`skill-anti-slop.spec.ts`): se activa desde el diálogo de Skills
+  (interruptor apagado por defecto) y, activada, el texto SÍ viaja en la
+  petición al modelo.
+- Verificado en rojo: revertido solo `skills-data.ts` (`git stash`),
+  confirmado que los 3 unitarios fallaban por la razón correcta (la skill
+  no existe todavía), restaurado y confirmado en verde. El E2E ya había
+  quedado probado en verde antes del stash con el mismo patrón que
+  `saludo-sin-agente.spec.ts` y `tienda-interactiva.spec.ts` (leer lo que
+  viaja, no lo que se ve).
+
+### Lo que sigue sin cubrir
+
+- Va DESACTIVADA por defecto: si el usuario no la enciende, no cambia
+  nada de lo que ya generaba Prism. Es una opción, no una mejora
+  automática — coherente con no volver a romper el presupuesto de fábrica.
+- Solo cuatro paletas, elegidas por ser representativas de rubros
+  distintos (bienestar, finanzas, editorial, dev tool) — no un catálogo
+  exhaustivo como el de UI/UX Pro Max. Si hace falta más variedad, es
+  ampliar esta lista, no rehacer la skill.
+- No hay una comprobación posterior de que el resultado cumple el
+  antimuestrario (que de verdad no haya gradiente morado, que los iconos
+  sean SVG): es una instrucción más fuerte en el prompt, igual que
+  `catalogo-interactivo.ts` (v4.16.0) — `generico.ts` sigue siendo la
+  única detección automática después de generar, y no cubre estos puntos
+  concretos.
+
+### Puerta
+
+- ✓ lint · ✓ knip (sin huecos en los archivos nuevos) · ✓ tsc
+- ✓ **1 898** unitarios (1 895 antes) · ✓ **247** E2E (246 antes), suite
+  completa
+- ✓ build · ✓ `npm start` + `/api/version` (`4.17.0`) · ✓ `VERCEL=1` sin
+  `standalone` y con el `.nft.json`

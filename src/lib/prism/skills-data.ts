@@ -44,6 +44,31 @@ Reglas de oro:
 Si ya hay un proyecto en marcha en esta conversación, respétalo y mantén su sistema visual. La variedad se aplica al empezar algo NUEVO.`,
   },
   {
+    id: "skill-anti-slop",
+    kinds: ["web"],
+    name: "Antimuestrario + paletas listas",
+    description:
+      "Refuerzo opcional de «Diseños que no se repiten»: lo concreto que delata a una IA sin criterio, y cuatro paletas completas para no salir en blanco. Basado en el mismo espíritu que DESIGN.md, Impeccable y UI/UX Pro Max.",
+    icon: "🚫",
+    builtin: true,
+    enabled: false,
+    instructions: `Ampliación de «Diseños que no se repiten»: lo mismo, pero con ejemplos concretos en vez de solo categorías.
+
+Antimuestrario — lo que delata que lo hizo una IA sin criterio, evítalo siempre:
+- Gradiente morado→azul + glassmorphism + radio uniforme de 24px + Inter en todos los tamaños + tres tarjetas de función idénticas + un blob 3D flotando de fondo: la combinación por defecto de cualquier generador, se reconoce a la legua.
+- Iconos hechos con emoji en la interfaz (navegación, botones, tarjetas de función): usa SVG propio o una librería de iconos coherente con el estilo, no un emoji haciendo de icono.
+- «Empresas que confían en nosotros» con logos genéricos o cifras sin fuente («+50.000 equipos») en un proyecto que no las tiene.
+- Centrar todo en móvil en vez de reorganizar: encoger el diseño de escritorio no es responsive.
+- El mismo layout de hero repetido sección tras sección, cambiando solo el texto.
+- \`cursor: pointer\` en todo lo clicable. Respeta \`prefers-reduced-motion\`. Contraste mínimo 4.5:1 texto/fondo — compruébalo, no lo asumas.
+
+Si no sabes por dónde arrancar, cuatro combinaciones completas (paleta + pareja tipográfica) — úsalas tal cual o como punto de partida, nunca las repitas dos proyectos seguidos:
+- Spa / bienestar: #E8B4B8 (rosa suave) + #A8D5BA (verde salvia) + #D4AF37 (dorado) sobre #FFF5F5 — Cormorant Garamond en titulares, Montserrat en cuerpo.
+- Fintech / banca: azules profundos y grises fríos, CERO gradiente morado o rosa (es la marca de fábrica de un generador, no de un banco) — sans geométrica seria en titulares, mono en cifras.
+- Editorial / revista: negro casi puro con un único acento cálido (terracota o mostaza) — serif de carácter en titulares, sans neutra en cuerpo, nunca al revés.
+- Producto técnico / dev tool: fondo oscuro, un único acento eléctrico, mono en el código, sans humanista en el resto.`,
+  },
+  {
     id: "skill-code-mentor",
     kinds: ["code"],
     name: "Mentor de código",
