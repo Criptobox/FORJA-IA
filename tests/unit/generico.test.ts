@@ -33,7 +33,7 @@ describe("medidor de página genérica", () => {
   it("una página bien hecha no genera ni una seña", () => {
     expect(senasGenericas(pagina())).toEqual([]);
     expect(esGenerica(pagina())).toBe(false);
-    expect(resumenGenerico([])).toContain("Sin señas");
+    expect(resumenGenerico([])).toContain("Sin nada");
   });
 
   it("una página pequeña no se juzga: corta no es genérica", () => {

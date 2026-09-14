@@ -48,6 +48,10 @@ export interface MedidasGenerico {
   emojiEnTitulos: number;
   /** elementos totales del cuerpo: para no juzgar una página de tres líneas */
   elementos: number;
+  /** ids de `data-fx3d` presentes de verdad en la página pintada (p. ej.
+   * "3d-malla"). Vive aquí porque comparte el mismo barrido del DOM — medirlo
+   * aparte sería un segundo recorrido completo por lo mismo. */
+  efectos3d: string[];
 }
 
 export const MEDIDAS_VACIAS: MedidasGenerico = {
@@ -64,6 +68,7 @@ export const MEDIDAS_VACIAS: MedidasGenerico = {
   imagenesRelleno: [],
   emojiEnTitulos: 0,
   elementos: 0,
+  efectos3d: [],
 };
 
 /** Por debajo de esto no hay página que juzgar. Un ejemplo de tres párrafos no
@@ -210,10 +215,14 @@ export function esGenerica(m: MedidasGenerico): boolean {
 
 /** El mensaje que se le devuelve al modelo. Mismo formato que el de los
  * errores de consola: lo que se ha visto y qué hacer con ello. */
+/** Genérica a propósito, como el resto de funciones de esta sección: también
+ * la usa `senasEfectos3DFueraDeDireccion` de `efectos.ts`, cuya seña no es
+ * ninguna «página genérica» — es un motor 3D en la dirección equivocada.
+ * Por eso el texto no nombra el motivo, solo dice lo que se midió. */
 export function promptDeGenerico(senas: SenaGenerica[], entry: string): string {
   if (!senas.length) return "";
   return [
-    `He abierto ${entry} y la he medido. Tiene señas de página genérica:`,
+    `He abierto ${entry} y la he medido. Esto es lo que he visto:`,
     "",
     ...senas.map((s, i) => `${i + 1}. ${s.detalle}\n   → ${s.arreglo}`),
     "",
@@ -222,23 +231,34 @@ export function promptDeGenerico(senas: SenaGenerica[], entry: string): string {
   ].join("\n");
 }
 
-/** Resumen para el aviso de pantalla. */
+/** Resumen para el aviso de pantalla. Genérico por el mismo motivo que
+ * `promptDeGenerico` — ver su comentario. */
 export function resumenGenerico(senas: SenaGenerica[]): string {
-  if (!senas.length) return "Sin señas de página genérica.";
+  if (!senas.length) return "Sin nada que corregir.";
   const n = senas.length;
-  return `${n} seña${n === 1 ? "" : "s"} de página genérica: ${senas.map((s) => s.id).join(", ")}.`;
+  return `${n} cosa${n === 1 ? "" : "s"} que corregir: ${senas.map((s) => s.id).join(", ")}.`;
 }
 
 /** Cuando se acaban los intentos automáticos y la página SIGUE teniendo
- *  señas de genérica: se dice, en vez de darla por pulida en silencio
- *  después del último intento que ni se llegó a comprobar. */
+ *  algo de esto sin arreglar: se dice, en vez de darla por pulida en
+ *  silencio después del último intento que ni se llegó a comprobar.
+ *
+ * Genérica a propósito (no habla de «genérica» en el texto): la usa
+ * también `senasEfectos3DFueraDeDireccion` de `efectos.ts`, que no tiene
+ * nada que ver con el AI-slop — comparte el mecanismo, no el motivo. */
 export function avisoIntentosAgotados(senas: SenaGenerica[]): string {
-  return `Se acabaron los intentos automáticos y la página sigue teniendo señas de genérica: ${senas.map((s) => s.id).join(", ")}. Pídeme que la pula otra vez o dime qué cambiar.`;
+  return `Se acabaron los intentos automáticos y la página sigue con esto sin arreglar: ${senas.map((s) => s.id).join(", ")}. Pídeme que la corrija otra vez o dime qué cambiar.`;
 }
 
-/** Regla para la memoria de fallos del proyecto. */
+/** Regla para la memoria de fallos del proyecto.
+ *
+ * Genérica a propósito (el nombre de la función es lo único que no lo es):
+ * también la usa `senasEfectos3DFueraDeDireccion` de `efectos.ts`, y esa
+ * seña no tiene nada de «página genérica» — es un motor 3D en la dirección
+ * equivocada. El título usa `sena.detalle`, que cada seña ya escribe con su
+ * propio motivo, en vez de un prefijo fijo que mentiría en ese caso. */
 export function reglaDeGenerico(sena: SenaGenerica): { titulo: string; regla: string } {
-  return { titulo: `Página genérica: ${sena.id}`, regla: sena.arreglo };
+  return { titulo: sena.detalle, regla: sena.arreglo };
 }
 
 /* ------------------------------------------------------------------ */
@@ -319,6 +339,14 @@ export const GENERICO_SCRIPT = `function medirGenerico(){
     var masRepetido = 0;
     for (var z=0;z<clavesRadio.length;z++) masRepetido = Math.max(masRepetido, radios[clavesRadio[z]]);
     var h1s = body.querySelector("h1");
+    // qué motor 3D está de verdad en la página pintada — no lo que el
+    // modelo DIJO que iba a usar, lo que dejó en el DOM.
+    var canvas3d = body.querySelectorAll("[data-fx3d]");
+    var efectos3d = [];
+    for (var c3=0;c3<canvas3d.length;c3++){
+      var v3 = canvas3d[c3].getAttribute("data-fx3d");
+      if (v3 && efectos3d.indexOf(v3) === -1) efectos3d.push(v3);
+    }
     return {
       heroCentrado: heroCentrado,
       gruposIguales: gruposIguales,
@@ -332,6 +360,7 @@ export const GENERICO_SCRIPT = `function medirGenerico(){
       relleno: relleno,
       imagenesRelleno: imagenesRelleno,
       emojiEnTitulos: emojiEnTitulos,
+      efectos3d: efectos3d,
       elementos: todos.length
     };
   }catch(e){ return null; }

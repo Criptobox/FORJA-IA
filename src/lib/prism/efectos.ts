@@ -28,6 +28,7 @@
  * inclinación 3D es una web de plantilla.
  */
 import { FX3D_JS, FX_CSS, FX_JS } from "./efectos-datos";
+import type { MedidasGenerico, SenaGenerica } from "./generico";
 
 export { FX3D_JS, FX_CSS, FX_JS } from "./efectos-datos";
 
@@ -197,6 +198,41 @@ export function promptEfectos(direccionId: string): string {
     `PROHIBIDOS en esta dirección (romperían su mundo visual): ${evita.join(", ")}.`,
     "Todo se ve sin JavaScript y se apaga solo con prefers-reduced-motion: no pongas opacity:0 a mano para animar.",
   ].join("\n");
+}
+
+/* ------------------------------------------------------------------ */
+/* el motor 3D, solo donde su dirección lo permite                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * El prompt prohíbe el motor 3D en cinco de las seis direcciones
+ * (`EFECTOS_POR_DIRECCION`), pero eso solo se lo dice al modelo — nadie
+ * comprobaba si lo hacía caso. Esto mide la página YA PINTADA
+ * (`efectos3d`, del mismo barrido que `generico.ts`) y compara contra lo
+ * que esa dirección tiene prohibido de verdad, sea cual sea.
+ *
+ * Devuelve `SenaGenerica[]` a propósito, con la misma forma que
+ * `senasGenericas` — así se reutiliza tal cual todo el aviso/reintento del
+ * bucle de auto-revisión (`promptDeGenerico`, `resumenGenerico`,
+ * `avisoIntentosAgotados` de `generico.ts`), sin duplicar esa fontanería
+ * por una tercera vez.
+ */
+export function senasEfectos3DFueraDeDireccion(
+  m: MedidasGenerico,
+  direccionId: string | null | undefined
+): SenaGenerica[] {
+  if (!direccionId) return [];
+  const mapa = EFECTOS_POR_DIRECCION[direccionId];
+  if (!mapa) return [];
+  const prohibidos = m.efectos3d.filter((id) => mapa.evita.includes(id));
+  if (!prohibidos.length) return [];
+  return [
+    {
+      id: "3d-fuera-de-direccion",
+      detalle: `Usa el motor 3D (${prohibidos.join(", ")}) en la dirección "${direccionId}", que lo tiene prohibido.`,
+      arreglo: `Quita el <canvas data-fx3d="..."> y el enlace a ${FX3D_JS_PATH}: el motor 3D es solo para la dirección "experimental", y aquí rompe el mundo visual que ya tiene esta dirección.`,
+    },
+  ];
 }
 
 /* ------------------------------------------------------------------ */

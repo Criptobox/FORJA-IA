@@ -6,6 +6,7 @@ import {
   elegirDireccion,
   direccionPorId,
   esEncargoUINueva,
+  idPorNombre,
   promptDireccion,
 } from "../../src/lib/prism/design-directions";
 
@@ -41,6 +42,15 @@ describe("direcciones curadas", () => {
   it("direccionPorId encuentra y rechaza", () => {
     expect(direccionPorId("editorial")?.nombre).toBeTruthy();
     expect(direccionPorId("no-existe")).toBeNull();
+  });
+
+  it("idPorNombre es el camino inverso: lo que se guarda (nombre) → el id de EFECTOS_POR_DIRECCION", () => {
+    // Lo que se persiste tras elegir dirección es el `nombre` legible, no
+    // el `id` — este mapeo es lo que permite volver de uno a otro.
+    for (const d of DIRECCIONES) {
+      expect(idPorNombre(d.nombre)).toBe(d.id);
+    }
+    expect(idPorNombre("esto no existe")).toBeNull();
   });
 });
 

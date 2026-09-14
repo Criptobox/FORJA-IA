@@ -75,12 +75,12 @@ test("una página genérica se mide y vuelve al modelo con qué arreglar", async
 
   // Prism se lo devuelve al modelo sin que nadie pulse nada…
   await expect
-    .poll(() => cuerpos.filter((c) => c.includes("señas de página genérica")).length, {
+    .poll(() => cuerpos.filter((c) => c.includes("y la he medido")).length, {
       timeout: 90_000,
     })
     .toBeGreaterThan(0);
 
-  const aviso = cuerpos.find((c) => c.includes("señas de página genérica")) ?? "";
+  const aviso = cuerpos.find((c) => c.includes("y la he medido")) ?? "";
   // …citando lo que ha visto de verdad en la página pintada
   expect(aviso, "el relleno, citado").toContain("Lorem ipsum");
   expect(aviso, "las tarjetas clonadas").toMatch(/tarjetas idénticas/i);
@@ -151,13 +151,13 @@ test("si se acaban los intentos y SIGUE genérica, se dice en vez de callarse", 
   await page.keyboard.press("Enter");
 
   // el aviso final tiene que aparecer — antes de este arreglo, no salía nada
-  await expect(page.getByText("Sigue pareciendo genérica")).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByText("Hay algo que corregir")).toBeVisible({ timeout: 90_000 });
   await expect(page.getByText(/se acabaron los intentos autom/i)).toBeVisible();
 
   // y el bucle se paró de verdad: exactamente 2 correcciones pedidas, no 3
   // (que sería seguir intentando) ni 1 (que sería no haber llegado al tope)
   await page.waitForTimeout(1000);
-  const correcciones = cuerpos.filter((c) => c.includes("señas de página genérica")).length;
+  const correcciones = cuerpos.filter((c) => c.includes("y la he medido")).length;
   expect(correcciones).toBe(2);
 });
 
@@ -222,5 +222,5 @@ test("una página que ya está bien no se toca", async ({ page }) => {
   const marco = page.frameLocator('iframe[title="Vista previa de la página generada"]');
   await expect(marco.locator("h1").first()).toBeVisible({ timeout: 90_000 });
   await page.waitForTimeout(4000);
-  expect(cuerpos.filter((c) => c.includes("señas de página genérica"))).toHaveLength(0);
+  expect(cuerpos.filter((c) => c.includes("y la he medido"))).toHaveLength(0);
 });

@@ -107,6 +107,8 @@ import {
   resumenGenerico,
   senasGenericas,
 } from "./generico";
+import { senasEfectos3DFueraDeDireccion } from "./efectos";
+import { idPorNombre } from "./design-directions";
 import {
   decidirTrasCuotaEnTexto,
   decidirTrasError,
@@ -1314,7 +1316,22 @@ export function useGeneration(ctx: CtxGeneracion) {
               // las señas de página genérica.
               const salida = await runProjectInMemory(proyecto.files, { botones: true, qa: true });
               const inf = salida.botones;
-              const senas = senasGenericas(salida.qa?.generico ?? MEDIDAS_VACIAS);
+              const medidas = salida.qa?.generico ?? MEDIDAS_VACIAS;
+              // La dirección que se usó de VERDAD este turno (no la que se
+              // pidió inicialmente: un turno de retoque no elige dirección
+              // nueva). `contextoUsado.diseno` guarda el nombre legible
+              // ("Editorial de revista"), y la lista de qué tiene prohibido
+              // cada dirección vive por `id` ("editorial") — de ahí el mapeo.
+              const direccionUsada = idPorNombre(contextoUsado.diseno ?? "");
+              // Dos comprobaciones distintas —"parece hecha por una IA" y
+              // "usa el motor 3D fuera de la dirección experimental"— pero
+              // comparten exactamente la misma forma (`SenaGenerica`) y el
+              // mismo aviso/reintento de abajo, así que se juntan en una
+              // sola lista en vez de triplicar esa fontanería.
+              const senas = [
+                ...senasGenericas(medidas),
+                ...senasEfectos3DFueraDeDireccion(medidas, direccionUsada),
+              ];
               const quedan = quedanIntentos(revisiones);
 
               if (!hayQueCorregir(salida)) {
@@ -1345,19 +1362,23 @@ export function useGeneration(ctx: CtxGeneracion) {
                   relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
                   return;
                 }
-                // ——— Y si funciona pero parece hecha por una IA ———
+                // ——— Y si funciona pero parece hecha por una IA, o usa el
+                //     motor 3D fuera de la dirección experimental ———
                 //
                 // La checklist anti-slop se la autoevaluaba el modelo, así que
                 // la nota siempre era buena. Esto lo MIDE en la página ya
                 // pintada y se lo devuelve por el mismo camino que los errores
-                // de consola, que es el bucle que sí funciona.
+                // de consola, que es el bucle que sí funciona. Y lo mismo para
+                // el motor 3D: el prompt lo prohíbe fuera de "experimental",
+                // pero eso solo se lo dice al modelo — nadie comprobaba si le
+                // hacía caso.
                 if (senas.length) {
                   for (const sn of senas.slice(0, 3)) {
                     const r = reglaDeGenerico(sn);
                     useFailures.getState().record("sandbox", r.titulo, r.regla, "warn");
                   }
                   if (!quedan) {
-                    toast.warning("Sigue pareciendo genérica", {
+                    toast.warning("Hay algo que corregir", {
                       description: avisoGenericoAgotado(senas),
                       duration: 9000,
                     });
@@ -1370,8 +1391,8 @@ export function useGeneration(ctx: CtxGeneracion) {
                     createdAt: Date.now(),
                     instruction: true,
                   });
-                  toast.warning("La página parece genérica", {
-                    description: `${resumenGenerico(senas)} Puliéndola sola (${revisiones + 1} de ${MAX_REVISIONES}).`,
+                  toast.warning("Hay algo que corregir", {
+                    description: `${resumenGenerico(senas)} Corrigiéndolo solo (${revisiones + 1} de ${MAX_REVISIONES}).`,
                     duration: 8000,
                   });
                   relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);

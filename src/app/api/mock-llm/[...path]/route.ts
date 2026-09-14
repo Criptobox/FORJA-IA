@@ -39,6 +39,7 @@ const MODELOS = [
   "mock-generica",
   "mock-generica-terca",
   "mock-proyecto-repo",
+  "mock-3d-mal-puesto",
   "mock-3d",
   "mock-scroll",
   "mock-tema-en-head",
@@ -285,7 +286,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
     const lePulieron = msgs.some(
       (m) =>
         typeof m.content === "string" &&
-        (m.content as string).includes("señas de página genérica")
+        (m.content as string).includes("y la he medido")
     );
     const tarjeta = (n: number) =>
       `<div style="width:220px;height:150px;border-radius:12px;background:#eee;padding:16px">` +
@@ -352,6 +353,34 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8"><title>Solo</title></head>',
       "<body><h1>Todo en uno</h1></body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-3d-mal-puesto`: enlaza el motor 3D en una landing pedida
+  // explícitamente "minimalista" — la dirección "minimal" lo tiene
+  // PROHIBIDO (EFECTOS_POR_DIRECCION). Sirve para comprobar que Prism lo
+  // detecta en la página ya pintada y se lo devuelve al modelo, igual que
+  // hace con lo genérico — dogfooding: hasta ahora nadie comprobaba esto,
+  // el prompt lo prohibía pero nadie miraba si se hacía caso.
+  if (modelo === "mock-3d-mal-puesto") {
+    const leCorrigieron = msgs.some(
+      (m) => typeof m.content === "string" && (m.content as string).includes("motor 3D")
+    );
+    const escena = leCorrigieron
+      ? ""
+      : '<canvas data-fx3d="3d-malla" class="fx-mesh" style="width:100%;height:300px;display:block"></canvas>\n<script src="prism-3d.js" defer></script>\n';
+    return [
+      leCorrigieron ? "Quitado el motor 3D." : "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Tienda</title>',
+      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<body style="margin:0;font-family:system-ui">',
+      "<h1>Bienvenido a la tienda</h1>",
+      escena,
+      "</body></html>",
       "```",
     ].join("\n");
   }

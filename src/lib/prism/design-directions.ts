@@ -184,6 +184,15 @@ export function direccionPorId(id: string): DireccionVisual | null {
   return DIRECCIONES.find((d) => d.id === id) ?? null;
 }
 
+/** El camino inverso: lo que se guarda tras elegir una dirección (memoria
+ * del proyecto, HUD de contexto usado) es el `nombre` legible
+ * ("Editorial de revista"), no el `id` interno ("editorial") — hace falta
+ * este mapeo para volver de uno a otro, por ejemplo al comprobar qué tiene
+ * prohibido la dirección que se usó de verdad en un turno ya cerrado. */
+export function idPorNombre(nombre: string): string | null {
+  return DIRECCIONES.find((d) => d.nombre === nombre)?.id ?? null;
+}
+
 /* ------------------------------------------------------------------ */
 /* elección de dirección (elicitación mínima)                         */
 /* ------------------------------------------------------------------ */

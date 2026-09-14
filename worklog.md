@@ -5652,3 +5652,92 @@ Arreglado apuntando al `<pre>` de esa pestaña en vez de a `<main>`.
   ✓ **235** E2E (230 antes), suite completa
 - ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
   `.nft.json`
+
+## v4.11.0 — El motor 3D, solo donde su dirección lo permite
+
+Quedó anotado en el worklog de v4.10.0: *"Nadie comprueba que el modelo use
+el motor 3D solo en «experimental». El prompt lo prohíbe en las otras cinco
+direcciones, pero si un modelo lo mete igual, la página se publica tal
+cual."* Cerrado.
+
+### Cómo se mide
+
+`medirGenerico()` (el mismo barrido del DOM que ya usa el medidor de página
+genérica) ahora también recoge los `data-fx3d` presentes de verdad en la
+página YA PINTADA — no lo que el modelo dijo que iba a usar, lo que dejó en
+el DOM. `senasEfectos3DFueraDeDireccion` (en `efectos.ts`) compara eso
+contra lo que `EFECTOS_POR_DIRECCION` prohíbe para la dirección que se usó
+de verdad ese turno, dato por dato — «tech», por ejemplo, SÍ permite
+`3d-particulas` a propósito, así que la regla no es un bloqueo en bloque de
+las cinco direcciones no-experimentales, sigue exactamente la lista negra
+real de cada una.
+
+Hacía falta un mapeo que no existía: lo que se guarda como «la dirección
+usada» (`contextoUsado.diseno`, memoria del proyecto) es el `nombre`
+legible ("Editorial de revista"), no el `id` interno ("editorial") que usa
+`EFECTOS_POR_DIRECCION`. `idPorNombre` (`design-directions.ts`) es el
+camino de vuelta.
+
+### Comparte el bucle, no lo tripica
+
+Esta comprobación y «parece hecha por una IA» son cosas distintas pero
+tienen la misma forma (`SenaGenerica`) y necesitan exactamente el mismo
+aviso/reintento — así que se juntan en una sola lista en vez de triplicar
+esa fontanería por tercera vez. Para que eso no mintiera, se generalizó el
+texto de `promptDeGenerico`, `resumenGenerico`, `reglaDeGenerico` y
+`avisoIntentosAgotados` (`generico.ts`): antes decían "página genérica" sea
+cual fuera el motivo real; ahora dicen lo que de verdad se midió. El toast
+del chat pasó de "La página parece genérica" a "Hay algo que corregir" por
+el mismo motivo — sería mentira si lo que se detectó es un motor 3D en la
+dirección equivocada.
+
+### Lo que salió al revisarlo dos veces (fases 4 y 6 del protocolo nuevo)
+
+Escrito con la skill `protocolo-verificacion` recién publicada activa de
+verdad, no como adorno — y cazó dos cosas antes de que llegaran a los
+tests:
+
+- Di por hecho que `promptDeGenerico` y `resumenGenerico` ya eran neutrales
+  (no específicos de "genérico") sin releerlos con cuidado. No lo eran —
+  tenían "página genérica" escrito literal. Verlo obligó a actualizar
+  también el mock de pruebas y cuatro sitios en los E2E que buscaban esa
+  frase exacta en el cuerpo de la petición.
+- Un test propio asumía que las cinco direcciones no-experimentales
+  prohíben los tres efectos 3D en bloque. Falso: "tech" permite
+  `3d-particulas` a propósito. El test se reescribió para derivarse de
+  `EFECTOS_POR_DIRECCION` de verdad en vez de un supuesto propio.
+
+### Pruebas
+
+- 4 unitarios nuevos en `efectos.test.ts` (detecta lo prohibido, no toca
+  "experimental", sin motor 3D no hay nada que decir, sin dirección elegida
+  no se juzga a ciegas) + 1 que recorre TODA la tabla `EFECTOS_POR_DIRECCION`
+  contra el detector.
+- 1 unitario nuevo en `design-directions.test.ts` (`idPorNombre` recorre las
+  seis direcciones de vuelta).
+- 2 E2E nuevos (`efectos-3d-fuera-de-direccion.spec.ts`, mock
+  `mock-3d-mal-puesto`): el motor 3D en una landing "minimalista" se detecta
+  y se pide quitarlo, y de verdad desaparece de la vista previa tras
+  corregirse; en una landing "experimental" (donde sí está permitido) no se
+  toca.
+- Verificado en rojo revirtiendo `efectos.ts` + `use-generation.ts` +
+  `design-directions.ts` a la vez: el E2E del caso prohibido se quedaba
+  90s esperando una corrección que nunca llegaba.
+
+### Lo que sigue sin cubrir
+
+- **Un turno de "retoque"** (edición sobre un proyecto ya existente, no un
+  encargo de UI nueva) no re-elige dirección, así que esta comprobación no
+  se dispara ahí — solo cubre el turno en el que se generó o se corrigió la
+  página. Si un retoque posterior añadiera un motor 3D a mano, no se
+  cazaría con este mecanismo.
+- **La lista negra de efectos 2D** sigue sin comprobación en tiempo de
+  ejecución, igual que antes — deliberadamente fuera de esta tarea, que
+  pedía específicamente el motor 3D.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 851** unitarios (1 845 antes) ·
+  ✓ **237** E2E (235 antes), suite completa
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`

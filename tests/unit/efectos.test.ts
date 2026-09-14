@@ -16,9 +16,11 @@ import {
   efectosDe,
   faltanDelKit,
   promptEfectos,
+  senasEfectos3DFueraDeDireccion,
   usaKit,
 } from "../../src/lib/prism/efectos";
 import { DIRECCIONES, aDesignMd, promptDireccion } from "../../src/lib/prism/design-directions";
+import { MEDIDAS_VACIAS, type MedidasGenerico } from "../../src/lib/prism/generico";
 
 const leer = (p: string) => readFileSync(new URL(`../../${p}`, import.meta.url), "utf8");
 
@@ -265,5 +267,54 @@ describe("medir una página con efectos", () => {
     expect(qa).toMatch(/function medir\(\)\{[\s\S]{0,400}asentarFx\(\)/);
     expect(pilot).toContain("${FX_ASENTAR}");
     expect(pilot).toMatch(/function enumeraBotones\(\)\{[\s\S]{0,300}asentarFx\(\)/);
+  });
+});
+
+describe("el motor 3D, solo donde su dirección lo permite", () => {
+  const medidas = (efectos3d: string[]): MedidasGenerico => ({ ...MEDIDAS_VACIAS, efectos3d });
+
+  it("lo prohibido se detecta: 3D en una dirección que no es experimental", () => {
+    const senas = senasEfectos3DFueraDeDireccion(medidas(["3d-malla"]), "editorial");
+    expect(senas).toHaveLength(1);
+    expect(senas[0].id).toBe("3d-fuera-de-direccion");
+    expect(senas[0].detalle).toContain("3d-malla");
+    expect(senas[0].detalle).toContain("editorial");
+    expect(senas[0].arreglo).toMatch(/experimental/i);
+  });
+
+  it("en «experimental» no es una seña: ahí sí está permitido", () => {
+    expect(senasEfectos3DFueraDeDireccion(medidas(["3d-malla"]), "experimental")).toEqual([]);
+  });
+
+  it("sin motor 3D en la página, no hay nada que decir", () => {
+    expect(senasEfectos3DFueraDeDireccion(medidas([]), "editorial")).toEqual([]);
+  });
+
+  it("sin dirección elegida (turno de retoque, no de UI nueva), no se juzga a ciegas", () => {
+    expect(senasEfectos3DFueraDeDireccion(medidas(["3d-malla"]), null)).toEqual([]);
+    expect(senasEfectos3DFueraDeDireccion(medidas(["3d-malla"]), undefined)).toEqual([]);
+  });
+
+  it("sigue exactamente lo que EFECTOS_POR_DIRECCION dice para cada dirección", () => {
+    // Derivado de los datos reales, no de un supuesto propio: «tech», por
+    // ejemplo, SÍ permite 3d-particulas a propósito (dashboard/red de
+    // datos), aunque prohíba 3d-malla y 3d-shader — una regla en bloque
+    // «las cinco no-experimental prohíben las tres» sería falsa para tech,
+    // que es justo lo que la primera versión de este test asumía mal.
+    for (const [id, { evita }] of Object.entries(EFECTOS_POR_DIRECCION)) {
+      for (const fx of ["3d-particulas", "3d-malla", "3d-shader"]) {
+        const senas = senasEfectos3DFueraDeDireccion(medidas([fx]), id);
+        if (evita.includes(fx)) {
+          expect(senas, `${id} debería prohibir ${fx}`).toHaveLength(1);
+        } else {
+          expect(senas, `${id} no debería prohibir ${fx}`).toEqual([]);
+        }
+      }
+    }
+    // y de verdad hay al menos una prohibición real que comprobar — si el
+    // catálogo cambiara y ninguna dirección prohibiera nada, el bucle de
+    // arriba pasaría vacío sin decir nada, y eso sería un test que no prueba
+    // lo que dice probar.
+    expect(EFECTOS_POR_DIRECCION.editorial.evita).toContain("3d-malla");
   });
 });
