@@ -62,6 +62,22 @@ describe("captura real de la vista previa (para el QA por visión)", () => {
     expect(SCREENSHOT_SCRIPT).toContain("1152 / w");
   });
 
+  it("rellena el fondo real ANTES de dibujar: una página sin color de fondo explícito no sale negra", () => {
+    // Bug real, encontrado probando la tool a mano contra la app real (no
+    // en un test escrito antes): una página con fondo blanco por DEFECTO
+    // del navegador (sin `background` explícito) salía casi toda NEGRA en
+    // la captura, con el texto por defecto (negro) invisible encima. El
+    // foreignObject no hereda el blanco por defecto, y exportar a JPEG (sin
+    // canal alfa) rellena lo transparente de negro, no de blanco. Sin este
+    // relleno previo, cualquier página "normal" —la inmensa mayoría, que no
+    // pone `background` a mano— saldría con la captura rota.
+    expect(SCREENSHOT_SCRIPT).toContain("fillStyle");
+    expect(SCREENSHOT_SCRIPT).toContain("fillRect(0, 0, outW, outH)");
+    // el relleno pasa ANTES de dibujar la imagen encima, no después (si no,
+    // taparía lo capturado)
+    expect(SCREENSHOT_SCRIPT.indexOf("fillRect")).toBeLessThan(SCREENSHOT_SCRIPT.indexOf("ctx.drawImage"));
+  });
+
   it("un fallo al capturar (p. ej. canvas contaminado) se reporta, nunca se calla", () => {
     expect(SCREENSHOT_SCRIPT).toContain("ok: false, error:");
   });

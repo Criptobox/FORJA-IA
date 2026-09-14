@@ -71,6 +71,23 @@ function capturar(){
         var canvas = document.createElement('canvas');
         canvas.width = outW; canvas.height = outH;
         var ctx = canvas.getContext('2d');
+        // El SVG que compone el foreignObject no hereda el fondo por
+        // defecto del navegador (blanco): sin rellenar antes, lo que era
+        // transparente sale NEGRO al exportar a JPEG (sin canal alfa, el
+        // relleno de lo transparente es negro, no blanco) — una página
+        // "normal" sin color de fondo explícito salía casi toda negra, con
+        // el texto por defecto (negro) invisible encima. Se rellena con el
+        // fondo real de la página (o blanco si también es transparente)
+        // ANTES de dibujar encima.
+        var fondo = getComputedStyle(document.body).backgroundColor;
+        if (!fondo || fondo === 'rgba(0, 0, 0, 0)' || fondo === 'transparent') {
+          fondo = getComputedStyle(document.documentElement).backgroundColor;
+        }
+        if (!fondo || fondo === 'rgba(0, 0, 0, 0)' || fondo === 'transparent') {
+          fondo = '#ffffff';
+        }
+        ctx.fillStyle = fondo;
+        ctx.fillRect(0, 0, outW, outH);
         ctx.drawImage(img, 0, 0, w, h, 0, 0, outW, outH);
         var dataUrl = canvas.toDataURL('image/jpeg', ${CALIDAD_JPEG});
         if (tocadosFx) desasentarFx(tocadosFx);

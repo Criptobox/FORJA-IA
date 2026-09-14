@@ -5971,3 +5971,74 @@ scroll.
   ✓ **241** E2E (239 antes), suite completa
 - ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone`
   y con el `.nft.json`
+
+## v4.13.1 — La captura salía casi toda negra: fondo por defecto sin rellenar
+
+El usuario pidió, tras el v4.13.0: "pruébalo todo, intenta crear algún
+diseño y verifica cómo queda todo, usa la herramienta a ver qué error
+detectas". Ni el gate automático ni los E2E lo habrían cazado —ninguno
+mira de verdad el PÍXEL de la imagen capturada, solo el texto que viaja
+después— así que tocaba manejar la app a mano: servidor real (`npm run
+dev`), un script que conduce el navegador como lo haría una persona
+—escribe el encargo, deja que el agente trabaje, espera la respuesta— y
+al final EXTRAE la captura real que viajó en la petición de visión y la
+mira.
+
+Con una página mínima (`<body>` sin `background` propio, un `<h1>` con el
+negro por defecto del navegador) la imagen resultante salía casi
+TOTALMENTE NEGRA — el titular, invisible. La única pista de que algo se
+había capturado era un rectángulo gris tenue en la esquina: el único
+elemento con un `background` ESCRITO A MANO en el HTML.
+
+### La causa
+
+`foreignObject` no hereda el blanco por defecto del navegador — el fondo
+de una página sin `background` explícito es, dentro del SVG, transparente.
+Y `canvas.toDataURL('image/jpeg', …)` no tiene canal alfa: lo transparente
+se exporta relleno de NEGRO, no de blanco. Con texto negro por defecto
+sobre ese fondo ahora negro, el titular quedaba invisible encima de lo que
+ya era invisible — dos negros sobre negro.
+
+Esto no es un caso raro: es el caso NORMAL. La inmensa mayoría de páginas
+que un modelo genera no ponen `background` a mano en el `<body>` (confían
+en el blanco del navegador), así que sin este arreglo la herramienta
+habría fallado en casi cualquier página real, no solo en la de prueba.
+
+### El arreglo
+
+Antes de `ctx.drawImage(...)`, `screenshot.ts` ahora rellena el canvas con
+el fondo REAL de la página —`getComputedStyle(document.body)
+.backgroundColor`, cayendo a `documentElement` y por último a blanco si
+los dos son transparentes— y solo entonces dibuja la imagen encima. Una
+página con fondo explícito (el gradiente de la prueba original) no cambia:
+el relleno queda tapado por lo que se dibuja después.
+
+### Pruebas
+
+- 1 unitario nuevo en `screenshot.test.ts`: comprueba que el script
+  rellena (`fillStyle`/`fillRect`) ANTES de `drawImage`, no después.
+- Verificado en rojo apartando SOLO el arreglo (`git stash` de
+  `screenshot.ts`) y confirmando que el test nuevo fallaba contra la
+  versión ya comprobada y pusheada en v4.13.0 — el propio commit que
+  acababa de subir tenía este fallo.
+- Verificado visualmente contra la app real, dos veces: capturado
+  ANTES del arreglo (negro, titular invisible) y DESPUÉS (fondo blanco,
+  titular "Bienvenido a la tienda" legible, el botón de bajo contraste
+  visible con su borde — coincide exactamente con lo que dice la crítica:
+  "el botón principal casi no se distingue del fondo").
+
+### Lo que sigue sin cubrir
+
+- Solo se probó a mano el caso "fondo sin declarar" (el más común) y el
+  caso "fondo con gradiente explícito" (de la prueba original de
+  v4.13.0). Un fondo oscuro EXPLÍCITO (`background: #111`) no se probó a
+  mano — por el mismo razonamiento (`getComputedStyle` devuelve el color
+  real cuando está puesto, no transparente) debería capturarse tal cual,
+  pero es INFERIDO, no confirmado con una imagen real.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ **1 878** unitarios (1 877 antes) ·
+  ✓ **241** E2E, suite completa
+- ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone`
+  y con el `.nft.json`
