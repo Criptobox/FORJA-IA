@@ -91,8 +91,16 @@ test("tocar el titular en la vista previa lo cambia, y el cambio queda en el có
 
   // …y el CÓDIGO de la respuesta también: es la prueba de que se guardó
   // donde hace falta, no solo en la pantalla.
+  //
+  // Antes de v4.10.3, `page.locator("main")` colaba por casualidad: el
+  // código de la respuesta se volcaba también sin colapsar dentro de la
+  // propia burbuja del chat (que sí vive en <main>), así que la aserción
+  // pasaba sin haber mirado nunca la pestaña «Código» de verdad —el panel de
+  // la vista previa es HERMANO de <main>, no está dentro—. Con el código del
+  // chat ahora colapsado por defecto, hay que mirar el `<pre>` de la pestaña
+  // «Código» en sí, que es lo que esta prueba dice comprobar.
   await page.getByRole("button", { name: "Alternar código" }).click();
-  await expect(page.locator("main")).toContainText("Mi titular nuevo");
+  await expect(page.locator("pre")).toContainText("Mi titular nuevo");
 });
 
 test("un texto que aparece dos veces se rechaza con el motivo, no se adivina", async ({ page }) => {

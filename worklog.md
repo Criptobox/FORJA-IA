@@ -5558,3 +5558,97 @@ recién envuelto.
   ✓ **230** E2E (228 antes), suite completa
 - ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
   `.nft.json`
+
+## v4.10.3 — Tres cosas que salieron de usar la app: revisadas
+
+Tres quejas del uso real, revisadas una por una antes de tocar nada — dos
+eran fallos de verdad, la tercera era una instrucción fija que chocaba en
+silencio con lo que se pedía.
+
+### 1. La página seguía «genérica» y Prism no lo decía
+
+El bucle de auto-revisión (consola → botones → genérico) comparte un tope de
+`MAX_REVISIONES = 2` entre las tres cosas. El fallo: en el último intento
+permitido, la condición que decidía si se comprobaba el resultado
+(`revisiones < MAX_REVISIONES`) ya era falsa, así que ese bloque entero se
+saltaba — la respuesta del último intento de corrección NUNCA se llegaba a
+mirar. Si seguía genérica, o con un botón roto, Prism se quedaba callado: el
+toast de «puliéndola sola (2 de 2)» y después nada, como si hubiera
+terminado bien.
+
+Ahora el resultado SIEMPRE se comprueba; lo único que cambia con el
+presupuesto agotado es que ya no se relanza más, solo se avisa —
+`avisoIntentosAgotados()`, uno por cada camino (consola en
+`auto-revision.ts`, botones en `prueba-botones.ts`, genérico en
+`generico.ts`) — nombrando lo que SIGUE sin arreglar, nunca un «algo falló»
+genérico.
+
+### 2. El código ya no se vuelca crudo en el chat
+
+`proyectoDeLaRespuesta` (la misma función que ya reconocía un proyecto real
+para el bucle de auto-revisión) resulta que también funciona con la cerca de
+código todavía SIN CERRAR — así que sirve igual mientras se está escribiendo.
+
+- **Mientras escribe**: el chat enseña el texto de antes de la cerca (el
+  «aquí tienes tu página») y un aviso de trabajo — nunca el HTML a medio
+  escribir creciendo token a token. La vista previa en vivo, al lado, es
+  donde se ve crecer la página de verdad.
+- **Terminado**: el bloque de código nace COLAPSADO con un botón «Ver
+  código» arriba de la cabecera — sigue estando entero (se puede copiar, se
+  sigue contando para «Mostrar todo»), solo que no ocupa la pantalla por
+  defecto. Un fragmento corto de ejemplo (por debajo de 400 caracteres) se
+  sigue viendo entero como siempre: la regla es solo para el proyecto
+  volcado entero.
+
+### 3. «Un proyecto para un repo» entregaba un solo HTML
+
+No era un fallo: la skill integrada «Desarrollador web experto» manda
+SIEMPRE un único archivo autónomo, sin excepción — a propósito, para que la
+vista previa en vivo funcione sin fricción en el caso normal. El choque real
+es que no había excepción para cuando se pedía explícitamente lo contrario.
+
+`multi-archivo.ts` detecta la intención (proyecto, repo, repositorio, varios
+archivos, estructura de carpetas…) y AMPLÍA la skill solo en ese caso:
+`index.html` + `styles.css` + `app.js` separados y enlazados de verdad, en
+vez de todo inline. El resto de encargos —landing, app, juego— se quedan en
+un solo archivo, tal cual.
+
+### Pruebas
+
+- 3 unitarios nuevos (`auto-revision.test.ts`, `prueba-botones.test.ts`,
+  `generico.test.ts`) para los tres `avisoIntentosAgotados()` y el nuevo
+  `quedanIntentos()`.
+- 1 E2E nuevo en `generico.spec.ts` con un mock que NUNCA mejora
+  (`mock-generica-terca`): confirma que el aviso final aparece y que se
+  pidieron exactamente 2 correcciones, ni una más.
+- 2 E2E nuevos (`codigo-oculto-en-chat.spec.ts`): que durante el streaming no
+  hay ni un `<pre>` con HTML a medio escribir y sí el aviso de trabajo; que
+  terminado nace colapsado con el resumen de líneas y se abre al pulsar.
+- 5 unitarios (`multi-archivo.test.ts`) + 2 E2E (`proyecto-multi-archivo.spec.ts`,
+  mock `mock-proyecto-repo`): la instrucción de excepción viaja de verdad en
+  el prompt y el modelo entrega los tres archivos separados; una landing
+  normal NO la dispara.
+- Verificados en rojo los tres arreglos, revirtiendo cada cambio por
+  separado: el bucle silencioso volvía (90 s de timeout esperando un aviso
+  que no llegaba), el HTML crudo volvía a aparecer completo en el chat, y la
+  instrucción de excepción dejaba de viajar en el prompt.
+
+### Un test que colaba por casualidad, destapado al arreglar el #2
+
+La suite completa soltó UN fallo real:
+`editar-preview.spec.ts` comprobaba que el titular editado «quedó en el
+código» mirando `page.locator("main")` — pero el panel de la vista previa
+(con su pestaña «Código» de verdad) es HERMANO de `<main>` en el layout, no
+está dentro. La aserción pasaba igual porque el código de la respuesta se
+volcaba TAMBIÉN sin colapsar en la propia burbuja del chat, que sí vive en
+`<main>` — exactamente el fallo del punto 2. Con el chat ahora colapsando el
+código, la aserción dejó de colar y el test falló de verdad por primera vez,
+señalando que nunca había mirado la pestaña «Código» que decía comprobar.
+Arreglado apuntando al `<pre>` de esa pestaña en vez de a `<main>`.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ build · ✓ **1 845** unitarios (1 833 antes) ·
+  ✓ **235** E2E (230 antes), suite completa
+- ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
+  `.nft.json`

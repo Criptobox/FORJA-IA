@@ -26,6 +26,7 @@ import {
   promptDireccion,
 } from "./design-directions";
 import { INSTRUCCION_EVIDENCIA } from "./evidencia";
+import { INSTRUCCION_VARIOS_ARCHIVOS, pideVariosArchivos } from "./multi-archivo";
 
 /** Textos de los estilos de salida. Fuera de la función para que se puedan
  *  medir sin montar nada. */
@@ -48,9 +49,28 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
 
   const modos = textoDeModos(st.settings.agentModes ?? []) || null;
 
+  // Se necesita ya aquí (antes de lo que hasta ahora era su primer uso, más
+  // abajo) porque `skills` también lo consulta: la skill de desarrollador
+  // web manda SIEMPRE un único archivo, y eso es justo lo que hay que
+  // ampliar cuando el encargo pide un proyecto de varios archivos.
+  const sesionActual = sessionId ? st.sessions.find((s) => s.id === sessionId) : null;
+  const ultimoDelUsuario = [...(sesionActual?.messages ?? [])]
+    .reverse()
+    .find((m) => m.role === "user");
+  const trivial = esTurnoTrivial(ultimoDelUsuario?.content ?? "");
+  const promptUsuario = ultimoDelUsuario?.content ?? "";
+
   const activas = st.skills.filter((s) => s.enabled);
   const skills = activas.length
-    ? activas.map((s) => `### Skill activa: ${s.name}\n${s.instructions}`).join("\n\n")
+    ? [
+        activas.map((s) => `### Skill activa: ${s.name}\n${s.instructions}`).join("\n\n"),
+        // Solo si de verdad se pidió un proyecto de varios archivos: el
+        // resto de encargos se quedan en un solo archivo, que es lo que
+        // hace que la vista previa en vivo funcione sin fricción.
+        !trivial && pideVariosArchivos(promptUsuario) ? INSTRUCCION_VARIOS_ARCHIVOS : null,
+      ]
+        .filter(Boolean)
+        .join("\n\n")
     : null;
   // Límites de las skills: lo que declaren con permisos sensibles se le
   // recuerda al modelo como techo — una skill no manda por encima del usuario.
@@ -69,11 +89,6 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   // pasos y un «he actualizado index.html» que nadie pidió: el modelo tiene
   // una plantilla que rellenar y la rellena. Sin ella, contesta como una
   // persona. Ver `turno-trivial.ts`.
-  const sesionActual = sessionId ? st.sessions.find((s) => s.id === sessionId) : null;
-  const ultimoDelUsuario = [...(sesionActual?.messages ?? [])]
-    .reverse()
-    .find((m) => m.role === "user");
-  const trivial = esTurnoTrivial(ultimoDelUsuario?.content ?? "");
   const agente =
     st.settings.agentMode && !trivial
       ? [
@@ -129,7 +144,6 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   // las direcciones ya usadas en este proyecto (variación forzada).
   let diseno: string | null = null;
   let disenoId: string | undefined = undefined;
-  const promptUsuario = ultimoDelUsuario?.content ?? "";
   if (!trivial && esEncargoUINueva(promptUsuario)) {
     const eleccion = elegirDireccion(
       promptUsuario,

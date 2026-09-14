@@ -13,20 +13,37 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/atom-one-dark.css";
-import { Check, Copy } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Copy } from "lucide-react";
 
 interface CodeProps {
   className?: string;
   children?: React.ReactNode;
 }
 
-function CodeBlock({ children }: { children?: React.ReactNode }) {
+/** A partir de este tamaño, un bloque de código se colapsa por defecto (solo
+ * cuando `colapsarGrande` lo pide). El proyecto entero volcado en el chat era
+ * justo la queja: media pantalla de HTML antes de poder leer una palabra de
+ * texto, y sin más pista de que aquello seguía trabajando que ver crecer las
+ * etiquetas. Un fragmento de ejemplo de cuatro líneas se sigue viendo entero
+ * — no tiene sentido esconderlo. */
+const UMBRAL_COLAPSAR = 400;
+
+function CodeBlock({
+  children,
+  colapsarGrande,
+}: {
+  children?: React.ReactNode;
+  colapsarGrande?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
   const el = children as { props?: CodeProps } | undefined;
   const props = el?.props;
   const className: string = props?.className ?? "";
   const lang = /language-(\w[\w+-]*)/.exec(className)?.[1] ?? "código";
   const code = extractText(props?.children);
+  const puedeColapsar = !!colapsarGrande && code.length > UMBRAL_COLAPSAR;
+  const [abierto, setAbierto] = useState(!puedeColapsar);
+  const lineas = code ? code.split("\n").length : 0;
 
   const copy = async () => {
     try {
@@ -56,36 +73,59 @@ function CodeBlock({ children }: { children?: React.ReactNode }) {
             {lang}
           </span>
         </div>
-        <button
-          onClick={copy}
-          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-white/55 transition hover:bg-white/10 hover:text-white"
-          aria-label="Copiar código"
-        >
-          {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
-          {copied ? "Copiado" : "Copiar"}
-        </button>
+        <div className="flex items-center gap-1">
+          {puedeColapsar && (
+            <button
+              onClick={() => setAbierto((v) => !v)}
+              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-white/55 transition hover:bg-white/10 hover:text-white"
+              aria-expanded={abierto}
+              aria-label={abierto ? "Ocultar código" : "Ver código"}
+            >
+              {abierto ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+              {abierto ? "Ocultar código" : `Ver código (${lineas} líneas)`}
+            </button>
+          )}
+          <button
+            onClick={copy}
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-white/55 transition hover:bg-white/10 hover:text-white"
+            aria-label="Copiar código"
+          >
+            {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+            {copied ? "Copiado" : "Copiar"}
+          </button>
+        </div>
       </div>
       {/* Cuerpo del código.
        * - `pre-wrap` + `overflow-wrap: anywhere` envuelve líneas largas.
        * - El CSS global (ver estilo embebido) fuerza `word-break: break-all`
        *   en los spans de highlight.js, que por defecto son inline y no
        *   rompen — era la causa de que el código se saliera del bloque.
-       * - `overflow-x: auto` como red de seguridad por si algo se resiste. */}
-      <pre
-        style={{
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-          overflowWrap: "anywhere",
-          margin: 0,
-          padding: "0.95rem 1.1rem",
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.845rem",
-          lineHeight: 1.65,
-          overflowX: "auto",
-        }}
-      >
-        {children}
-      </pre>
+       * - `overflow-x: auto` como red de seguridad por si algo se resiste.
+       * - Colapsado (`puedeColapsar && !abierto`): el proyecto entero volcado
+       *   en el chat era justo la queja — se queda un resumen y el botón de
+       *   arriba, el código sigue existiendo en el DOM para copiar/exportar
+       *   pero no ocupa la pantalla. */}
+      {abierto ? (
+        <pre
+          style={{
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            overflowWrap: "anywhere",
+            margin: 0,
+            padding: "0.95rem 1.1rem",
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.845rem",
+            lineHeight: 1.65,
+            overflowX: "auto",
+          }}
+        >
+          {children}
+        </pre>
+      ) : (
+        <div className="px-3.5 py-2.5 text-[11.5px] text-white/45">
+          {lineas} líneas de código ocultas — pulsa «Ver código» para mostrarlas.
+        </div>
+      )}
       {/* CSS embebido: fuerza a los tokens de highlight.js a romper líneas
           largas. Se inyecta una sola vez por bloque (React lo dedupe). */}
       <style>{`
@@ -144,14 +184,25 @@ function extractText(node: React.ReactNode): string {
   return "";
 }
 
-export const Markdown = memo(function Markdown({ content }: { content: string }) {
+export const Markdown = memo(function Markdown({
+  content,
+  colapsarCodigoGrande,
+}: {
+  content: string;
+  /** Los bloques de código grandes (por encima de `UMBRAL_COLAPSAR`) nacen
+   * colapsados, con un botón «Ver código» — pensado para cuando el mensaje
+   * es un proyecto entero volcado en el chat, no un ejemplo corto. */
+  colapsarCodigoGrande?: boolean;
+}) {
   return (
     <div className="prism-md">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[[rehypeHighlight, { detect: true, ignoreMissing: true }]]}
         components={{
-          pre: ({ children }) => <CodeBlock>{children as React.ReactNode}</CodeBlock>,
+          pre: ({ children }) => (
+            <CodeBlock colapsarGrande={colapsarCodigoGrande}>{children as React.ReactNode}</CodeBlock>
+          ),
           a: ({ href, children }) => (
             <a href={href} target="_blank" rel="noreferrer noopener">
               {children}

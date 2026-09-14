@@ -30,6 +30,7 @@ import { MAX_RENDER_CHARS, splitModelKey, speechState } from "@/lib/prism/types"
 import { hayContexto, lineaContexto, detalleContexto } from "@/lib/prism/contexto-usado";
 import { hayFicha, lineasDeFicha, titularDeFicha } from "@/lib/prism/ficha-respuesta";
 import { agentStalled, parseAgentTrace } from "@/lib/prism/agent-loop";
+import { proyectoDeLaRespuesta } from "@/lib/prism/auto-revision";
 import { citasDe } from "@/lib/prism/evidencia";
 import { instructionLabel, TRANSLATE_LANGS, type TargetLang } from "@/lib/prism/recap";
 import { useAvailableModels } from "@/components/prism/model-picker";
@@ -134,6 +135,27 @@ export const MessageItem = memo(function MessageItem({
   const tooLong = msg.content.length > MAX_RENDER_CHARS;
   const degenerate = !streaming && looksDegenerate(msg.content);
   const shown = tooLong && !expanded ? msg.content.slice(0, MAX_RENDER_CHARS) : msg.content;
+
+  // ——— El código no se vuelca crudo en el chat ———
+  //
+  // Antes: pedías una web y el bloque ```html entero —a veces varias
+  // pantallas— pasaba por delante del texto, y mientras se escribía se veía
+  // crecer la sopa de etiquetas token a token. `proyectoDeLaRespuesta` ya
+  // sabe reconocer un proyecto REAL (hace falta un HTML de entrada, no
+  // cualquier bloque de código) — y funciona igual con la cerca todavía sin
+  // cerrar, así que sirve también mientras se está escribiendo.
+  //
+  // Con un proyecto detectado: si SIGUE escribiendo, se enseña el texto que
+  // vino antes de la cerca (el «aquí tienes tu página») y un aviso de que
+  // está trabajando, nunca el código a medio escribir. Terminado, el texto
+  // se ve normal y el bloque de código nace colapsado con un botón «Ver
+  // código» — sigue estando, solo que no ocupa la pantalla por defecto.
+  const proyecto = useMemo(
+    () => (!isUser && !msg.error && !trace.active ? proyectoDeLaRespuesta(shown) : null),
+    [shown, isUser, msg.error, trace.active]
+  );
+  const cercaIdx = proyecto && streaming ? shown.indexOf("```") : -1;
+  const introMientrasEscribe = cercaIdx >= 0 ? shown.slice(0, cercaIdx).trim() : null;
   const reasoningShown = msg.reasoning && msg.reasoning.length > 4000 && !expanded
     ? msg.reasoning.slice(0, 4000) + "…"
     : msg.reasoning;
@@ -349,9 +371,24 @@ export const MessageItem = memo(function MessageItem({
                       ) : null;
                     })()}
                   </div>
+                ) : proyecto && streaming ? (
+                  <div className="stream-cursor-wrap">
+                    {introMientrasEscribe && <Markdown content={introMientrasEscribe} />}
+                    <div
+                      className="mt-2 flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-[12.5px] text-muted-foreground"
+                      aria-live="polite"
+                    >
+                      <span className="flex gap-1" aria-hidden>
+                        <span className="skeleton-shimmer block size-1.5 rounded-full" />
+                        <span className="skeleton-shimmer block size-1.5 rounded-full" />
+                        <span className="skeleton-shimmer block size-1.5 rounded-full" />
+                      </span>
+                      Escribiendo tu página… se ve en vivo en la vista previa.
+                    </div>
+                  </div>
                 ) : (
                 <div className={streaming ? "stream-cursor-wrap" : ""}>
-                  <Markdown content={shown} />
+                  <Markdown content={shown} colapsarCodigoGrande={!!proyecto} />
                   {tooLong && (
                     <button
                       onClick={() => setExpanded((v) => !v)}

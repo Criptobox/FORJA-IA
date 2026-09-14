@@ -15,6 +15,8 @@ import {
   reglaDeFallo,
   esErrorDelEntorno,
   erroresDelModelo,
+  avisoIntentosAgotados,
+  quedanIntentos,
   MAX_REVISIONES,
 } from "../../src/lib/prism/auto-revision";
 import type { RunOutcome } from "../../src/lib/prism/tool-runner";
@@ -138,6 +140,35 @@ describe("reglaDeFallo", () => {
 describe("el tope", () => {
   it("son dos rondas: a la tercera el modelo suele dar vueltas y gastar cuota", () => {
     expect(MAX_REVISIONES).toBe(2);
+  });
+});
+
+describe("quedanIntentos", () => {
+  it("hay presupuesto por debajo del tope", () => {
+    expect(quedanIntentos(0)).toBe(true);
+    expect(quedanIntentos(1)).toBe(true);
+  });
+  /* En la última pasada permitida (revisiones === MAX_REVISIONES) ya NO se
+   * relanza — pero el resultado SIGUE evaluándose, que es justo el fallo que
+   * esto arregla: antes esa pasada final ni se comprobaba. */
+  it("en el tope, ya no", () => {
+    expect(quedanIntentos(MAX_REVISIONES)).toBe(false);
+    expect(quedanIntentos(MAX_REVISIONES + 1)).toBe(false);
+  });
+});
+
+describe("avisoIntentosAgotados", () => {
+  it("dice cuántos errores SIGUEN, no un genérico «algo falló»", () => {
+    const r = salida({ errors: 2, errorLines: ["a is not defined", "b is not defined"] });
+    const aviso = avisoIntentosAgotados(r);
+    expect(aviso).toContain("2 errores");
+    expect(aviso).toMatch(/Sandbox/);
+  });
+  it("no cuenta los errores del propio entorno (sandbox) como del modelo", () => {
+    const SANDBOX =
+      "Uncaught SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.";
+    const r = salida({ errors: 1, errorLines: [SANDBOX] });
+    expect(avisoIntentosAgotados(r)).toContain("0 errores");
   });
 });
 

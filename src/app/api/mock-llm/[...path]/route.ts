@@ -37,6 +37,8 @@ const MODELOS = [
   "mock-codigo-roto",
   "mock-efectos",
   "mock-generica",
+  "mock-generica-terca",
+  "mock-proyecto-repo",
   "mock-3d",
   "mock-scroll",
   "mock-tema-en-head",
@@ -299,6 +301,78 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
         Array.from({ length: 30 }, (_, i) => `<p>Texto de ejemplo ${i}</p>`).join("");
     return [
       lePulieron ? "Corregido tras medirla." : "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Demo</title></head>',
+      '<body style="font-family:system-ui;margin:0;padding:24px">',
+      cuerpo,
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-proyecto-repo`: entrega TRES archivos separados si —y solo si— ve
+  // la instrucción de excepción en el prompt (la que se añade cuando el
+  // usuario pide explícitamente «un proyecto para un repo»). Sin esa
+  // instrucción, entrega el único-archivo de siempre. Sirve para comprobar
+  // que la excepción de verdad viaja en el prompt Y que el modelo, al
+  // seguirla, produce un proyecto con varios archivos de verdad — no solo
+  // que el texto se mandó.
+  if (modelo === "mock-proyecto-repo") {
+    const conExcepcion = msgs.some(
+      (m) =>
+        typeof m.content === "string" &&
+        (m.content as string).includes("Excepción: aquí se pide un PROYECTO")
+    );
+    if (conExcepcion) {
+      return [
+        "Aquí tienes el proyecto, con los archivos separados.",
+        "",
+        "```html index.html",
+        "<!DOCTYPE html>",
+        '<html lang="es"><head><meta charset="utf-8"><title>Proyecto</title>',
+        '<link rel="stylesheet" href="styles.css"></head>',
+        '<body><h1>Hola</h1><script src="app.js"></script></body></html>',
+        "```",
+        "",
+        "```css styles.css",
+        "body{margin:0;font-family:system-ui}",
+        "```",
+        "",
+        "```js app.js",
+        "console.log('listo')",
+        "```",
+      ].join("\n");
+    }
+    return [
+      "Aquí tienes tu página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Solo</title></head>',
+      "<body><h1>Todo en uno</h1></body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-generica-terca`: la MISMA página de manual, pero que NUNCA se
+  // pule por mucho que se le corrija — sirve para llegar al tope de
+  // MAX_REVISIONES con la página todavía genérica, y comprobar que Prism lo
+  // dice al final en vez de quedarse callado (dogfooding: antes, la última
+  // pasada ni se comprobaba).
+  if (modelo === "mock-generica-terca") {
+    const tarjeta = (n: number) =>
+      `<div style="width:220px;height:150px;border-radius:12px;background:#eee;padding:16px">` +
+      `<h3>Característica ${n}</h3><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p></div>`;
+    const cuerpo =
+      `<section style="text-align:center"><h1>Bienvenido a nuestro sitio</h1>` +
+      `<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>` +
+      `<a class="cta" href="#">Empezar</a></section>` +
+      `<div style="display:flex;gap:16px">${tarjeta(1)}${tarjeta(2)}${tarjeta(3)}</div>` +
+      Array.from({ length: 30 }, (_, i) => `<p>Texto de ejemplo ${i}</p>`).join("");
+    return [
+      "Aquí tienes la página.",
       "",
       "```html",
       "<!DOCTYPE html>",

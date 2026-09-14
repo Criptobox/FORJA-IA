@@ -229,6 +229,13 @@ export function resumenGenerico(senas: SenaGenerica[]): string {
   return `${n} seña${n === 1 ? "" : "s"} de página genérica: ${senas.map((s) => s.id).join(", ")}.`;
 }
 
+/** Cuando se acaban los intentos automáticos y la página SIGUE teniendo
+ *  señas de genérica: se dice, en vez de darla por pulida en silencio
+ *  después del último intento que ni se llegó a comprobar. */
+export function avisoIntentosAgotados(senas: SenaGenerica[]): string {
+  return `Se acabaron los intentos automáticos y la página sigue teniendo señas de genérica: ${senas.map((s) => s.id).join(", ")}. Pídeme que la pula otra vez o dime qué cambiar.`;
+}
+
 /** Regla para la memoria de fallos del proyecto. */
 export function reglaDeGenerico(sena: SenaGenerica): { titulo: string; regla: string } {
   return { titulo: `Página genérica: ${sena.id}`, regla: sena.arreglo };

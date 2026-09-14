@@ -96,6 +96,14 @@ export function resumenBotones(inf: InformeBotones): string {
   return `${n} botones${de} pulsados y todos hicieron algo.`;
 }
 
+/** Cuando se acaban los intentos automáticos y algún botón SIGUE dando error
+ *  al pulsarlo: se dice, en vez de dejar la página así sin que nadie se
+ *  entere de que la corrección se rindió. */
+export function avisoIntentosAgotados(inf: InformeBotones): string {
+  const rotos = botonesRotos(inf).length;
+  return `Se acabaron los intentos automáticos y ${rotos} ${rotos === 1 ? "botón sigue" : "botones siguen"} dando error al pulsarlos. Pídeme que lo corrija otra vez o revísalo tú en el Sandbox.`;
+}
+
 /** Regla para la memoria de fallos. Solo lo verificado pulsando. */
 export function reglaDeBotones(inf: InformeBotones): { titulo: string; regla: string } | null {
   const rotos = botonesRotos(inf);

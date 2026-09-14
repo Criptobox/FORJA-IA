@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MEDIDAS_VACIAS,
   MINIMO_ELEMENTOS,
+  avisoIntentosAgotados,
   esGenerica,
   promptDeGenerico,
   reglaDeGenerico,
@@ -147,6 +148,14 @@ describe("lo que se le devuelve al modelo", () => {
     const r = reglaDeGenerico(s);
     expect(r.titulo).toContain("relleno");
     expect(r.regla).toBe(s.arreglo);
+  });
+
+  it("avisoIntentosAgotados nombra las señas que SIGUEN sin arreglar", () => {
+    const senas = senasGenericas(pagina({ relleno: ["Lorem ipsum"], gruposIguales: 1 }));
+    const aviso = avisoIntentosAgotados(senas);
+    expect(aviso).toContain("relleno");
+    expect(aviso).toContain("tarjetas-iguales");
+    expect(aviso).toMatch(/se acabaron los intentos/i);
   });
 });
 

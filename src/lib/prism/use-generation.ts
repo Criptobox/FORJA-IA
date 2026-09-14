@@ -82,21 +82,25 @@ import type { EntradaPrompt } from "./presupuesto";
 import { construirPrompt } from "./presupuesto";
 import { estaCortadaPorLongitud, type MotivoParada } from "./finish-reason";
 import {
+  avisoIntentosAgotados as avisoBotonesAgotados,
   hayBotonesQueCorregir,
   promptDeBotones,
   reglaDeBotones,
   resumenBotones,
 } from "./prueba-botones";
 import {
+  avisoIntentosAgotados as avisoRevisionAgotada,
   hayQueCorregir,
   promptDeCorreccion,
   proyectoDeLaRespuesta,
+  quedanIntentos,
   reglaDeFallo,
   resumenRevision,
   MAX_REVISIONES,
 } from "./auto-revision";
 import { runProjectInMemory } from "./sandbox-runner";
 import {
+  avisoIntentosAgotados as avisoGenericoAgotado,
   MEDIDAS_VACIAS,
   promptDeGenerico,
   reglaDeGenerico,
@@ -1289,7 +1293,16 @@ export function useGeneration(ctx: CtxGeneracion) {
           // Ejecutar es local y gratis: solo cuesta una llamada al modelo
           // si de verdad hay errores que corregir.
           const proyecto = proyectoDeLaRespuesta(content);
-          if (!retomando && proyecto && revisiones < MAX_REVISIONES) {
+          // `revisiones < MAX_REVISIONES` decidía si esto se comprobaba EN
+          // ABSOLUTO. En la última pasada permitida (revisiones ya al tope)
+          // la condición era falsa y el bloque entero se saltaba: la
+          // respuesta que salió del último intento de corrección nunca se
+          // llegaba a mirar. Si seguía genérica, o con un botón roto, o con
+          // un error de consola, Prism se quedaba callado — parecía que
+          // había terminado bien cuando en realidad se había rendido sin
+          // decirlo. Ahora SIEMPRE se comprueba; lo que cambia con el
+          // presupuesto agotado es que ya no se relanza más, solo se avisa.
+          if (!retomando && proyecto) {
             void (async () => {
               // `botones: true`: además de cargar la página, se pulsan
               // sus botones. La revisión de carga solo caza lo que revienta
@@ -1302,6 +1315,7 @@ export function useGeneration(ctx: CtxGeneracion) {
               const salida = await runProjectInMemory(proyecto.files, { botones: true, qa: true });
               const inf = salida.botones;
               const senas = senasGenericas(salida.qa?.generico ?? MEDIDAS_VACIAS);
+              const quedan = quedanIntentos(revisiones);
 
               if (!hayQueCorregir(salida)) {
                 // La carga fue limpia, pero puede haber botones que revienten.
@@ -1309,6 +1323,13 @@ export function useGeneration(ctx: CtxGeneracion) {
                   const reglaB = reglaDeBotones(inf);
                   if (reglaB) {
                     useFailures.getState().record("sandbox", reglaB.titulo, reglaB.regla, "error");
+                  }
+                  if (!quedan) {
+                    toast.warning("Botones que siguen fallando", {
+                      description: avisoBotonesAgotados(inf),
+                      duration: 9000,
+                    });
+                    return;
                   }
                   addMessage(sessionId, {
                     id: uid(),
@@ -1334,6 +1355,13 @@ export function useGeneration(ctx: CtxGeneracion) {
                   for (const sn of senas.slice(0, 3)) {
                     const r = reglaDeGenerico(sn);
                     useFailures.getState().record("sandbox", r.titulo, r.regla, "warn");
+                  }
+                  if (!quedan) {
+                    toast.warning("Sigue pareciendo genérica", {
+                      description: avisoGenericoAgotado(senas),
+                      duration: 9000,
+                    });
+                    return;
                   }
                   addMessage(sessionId, {
                     id: uid(),
@@ -1363,6 +1391,13 @@ export function useGeneration(ctx: CtxGeneracion) {
               const regla = reglaDeFallo(salida);
               if (regla) {
                 useFailures.getState().record("sandbox", regla.titulo, regla.regla, "error");
+              }
+              if (!quedan) {
+                toast.error("El código sigue fallando", {
+                  description: avisoRevisionAgotada(salida),
+                  duration: 9000,
+                });
+                return;
               }
               addMessage(sessionId, {
                 id: uid(),

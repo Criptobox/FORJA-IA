@@ -120,6 +120,24 @@ export function resumenRevision(r: RunOutcome): string {
   return `Ejecutado sin errores de consola${qa}.`;
 }
 
+/** ¿Queda presupuesto para relanzar otra corrección automática?
+ *
+ * `revisiones` es cuántas ya se han gastado. En la última pasada permitida
+ * (`revisiones === MAX_REVISIONES`) el resultado SIGUE evaluándose —para
+ * poder avisar si quedó algo sin arreglar—, pero ya no se relanza más. */
+export function quedanIntentos(revisiones: number): boolean {
+  return revisiones < MAX_REVISIONES;
+}
+
+/** Cuando se acaban los intentos automáticos y el código SIGUE fallando: se
+ *  dice tal cual, en vez de entregar la página en silencio como si hubiera
+ *  salido bien. Antes de este aviso, la última pasada ni se comprobaba. */
+export function avisoIntentosAgotados(r: RunOutcome): string {
+  const propios = erroresDelModelo(r);
+  const n = propios.length;
+  return `Se acabaron los ${MAX_REVISIONES} intentos automáticos y el código sigue dando ${n} ${n === 1 ? "error" : "errores"} de consola. Pídeme que lo corrija otra vez o revísalo tú en el Sandbox.`;
+}
+
 /** Regla para la memoria de fallos. Solo se apunta lo VERIFICABLE: esto ha
  *  salido de ejecutar el código, no de una impresión. */
 export function reglaDeFallo(r: RunOutcome): { titulo: string; regla: string } | null {

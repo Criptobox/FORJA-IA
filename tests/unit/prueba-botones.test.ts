@@ -7,6 +7,7 @@
  */
 import { describe, it, expect } from "vitest";
 import {
+  avisoIntentosAgotados,
   botonesRotos,
   botonesSinEfecto,
   hayBotonesQueCorregir,
@@ -112,6 +113,19 @@ describe("reglaDeBotones", () => {
     const r = reglaDeBotones(inf({ resultados: [roto("Sumar", "cuenta is not defined")], total: 1 }));
     expect(r!.titulo).toContain("Sumar");
     expect(reglaDeBotones(inf({ resultados: [mudo("A")], total: 1 }))).toBeNull();
+  });
+});
+
+describe("avisoIntentosAgotados", () => {
+  it("dice cuántos botones SIGUEN rotos tras el último intento", () => {
+    const i = inf({ resultados: [roto("Sumar", "x"), roto("Restar", "y"), bien("Reiniciar")], total: 3 });
+    const aviso = avisoIntentosAgotados(i);
+    expect(aviso).toContain("2 botones");
+    expect(aviso).toMatch(/Sandbox/);
+  });
+  it("en singular con uno solo", () => {
+    const i = inf({ resultados: [roto("Sumar", "x")], total: 1 });
+    expect(avisoIntentosAgotados(i)).toContain("1 botón sigue");
   });
 });
 
