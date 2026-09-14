@@ -107,7 +107,7 @@ import {
   resumenGenerico,
   senasGenericas,
 } from "./generico";
-import { senasEfectos3DFueraDeDireccion } from "./efectos";
+import { senasEfectosFueraDeDireccion } from "./efectos";
 import { idPorNombre } from "./design-directions";
 import {
   decidirTrasCuotaEnTexto,
@@ -1324,13 +1324,14 @@ export function useGeneration(ctx: CtxGeneracion) {
               // cada dirección vive por `id` ("editorial") — de ahí el mapeo.
               const direccionUsada = idPorNombre(contextoUsado.diseno ?? "");
               // Dos comprobaciones distintas —"parece hecha por una IA" y
-              // "usa el motor 3D fuera de la dirección experimental"— pero
-              // comparten exactamente la misma forma (`SenaGenerica`) y el
-              // mismo aviso/reintento de abajo, así que se juntan en una
-              // sola lista en vez de triplicar esa fontanería.
+              // "usa un efecto (2D o 3D) fuera de lo que permite la
+              // dirección elegida"— pero comparten exactamente la misma
+              // forma (`SenaGenerica`) y el mismo aviso/reintento de abajo,
+              // así que se juntan en una sola lista en vez de triplicar esa
+              // fontanería.
               const senas = [
                 ...senasGenericas(medidas),
-                ...senasEfectos3DFueraDeDireccion(medidas, direccionUsada),
+                ...senasEfectosFueraDeDireccion(medidas, direccionUsada),
               ];
               const quedan = quedanIntentos(revisiones);
 

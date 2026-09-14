@@ -5741,3 +5741,99 @@ tests:
   ✓ **237** E2E (235 antes), suite completa
 - ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone` y con el
   `.nft.json`
+
+## v4.12.0 — La lista negra de efectos 2D, con la misma comprobación
+
+Quedó anotado en el worklog de v4.11.0: *"La lista negra de efectos 2D
+sigue sin comprobación en tiempo de ejecución, igual que antes —
+deliberadamente fuera de esta tarea, que pedía específicamente el motor
+3D."* Cerrado con el mismo mecanismo, no uno paralelo.
+
+### Un detector, no dos
+
+`senasEfectos3DFueraDeDireccion` se generalizó a `senasEfectosFueraDeDireccion`:
+sigue siendo la misma comparación (lo que la página tiene de verdad contra
+lo que `EFECTOS_POR_DIRECCION` prohíbe para la dirección usada), solo que
+ahora mira `m.efectos2d` y `m.efectos3d` juntos en vez de solo el segundo.
+Mantener dos funciones casi idénticas — una por familia — era duplicar la
+única parte que de verdad importaba: la comparación. El texto de cada
+efecto prohibido sale de `efectoPorId(id)?.uso` (el catálogo ya existente),
+no de una frase nueva escrita a mano por familia.
+
+`medirGenerico()` (`generico.ts`) gana un segundo campo, `efectos2d`, del
+MISMO barrido del DOM que ya recoge `efectos3d` — no un segundo recorrido
+por lo mismo. La mayoría de efectos 2D se marcan con `data-fx="<id>"`
+directo; los `soloCss` (marquee, noise, grid/dots, underline, sheen, float,
+blob) solo dejan una clase suelta, sin atributo, así que se detectan por
+`querySelector` de la clase.
+
+### La colisión de `.fx-mesh`
+
+El motor 3D reutiliza la clase `fx-mesh` del efecto 2D "mesh" para su
+propio estilo — el canvas de `<canvas data-fx3d="3d-malla" class="fx-mesh">`
+lleva las dos cosas encima. Sin distinguirlas, cualquier página con el
+motor 3D activo contaría también como si usara el efecto 2D "mesh", que es
+falso: son dos cosas que comparten una clase por casualidad de CSS, no por
+significar lo mismo. Se resuelve mirando `data-fx3d`: un elemento con esa
+clase solo cuenta como el "mesh" 2D si NO tiene el atributo — si lo tiene,
+es el canvas del motor 3D usando la clase para su tamaño, y ya se cuenta
+aparte en `efectos3d`.
+
+### Pruebas
+
+- 4 unitarios nuevos en `efectos.test.ts`: un efecto 2D prohibido se
+  detecta igual que uno 3D (`marquee` en "editorial"), uno permitido no es
+  una seña, un 2D y un 3D prohibidos a la vez salen como un solo hallazgo
+  con los dos nombrados (no dos hallazgos duplicados), y un recorrido de
+  TODO `EFECTOS_POR_DIRECCION` para la mitad 2D del catálogo (el mismo
+  patrón data-driven que ya se usó para la mitad 3D en v4.11.0).
+- 2 E2E nuevos (`efectos-2d-fuera-de-direccion.spec.ts`, mock
+  `mock-2d-mal-puesto`): un `<div class="fx-marquee">` en una landing
+  "editorial de revista" (donde está prohibido) se detecta y se pide
+  quitarlo, y de verdad desaparece de la vista previa tras corregirse; en
+  una landing "brutalista" (donde sí está permitido) no se toca.
+- El marcador de corrección tuvo que ser el mismo que en v4.11.0 (la
+  apertura de `promptDeGenerico`, "y la he medido") y no `.includes("marquee")`
+  a secas: el propio prompt de sistema de "editorial" ya nombra "marquee"
+  en su lista de PROHIBIDOS (`promptEfectos`), así que esa palabra sale en
+  el primer turno igual sin haberse corregido nada — el mismo colapso que
+  ya apareció con "motor 3D" en la dirección "experimental".
+- Verificado en rojo revirtiendo `efectos.ts` + `generico.ts` +
+  `use-generation.ts` a la vez (manteniendo el mock nuevo): el E2E del caso
+  prohibido se quedaba 90s esperando una corrección que nunca llegaba,
+  exactamente igual que el fallo real que este cambio cierra.
+
+### Lo que rompió la generalización, y que el gate completo sí cazó
+
+La primera vuelta del gate (suite E2E completa) salió con un fallo real:
+`efectos-3d-fuera-de-direccion.spec.ts`, el test de v4.11.0 para el motor
+3D, se quedaba 90s esperando una corrección que sí estaba pasando —
+`senasEfectosFueraDeDireccion` SÍ detectaba el motor 3D fuera de sitio y SÍ
+se lo devolvía al modelo. Lo que rompió fue el texto: la versión vieja
+(`senasEfectos3DFueraDeDireccion`) tenía la frase «el motor 3D» escrita a
+mano en el aviso, y tanto el test como el propio mock `mock-3d-mal-puesto`
+usaban `.includes("motor 3D")` como marcador de «ya se corrigió». La
+generalización de v4.12.0 volvió ese texto neutro (solo nombra los ids
+reales, como se explica arriba) — correcto para servir a 2D y 3D por
+igual, pero deja de contener esa frase literal.
+
+Se corrigieron los dos sitios que dependían de ella, con el mismo marcador
+ya usado en el segundo test del propio archivo y en el mock nuevo: la
+apertura de `promptDeGenerico` (`"y la he medido"`), que no depende de qué
+se corrigió. Sin la vuelta completa del gate esto no se habría visto: los
+unitarios no tocan el mock ni el texto exacto que viaja por HTTP, y el E2E
+nuevo de 2D no ejercita el mock viejo de 3D.
+
+### Lo que sigue sin cubrir
+
+- Mismo hueco que v4.11.0, ahora para las dos familias: un turno de
+  "retoque" (edición sobre un proyecto existente, no un encargo de UI
+  nueva) no re-elige dirección, así que esta comprobación no se dispara
+  ahí.
+
+### Puerta
+
+- ✓ lint · ✓ knip · ✓ tsc · ✓ **1 855** unitarios (1 851 antes) ·
+  ✓ **239** E2E (237 antes), suite completa
+- ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin `standalone`
+  y con el `.nft.json`

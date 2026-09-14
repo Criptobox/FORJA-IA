@@ -77,12 +77,15 @@ test("el motor 3D en una landing minimalista se detecta y se le pide quitarlo", 
   await input.fill("hazme una landing minimalista para mi tienda");
   await page.keyboard.press("Enter");
 
-  // Prism se lo devuelve al modelo sin que nadie pulse nada…
+  // Prism se lo devuelve al modelo sin que nadie pulse nada… «motor 3D» ya
+  // no sirve de marcador: `senasEfectosFueraDeDireccion` se generalizó para
+  // 2D y 3D a la vez (v4.12.0) y el texto ahora es neutro, solo nombra los
+  // ids reales — el marcador fiable es la apertura de `promptDeGenerico`.
   await expect
-    .poll(() => cuerpos.filter((c) => c.includes("motor 3D")).length, { timeout: 90_000 })
+    .poll(() => cuerpos.filter((c) => c.includes("y la he medido")).length, { timeout: 90_000 })
     .toBeGreaterThan(0);
 
-  const aviso = cuerpos.find((c) => c.includes("motor 3D")) ?? "";
+  const aviso = cuerpos.find((c) => c.includes("y la he medido")) ?? "";
   expect(aviso, "nombra el efecto 3D visto de verdad").toContain("3d-malla");
   expect(aviso, "nombra la dirección que lo prohíbe").toContain("minimal");
 

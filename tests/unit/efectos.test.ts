@@ -16,7 +16,7 @@ import {
   efectosDe,
   faltanDelKit,
   promptEfectos,
-  senasEfectos3DFueraDeDireccion,
+  senasEfectosFueraDeDireccion,
   usaKit,
 } from "../../src/lib/prism/efectos";
 import { DIRECCIONES, aDesignMd, promptDireccion } from "../../src/lib/prism/design-directions";
@@ -270,29 +270,35 @@ describe("medir una página con efectos", () => {
   });
 });
 
-describe("el motor 3D, solo donde su dirección lo permite", () => {
-  const medidas = (efectos3d: string[]): MedidasGenerico => ({ ...MEDIDAS_VACIAS, efectos3d });
+describe("los efectos (2D y 3D), solo donde su dirección los permite", () => {
+  const medidas = (efectos2d: string[], efectos3d: string[] = []): MedidasGenerico => ({
+    ...MEDIDAS_VACIAS,
+    efectos2d,
+    efectos3d,
+  });
 
   it("lo prohibido se detecta: 3D en una dirección que no es experimental", () => {
-    const senas = senasEfectos3DFueraDeDireccion(medidas(["3d-malla"]), "editorial");
+    const senas = senasEfectosFueraDeDireccion(medidas([], ["3d-malla"]), "editorial");
     expect(senas).toHaveLength(1);
-    expect(senas[0].id).toBe("3d-fuera-de-direccion");
+    expect(senas[0].id).toBe("efecto-fuera-de-direccion");
     expect(senas[0].detalle).toContain("3d-malla");
     expect(senas[0].detalle).toContain("editorial");
-    expect(senas[0].arreglo).toMatch(/experimental/i);
+    // el texto ya no nombra «experimental»: es neutro a propósito, para
+    // servir igual a una prohibición 2D que a una 3D.
+    expect(senas[0].arreglo).toContain("3d-malla");
   });
 
   it("en «experimental» no es una seña: ahí sí está permitido", () => {
-    expect(senasEfectos3DFueraDeDireccion(medidas(["3d-malla"]), "experimental")).toEqual([]);
+    expect(senasEfectosFueraDeDireccion(medidas([], ["3d-malla"]), "experimental")).toEqual([]);
   });
 
   it("sin motor 3D en la página, no hay nada que decir", () => {
-    expect(senasEfectos3DFueraDeDireccion(medidas([]), "editorial")).toEqual([]);
+    expect(senasEfectosFueraDeDireccion(medidas([], []), "editorial")).toEqual([]);
   });
 
   it("sin dirección elegida (turno de retoque, no de UI nueva), no se juzga a ciegas", () => {
-    expect(senasEfectos3DFueraDeDireccion(medidas(["3d-malla"]), null)).toEqual([]);
-    expect(senasEfectos3DFueraDeDireccion(medidas(["3d-malla"]), undefined)).toEqual([]);
+    expect(senasEfectosFueraDeDireccion(medidas([], ["3d-malla"]), null)).toEqual([]);
+    expect(senasEfectosFueraDeDireccion(medidas([], ["3d-malla"]), undefined)).toEqual([]);
   });
 
   it("sigue exactamente lo que EFECTOS_POR_DIRECCION dice para cada dirección", () => {
@@ -303,7 +309,7 @@ describe("el motor 3D, solo donde su dirección lo permite", () => {
     // que es justo lo que la primera versión de este test asumía mal.
     for (const [id, { evita }] of Object.entries(EFECTOS_POR_DIRECCION)) {
       for (const fx of ["3d-particulas", "3d-malla", "3d-shader"]) {
-        const senas = senasEfectos3DFueraDeDireccion(medidas([fx]), id);
+        const senas = senasEfectosFueraDeDireccion(medidas([], [fx]), id);
         if (evita.includes(fx)) {
           expect(senas, `${id} debería prohibir ${fx}`).toHaveLength(1);
         } else {
@@ -316,5 +322,44 @@ describe("el motor 3D, solo donde su dirección lo permite", () => {
     // arriba pasaría vacío sin decir nada, y eso sería un test que no prueba
     // lo que dice probar.
     expect(EFECTOS_POR_DIRECCION.editorial.evita).toContain("3d-malla");
+  });
+
+  it("lo prohibido se detecta igual en 2D: marquee no es «editorial»", () => {
+    const senas = senasEfectosFueraDeDireccion(medidas(["marquee"]), "editorial");
+    expect(senas).toHaveLength(1);
+    expect(senas[0].id).toBe("efecto-fuera-de-direccion");
+    expect(senas[0].detalle).toContain("marquee");
+    expect(senas[0].detalle).toContain("editorial");
+  });
+
+  it("un efecto 2D que la dirección sí usa no es una seña", () => {
+    // «reveal» está en editorial.usa, no en evita
+    expect(senasEfectosFueraDeDireccion(medidas(["reveal"]), "editorial")).toEqual([]);
+  });
+
+  it("2D y 3D prohibidos a la vez se reportan como dos hallazgos distintos, no uno", () => {
+    // brutalista prohíbe tanto "spotlight" (2D) como "3d-malla" (3D): son la
+    // misma comprobación, sobre las dos listas que llegan ya separadas del
+    // barrido del DOM (generico.ts se encarga de no confundir el "mesh" 2D
+    // con la clase que lleva el canvas del motor 3D para su propio estilo).
+    const senas = senasEfectosFueraDeDireccion(medidas(["spotlight"], ["3d-malla"]), "brutalista");
+    expect(senas).toHaveLength(1);
+    expect(senas[0].detalle).toContain("spotlight");
+    expect(senas[0].detalle).toContain("3d-malla");
+    expect(senas[0].detalle).toContain("2 efectos prohibidos");
+  });
+
+  it("sigue exactamente lo que EFECTOS_POR_DIRECCION dice, también para los 2D", () => {
+    for (const [id, { evita }] of Object.entries(EFECTOS_POR_DIRECCION)) {
+      for (const efecto of EFECTOS) {
+        if (efecto.id.startsWith("3d-")) continue;
+        const senas = senasEfectosFueraDeDireccion(medidas([efecto.id]), id);
+        if (evita.includes(efecto.id)) {
+          expect(senas, `${id} debería prohibir ${efecto.id}`).toHaveLength(1);
+        } else {
+          expect(senas, `${id} no debería prohibir ${efecto.id}`).toEqual([]);
+        }
+      }
+    }
   });
 });

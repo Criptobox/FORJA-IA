@@ -52,6 +52,11 @@ export interface MedidasGenerico {
    * "3d-malla"). Vive aquí porque comparte el mismo barrido del DOM — medirlo
    * aparte sería un segundo recorrido completo por lo mismo. */
   efectos3d: string[];
+  /** ids de efectos 2D del kit (`data-fx="..."` o su clase suelta, p. ej.
+   * "marquee") presentes de verdad en la página pintada. Mismo motivo que
+   * `efectos3d`: un segundo barrido del DOM solo para esto sería tirar el
+   * trabajo que ya hace este mismo recorrido. */
+  efectos2d: string[];
 }
 
 export const MEDIDAS_VACIAS: MedidasGenerico = {
@@ -69,6 +74,7 @@ export const MEDIDAS_VACIAS: MedidasGenerico = {
   emojiEnTitulos: 0,
   elementos: 0,
   efectos3d: [],
+  efectos2d: [],
 };
 
 /** Por debajo de esto no hay página que juzgar. Un ejemplo de tres párrafos no
@@ -216,9 +222,10 @@ export function esGenerica(m: MedidasGenerico): boolean {
 /** El mensaje que se le devuelve al modelo. Mismo formato que el de los
  * errores de consola: lo que se ha visto y qué hacer con ello. */
 /** Genérica a propósito, como el resto de funciones de esta sección: también
- * la usa `senasEfectos3DFueraDeDireccion` de `efectos.ts`, cuya seña no es
- * ninguna «página genérica» — es un motor 3D en la dirección equivocada.
- * Por eso el texto no nombra el motivo, solo dice lo que se midió. */
+ * la usa `senasEfectosFueraDeDireccion` de `efectos.ts`, cuya seña no es
+ * ninguna «página genérica» — es un efecto (2D o 3D) fuera de lo que su
+ * dirección permite. Por eso el texto no nombra el motivo, solo dice lo que
+ * se midió. */
 export function promptDeGenerico(senas: SenaGenerica[], entry: string): string {
   if (!senas.length) return "";
   return [
@@ -244,7 +251,7 @@ export function resumenGenerico(senas: SenaGenerica[]): string {
  *  silencio después del último intento que ni se llegó a comprobar.
  *
  * Genérica a propósito (no habla de «genérica» en el texto): la usa
- * también `senasEfectos3DFueraDeDireccion` de `efectos.ts`, que no tiene
+ * también `senasEfectosFueraDeDireccion` de `efectos.ts`, que no tiene
  * nada que ver con el AI-slop — comparte el mecanismo, no el motivo. */
 export function avisoIntentosAgotados(senas: SenaGenerica[]): string {
   return `Se acabaron los intentos automáticos y la página sigue con esto sin arreglar: ${senas.map((s) => s.id).join(", ")}. Pídeme que la corrija otra vez o dime qué cambiar.`;
@@ -253,10 +260,11 @@ export function avisoIntentosAgotados(senas: SenaGenerica[]): string {
 /** Regla para la memoria de fallos del proyecto.
  *
  * Genérica a propósito (el nombre de la función es lo único que no lo es):
- * también la usa `senasEfectos3DFueraDeDireccion` de `efectos.ts`, y esa
- * seña no tiene nada de «página genérica» — es un motor 3D en la dirección
- * equivocada. El título usa `sena.detalle`, que cada seña ya escribe con su
- * propio motivo, en vez de un prefijo fijo que mentiría en ese caso. */
+ * también la usa `senasEfectosFueraDeDireccion` de `efectos.ts`, y esa
+ * seña no tiene nada de «página genérica» — es un efecto (2D o 3D) fuera de
+ * lo que su dirección permite. El título usa `sena.detalle`, que cada seña
+ * ya escribe con su propio motivo, en vez de un prefijo fijo que mentiría en
+ * ese caso. */
 export function reglaDeGenerico(sena: SenaGenerica): { titulo: string; regla: string } {
   return { titulo: sena.detalle, regla: sena.arreglo };
 }
@@ -347,6 +355,31 @@ export const GENERICO_SCRIPT = `function medirGenerico(){
       var v3 = canvas3d[c3].getAttribute("data-fx3d");
       if (v3 && efectos3d.indexOf(v3) === -1) efectos3d.push(v3);
     }
+    // lo mismo para los efectos 2D del kit: la mayoría se marcan con
+    // data-fx="<id>" directo, y unos pocos (soloCss) solo con una clase
+    // suelta, sin atributo.
+    var efectos2d = [];
+    function add2d(id){ if (efectos2d.indexOf(id) === -1) efectos2d.push(id); }
+    var conDataFx = body.querySelectorAll("[data-fx]");
+    // ids reales del catálogo con data-fx: "pin-inner"/"horizontal-track" son
+    // marcas internas del propio efecto, no un efecto en sí, así que no están
+    // aquí — y da igual si aparecen: no coinciden con nada en «evita».
+    var idsDataFx = {reveal:1,stagger:1,split:1,pop:1,tilt:1,magnetic:1,spotlight:1,count:1,parallax:1,pin:1,horizontal:1,cursor:1,scramble:1};
+    for (var df=0;df<conDataFx.length;df++){
+      var vfx = conDataFx[df].getAttribute("data-fx");
+      if (vfx && idsDataFx[vfx]) add2d(vfx);
+    }
+    var clasesSueltas = {"fx-marquee":"marquee","fx-noise":"noise","fx-grid":"grid","fx-dots":"grid","fx-underline":"underline","fx-sheen":"sheen","fx-float":"float","fx-blob":"blob"};
+    for (var claseCss in clasesSueltas){
+      if (body.querySelector("."+claseCss)) add2d(clasesSueltas[claseCss]);
+    }
+    // "mesh" aparte: comparte la clase fx-mesh con el motor 3D (el canvas la
+    // usa para su propio tamaño/estilo) — solo cuenta como el efecto 2D
+    // "mesh" si el elemento NO es un canvas del motor 3D.
+    var conFxMesh = body.querySelectorAll(".fx-mesh");
+    for (var fm=0;fm<conFxMesh.length;fm++){
+      if (!conFxMesh[fm].hasAttribute("data-fx3d")) { add2d("mesh"); break; }
+    }
     return {
       heroCentrado: heroCentrado,
       gruposIguales: gruposIguales,
@@ -361,6 +394,7 @@ export const GENERICO_SCRIPT = `function medirGenerico(){
       imagenesRelleno: imagenesRelleno,
       emojiEnTitulos: emojiEnTitulos,
       efectos3d: efectos3d,
+      efectos2d: efectos2d,
       elementos: todos.length
     };
   }catch(e){ return null; }

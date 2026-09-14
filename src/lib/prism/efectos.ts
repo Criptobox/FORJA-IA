@@ -201,36 +201,43 @@ export function promptEfectos(direccionId: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* el motor 3D, solo donde su dirección lo permite                    */
+/* solo los efectos que SU dirección permite                          */
 /* ------------------------------------------------------------------ */
 
 /**
- * El prompt prohíbe el motor 3D en cinco de las seis direcciones
- * (`EFECTOS_POR_DIRECCION`), pero eso solo se lo dice al modelo — nadie
- * comprobaba si lo hacía caso. Esto mide la página YA PINTADA
- * (`efectos3d`, del mismo barrido que `generico.ts`) y compara contra lo
- * que esa dirección tiene prohibido de verdad, sea cual sea.
+ * El prompt trae una lista negra por dirección (`EFECTOS_POR_DIRECCION`),
+ * 2D y 3D por igual, pero eso solo se lo dice al modelo — nadie comprobaba
+ * si le hacía caso. Esto mide la página YA PINTADA (`efectos2d`/`efectos3d`,
+ * del mismo barrido que `generico.ts`) y compara contra lo que esa
+ * dirección tiene prohibido de verdad, sea cual sea.
+ *
+ * Una sola función para las dos familias (antes eran dos, una por cada
+ * una — puro efecto2D o motor 3D: la comparación es idéntica, solo cambia
+ * de qué lista se lee, así que separarlas era duplicar sin motivo). El
+ * texto de cada efecto prohibido sale del propio catálogo (`efectoPorId`),
+ * no de una frase escrita a mano por familia.
  *
  * Devuelve `SenaGenerica[]` a propósito, con la misma forma que
  * `senasGenericas` — así se reutiliza tal cual todo el aviso/reintento del
  * bucle de auto-revisión (`promptDeGenerico`, `resumenGenerico`,
- * `avisoIntentosAgotados` de `generico.ts`), sin duplicar esa fontanería
- * por una tercera vez.
+ * `avisoIntentosAgotados` de `generico.ts`), sin duplicar esa fontanería.
  */
-export function senasEfectos3DFueraDeDireccion(
+export function senasEfectosFueraDeDireccion(
   m: MedidasGenerico,
   direccionId: string | null | undefined
 ): SenaGenerica[] {
   if (!direccionId) return [];
   const mapa = EFECTOS_POR_DIRECCION[direccionId];
   if (!mapa) return [];
-  const prohibidos = m.efectos3d.filter((id) => mapa.evita.includes(id));
+  const presentes = [...m.efectos2d, ...m.efectos3d];
+  const prohibidos = [...new Set(presentes.filter((id) => mapa.evita.includes(id)))];
   if (!prohibidos.length) return [];
+  const usos = prohibidos.map((id) => `- ${id}: ${efectoPorId(id)?.uso ?? "efecto del kit"}`).join("\n");
   return [
     {
-      id: "3d-fuera-de-direccion",
-      detalle: `Usa el motor 3D (${prohibidos.join(", ")}) en la dirección "${direccionId}", que lo tiene prohibido.`,
-      arreglo: `Quita el <canvas data-fx3d="..."> y el enlace a ${FX3D_JS_PATH}: el motor 3D es solo para la dirección "experimental", y aquí rompe el mundo visual que ya tiene esta dirección.`,
+      id: "efecto-fuera-de-direccion",
+      detalle: `Usa ${prohibidos.length === 1 ? "un efecto prohibido" : `${prohibidos.length} efectos prohibidos`} en la dirección "${direccionId}": ${prohibidos.join(", ")}.`,
+      arreglo: `Esta dirección los tiene en su lista de prohibidos — rompen el mundo visual que ya tiene resuelto. Quítalos:\n${usos}`,
     },
   ];
 }

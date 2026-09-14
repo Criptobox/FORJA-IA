@@ -41,6 +41,8 @@ const MODELOS = [
   "mock-proyecto-repo",
   "mock-3d-mal-puesto",
   "mock-3d",
+  "mock-2d-mal-puesto",
+  "mock-2d",
   "mock-scroll",
   "mock-tema-en-head",
   "mock-texto-mixto",
@@ -363,9 +365,15 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // detecta en la página ya pintada y se lo devuelve al modelo, igual que
   // hace con lo genérico — dogfooding: hasta ahora nadie comprobaba esto,
   // el prompt lo prohibía pero nadie miraba si se hacía caso.
+  //
+  // El marcador de corrección NO puede ser ".includes('motor 3D')" desde que
+  // `senasEfectosFueraDeDireccion` se generalizó (v4.12.0): el texto ahora es
+  // neutro, solo nombra los ids reales ("3d-malla"), no la frase "motor 3D".
+  // Mismo marcador que `mock-2d-mal-puesto`: la apertura de
+  // `promptDeGenerico`, que solo aparece en un mensaje de corrección real.
   if (modelo === "mock-3d-mal-puesto") {
     const leCorrigieron = msgs.some(
-      (m) => typeof m.content === "string" && (m.content as string).includes("motor 3D")
+      (m) => typeof m.content === "string" && (m.content as string).includes("y la he medido")
     );
     const escena = leCorrigieron
       ? ""
@@ -380,6 +388,59 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<body style="margin:0;font-family:system-ui">',
       "<h1>Bienvenido a la tienda</h1>",
       escena,
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-2d-mal-puesto`: pone un efecto 2D (marquee) en una landing pedida
+  // explícitamente "editorial de revista" — la dirección "editorial" lo
+  // tiene PROHIBIDO (EFECTOS_POR_DIRECCION.editorial.evita). Mismo mecanismo
+  // que `mock-3d-mal-puesto` pero para la mitad 2D del mismo detector.
+  //
+  // El marcador de corrección NO puede ser ".includes('marquee')": el propio
+  // prompt de sistema de "editorial" ya nombra "marquee" en su lista de
+  // PROHIBIDOS (promptEfectos), así que esa palabra sale también en el
+  // primer turno, antes de corregir nada — el mismo colapso que ya se
+  // encontró con "motor 3D" en la dirección experimental. Se usa el mismo
+  // marcador único que `mock-3d-mal-puesto`: la apertura de
+  // `promptDeGenerico`, que solo aparece en un mensaje de corrección real.
+  if (modelo === "mock-2d-mal-puesto") {
+    const leCorrigieron = msgs.some(
+      (m) => typeof m.content === "string" && (m.content as string).includes("y la he medido")
+    );
+    const marquee = leCorrigieron
+      ? ""
+      : '<div class="fx-marquee" style="white-space:nowrap;overflow:hidden">Novedades cada semana · Novedades cada semana ·</div>\n';
+    return [
+      leCorrigieron ? "Quitado el marquee." : "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Revista</title>',
+      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<body style="margin:0;font-family:system-ui">',
+      "<h1>Editorial de revista</h1>",
+      marquee,
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-2d`: enlaza el marquee (clase suelta, sin corrección) — igual que
+  // `mock-3d` para el motor 3D, sirve para comprobar en una dirección que SÍ
+  // lo permite (brutalista) que Prism no lo toca.
+  if (modelo === "mock-2d") {
+    return [
+      "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8">',
+      "<title>Con marquee</title>",
+      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<body style="margin:0">',
+      '<div class="fx-marquee" style="white-space:nowrap;overflow:hidden">Últimas noticias · Últimas noticias ·</div>',
       "</body></html>",
       "```",
     ].join("\n");
