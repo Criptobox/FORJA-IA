@@ -382,3 +382,115 @@ describe("ejecutarConTools — los permisos recortan lo que se le OFRECE al mode
     expect(catalogos).toEqual([]);
   });
 });
+
+describe("ejecutarConTools — auto-verificación tras una mutación del proyecto", () => {
+  /** El modelo escribe un archivo en la vuelta 1 y cierra en la vuelta 2.
+   * `write_file` dispara la auto-verificación: se ejecuta `verify_project`
+   * SIN que el modelo lo haya pedido, y su resultado viaja de vuelta al
+   * modelo en la misma tanda. */
+  function depsEscribeYCierra(
+    registro: Array<{ messages: StreamMessage[]; conTools: boolean }>
+  ): DepsTools {
+    let vuelta = 0;
+    return {
+      probe: vi.fn(async () => ({ support: "ok" as const, verdict: "ok" as const, status: 200, ms: 1, at: Date.now() })),
+      stream: vi.fn(async (opts: StreamOptions) => {
+        vuelta++;
+        registro.push({ messages: opts.messages, conTools: !!opts.tools });
+        if (vuelta === 1) {
+          opts.onToolCalls?.([
+            { id: "w1", name: "write_file", args: { path: "index.html", content: "<html><body>hola</body></html>" } },
+          ]);
+          return "escribo la página";
+        }
+        return "listo";
+      }) as unknown as DepsTools["stream"],
+    };
+  }
+
+  it("dispara verify_project solo, sin que el modelo lo pida", async () => {
+    const registro: Array<{ messages: StreamMessage[]; conTools: boolean }> = [];
+    await ejecutarConTools(opciones(), true, 3, null, { apiKey: "k" }, undefined, depsEscribeYCierra(registro));
+
+    // la 2ª vuelta lleva reinyectado el resultado de write_file Y el de la
+    // verificación automática — dos tool_call_id distintos.
+    const segunda = registro[1].messages;
+    const idsResultado = segunda
+      .map((m) => (m as unknown as { tool_call_id?: string }).tool_call_id)
+      .filter((id): id is string => !!id);
+    expect(idsResultado).toContain("w1");
+    expect(idsResultado.some((id) => id.startsWith("auto-verify-"))).toBe(true);
+  });
+
+  it("cada tool_result de la vuelta reinyectada tiene su tool_call anunciado por el assistant — si no, la API real (OpenAI/Anthropic) rechaza el turno con 400", async () => {
+    const registro: Array<{ messages: StreamMessage[]; conTools: boolean }> = [];
+    await ejecutarConTools(opciones(), true, 3, null, { apiKey: "k" }, undefined, depsEscribeYCierra(registro));
+
+    const segunda = registro[1].messages;
+    const asistente = segunda.find((m) => m.role === "assistant") as unknown as {
+      tool_calls?: Array<{ id: string }>;
+    };
+    const idsAnunciados = new Set((asistente?.tool_calls ?? []).map((tc) => tc.id));
+    const idsResultado = segunda
+      .map((m) => (m as unknown as { tool_call_id?: string }).tool_call_id)
+      .filter((id): id is string => !!id);
+
+    for (const id of idsResultado) {
+      expect(idsAnunciados.has(id), `tool_result «${id}» no tiene tool_call anunciado`).toBe(true);
+    }
+  });
+
+  it("no duplica la verificación si el modelo ya llamó verify_project en esa misma tanda", async () => {
+    const registro: Array<{ messages: StreamMessage[]; conTools: boolean }> = [];
+    let vuelta = 0;
+    const d: DepsTools = {
+      probe: vi.fn(async () => ({ support: "ok" as const, verdict: "ok" as const, status: 200, ms: 1, at: Date.now() })),
+      stream: vi.fn(async (opts: StreamOptions) => {
+        vuelta++;
+        registro.push({ messages: opts.messages, conTools: !!opts.tools });
+        if (vuelta === 1) {
+          opts.onToolCalls?.([
+            { id: "w1", name: "write_file", args: { path: "index.html", content: "<html></html>" } },
+            { id: "v1", name: "verify_project", args: {} },
+          ]);
+          return "escribo y verifico";
+        }
+        return "listo";
+      }) as unknown as DepsTools["stream"],
+    };
+
+    await ejecutarConTools(opciones(), true, 3, null, { apiKey: "k" }, undefined, d);
+
+    const segunda = registro[1].messages;
+    const idsResultado = segunda
+      .map((m) => (m as unknown as { tool_call_id?: string }).tool_call_id)
+      .filter((id): id is string => !!id);
+    // solo el verify_project explícito del modelo (v1); ninguno auto-*
+    expect(idsResultado.filter((id) => id.startsWith("auto-verify-"))).toHaveLength(0);
+  });
+
+  it("no se dispara si la vuelta no mutó nada (solo lectura)", async () => {
+    const registro: Array<{ messages: StreamMessage[]; conTools: boolean }> = [];
+    let vuelta = 0;
+    const d: DepsTools = {
+      probe: vi.fn(async () => ({ support: "ok" as const, verdict: "ok" as const, status: 200, ms: 1, at: Date.now() })),
+      stream: vi.fn(async (opts: StreamOptions) => {
+        vuelta++;
+        registro.push({ messages: opts.messages, conTools: !!opts.tools });
+        if (vuelta === 1) {
+          opts.onToolCalls?.([{ id: "l1", name: "list_files", args: {} }]);
+          return "miro los archivos";
+        }
+        return "listo";
+      }) as unknown as DepsTools["stream"],
+    };
+
+    await ejecutarConTools(opciones(), true, 3, null, { apiKey: "k" }, undefined, d);
+
+    const segunda = registro[1].messages;
+    const idsResultado = segunda
+      .map((m) => (m as unknown as { tool_call_id?: string }).tool_call_id)
+      .filter((id): id is string => !!id);
+    expect(idsResultado.some((id) => id.startsWith("auto-verify-"))).toBe(false);
+  });
+});

@@ -133,12 +133,14 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
     // consultan (run_regression, snapshot_diff, ask_memory). v4.0: 16, con
     // apply_patch (edición por parches SEARCH/REPLACE). v4.13: 17, con
     // visual_review (QA por visión). v4.24: 18, con verify_project
-    // (verificación independiente). La lista va exacta a propósito:
-    // comprueba que el catálogo TRADUCIDO llega entero al modelo, que es
-    // distinto de que exista en `tools-catalog.ts`.
+    // (verificación independiente). v4.25: 19, con diagnose_project
+    // (diagnóstico accionable). La lista va exacta a propósito: comprueba
+    // que el catálogo TRADUCIDO llega entero al modelo, que es distinto de
+    // que exista en `tools-catalog.ts`.
     expect(names).toEqual([
       "apply_patch",
       "ask_memory",
+      "diagnose_project",
       "edit_file",
       "fetch_api",
       "get_quota",

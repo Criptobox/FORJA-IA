@@ -352,6 +352,15 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
     },
   },
   {
+    name: "diagnose_project",
+    description:
+      "Ejecuta la misma verificación que «verify_project» y convierte cada hallazgo en un diagnóstico accionable: causa observada, acción recomendada, archivo candidato y criterio para considerar el arreglo terminado. No inventa líneas exactas ni genera parches — el agente debe leer el archivo candidato (con «read_file») antes de tocarlo.",
+    parameters: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
     name: "visual_review",
     description:
       "Toma una captura REAL de la página renderizada (no mide el DOM, la VE) y se la enseña a un modelo con visión para que la critique: jerarquía, alineación, espaciado, contraste, composición, algo que se vea roto o genérico. Distinta de «run_project» con «qa»: eso mide números; esto ve la página como un usuario. Úsala tras un cambio visual importante, no en cada turno — cuesta una llamada de visión aparte. Si el modelo activo no admite imágenes, te lo dice en vez de ejecutarse. Nota: no ve lo que pinta un <canvas> (el motor 3D incluido) — solo el DOM.",

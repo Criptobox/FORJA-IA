@@ -51,6 +51,7 @@ const MODELOS = [
   "mock-enlace-roto",
   "mock-mide",
   "mock-verifica",
+  "mock-diagnostica",
   "mock-visual-review",
   "mock-visual-review-sin-vision",
   "mock-llamada-en-texto",
@@ -1152,6 +1153,75 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
       .join("\n\n---\n\n");
     return Response.json({
       choices: [{ message: { content: `Esto es lo que dijo la verificación:\n\n${dicho}` }, index: 0 }],
+    });
+  }
+
+  // `mock-diagnostica`: el agente pide `diagnose_project` (v4.25) en vez de
+  // `verify_project` — la MISMA verificación, pero convertida en causa +
+  // acción + archivo candidato en vez de solo PASS/NO PASS. Escribe una
+  // página con un hallazgo real (una imagen sin `alt`), diagnostica
+  // (BLOCKED, con «index.html» como candidato), la arregla, y vuelve a
+  // diagnosticar (READY). El texto final es literal, igual que `mock-mide`.
+  if (body.model === "mock-diagnostica") {
+    const rondas = (body.messages ?? []).filter(
+      (m) => Array.isArray((m as { tool_calls?: unknown[] }).tool_calls) &&
+        ((m as { tool_calls?: unknown[] }).tool_calls ?? []).length > 0
+    ).length;
+
+    // Imagen como data: URI para no depender de un segundo archivo — dos
+    // `write_file` en la MISMA ronda compartirían nombre de tool y, con el
+    // esquema de ids de abajo, el mismo id: el cliente los acumula por id
+    // al reensamblar el streaming y uno pisa al otro.
+    const pagina = (rota: boolean) => rota
+      ? '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism</title></head><body><img src="data:image/svg+xml,%3Csvg/%3E"></body></html>'
+      : '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism</title></head><body><img alt="Logo" src="data:image/svg+xml,%3Csvg/%3E"></body></html>';
+
+    const fn = (name: string, args: unknown) => ({
+      id: `call_diagnostica_${name}_${rondas}`,
+      type: "function",
+      function: { name, arguments: JSON.stringify(args) },
+    });
+
+    const guion: Array<Array<ReturnType<typeof fn>>> = [
+      [fn("write_file", { path: "index.html", content: pagina(true) })],
+      [fn("diagnose_project", {})],
+      [fn("write_file", { path: "index.html", content: pagina(false) })],
+      [fn("diagnose_project", {})],
+    ];
+
+    if (body.tools && rondas < guion.length) {
+      const toolCalls = guion[rondas];
+      if (body.stream) {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({
+                  id: "mock-diagnostica-1",
+                  choices: [{ delta: { tool_calls: toolCalls }, index: 0 }],
+                })}\n\n`
+              )
+            );
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          },
+        });
+        return new Response(stream, {
+          headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" },
+        });
+      }
+      return Response.json({
+        choices: [{ message: { content: "", tool_calls: toolCalls }, index: 0 }],
+      });
+    }
+
+    const dicho = (body.messages ?? [])
+      .filter((m) => m.role === "tool")
+      .map((m) => (typeof m.content === "string" ? m.content : ""))
+      .join("\n\n---\n\n");
+    return Response.json({
+      choices: [{ message: { content: `Esto es lo que dijo el diagnóstico:\n\n${dicho}` }, index: 0 }],
     });
   }
 

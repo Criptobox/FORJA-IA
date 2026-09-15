@@ -276,6 +276,58 @@ describe("verify_project", () => {
   });
 });
 
+describe("diagnose_project", () => {
+  it("avisa si no hay Sandbox disponible", async () => {
+    const r = await runTool(call("diagnose_project", {}), ctx());
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("No hay Sandbox");
+  });
+
+  it("si el proyecto no se ejecuta, diagnostica el fallo de runtime como bloqueante", async () => {
+    const c = ctx({
+      runProject: async () => ({
+        ok: false, ejecutado: false, logs: 0, errors: 0, logLines: [], errorLines: [],
+        reason: "el iframe no respondió",
+      }),
+    });
+    const r = await runTool(call("diagnose_project", {}), c);
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("BLOCKED");
+    expect(r.content).toContain("el iframe no respondió");
+  });
+
+  it("con hallazgos reales, da causa, acción y archivo candidato — no inventa una línea", async () => {
+    const c = ctx({
+      projectFiles: {
+        "index.html": '<!doctype html><html><body><img src="logo.svg"></body></html>',
+      },
+      runProject: async () => ({
+        ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [],
+        qa: { width: 320, ok: true, items: [], at: Date.now(), noRespondio: false },
+      }),
+    });
+    const r = await runTool(call("diagnose_project", {}), c);
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("Diagnóstico accionable");
+    expect(r.content).toContain("index.html");
+  });
+
+  it("con el proyecto limpio, el diagnóstico dice que está listo", async () => {
+    const c = ctx({
+      projectFiles: {
+        "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width"><title>Prism</title></head><body><img alt="Logo" src="logo.svg"></body></html>',
+        "logo.svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>",
+      },
+      runProject: async () => ({
+        ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [],
+        qa: { width: 320, ok: true, items: [], at: Date.now(), noRespondio: false },
+      }),
+    });
+    const r = await runTool(call("diagnose_project", {}), c);
+    expect(r.content).toContain("READY");
+  });
+});
+
 describe("visual_review", () => {
   it("avisa si no hay Sandbox disponible", async () => {
     const r = await runTool(call("visual_review", {}), ctx());

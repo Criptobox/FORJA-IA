@@ -57,7 +57,7 @@ export interface AgentToolsState {
  * Se exporta porque los tests comprueban que este mensaje SE ENVÍA: antes
  * se construía y se tiraba (ver `ejecutarConTools`). */
 export const CIERRE_TOOLS =
-  "Has llegado al límite de iteraciones con herramientas. Entrega AHORA la respuesta final al usuario, con lo que ya tienes y sin llamar a más herramientas.";
+  "Has llegado al límite de iteraciones con herramientas. Entrega AHORA la respuesta final al usuario, con lo que ya tienes y sin llamar a más herramientas. Si la última verificación contiene FAIL o evidencia incompleta, NO afirmes que el proyecto está correcto: declara exactamente qué quedó sin verificar o qué fallo persiste.";
 
 /** Construye el contexto de herramientas a partir del estado del Sandbox.
  * Si no hay proyecto, los archivos están vacíos y `run_project` devuelve
@@ -304,6 +304,34 @@ export async function ejecutarConTools(
 
     // Ejecutar tools localmente y reinyectar los resultados.
     const results: ToolResult[] = await runTools(pendingToolCalls, tctx);
+
+    // Verificación automática después de CUALQUIER escritura. El agente no
+    // debe tener que acordarse de pedir verify_project: si acaba de cambiar
+    // el proyecto, Prism vuelve a ejecutarlo y le entrega evidencia objetiva
+    // en la misma conversación — editar → ejecutar → verificar → corregir,
+    // en vez de depender de una promesa textual del modelo. No se duplica
+    // si el modelo ya llamó verify_project en esta misma tanda.
+    //
+    // La llamada sintética se añade TAMBIÉN a `pendingToolCalls` (no solo a
+    // `results`): un mensaje `tool` cuyo `tool_call_id` el turno assistant
+    // anterior nunca anunció es un body inválido para la API real de
+    // OpenAI/Anthropic — las dos exigen que cada tool_result case con un
+    // tool_call/tool_use del turno previo, o responden 400. El mock de
+    // pruebas no lo exige, así que este desajuste no se habría visto aquí.
+    const mutatingTools = new Set(["write_file", "edit_file", "apply_patch"]);
+    const cambioProyecto = pendingToolCalls.some((tc) => mutatingTools.has(tc.name));
+    const yaVerifico = pendingToolCalls.some((tc) => tc.name === "verify_project");
+    if (cambioProyecto && !yaVerifico && Object.keys(tctx.projectFiles).length) {
+      // `silencioso`: no deja esta ejecución como referencia para
+      // `run_regression` (ver el comentario en `runVerifyProject`,
+      // tool-runner.ts) — el modelo no pidió esta comprobación, así que no
+      // debe cambiarle en silencio el «antes» de una medida futura.
+      const autoVerifyCall: ToolCall = { id: `auto-verify-${loop + 1}`, name: "verify_project", args: { silencioso: true } };
+      const [autoResult] = await runTools([autoVerifyCall], tctx);
+      pendingToolCalls = [...pendingToolCalls, autoVerifyCall];
+      results.push(autoResult);
+    }
+
     // La UI (chat-app) recoge el estado actual del proyecto: lo que el
     // agente acaba de escribir/editar/restaurar llega al Sandbox.
     onProjectFiles?.({ ...tctx.projectFiles });

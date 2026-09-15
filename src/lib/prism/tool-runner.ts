@@ -30,6 +30,7 @@ import { reglaQueBloquea, motivoBloqueo, type ReglaNo } from "./reglas-no";
 import { aplicarParches, mensajeResultado, parsearParches, type Parche } from "./patch";
 import { buscarEnWeb } from "./busqueda-web";
 import { verifyWebProject, summarizeVerification, type WebVerification } from "./web-verifier";
+import { diagnoseFindings, summarizeDiagnosis } from "./web-diagnostics";
 import {
   crearSnapshot,
   guardarSnapshot,
@@ -261,6 +262,8 @@ export async function runTool(
         return runAskMemory(call, ctx);
       case "verify_project":
         return await runVerifyProject(call, ctx);
+      case "diagnose_project":
+        return await runDiagnoseProject(call, ctx);
       case "visual_review":
         return await runVisualReview(call, ctx);
       default:
@@ -948,9 +951,53 @@ async function runVerifyProject(call: ToolCall, ctx: ToolContext): Promise<ToolR
     errorLines: outcome.errorLines,
     qa: outcome.qa,
   });
+  // `run_project`/`run_regression`/`diagnose_project` comparten esta
+  // referencia a propósito: cualquier ejecución sirve de «antes» para el
+  // siguiente `run_regression`, así el modelo no tiene que acordarse de
+  // preparar nada. Pero la auto-verificación tras una escritura (v4.25,
+  // `use-agent-tools.ts`) es invisible para el modelo — si también fijara
+  // esta referencia, `run_regression` dejaría de decir «no había ejecución
+  // anterior» la primera vez que el modelo la llama, por una comparación
+  // que él nunca pidió. `call.args.silencioso` la excluye de esto: sigue
+  // dando evidencia real en su propio resultado, solo no se cuela como
+  // baseline ajena.
+  if (!boolArg(call, "silencioso")) {
+    ctx.lastConsole = { lines: (outcome.consola ?? []).slice(-MAX_CONSOLA), fecha: Date.now() };
+    ctx.lastRun = snapshotDeOutcome(outcome);
+  }
+  return toolOk(call, summarizeVerification(verification));
+}
+
+/**
+ * `diagnose_project`: la mitad que le faltaba a `verify_project` — no solo
+ * decir QUÉ falla, sino qué hacer con ello. Convierte cada hallazgo del
+ * verificador en un diagnóstico accionable (causa, acción recomendada,
+ * archivo candidato, criterio de cierre) sin inventar líneas exactas ni
+ * generar parches; el agente sigue teniendo que leer el archivo antes de
+ * tocarlo. Pasa por el mismo `ctx.runProject` seguro que `verify_project`.
+ */
+async function runDiagnoseProject(call: ToolCall, ctx: ToolContext): Promise<ToolResult> {
+  if (!ctx.runProject) {
+    return toolError(call, "No hay Sandbox disponible. El usuario no tiene un proyecto abierto en el Sandbox.");
+  }
+  const outcome = await ctx.runProject({ qa: true });
+  if (!outcome.ejecutado) {
+    const diagnosis = diagnoseFindings(
+      [{ id: "runtime-missing", severity: "error", source: "runtime", message: outcome.reason ?? "No se pudo ejecutar el proyecto." }],
+      Object.keys(ctx.projectFiles)
+    );
+    return toolOk(call, summarizeDiagnosis(diagnosis));
+  }
+  const verification = verifyWebProject(ctx.projectFiles, {
+    executed: outcome.ejecutado,
+    errors: outcome.errors,
+    errorLines: outcome.errorLines,
+    qa: outcome.qa,
+  });
+  const diagnosis = diagnoseFindings(verification.findings, Object.keys(ctx.projectFiles));
   ctx.lastConsole = { lines: (outcome.consola ?? []).slice(-MAX_CONSOLA), fecha: Date.now() };
   ctx.lastRun = snapshotDeOutcome(outcome);
-  return toolOk(call, summarizeVerification(verification));
+  return toolOk(call, summarizeDiagnosis(diagnosis));
 }
 
 /**

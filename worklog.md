@@ -7063,3 +7063,107 @@ para incluir `verify_project`.
   1 nuevo), suite completa
 - ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin
   `standalone` y con el `.nft.json`
+
+## v4.23.0 — Tres ZIPs más, la misma ruta sin autenticar otra vez descartada
+
+El usuario subió tres ZIPs seguidos: `prism-ai-4.25.0-verified-autofix.zip`,
+`prism-ai-4.26.0-actionable-diagnostics.zip` y
+`prism-ai-4.27.0-direct-code-repair.zip`. Mismo patrón que los anteriores
+—`worklog.md` cortado en la v4.19.0—, y los tres traían, byte a byte
+IDÉNTICA, la misma ruta `/api/prism-web/runtime` sin autenticar (RCE con
+el entorno completo del servidor) que ya se descartó en la v4.22.0.
+Confirmado con el usuario, se descartó otra vez — no hubo que revisarla de
+nuevo, era el mismo archivo.
+
+El ZIP 4.27 además proponía ELIMINAR `apply_patch` —la tool de parches
+SEARCH/REPLACE en producción desde la v4.0, usada en 8 archivos, con sus
+propios tests— y sustituirla por edición directa con `read_file`+
+`edit_file`. Su propio doc admitía no haber podido correr su suite para
+validar el cambio. Revisado el `worklog.md` del propio proyecto: `apply_patch`
+nunca ha causado un bug documentado aquí; el argumento del ZIP («los parches
+se desincronizan del archivo real») es genérico, no una observación real de
+Prism AI. Consultado, se decidió NO quitarla — se porta solo lo nuevo y
+seguro.
+
+### Lo que sí se portó
+
+- **`diagnose_project`** (tool nueva, `web-diagnostics.ts`): la misma
+  verificación de `verify_project`, pero convertida en diagnóstico
+  accionable — causa, acción recomendada, archivo candidato, criterio de
+  cierre — en vez de solo PASS/NO PASS. No inventa líneas exactas; el
+  agente sigue teniendo que leer el archivo antes de tocarlo. El ZIP
+  añadía esto AL FINAL del `diagnostics.ts` YA EXISTENTE (una función sin
+  relación: «Copiar diagnóstico» del proveedor/entorno) — se puso en un
+  archivo nuevo (`web-diagnostics.ts`) en vez de mezclar dos funciones sin
+  relación en el mismo módulo.
+- **Auto-verificación tras mutación** (`use-agent-tools.ts`): tras
+  cualquier `write_file`/`edit_file`/`apply_patch`, si el modelo no pidió
+  `verify_project` en esa misma tanda, Prism lo hace por él y reinyecta la
+  evidencia — el bucle pasa a ser editar → ejecutar → verificar → corregir
+  sin que el modelo tenga que acordarse de pedirlo.
+
+### Un bug de protocolo real en el propio ZIP, nunca detectado por sus tests
+
+La auto-verificación del ZIP añadía el resultado de la llamada sintética
+(`verify_project`) a la lista de resultados reinyectados, pero NO a la
+lista de `tool_calls` que el mensaje `assistant` anuncia. Eso es un
+mensaje `tool` cuyo `tool_call_id` el turno anterior nunca anunció — un
+body inválido para la API real de OpenAI (rechaza con 400) y de Anthropic
+(un `tool_result` sin `tool_use` correspondiente). El mock de pruebas del
+propio ZIP no lo exige, así que su test («auto-verifies after a project
+mutation») pasaba igual, sin que nadie lo notara. Corregido: la llamada
+sintética se añade TAMBIÉN a `pendingToolCalls`, así que aparece en ambos
+lados del turno, como haría una llamada real del modelo.
+
+### Un segundo efecto colateral real, encontrado al correr `tools-medir.spec.ts`
+
+`run_project`, `run_regression`, `verify_project` y `diagnose_project`
+comparten a propósito `ctx.lastRun` — cualquier ejecución sirve de «antes»
+para el siguiente `run_regression`, documentado así desde que existe
+`run_project` (para que el modelo no tenga que preparar nada a mano). Pero
+la auto-verificación es INVISIBLE para el modelo: si también fijara esa
+referencia, la primera vez que el modelo llamara a `run_regression`
+después de escribir un archivo, `run_regression` dejaría de decir «no
+había ejecución anterior» — por una comparación que el modelo nunca pidió.
+Esto lo detectó `tools-medir.spec.ts` (v3.40, ya en producción): su primer
+`run_regression` espera exactamente ese mensaje, y con la auto-verificación
+sin corregir dejaba de aparecer. Arreglado con un argumento interno
+`silencioso` en `verify_project`: la auto-verificación sigue dando
+evidencia real en su propio resultado, solo no se cuela como referencia
+ajena para otra tool que el modelo no llamó.
+
+### Pruebas
+
+- `tests/unit/web-diagnostics.test.ts` (nuevo, 5 tests): causa/acción/
+  candidato de un error de runtime, un hallazgo visual sin inventar línea,
+  un secreto filtrado como `remove-secret`, proyecto limpio → `ready`,
+  solo warnings → `needs-fix` (no bloqueado).
+- `tests/unit/tool-runner.test.ts`: +4 tests de `diagnose_project` (sin
+  Sandbox, fallo de runtime, hallazgos reales con archivo candidato,
+  proyecto limpio → `ready`).
+- `tests/unit/agent-tools-loop.test.ts`: +4 tests de la auto-verificación:
+  se dispara sola tras una escritura; CADA `tool_result` reinyectado tiene
+  su `tool_call` anunciado por el `assistant` (la prueba directa del bug
+  de protocolo, arriba); no se duplica si el modelo ya llamó
+  `verify_project`; no se dispara si la vuelta no mutó nada.
+- `tests/e2e/diagnose-project.spec.ts` (nuevo): un mock escribe una imagen
+  sin `alt`, diagnostica (`NEEDS-FIX`, con `index.html` como candidato),
+  la arregla, vuelve a diagnosticar (`READY`). Primer intento con DOS
+  `write_file` en la misma ronda con el mismo `id` (mismo nombre de tool):
+  el cliente acumula por `id` al reensamblar el streaming y uno pisaba al
+  otro, dejando el proyecto vacío a mitad de guion. Corregido pasando la
+  imagen como `data:` URI (no necesita un segundo archivo) — y de paso
+  documentado el porqué en el propio mock, para no repetirlo.
+- Las tres tools medidoras de `run_project` ya en producción
+  (`tools-medir.spec.ts`, `verify-project.spec.ts`, y las tres de
+  `tools-agente.spec.ts`) se re-ejecutaron enteras tras el cambio: sin
+  ellas no se habría visto ni el bug de `ctx.lastRun` ni si el catálogo
+  ampliado seguía viajando entero.
+
+### Puerta
+
+- ✓ lint · ✓ knip (mismo ruido preexistente) · ✓ tsc limpio
+- ✓ **1 945** unitarios (1 932 + 13 nuevos) · ✓ **260** E2E (259 antes +
+  1 nuevo), suite completa
+- ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin
+  `standalone` y con el `.nft.json`
