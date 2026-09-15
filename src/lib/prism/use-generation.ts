@@ -48,7 +48,7 @@ import { useUsage } from "./usage";
 import { estaRoto, useModelosRotos } from "./modelos-rotos";
 import { cabe, useLimites } from "./limites-medidos";
 import { avisoNoCabeNiRecortando, avisoRecorte, recortar, tokensDe } from "./recorte-contexto";
-import { calcularHud, VENTANA_DEFECTO } from "./ctx-hud";
+import { calcularHud, ventanaReferencia } from "./ctx-hud";
 import type { FichaRespuesta, IntentoFallido } from "./ficha-respuesta";
 import { costeDeModelo, PRECIOS_FECHA } from "./precios";
 import {
@@ -716,7 +716,14 @@ export function useGeneration(ctx: CtxGeneracion) {
         // reactivo — sin la llamada de resumen aparte, que costaría una
         // petición extra en CADA turno con el contexto lleno, no solo en el
         // recorte ocasional de un modelo concreto.
-        const ventanaRef = usePrism.getState().settings.ventanaCtx || VENTANA_DEFECTO;
+        // Si ya sabemos de verdad el tope de ESTE modelo (limites-medidos.ts,
+        // aprendido de un rechazo real del proveedor), se usa ese en vez de
+        // la referencia genérica — nunca al revés, ver `ventanaReferencia()`.
+        const ventanaRef = ventanaReferencia(
+          useLimites.getState().limites,
+          chain[0] ? makeModelKey(chain[0].providerId, chain[0].modelId) : null,
+          usePrism.getState().settings.ventanaCtx
+        );
         const hudAntes = calcularHud(tokensDe(mensajesDelIntento), ventanaRef);
         if (hudAntes.nivel === "rojo") {
           const rProactivo = recortar(mensajesDelIntento, ventanaRef);

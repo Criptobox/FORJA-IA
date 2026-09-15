@@ -46,6 +46,9 @@ export interface MedidasGenerico {
   imagenesRelleno: string[];
   /** titulares que empiezan por emoji */
   emojiEnTitulos: number;
+  /** botones/enlaces cuyo ÚNICO contenido visible es un emoji, haciendo de
+   * icono — el mismo patrón que `skill-anti-slop` pide evitar */
+  iconosEmoji: number;
   /** elementos totales del cuerpo: para no juzgar una página de tres líneas */
   elementos: number;
   /** ids de `data-fx3d` presentes de verdad en la página pintada (p. ej.
@@ -72,6 +75,7 @@ export const MEDIDAS_VACIAS: MedidasGenerico = {
   relleno: [],
   imagenesRelleno: [],
   emojiEnTitulos: 0,
+  iconosEmoji: 0,
   elementos: 0,
   efectos3d: [],
   efectos2d: [],
@@ -192,6 +196,15 @@ export function senasGenericas(m: MedidasGenerico): SenaGenerica[] {
     });
   }
 
+  if (m.iconosEmoji >= 2) {
+    out.push({
+      id: "iconos-emoji",
+      detalle: `${m.iconosEmoji} botones o enlaces usan un emoji como único icono.`,
+      arreglo:
+        "Un emoji no es un icono: cambia de tamaño con la fuente del sistema del usuario y no todos los navegadores lo pintan igual. Dibuja el icono en SVG propio (o una librería de iconos coherente con el estilo) y quita el emoji.",
+    });
+  }
+
   if (m.bloques >= 6 && m.centrados / m.bloques > 0.7) {
     out.push({
       id: "todo-centrado",
@@ -279,6 +292,7 @@ export const GENERICO_SCRIPT = `function medirGenerico(){
     var rellenoRe = /lorem ipsum|dolor sit amet|texto de ejemplo|tu texto aqu|t[ií]tulo aqu|descripci[oó]n aqu|caracter[ií]stica [123]\\b|feature [123]\\b|placeholder|coming soon|pr[oó]ximamente aqu/i;
     var placeholderHosts = /(via\\.placeholder|placehold\\.co|placekitten|dummyimage|lorempixel|picsum\\.photos|unsplash\\.com\\/random)/i;
     var emojiRe = /^\\s*[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}]/u;
+    var emojiIconoRe = /^[\\u{1F300}-\\u{1FAFF}\\u{FE0F}]{1,6}$/u;
     var body = document.body;
     if (!body) return null;
     var todos = body.querySelectorAll("*");
@@ -293,7 +307,7 @@ export const GENERICO_SCRIPT = `function medirGenerico(){
       for (var i=0;i<el.childNodes.length;i++) if (el.childNodes[i].nodeType===3) t += el.childNodes[i].nodeValue;
       return t.replace(/\\s+/g," ").trim();
     }
-    var tamanos = {}, relleno = [], centrados = 0, bloques = 0, radios = {}, emojiEnTitulos = 0;
+    var tamanos = {}, relleno = [], centrados = 0, bloques = 0, radios = {}, emojiEnTitulos = 0, iconosEmoji = 0;
     for (var i=0;i<todos.length;i++){
       var el = todos[i];
       if (!vis(el)) continue;
@@ -308,6 +322,11 @@ export const GENERICO_SCRIPT = `function medirGenerico(){
       var br = parseFloat(s.borderTopLeftRadius) || 0;
       if (br > 0 && el.getBoundingClientRect().width > 40) radios[br] = (radios[br]||0) + 1;
       if (/^H[1-4]$/.test(el.tagName) && emojiRe.test(el.textContent||"")) emojiEnTitulos++;
+      // botón/enlace cuyo ÚNICO contenido es un emoji: un icono de mentira
+      if (el.tagName === "BUTTON" || (el.tagName === "A" && el.hasAttribute("class")) || el.getAttribute("role") === "button"){
+        var contenidoBtn = (el.textContent||"").trim();
+        if (contenidoBtn && emojiIconoRe.test(contenidoBtn)) iconosEmoji++;
+      }
     }
     var imgs = body.querySelectorAll("img"), imagenesRelleno = [];
     for (var k=0;k<imgs.length;k++){
@@ -393,6 +412,7 @@ export const GENERICO_SCRIPT = `function medirGenerico(){
       relleno: relleno,
       imagenesRelleno: imagenesRelleno,
       emojiEnTitulos: emojiEnTitulos,
+      iconosEmoji: iconosEmoji,
       efectos3d: efectos3d,
       efectos2d: efectos2d,
       elementos: todos.length

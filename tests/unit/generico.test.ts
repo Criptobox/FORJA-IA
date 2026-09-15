@@ -97,6 +97,13 @@ describe("medidor de página genérica", () => {
     expect(senasGenericas(pagina({ emojiEnTitulos: 4 })).map((x) => x.id)).toContain("emoji-titulares");
   });
 
+  it("un botón con emoji como icono no es seña; dos sí (el mismo patrón que pide evitar skill-anti-slop)", () => {
+    expect(senasGenericas(pagina({ iconosEmoji: 1 })).map((x) => x.id)).not.toContain("iconos-emoji");
+    const s = senasGenericas(pagina({ iconosEmoji: 3 }));
+    expect(s.map((x) => x.id)).toContain("iconos-emoji");
+    expect(s.find((x) => x.id === "iconos-emoji")?.arreglo).toMatch(/svg/i);
+  });
+
   it("centrarlo casi todo se avisa, pero se admite que sea a propósito", () => {
     const s = senasGenericas(pagina({ bloques: 10, centrados: 9 }));
     const sena = s.find((x) => x.id === "todo-centrado");

@@ -75,4 +75,11 @@ test("la plantilla de function-calling en texto se ejecuta, no se enseña litera
   const texto = await page.locator("main").innerText();
   expect(texto).not.toContain("<function=");
   expect(texto).not.toContain("<parameter=");
+
+  // Y queda anotado para este modelo (llamadas-texto-medidas.ts, v4.18.0):
+  // el probe por sí solo dijo "soporta tools" (200 OK) — esto es lo que
+  // el probe NUNCA podría haber sabido, solo una generación real lo prueba.
+  const guardado = await page.evaluate(() => localStorage.getItem("prism-llamadas-texto-v1"));
+  const medidas = JSON.parse(guardado ?? "{}").state?.medidas ?? {};
+  expect(medidas["custom::mock-llamada-en-texto"]?.veces).toBeGreaterThan(0);
 });

@@ -38,6 +38,7 @@ const MODELOS = [
   "mock-efectos",
   "mock-generica",
   "mock-generica-terca",
+  "mock-iconos-emoji",
   "mock-proyecto-repo",
   "mock-3d-mal-puesto",
   "mock-3d",
@@ -312,6 +313,35 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8"><title>Demo</title></head>',
       '<body style="font-family:system-ui;margin:0;padding:24px">',
+      cuerpo,
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-iconos-emoji`: una página con botones cuyo ÚNICO contenido es un
+  // emoji (🛒, 🔍) haciendo de icono — el patrón que pide evitar
+  // `skill-anti-slop` y que `generico.ts` (seña `iconos-emoji`) mide de
+  // verdad en el DOM pintado. La segunda entrega los cambia por SVG propio.
+  if (modelo === "mock-iconos-emoji") {
+    const lePulieron = msgs.some(
+      (m) =>
+        typeof m.content === "string" &&
+        (m.content as string).includes("y la he medido")
+    );
+    const nav = lePulieron
+      ? '<nav><button aria-label="Carrito"><svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg></button>' +
+        '<button aria-label="Buscar"><svg width="20" height="20" viewBox="0 0 20 20"><rect width="16" height="16"/></svg></button></nav>'
+      : "<nav><button>\u{1F6D2}</button><button>\u{1F50D}</button></nav>";
+    const cuerpo =
+      nav + Array.from({ length: 30 }, (_, i) => `<p>Texto de ejemplo ${i}</p>`).join("");
+    return [
+      lePulieron ? "Corregido tras medirla." : "Aquí tienes la página.",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Demo</title></head>',
+      '<body style="font-family:Georgia,serif;margin:0;padding:24px">',
       cuerpo,
       "</body></html>",
       "```",

@@ -85,7 +85,8 @@ import {
   typeDemoReply,
 } from "@/lib/prism/preview-demo";
 import { useSystemPrompt } from "@/lib/prism/use-system-prompt";
-import { estimarTokensConversacion, VENTANA_DEFECTO } from "@/lib/prism/ctx-hud";
+import { estimarTokensConversacion, ventanaReferencia } from "@/lib/prism/ctx-hud";
+import { useLimites } from "@/lib/prism/limites-medidos";
 import { agentStalled, continuePrompt, parseAgentTrace, suggestAgentMode } from "@/lib/prism/agent-loop";
 import { applyAccent } from "@/lib/prism/accent";
 import {
@@ -1299,6 +1300,7 @@ export function ChatApp() {
     [sandboxInitial]
   );
   const sessionModelKey = activeSession?.modelKey ?? settings.defaultModelKey ?? null;
+  const limites = useLimites((s) => s.limites);
 
   // ——— Virtualización de la lista de mensajes (chats largos fluidos) ———
   const messages = activeSession?.messages ?? [];
@@ -1761,7 +1763,7 @@ export function ChatApp() {
         onSlashCommand={handleSlash}
         hudCtx={{
           tokens: estimarTokensConversacion(activeSession?.messages ?? [], input.length),
-          ventana: settings.ventanaCtx || VENTANA_DEFECTO,
+          ventana: ventanaReferencia(limites, sessionModelKey, settings.ventanaCtx),
         }}
         placeholder={
           imageMode

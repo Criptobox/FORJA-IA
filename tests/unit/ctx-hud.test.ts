@@ -14,7 +14,9 @@ import {
   estimarTokensConversacion,
   fmtTokens,
   nivelCtx,
+  ventanaReferencia,
 } from "../../src/lib/prism/ctx-hud";
+import { VIGENCIA_MS, type Limites } from "../../src/lib/prism/limites-medidos";
 
 describe("estimarTokensChars", () => {
   it("4 caracteres ≈ 1 token, redondeando hacia arriba", () => {
@@ -73,5 +75,40 @@ describe("calcularHud", () => {
   });
   it("porcentaje techo 999 (no pinta 3000%)", () => {
     expect(calcularHud(VENTANA_DEFECTO * 30, VENTANA_DEFECTO).pct).toBe(999);
+  });
+});
+
+describe("ventanaReferencia — un dato real del proveedor, cuando lo hay, gana a la estimación", () => {
+  const ahora = 1_700_000_000_000;
+
+  it("sin modelKey o sin nada aprendido: la configurada tal cual", () => {
+    expect(ventanaReferencia({}, null, 40_000, ahora)).toBe(40_000);
+    expect(ventanaReferencia({}, "custom::algo", 40_000, ahora)).toBe(40_000);
+  });
+
+  it("un límite real MÁS PEQUEÑO que la configurada: gana el real", () => {
+    const limites: Limites = { "custom::mini": { limite: 7_000, rechazado: 21_138, at: ahora } };
+    expect(ventanaReferencia(limites, "custom::mini", 32_000, ahora)).toBe(7_000);
+  });
+
+  it("nunca ENSANCHA: un límite real más GRANDE que la configurada no gana", () => {
+    const limites: Limites = { "custom::grande": { limite: 200_000, rechazado: 0, at: ahora } };
+    expect(ventanaReferencia(limites, "custom::grande", 32_000, ahora)).toBe(32_000);
+  });
+
+  it("sin número del proveedor (solo lo rechazado), no hay ventana que ajustar", () => {
+    const limites: Limites = { "custom::x": { limite: null, rechazado: 9_000, at: ahora } };
+    expect(ventanaReferencia(limites, "custom::x", 32_000, ahora)).toBe(32_000);
+  });
+
+  it("caducado (misma vigencia que cabe()): se ignora, vuelve la configurada", () => {
+    const limites: Limites = {
+      "custom::viejo": { limite: 5_000, rechazado: 10_000, at: ahora - VIGENCIA_MS - 1 },
+    };
+    expect(ventanaReferencia(limites, "custom::viejo", 32_000, ahora)).toBe(32_000);
+  });
+
+  it("sin ventana configurada, cae al VENTANA_DEFECTO igual que calcularHud", () => {
+    expect(ventanaReferencia({}, null, 0, ahora)).toBe(VENTANA_DEFECTO);
   });
 });

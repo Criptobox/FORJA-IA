@@ -19,6 +19,7 @@ import {
 } from "../../src/lib/prism/use-agent-tools";
 import type { StreamMessage, StreamOptions } from "../../src/lib/prism/chat-client";
 import type { AppSettings } from "../../src/lib/prism/types";
+import { useLlamadasTexto } from "../../src/lib/prism/llamadas-texto-medidas";
 
 /** Opciones mínimas: solo lo que el bucle mira. */
 function opciones(overrides: Partial<StreamOptions> = {}): Omit<StreamOptions, "tools"> {
@@ -284,6 +285,16 @@ describe("ejecutarConTools — la llamada pedida como TEXTO (no tool_calls) se e
     // vacío (o sin la plantilla): reinyectarle su propio texto roto es
     // invitarlo a repetir el mismo patrón
     expect(asistente?.content ?? "").not.toContain("<function=");
+  });
+
+  it("cuando el fallback dispara de verdad, se anota para este modelo — el probe por sí solo nunca lo habría sabido", async () => {
+    useLlamadasTexto.setState({ medidas: {} });
+    const registro: Array<{ messages: StreamMessage[]; conTools: boolean }> = [];
+    await ejecutarConTools(opciones(), true, 3, null, { apiKey: "k" }, undefined, depsLlamadaEnTexto(registro));
+
+    const medidas = useLlamadasTexto.getState().medidas;
+    expect(medidas["custom::modelo-de-prueba"]).toBeTruthy();
+    expect(medidas["custom::modelo-de-prueba"].veces).toBe(1);
   });
 
   it("una llamada de verdad cortada a mitad (respuesta truncada) no se ejecuta: se trata como texto normal", async () => {

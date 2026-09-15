@@ -6442,3 +6442,126 @@ parezcan»). Trae, condensado de las tres fuentes:
   completa
 - ✓ build · ✓ `npm start` + `/api/version` (`4.17.0`) · ✓ `VERCEL=1` sin
   `standalone` y con el `.nft.json`
+
+## v4.18.0 — Tres huecos que quedaron documentados, ahora cerrados
+
+El usuario preguntó «¿qué nos quedaría por mejorar?» después de la skill
+de v4.17.0. La respuesta salió de releer los "Lo que sigue sin cubrir" de
+las últimas entregas —huecos ya conocidos, no inventados para la
+ocasión— y eligió los cuatro: verificar el antimuestrario en vez de solo
+pedirlo, que `tools-probe.ts` deje de ser ciego, una ventana de contexto
+real por modelo, y probarlo todo con un modelo de pago real. Los tres
+primeros son código; el cuarto necesita una clave que este entorno no
+tiene — se pide al usuario al final.
+
+### 1. El antimuestrario ahora se MIDE, no solo se pide
+
+`skill-anti-slop` (v4.17.0) le pide al modelo no usar emoji como icono de
+interfaz. Pedirlo no es comprobarlo — el mismo fallo de fondo que ya
+resolvió `generico.ts` para el resto de señas de "página genérica"
+(relleno, tarjetas clonadas, radio uniforme…). Nueva seña, `iconos-emoji`:
+mide en el DOM pintado botones/enlaces cuyo ÚNICO contenido es un emoji
+del bloque real de emoji (`\u{1F300}-\u{1FAFF}`, no el de símbolos
+clásicos como ★ o ☰, que sí tienen precedente legítimo como iconografía y
+habrían disparado falsos positivos). Comparte el mismo barrido del DOM que
+ya hace el resto del medidor — cero coste extra.
+
+### 2. `tools-probe.ts` deja de ser ciego
+
+El probe solo comprueba que el proveedor ACEPTA el parámetro `tools` (un
+código HTTP) — nunca si el modelo va a rellenar `tool_calls` de verdad.
+nvidia/nemotron pasa el probe como "sí soporta tools" y aun así entrega su
+propia plantilla en texto (`tool-calls-texto.ts`, v4.15.0). El probe, por
+sí solo, nunca podría haberlo sabido: hace falta una generación REAL.
+
+`llamadas-texto-medidas.ts` (mismo patrón reactivo y con caducidad que
+`limites-medidos.ts`, pero a 30 días — esto es un rasgo del modelo, no un
+cupo que se repone cada hora) anota, cuando el fallback de v4.15.0
+reconoce y ejecuta de verdad una llamada en texto, que ESTE modelo lo
+hace. Deliberadamente NO toca `ToolsSupport` ni `supportsTools()`: el
+modelo sí soporta tools (el fallback las ejecuta), apagarlas sería peor
+que la plantilla en texto. Es información aparte — `mensajeLlamadaComoTexto()`
+la explica sin decir "no soporta tools", que sería mentira.
+
+### 3. Una ventana de contexto real, cuando ya se sabe
+
+El HUD de contexto y el recorte proactivo (v4.14.0) usaban SIEMPRE la
+ventana de referencia genérica (`ventanaCtx`, 32k de fábrica) — aunque
+`limites-medidos.ts` YA supiera, de un rechazo real de un proveedor
+anterior («Limit 7000, Requested 21138»), que ESTE modelo admite mucho
+menos. Dos fuentes de verdad que no se hablaban.
+
+`ventanaReferencia()` (`ctx-hud.ts`) las junta: si hay un límite real
+aprendido, fresco, y MÁS PEQUEÑO que la ventana configurada, gana el real.
+Nunca al revés — un límite aprendido nunca ENSANCHA la ventana, solo la
+ajusta cuando hay un dato mejor que adivinar. Wired en los dos sitios que
+ya consumían la ventana genérica: el recorte proactivo de
+`use-generation.ts` (con el primer candidato de la cadena, `chain[0]`,
+que es el que se va a intentar primero) y el HUD visible del compositor
+(`chat-app.tsx`, con el modelo de la sesión activa).
+
+### Pruebas
+
+- `generico.ts`: 1 unitario nuevo (botón con emoji único no es seña; dos
+  sí) + 1 E2E (`iconos-emoji.spec.ts`, con `mock-iconos-emoji`: mide de
+  verdad en la página pintada, pide SVG, y la segunda entrega llega
+  corregida).
+- `llamadas-texto-medidas.ts`: 6 unitarios (nunca visto, visto y fresco,
+  caducado, borde exacto de la vigencia, mensaje sin nada visto, mensaje
+  que NO dice "no soporta tools") + 1 unitario en `agent-tools-loop.test.ts`
+  (el fallback de verdad anota, no solo se detecta) + la E2E de
+  `llamada-en-texto.spec.ts` ampliada para comprobar la anotación en
+  `localStorage` tras una interacción real con `mock-llamada-en-texto`.
+- `ventanaReferencia`: 6 unitarios (sin nada aprendido, límite real más
+  pequeño gana, nunca ensancha, sin número del proveedor no hay nada que
+  ajustar, caducado se ignora, sin ventana configurada cae al defecto) + 1
+  E2E (`ventana-real-aprendida.spec.ts`: misma sesión y matemática que
+  `recorte-proactivo.spec.ts`, pero con la ventana CONFIGURADA en el
+  default genérico —con la que sola nunca llegaría a zona roja— y un
+  límite APRENDIDO de 1.000 tokens sembrado en `prism-limites-v1`: el
+  recorte se dispara igual, demostrando que usó el real).
+- Verificado en rojo los tres, cada uno por separado: revertido solo el
+  archivo de wiring de cada fix (`git stash` de `generico.ts`,
+  `use-agent-tools.ts`, y el trío `ctx-hud.ts`+`use-generation.ts`+
+  `chat-app.tsx`), confirmado que las pruebas nuevas fallaban por la razón
+  correcta, restaurado y confirmado en verde antes de seguir con la
+  siguiente.
+
+### Lo que sigue sin cubrir
+
+- **Ninguno de los tres tiene todavía una superficie en la UI.**
+  `iconos-emoji` solo se le devuelve al MODELO (como el resto de señas de
+  `generico.ts`); `llamadas-texto-medidas.ts` no tiene ningún panel que
+  enseñe «este modelo pide tools como texto» (existe `mensajeLlamadaComoTexto()`
+  ya escrito para cuando lo haya, pero no está enganchado a nada visible);
+  la ventana real aprendida se USA pero no se distingue visualmente de la
+  configurada en el HUD (el número es correcto, pero no dice «esto es un
+  dato real, no una estimación»). Los tres son mejoras de DATOS, no de
+  interfaz — construir esa interfaz es la extensión natural, no se hizo
+  aquí para no mezclar tres cambios de lógica con tres paneles nuevos en
+  la misma entrega.
+- `ventanaReferencia` en el recorte proactivo usa `chain[0]` (el primer
+  candidato) como referencia. En modo Auto con varios candidatos, si el
+  primero tiene un límite real muy distinto de los siguientes, el recorte
+  se calcula para el primero — razonable (es el que se va a intentar), 
+  pero no tiene en cuenta que Auto pueda saltar a otro candidato después.
+- `iconos-emoji` solo reconoce el bloque de emoji "real"
+  (`\u{1F300}-\u{1FAFF}`) para evitar falsos positivos con símbolos como
+  ★ o ☰. Un emoji fuera de ese bloque usado como icono (poco común, pero
+  posible) no se detecta — la misma decisión, con el mismo motivo, que
+  `emojiEnTitulos` ya tomaba.
+- Sigue sin haber un cuarto arreglo: **nada de esto se probó con un
+  modelo de pago real**. Este entorno no tiene ninguna clave de API
+  configurada (solo `.env.example`) — todo lo de hoy, como el resto de la
+  sesión, se verificó con `mock-llm`. Si el usuario quiere que esto se
+  pruebe de verdad contra OpenRouter, AiHubMix o el proveedor que use,
+  hace falta que pegue una clave en Ajustes → Proveedores (o la comparta
+  para esta sesión) — no hay forma de hacerlo sin eso.
+
+### Puerta
+
+- ✓ lint · ✓ knip (sin huecos en los archivos nuevos) · ✓ tsc
+- ✓ **1 912** unitarios (1 898 antes) · ✓ **249** E2E (247 antes), suite
+  completa
+- ✓ build · ✓ `npm start` + `/api/version` (`4.18.0`) · ✓ `VERCEL=1` sin
+  `standalone` y con el `.nft.json`

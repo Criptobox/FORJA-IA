@@ -23,7 +23,8 @@ import { runProjectInMemory } from "./sandbox-runner";
 import { runJsInMemory } from "./js-repl";
 import { promptCritica } from "./screenshot";
 import { parseLlamadasEnTexto, pareceLlamadaEnTexto, quitarLlamadasEnTexto } from "./tool-calls-texto";
-import type { ProviderId, ProjectMap, ProviderConfig, AppSettings, Attachment } from "./types";
+import { useLlamadasTexto } from "./llamadas-texto-medidas";
+import { makeModelKey, type ProviderId, type ProjectMap, type ProviderConfig, type AppSettings, type Attachment } from "./types";
 import { PROVIDER_MAP } from "./providers";
 import type { SandboxSeed } from "./sandbox";
 import type { ReglaNo } from "./reglas-no";
@@ -291,6 +292,10 @@ export async function ejecutarConTools(
         // plantilla de la llamada, no.
         content = quitarLlamadasEnTexto(content);
         baseOpts.onDelta(content);
+        // El probe decía "sí soporta tools" y aun así llegó como texto: se
+        // queda anotado para este modelo (llamadas-texto-medidas.ts). El
+        // probe por sí solo nunca lo habría sabido — esto SÍ lo vio pasar.
+        useLlamadasTexto.getState().anotar(makeModelKey(providerId, baseOpts.modelId));
       }
     }
 

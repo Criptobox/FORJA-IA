@@ -6,13 +6,20 @@
  * cifra delante y no a ciegas.
  *
  * Honestidad primero (regla de la casa: sin números inventados):
- *  - No hay ventana de contexto real por modelo en Prism (los modelos
+ *  - No hay una TABLA de ventanas por modelo en Prism (los modelos
  *    gratis cambian cada semana; una tabla sería mentir con cariño).
  *    Se usa una VENTANA DE REFERENCIA ajustable en Ajustes.
+ *  - Pero si el PROVEEDOR ya dijo un número real para este modelo —
+ *    `limites-medidos.ts`, aprendido de un rechazo real, no inventado—,
+ *    `ventanaReferencia()` lo usa en vez de la referencia genérica. Nunca
+ *    al revés: un dato real nunca se descarta por uno de fábrica, y un
+ *    límite aprendido nunca ENSANCHA la ventana, solo la ajusta cuando
+ *    hay algo mejor que la estimación.
  *  - Los tokens se ESTIMAN desde caracteres (≈4 chars/token), la misma
  *    métrica que ya usa `usage.ts` para el volumen. Se marca con «≈»:
  *    es una estimación, no un dato del proveedor.
  */
+import { VIGENCIA_MS, type Limites } from "./limites-medidos";
 
 /** Ventana de referencia por defecto (tokens). 32k es un punto medio
  * honesto entre los gratis de ventana corta (8k) y los amplios (128k):
@@ -77,4 +84,28 @@ export function calcularHud(
   const v = Math.max(1000, ventana || VENTANA_DEFECTO);
   const pct = Math.min(999, Math.round((tokensEstimados / v) * 1000) / 10);
   return { tokens: tokensEstimados, pct, nivel: nivelCtx(pct) };
+}
+
+/** La ventana de referencia, mejorada con un dato real si lo hay.
+ *
+ * `limites-medidos.ts` aprende reactivamente el tope de tokens de entrada
+ * cuando un proveedor lo rechaza de verdad («Limit 7000, Requested
+ * 21138»). Si ese aprendizaje sigue fresco (misma vigencia que usa
+ * `cabe()`, para no quedarse con un número de hace semanas) y es MÁS
+ * PEQUEÑO que la ventana configurada, se usa él: es un dato real del
+ * proveedor sobre ESTE modelo, mejor que la estimación genérica. Nunca al
+ * revés — un límite aprendido nunca ensancha la ventana, solo la ajusta
+ * cuando hay algo mejor que adivinar. */
+export function ventanaReferencia(
+  limites: Limites,
+  modelKey: string | null | undefined,
+  ventanaConfigurada: number,
+  ahora: number = Date.now()
+): number {
+  const base = ventanaConfigurada || VENTANA_DEFECTO;
+  if (!modelKey) return base;
+  const m = limites[modelKey];
+  if (!m || m.limite == null) return base;
+  if (ahora - m.at > VIGENCIA_MS) return base;
+  return Math.min(base, m.limite);
 }
