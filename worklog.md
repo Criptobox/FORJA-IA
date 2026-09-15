@@ -6850,3 +6850,102 @@ medición real del diálogo.
   completa
 - ✓ build · ✓ `npm start` + `/api/version` (`4.20.0` antes del bump) ·
   ✓ `VERCEL=1` sin `standalone` y con el `.nft.json`
+
+## v4.21.0 — Dos ZIPs más, un Web Studio distinto: se porta la idea, no el código
+
+El usuario subió dos actualizaciones más: `prism-ai-4.21.0-next-level.zip`
+y `prism-ai-4.22.0-verified-cycle.zip`. Antes de tocar nada, revisar de
+dónde partían: el `worklog.md` de los dos ZIPs se corta en la v4.19.0 —
+es decir, ambos se construyeron ANTES de que la v4.20.0 (Web Studio:
+Project Health, Security Center, Project Tasks, con su arreglo móvil en
+la v4.20.1) llegara a `main`. Quien los generó no sabía que Web Studio ya
+existía.
+
+El resultado: los dos ZIPs reinventan "Web Studio" desde cero, con otro
+nombre de archivo (`web-studio-dialog.tsx` + `project-workflow.ts`, en
+vez de `prism-studio-dialog.tsx` + `web-studio.ts`), y **borran** los
+cuatro módulos ya enviados (`project-health.ts`, `security-center.ts`,
+`project-tasks.ts`, `web-studio.ts`) si se aplican tal cual. Su versión
+es más simple: pierde el scoring de Health basado en evidencia, el
+tablero de tareas persistente (las suyas son un `useState` en memoria,
+se pierden al cerrar el diálogo) y el arreglo de móvil ya probado.
+
+Sí traían una idea real y buena, explícita en su propio plan
+(`PLAN-V11-VERIFIED-CYCLE.md`): que el QA de Web Studio "reutilice el
+motor de Preview que ya existe" en vez de medir en un iframe aparte.
+Consultado el usuario sobre cómo reconciliar los dos caminos — reemplazar
+lo ya enviado, portar solo la idea, o revisarlo con más detalle antes de
+decidir — eligió portar solo la idea y mantener lo ya enviado.
+
+### Lo que se cambió
+
+`PreviewPanel` (`preview-panel.tsx`) pasa a `forwardRef` y expone, por
+`useImperativeHandle`, un método `runVisualQA()` que corre exactamente el
+mismo `runVisualQA(iframeRef.current, QA_WIDTHS)` que ya usaba
+internamente su propio botón de QA — solo que ahora un padre puede
+pedirlo desde fuera, sobre el iframe EN VIVO que el usuario ya está
+mirando, en vez de que `PrismStudioDialog` tenga que montar un segundo
+iframe oculto y volver a renderizar/ejecutar la página desde cero.
+
+`chat-app.tsx` mantiene un único `previewPanelRef` compartido entre las
+dos instancias de `PreviewPanel` (escritorio y hoja móvil) — solo una
+está montada a la vez — y se lo pasa a `PrismStudioDialog` como
+`onRunVisualQA`.
+
+`prism-studio-dialog.tsx`: `runQA()` ahora prueba primero
+`onRunVisualQA()`; si vuelve vacío (la vista previa no está montada — el
+usuario la cerró, o Web Studio se abrió sin haber abierto antes una
+vista previa), cae al iframe propio de siempre. El iframe oculto no se
+quitó: sigue siendo el respaldo, y sigue llevando su `sandbox` sin
+`allow-same-origin`.
+
+### Un límite honesto de lo que se pudo probar
+
+Un test E2E de caja negra no puede distinguir CUÁL de los dos iframes
+midió realmente — ambos acaban midiendo el mismo HTML de la sesión y
+producen el mismo resultado visible. Lo que SÍ se probó, con dos tests
+nuevos: que el QA sigue funcionando de principio a fin con la vista
+previa abierta, y que sigue funcionando igual de bien cuando está
+cerrada (cae al camino de respaldo). La prueba de que el camino correcto
+se usa en cada caso es de lectura del propio diff (`onRunVisualQA`
+antes que el iframe propio) y de `tsc`, no de una medición externa.
+
+### Un falso positivo por el camino
+
+El primer intento de los dos tests nuevos fallaba con la vista previa
+YA abierta: pensé que el flag de demo (`prism-preview-demo=1` en
+localStorage) rellenaba `previewCode` solo con ponerlo, como en otros
+tests del archivo — pero ese flag solo evita que la demo se REPITA, no
+sustituye a tener contenido real. Sin sesión real, `html` es `null` y el
+botón "Ejecutar Visual QA" queda deshabilitado. Corregido sembrando una
+sesión completa con un mensaje de asistente que trae HTML real (mismo
+patrón que ya usa `download.spec.ts`), en vez de depender del flag de
+demo.
+
+### Pruebas
+
+- `tests/e2e/web-studio.spec.ts`: 2 tests nuevos. Uno con una sesión
+  real y la vista previa de escritorio abierta sola (el ancho por
+  defecto de Playwright está por encima del corte de "estrecha"):
+  ejecuta el QA y comprueba que llegan resultados reales para 320 y
+  390px. El otro cierra la vista previa primero y comprueba que el QA
+  sigue funcionando igual — la prueba directa de que el respaldo no se
+  rompió.
+
+### Lo que sigue sin cubrir
+
+- Como ya se dijo: no hay forma de comprobar desde fuera cuál de los dos
+  iframes sirvió cada medición concreta — solo que ambos caminos siguen
+  dando resultado.
+- El resto de las dos ZIPs (`project-workflow.ts`, `WebStudioDialog`,
+  la reescritura entera de la superficie) se descartó: es una versión
+  más pequeña de lo que ya está en `main`, construida sin saber que
+  existía.
+
+### Puerta
+
+- ✓ lint · ✓ knip (mismo ruido preexistente) · ✓ tsc limpio
+- ✓ **1 920** unitarios (sin cambios) · ✓ **258** E2E (256 antes + 2
+  nuevos), suite completa
+- ✓ build · ✓ `npm start` + `/api/version` (`4.20.1` antes del bump) ·
+  ✓ `VERCEL=1` sin `standalone` y con el `.nft.json`

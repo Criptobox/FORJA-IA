@@ -24,11 +24,16 @@ function Score({ value }: { value: number | null }) {
 }
 
 export function PrismStudioDialog({
-  open, onOpenChange, map, html, onStart
+  open, onOpenChange, map, html, onStart, onRunVisualQA
 }: {
   open: boolean; onOpenChange: (open: boolean) => void;
   map?: ProjectMap | null; html?: string | null;
   onStart?: (prompt: string) => void;
+  /** Si la vista previa en vivo está montada, mide SU iframe (postura del
+   *  usuario y JS ya en marcha) en vez de crear uno oculto aparte y volver a
+   *  ejecutar la página desde cero. Cuando no hay vista previa abierta,
+   *  runQA cae al iframe propio de este diálogo. */
+  onRunVisualQA?: () => Promise<QAResult[]>;
 }) {
   const [brief, setBrief] = useState("");
   const [direction, setDirection] = useState("");
@@ -49,7 +54,11 @@ export function PrismStudioDialog({
     if (!html) return;
     setQaRunning(true);
     try {
-      const r = await runVisualQA(frame.current, QA_WIDTHS);
+      // Vacío = la vista previa en vivo no está montada (el usuario la
+      // cerró, o nunca la abrió): cae al iframe propio de este diálogo en
+      // vez de dejar el QA sin resultado.
+      let r = onRunVisualQA ? await onRunVisualQA() : [];
+      if (!r.length) r = await runVisualQA(frame.current, QA_WIDTHS);
       setQa(r);
       const bad = r.filter(x => !x.noRespondio && !x.ok).flatMap(x => x.items.map(i => `Visual QA ${x.width}px: ${i.detalle}`));
       bad.slice(0, 8).forEach(item => tasks.add(item, "qa"));

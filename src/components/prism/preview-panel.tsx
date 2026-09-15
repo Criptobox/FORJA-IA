@@ -1,6 +1,6 @@
 "use client";
 /** Prism AI — Panel de vista previa en vivo + mapa del proyecto */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   Code2,
   Download,
@@ -52,25 +52,7 @@ import {
 } from "@/lib/prism/errores-en-vivo";
 import type { ProjectMap } from "@/lib/prism/types";
 
-export function PreviewPanel({
-  code,
-  source,
-  title,
-  streaming,
-  onClose,
-  className,
-  map,
-  onClearMap,
-  reglas,
-  archivosDelProyecto,
-  onAddNote,
-  onRemoveNote,
-  onAddRegla,
-  onRemoveRegla,
-  onRestoreSnapshot,
-  onFixLive,
-  onEditText,
-}: {
+export interface PreviewPanelProps {
   code: string | null;
   /** respuesta completa de la que salió el HTML: de ahí salen los DEMÁS archivos
    *  (styles.css, app.js…) que la vista previa no pinta pero sí se pueden guardar */
@@ -99,7 +81,35 @@ export function PreviewPanel({
    *  la respuesta. Devuelve por qué no se pudo, si no se pudo — el motivo se
    *  enseña tal cual, no se traga. */
   onEditText?: (original: string, nuevo: string) => { ok: boolean; motivo?: string };
-}) {
+}
+
+/** Lo que un padre puede pedirle a un PreviewPanel montado, por ref. Hoy
+ *  solo el QA visual: dejar que Web Studio mida el iframe EN VIVO que el
+ *  usuario ya está viendo, en vez de renderizar la página una segunda vez
+ *  en un iframe oculto aparte (que además la ejecutaría dos veces). */
+export interface PreviewPanelHandle {
+  runVisualQA: () => Promise<QAResult[]>;
+}
+
+export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(function PreviewPanel({
+  code,
+  source,
+  title,
+  streaming,
+  onClose,
+  className,
+  map,
+  onClearMap,
+  reglas,
+  archivosDelProyecto,
+  onAddNote,
+  onRemoveNote,
+  onAddRegla,
+  onRemoveRegla,
+  onRestoreSnapshot,
+  onFixLive,
+  onEditText,
+}, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [tab, setTab] = useState<"preview" | "code" | "map">("preview");
@@ -219,6 +229,10 @@ export function PreviewPanel({
       setQaCorriendo(false);
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    runVisualQA: () => runVisualQA(iframeRef.current, QA_WIDTHS),
+  }), []);
 
   /** los problemas verificados alimentan la memoria de fallos (reglas dedup) */
   const registrarQAFallos = (resultados: QAResult[]) => {
@@ -572,4 +586,4 @@ export function PreviewPanel({
       )}
     </div>
   );
-}
+});

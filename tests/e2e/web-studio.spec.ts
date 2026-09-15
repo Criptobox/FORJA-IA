@@ -1,4 +1,57 @@
-import { expect, test } from "./fixtures";
+import { expect, test, type Page } from "./fixtures";
+
+/** Sesión con una página real ya en la respuesta, para las pruebas que
+ * necesitan que `previewCode` exista de verdad (el flag de demo por sí
+ * solo NO lo rellena: solo evita que la demo se repinte sola). */
+async function seedConPreview(page: Page) {
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem(
+        "prism-ai-v1",
+        JSON.stringify({
+          state: {
+            sessions: [
+              {
+                id: "s1",
+                title: "Landing de prueba",
+                createdAt: 1,
+                updatedAt: 2,
+                messages: [
+                  { id: "u1", role: "user", content: "Hazme una landing", createdAt: 1 },
+                  {
+                    id: "a1",
+                    role: "assistant",
+                    content: "```html\n<!doctype html><html><body><h1>Hola</h1></body></html>\n```",
+                    createdAt: 2,
+                  },
+                ],
+              },
+            ],
+            activeSessionId: "s1",
+            onboardingDone: true,
+            favorites: [],
+            radarSeenIds: [],
+            settings: {
+              defaultModelKey: null,
+              accessCode: "",
+              agentModes: [],
+              agentMode: false,
+              ahorro: false,
+              stream: false,
+            },
+            providers: {},
+            version: 1,
+          },
+          version: 0,
+        })
+      );
+    } catch {
+      /* marco sin acceso */
+    }
+  });
+  await page.goto("/");
+  await page.locator("textarea").first().waitFor({ state: "visible", timeout: 30_000 });
+}
 
 /** Prism AI — Web Studio (v4.20.0): Project Health, Security Center y
  * Project Tasks en una sola superficie, accesible desde la barra lateral.
@@ -66,6 +119,41 @@ test("el iframe oculto de medición va sandboxed, igual que el resto de vistas p
   expect(sandbox, "sin allow-same-origin: el HTML medido no puede leer el localStorage de Prism").toBe(
     "allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock"
   );
+});
+
+/** v4.22.0: cuando la vista previa de escritorio ya está montada, el QA de
+ * Web Studio mide SU iframe en vivo (vía PreviewPanelHandle.runVisualQA)
+ * en vez de renderizar la página otra vez en el iframe oculto — evita
+ * ejecutar el JS del proyecto dos veces. Si la vista previa está cerrada,
+ * cae al iframe propio de siempre. Ambos caminos deben seguir dando
+ * resultado real, no quedarse en blanco. */
+test("Visual QA mide la vista previa en vivo cuando está abierta", async ({ page }) => {
+  // una sesión con HTML real abre sola la vista previa de escritorio (ancho
+  // por defecto de Playwright es >1023px, por encima del corte «estrecha»)
+  await seedConPreview(page);
+  await expect(page.getByRole("button", { name: "Cerrar vista previa" })).toBeVisible({ timeout: 10_000 });
+  await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
+  await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+
+  await page.getByRole("button", { name: "Ejecutar Visual QA" }).click();
+  // QA_WIDTHS = [320, 390]: con la vista previa real montada debe volver
+  // con evidencia real para los dos anchos, no quedarse vacío.
+  await expect(page.getByText("320px")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("390px")).toBeVisible();
+});
+
+test("Visual QA sigue funcionando por el iframe propio si la vista previa está cerrada", async ({
+  page,
+}) => {
+  await seedConPreview(page);
+  await expect(page.getByRole("button", { name: "Cerrar vista previa" })).toBeVisible({ timeout: 10_000 });
+  await page.getByRole("button", { name: "Cerrar vista previa" }).click();
+  await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
+  await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+
+  await page.getByRole("button", { name: "Ejecutar Visual QA" }).click();
+  await expect(page.getByText("320px")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("390px")).toBeVisible();
 });
 
 test("Security Center analiza y nunca afirma que el código está limpio", async ({ page }) => {

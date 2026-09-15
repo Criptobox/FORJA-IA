@@ -54,7 +54,7 @@ import { abrirTab, cerrarTab } from "@/lib/prism/tabs";
 import type { PublishSeed, SandboxSeed } from "@/lib/prism/sandbox";
 import { conKit } from "@/lib/prism/efectos";
 import { OnboardingDialog } from "./onboarding";
-import { PreviewPanel } from "./preview-panel";
+import { PreviewPanel, type PreviewPanelHandle } from "./preview-panel";
 import { aplicarEdicionTexto } from "@/lib/prism/editar-preview";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/prism/use-media-query";
 import { Welcome } from "./welcome";
@@ -284,6 +284,10 @@ export function ChatApp() {
   const [snapshotsOpen, setSnapshotsOpen] = useState(false);
   const [memoriaOpen, setMemoriaOpen] = useState(false);
   const [studioOpen, setStudioOpen] = useState(false);
+  // Compartido entre la vista previa de escritorio y la de móvil: solo una
+  // de las dos está montada a la vez, así que Web Studio siempre encuentra
+  // la que esté viva (o ninguna, si el usuario cerró la vista previa).
+  const previewPanelRef = useRef<PreviewPanelHandle>(null);
 
   // ——— La tubería de generación (tercer corte, PLAN-V8) ———
   // Todo lo que convierte un envío en respuesta vive en `use-generation.ts`:
@@ -1893,6 +1897,7 @@ export function ChatApp() {
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={45} minSize={25} className="panel-in">
             <PreviewPanel
+              ref={previewPanelRef}
               code={previewCode}
               source={previewMsg?.content ?? null}
               title={activeSession?.title ?? null}
@@ -1924,6 +1929,7 @@ export function ChatApp() {
           <SheetTitle className="sr-only">Vista previa</SheetTitle>
           {previewCode && (
             <PreviewPanel
+              ref={previewPanelRef}
               code={previewCode}
               source={previewMsg?.content ?? null}
               title={activeSession?.title ?? null}
@@ -2094,6 +2100,7 @@ export function ChatApp() {
         onOpenChange={setStudioOpen}
         map={activeSession?.projectMap ?? null}
         html={previewCode ?? null}
+        onRunVisualQA={() => previewPanelRef.current?.runVisualQA() ?? Promise.resolve([])}
         onStart={(prompt) => {
           setInput(prompt);
           setSettings({ agentMode: true });
