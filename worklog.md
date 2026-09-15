@@ -6565,3 +6565,85 @@ que es el que se va a intentar primero) y el HUD visible del compositor
   completa
 - ✓ build · ✓ `npm start` + `/api/version` (`4.18.0`) · ✓ `VERCEL=1` sin
   `standalone` y con el `.nft.json`
+
+## v4.19.0 — "Se detiene mucho solo": la conexión muerta que nunca avisaba
+
+El usuario mandó una captura real desde el móvil: DeepSeek vía NVIDIA NIM,
+modo agente, 90 segundos de espera y la burbuja congelada en
+"Razonamiento del modelo: ¡Ah, un g" — cortado a media palabra, sin
+avisar, sin reintentar. *"Se detiene mucho solo"*.
+
+### El primer diagnóstico, descartado con el propio código
+
+La primera hipótesis fue que faltaba el aviso "el modelo se quedó
+razonando sin escribir nada, prueba otro modelo". Al ir a escribirlo,
+`decisiones.ts:248-258` (`decidirTrasVacio`) y su mensaje en
+`use-generation.ts:1097-1099` YA EXISTEN — desde v4.5.0, mucho antes de
+esta sesión. Si la captura no lo mostraba, el problema no era que faltara
+el aviso: era que ese código nunca llegaba a ejecutarse.
+
+### La causa real: un `await` que no vuelve nunca
+
+`readSSE()` (`chat-client.ts`) lee el stream con un bucle `for(;;) { await
+reader.read(); ... }` sin ningún límite de tiempo. Si la conexión muere a
+media transmisión —lo típico de móvil + VPN: la red mata una conexión
+"callada" sin cerrarla limpiamente, y más con un modelo de razonamiento,
+que puede pasar tramos enteros pensando sin mandar ni un byte—,
+`reader.read()` se queda esperando PARA SIEMPRE. El `await
+runWithTools(...)` de `use-generation.ts` nunca vuelve, así que todo lo
+que viene después —la detección de respuesta vacía, el aviso, el
+failover a otro modelo— nunca se ejecuta. No es que el código no supiera
+qué decir: es que nunca llegaba a decirlo.
+
+### El arreglo: un techo al HUECO, no al tiempo total
+
+`INACTIVIDAD_STREAM_MS` (45s): si no llega NINGÚN byte en ese hueco, se
+cancela el reader y se lanza un error claro, que cae en el mismo
+try/catch de `use-generation.ts` que ya maneja cualquier fallo de red
+—mismo reintento, mismo failover a otro modelo, misma marca de salud del
+modelo, todo ya construido y probado—. Deliberadamente NO es un tope al
+tiempo TOTAL: un modelo de razonamiento que tarda 90s de verdad, pero
+sigue mandando trozos, no se toca. Solo se corta el silencio.
+
+### Pruebas
+
+- 2 unitarios nuevos en `chat-client.test.ts`: una conexión que manda un
+  trozo y luego se queda muda de verdad (con `vi.useFakeTimers()` y un
+  `ReadableStream` cuyo `pull()` nunca resuelve tras el primer trozo)
+  rechaza con un error claro en vez de colgarse; una conexión que manda
+  trozos con retraso pero SIN llegar al hueco de inactividad no dispara
+  nada — solo importa el hueco sin datos, no cuánto tarda en total.
+- Verificado en rojo con las DOS pruebas, no una: revertido solo
+  `chat-client.ts` y ambas colgaron hasta el timeout de vitest (5s) —la
+  prueba más directa posible de que sin el arreglo esto se cuelga para
+  siempre, que es exactamente lo reportado. Restaurado, verde en 52ms.
+- Al escribir el mock del stream para el test, un primer intento tenía un
+  bug real: `pull()` volvía a encolar el mismo trozo CADA VEZ que se
+  llamaba (en vez de solo la primera), lo que disparó un bucle activo al
+  100% de CPU en el propio test runner. Corregido llevando un índice
+  fuera de `pull()` y devolviendo una promesa que nunca resuelve para
+  representar honestamente "la conexión sigue abierta pero no manda
+  nada" — documentado aquí porque revela lo fácil que es simular mal un
+  stream colgado.
+
+### Lo que sigue sin cubrir
+
+- No hay E2E para esto: simular una conexión que se queda muda de verdad,
+  con Playwright contra `mock-llm`, sin que el test se vuelva lento o
+  frágil, no compensaba frente a la prueba unitaria con timers falsos
+  (determinista, 52ms, reproduce el hueco exacto sin esperar 45s reales).
+- El umbral (45s) es un número razonable, no medido contra tráfico real
+  de ningún proveedor — si algún modelo de razonamiento legítimo tiene
+  huecos más largos que eso entre trozos, se cortaría de más. No hay
+  forma de saberlo sin más reportes reales.
+- El resto del hilo con el usuario (más de un modelo configurado, probar
+  sin VPN) sigue sin confirmarse — quedó respondido "no lo he probado"
+  para la parte de la red. Si el corte sigue pasando incluso con el
+  arreglo, el siguiente dato a pedir es si fue con o sin VPN.
+
+### Puerta
+
+- ✓ lint · ✓ knip (sin huecos nuevos) · ✓ tsc
+- ✓ **1 914** unitarios (1 912 antes) · ✓ **249** E2E, suite completa
+- ✓ build · ✓ `npm start` + `/api/version` (`4.19.0`) · ✓ `VERCEL=1` sin
+  `standalone` y con el `.nft.json`

@@ -14,7 +14,13 @@ vi.mock("../../src/lib/prism/store", () => ({
   usePrism: { getState: () => ({ settings: settingsMock }) },
 }));
 
-import { ABORTED, buildRequest, streamChat, fetchModels } from "../../src/lib/prism/chat-client";
+import {
+  ABORTED,
+  buildRequest,
+  streamChat,
+  fetchModels,
+  INACTIVIDAD_STREAM_MS,
+} from "../../src/lib/prism/chat-client";
 import { getRecentRequests, clearRecentRequests } from "../../src/lib/prism/request-log";
 import type { ProviderConfig, ProviderId } from "../../src/lib/prism/types";
 import { DEFAULT_SETTINGS } from "../../src/lib/prism/types";
@@ -226,5 +232,78 @@ describe("cuando el fetch ni llega a responder", () => {
     }));
     await expect(enviar(cfg())).rejects.toThrow(/aborted/);
     expect(getRecentRequests()[0].status).toBe(ABORTED);
+  });
+});
+
+describe("cuando la conexión de streaming se queda muda (v4.19.0)", () => {
+  /** Reportado como "se detiene mucho solo": con un modelo de razonamiento
+   * vía móvil + VPN, la conexión SSE se corta a media respuesta sin cerrar
+   * limpiamente. `reader.read()` se quedaba esperando para siempre —la
+   * burbuja se congelaba con lo poco que llegó a pintar, sin ningún error
+   * que disparase el reintento que ya existe. */
+  const sse = (payload: string) => `data: ${payload}\n\n`;
+
+  function streamDeChunks(chunks: string[], msEntreChunks: number, quedarseMudoAlFinal: boolean) {
+    let indice = 0;
+    return new ReadableStream<Uint8Array>({
+      async pull(controller) {
+        if (indice < chunks.length) {
+          if (msEntreChunks > 0) await new Promise((r) => setTimeout(r, msEntreChunks));
+          controller.enqueue(new TextEncoder().encode(sse(chunks[indice])));
+          indice++;
+          return;
+        }
+        if (quedarseMudoAlFinal) {
+          // no queda nada que mandar y la conexión no se cierra: como una
+          // que murió sin avisar. No resolver NUNCA este `pull` es la
+          // única forma de representarlo sin quedar en un bucle activo
+          // (si se resolviera sin encolar nada, el stream volvería a
+          // llamar a `pull` de inmediato, sin ceder nunca el hilo).
+          return new Promise<void>(() => {});
+        }
+        controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+        controller.close();
+      },
+    });
+  }
+
+  const enviarStream = (body: ReadableStream<Uint8Array>) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(body, { status: 200, headers: { "Content-Type": "text/event-stream" } }))
+    );
+    return streamChat({
+      providerId: "gemini",
+      config: cfg(),
+      modelId: "gemini-2.5-flash",
+      messages: [{ role: "user", content: "hola" }],
+      settings: { ...DEFAULT_SETTINGS, stream: true },
+      signal: new AbortController().signal,
+      onDelta: () => {},
+      onDone: () => {},
+    });
+  };
+
+  it("sin ni un byte durante el hueco de inactividad, rechaza con un error claro en vez de colgarse para siempre", async () => {
+    vi.useFakeTimers();
+    try {
+      const chunkInicial = JSON.stringify({
+        candidates: [{ content: { parts: [{ text: "empe" }] } }],
+      });
+      const promesa = enviarStream(streamDeChunks([chunkInicial], 0, true));
+      const veredicto = expect(promesa).rejects.toThrow(/inactividad|conexión parece muerta/i);
+      await vi.advanceTimersByTimeAsync(INACTIVIDAD_STREAM_MS + 1000);
+      await veredicto;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("con trozos que van llegando (aunque tarden), no dispara nada: solo importa el HUECO sin datos, no el tiempo total", async () => {
+    const c1 = JSON.stringify({ candidates: [{ content: { parts: [{ text: "a" }] } }] });
+    const c2 = JSON.stringify({ candidates: [{ content: { parts: [{ text: "b" }] } }] });
+    // 10ms entre trozos: muy por debajo del umbral de inactividad real,
+    // sin necesitar timers falsos para probarlo.
+    await expect(enviarStream(streamDeChunks([c1, c2], 10, false))).resolves.toBe("ab");
   });
 });

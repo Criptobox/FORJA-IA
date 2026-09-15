@@ -265,6 +265,19 @@ export function buildRequest(
   };
 }
 
+/** Cuánto puede estar la conexión SIN NINGÚN byte antes de darla por
+ * muerta. No es un techo al tiempo TOTAL de la respuesta — un modelo de
+ * razonamiento puede tardar de verdad minuto y medio, y eso está bien
+ * mientras sigan llegando trozos — es un techo a un HUECO sin tráfico, que
+ * es la señal de una conexión que se rompió sin avisar (típico de móvil +
+ * VPN: la red mata una conexión que lleva un rato "callada" sin cerrarla
+ * limpiamente). Sin esto, `reader.read()` se queda esperando para
+ * siempre: la burbuja se congela con lo poco que llegó a pintar, sin
+ * ningún error que dispare el recorte/failover que ya existe
+ * (`decidirTrasVacio`, `decisiones.ts`) — reportado como "se detiene
+ * mucho solo". */
+export const INACTIVIDAD_STREAM_MS = 45_000;
+
 async function readSSE(
   res: Response,
   onData: (json: string) => void
@@ -274,7 +287,31 @@ async function readSSE(
   const decoder = new TextDecoder();
   let buffer = "";
   for (;;) {
-    const { done, value } = await reader.read();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const inactividad = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () =>
+          reject(
+            new Error(
+              `Sin datos del proveedor durante ${INACTIVIDAD_STREAM_MS / 1000}s: la conexión parece muerta.`
+            )
+          ),
+        INACTIVIDAD_STREAM_MS
+      );
+    });
+    let resultado: ReadableStreamReadResult<Uint8Array>;
+    try {
+      resultado = await Promise.race([reader.read(), inactividad]);
+    } catch (err) {
+      // se corta de verdad: liberar la conexión y dejar que el llamador
+      // (streamChat → el try/catch de use-generation.ts) lo trate como
+      // cualquier otro fallo de red, con el mismo reintento de siempre.
+      await reader.cancel().catch(() => {});
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+    const { done, value } = resultado;
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     const parts = buffer.split("\n");
