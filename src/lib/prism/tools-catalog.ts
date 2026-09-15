@@ -343,6 +343,15 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
     },
   },
   {
+    name: "verify_project",
+    description:
+      "Ejecuta una verificación INDEPENDIENTE del proyecto: comprobaciones estáticas de HTML/accesibilidad/secretos, más la ejecución real y el QA visual que ya usa «run_project». No acepta que el modelo declare que algo está bien; devuelve evidencia y hallazgos medidos, y solo aprueba (PASS) cuando la ejecución y el QA visual salen limpios.",
+    parameters: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
     name: "visual_review",
     description:
       "Toma una captura REAL de la página renderizada (no mide el DOM, la VE) y se la enseña a un modelo con visión para que la critique: jerarquía, alineación, espaciado, contraste, composición, algo que se vea roto o genérico. Distinta de «run_project» con «qa»: eso mide números; esto ve la página como un usuario. Úsala tras un cambio visual importante, no en cada turno — cuesta una llamada de visión aparte. Si el modelo activo no admite imágenes, te lo dice en vez de ejecutarse. Nota: no ve lo que pinta un <canvas> (el motor 3D incluido) — solo el DOM.",

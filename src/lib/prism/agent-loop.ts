@@ -99,7 +99,8 @@ Reglas del bucle:
 4. EDICIÓN POR PARCHES: si ya tienes el contenido del archivo y el cambio es parcial (arreglar una línea, cambiar un color, añadir una función), NO reescribas el archivo entero: entrega un bloque de código con el lenguaje \`diff\` en el que solo estén las líneas que cambian, precedidas por el contexto mínimo (2–3 líneas sin cambiar alrededor). Un cambio pequeño entregado como parche es más fiable y más barato que una reescritura completa.
 5. Si la tarea es trivial (saludo, pregunta corta), responde normal sin etiquetas.
 6. Si creas o modificas un proyecto, termina con el mapa actualizado (incluye "notes" con las decisiones/reglas del proyecto que debas recordar, y "links" con los archivos locales que cada archivo referencia):
-<project-map>{"name":"Nombre","description":"1 línea","files":[{"name":"index.html","kind":"html","summary":"qué contiene","links":["styles.css","app.js"]}],"features":["función 1"],"notes":["tema principal: azul"]}</project-map>${memoria}`;
+<project-map>{"name":"Nombre","description":"1 línea","files":[{"name":"index.html","kind":"html","summary":"qué contiene","links":["styles.css","app.js"]}],"features":["función 1"],"notes":["tema principal: azul"]}</project-map>
+7. Si modificas un proyecto web, la revisión DEBE basarse en evidencia: ejecuta el proyecto y usa \`verify_project\` cuando esté disponible. Nunca marques pass="yes" solo porque el código parece correcto. Si no hay evidencia, usa pass="no" y explica qué comprobación falta.${memoria}`;
 }
 
 const TAGS = "plan|step|review|answer|project-map";

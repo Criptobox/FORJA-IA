@@ -50,6 +50,7 @@ const MODELOS = [
   "mock-boton-roto",
   "mock-enlace-roto",
   "mock-mide",
+  "mock-verifica",
   "mock-visual-review",
   "mock-visual-review-sin-vision",
   "mock-llamada-en-texto",
@@ -1086,6 +1087,71 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
       .join("\n\n---\n\n");
     return Response.json({
       choices: [{ message: { content: `Esto es lo que midieron las herramientas:\n\n${dicho}` }, index: 0 }],
+    });
+  }
+
+  // `mock-verifica`: el agente pide `verify_project` — la comprobación
+  // INDEPENDIENTE (v4.24) que no acepta que el modelo se autodeclare
+  // aprobado. Escribe una página con hallazgos reales (falta alt, falta
+  // lang, falta viewport), la verifica (NO PASS), la arregla, y la
+  // vuelve a verificar (PASS). El texto final es literal, igual que
+  // `mock-mide`.
+  if (body.model === "mock-verifica") {
+    const rondas = (body.messages ?? []).filter(
+      (m) => Array.isArray((m as { tool_calls?: unknown[] }).tool_calls) &&
+        ((m as { tool_calls?: unknown[] }).tool_calls ?? []).length > 0
+    ).length;
+
+    const pagina = (rota: boolean) => rota
+      ? '<!doctype html><html><body><img src="logo.png"><button></button></body></html>'
+      : '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism</title></head><body><button aria-label="Abrir">OK</button></body></html>';
+
+    const fn = (name: string, args: unknown) => ({
+      id: `call_verifica_${name}_${rondas}`,
+      type: "function",
+      function: { name, arguments: JSON.stringify(args) },
+    });
+
+    const guion: Array<Array<ReturnType<typeof fn>>> = [
+      [fn("write_file", { path: "index.html", content: pagina(true) })],
+      [fn("verify_project", {})],
+      [fn("write_file", { path: "index.html", content: pagina(false) })],
+      [fn("verify_project", {})],
+    ];
+
+    if (body.tools && rondas < guion.length) {
+      const toolCalls = guion[rondas];
+      if (body.stream) {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({
+                  id: "mock-verifica-1",
+                  choices: [{ delta: { tool_calls: toolCalls }, index: 0 }],
+                })}\n\n`
+              )
+            );
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          },
+        });
+        return new Response(stream, {
+          headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" },
+        });
+      }
+      return Response.json({
+        choices: [{ message: { content: "", tool_calls: toolCalls }, index: 0 }],
+      });
+    }
+
+    const dicho = (body.messages ?? [])
+      .filter((m) => m.role === "tool")
+      .map((m) => (typeof m.content === "string" ? m.content : ""))
+      .join("\n\n---\n\n");
+    return Response.json({
+      choices: [{ message: { content: `Esto es lo que dijo la verificación:\n\n${dicho}` }, index: 0 }],
     });
   }
 

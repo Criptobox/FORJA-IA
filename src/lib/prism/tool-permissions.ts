@@ -99,6 +99,12 @@ export const PERMISOS_TOOL: Record<string, PermisoTool> = {
     efectos: ["lee_proyecto", "ejecuta"],
     nota: "ejecuta la página y la compara con la anterior",
   },
+  // Igual que run_project con qa: true, ejecuta el proyecto en el iframe
+  // sandboxed del navegador — nunca un runtime en el servidor.
+  verify_project: {
+    efectos: ["lee_proyecto", "ejecuta"],
+    nota: "ejecuta la verificación independiente del proyecto y devuelve evidencia",
+  },
   // Ejecuta el proyecto para capturarlo (como run_project) Y sale a la red:
   // la crítica es una llamada aparte a un modelo con visión.
   visual_review: {

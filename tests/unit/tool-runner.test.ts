@@ -58,6 +58,40 @@ describe("write_file", () => {
   });
 });
 
+describe("rutas de archivo: sin salir del proyecto", () => {
+  it("write_file rechaza «..» en la ruta", async () => {
+    const c = ctx();
+    const r = await runTool(call("write_file", { path: "../fuera.txt", content: "x" }), c);
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("Ruta inválida");
+    expect(c.projectFiles["../fuera.txt"]).toBeUndefined();
+  });
+  it("write_file rechaza una ruta absoluta", async () => {
+    const r = await runTool(call("write_file", { path: "/etc/passwd", content: "x" }), ctx());
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("Ruta inválida");
+  });
+  it("read_file rechaza «..» en la ruta", async () => {
+    const r = await runTool(call("read_file", { path: "src/../../secreto.env" }), ctx());
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("Ruta inválida");
+  });
+  it("apply_patch y edit_file también rechazan rutas fuera del proyecto", async () => {
+    const r1 = await runTool(call("apply_patch", { path: "../a.txt", parches: [{ search: "x", replace: "y" }] }), ctx());
+    expect(r1.ok).toBe(false);
+    expect(r1.content).toContain("Ruta inválida");
+    const r2 = await runTool(call("edit_file", { path: "../a.txt", find: "x", replace: "y" }), ctx());
+    expect(r2.ok).toBe(false);
+    expect(r2.content).toContain("Ruta inválida");
+  });
+  it("una ruta relativa normal sigue funcionando igual que siempre", async () => {
+    const c = ctx();
+    const r = await runTool(call("write_file", { path: "src/nuevo.txt", content: "ok" }), c);
+    expect(r.ok).toBe(true);
+    expect(c.projectFiles["src/nuevo.txt"]).toBe("ok");
+  });
+});
+
 describe("list_files", () => {
   it("lista todo si no hay prefix", async () => {
     const r = await runTool(call("list_files", {}), ctx());
@@ -195,6 +229,50 @@ describe("herramientas desconocidas", () => {
     expect(r.content).toContain("read_file");
     expect(r.content).toContain("write_file");
     expect(r.content).toContain("search_web");
+  });
+});
+
+describe("verify_project", () => {
+  it("avisa si no hay Sandbox disponible", async () => {
+    const r = await runTool(call("verify_project", {}), ctx());
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("No hay Sandbox");
+  });
+
+  it("si el proyecto no se ejecuta, no hay evidencia y lo dice", async () => {
+    const c = ctx({
+      runProject: async () => ({
+        ok: false, ejecutado: false, logs: 0, errors: 0, logLines: [], errorLines: [],
+        reason: "el iframe no respondió",
+      }),
+    });
+    const r = await runTool(call("verify_project", {}), c);
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("el iframe no respondió");
+  });
+
+  it("con ejecución y QA limpios, aprueba (PASS)", async () => {
+    const c = ctx({
+      projectFiles: {
+        "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width"><title>Prism</title></head><body><img alt="Logo" src="logo.svg"></body></html>',
+        "logo.svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>",
+      },
+      runProject: async () => ({
+        ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [],
+        qa: { width: 320, ok: true, items: [], at: Date.now(), noRespondio: false },
+      }),
+    });
+    const r = await runTool(call("verify_project", {}), c);
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("PASS");
+  });
+
+  it("nunca aprueba solo con la ejecución: sin QA visual, sigue sin PASS", async () => {
+    const c = ctx({
+      runProject: async () => ({ ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [] }),
+    });
+    const r = await runTool(call("verify_project", {}), c);
+    expect(r.content).toContain("NO PASS");
   });
 });
 

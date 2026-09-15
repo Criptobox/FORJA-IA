@@ -6949,3 +6949,117 @@ demo.
   nuevos), suite completa
 - ✓ build · ✓ `npm start` + `/api/version` (`4.20.1` antes del bump) ·
   ✓ `VERCEL=1` sin `standalone` y con el `.nft.json`
+
+## v4.22.0 — Un cuarto ZIP traía ejecución remota sin autenticar: se descartó
+
+El usuario subió `prism-ai-4.24.0-real-runtime.zip`. Mismo patrón que los
+dos anteriores: su `worklog.md` se corta en la v4.19.0, así que se
+construyó sin saber que la v4.20.0–v4.21.0 ya estaban en `main`. Antes de
+aplicar nada, se revisó archivo por archivo contra el estado actual del
+repo.
+
+### Lo que traía y por qué se descartó la mitad
+
+La pieza central era una ruta nueva, `/api/prism-web/runtime`: recibe
+`{path, content}[]` arbitrarios desde el cliente, los escribe en un
+directorio temporal, corre `npm ci/install --ignore-scripts` (esa parte
+sí estaba bien protegida) y después `spawn("npm", ["run", <dev|start|
+preview>], { cwd, env: { ...process.env, ... } })` — **sin ninguna
+comprobación de autenticación en el `POST`**, pasando el entorno
+COMPLETO del servidor (todas las claves y secretos) al proceso hijo, y
+sin ningún aislamiento de contenedor o VM (el propio doc del ZIP admitía
+que ese aislamiento "aún no existe"). Cualquiera que pudiera golpear esa
+ruta ejecutaba código arbitrario en el servidor con las claves del
+servidor a mano.
+
+Peor: el ZIP no dejaba esto como algo opcional. Su parche a
+`sandbox-runner.ts` redirigía la función YA EXISTENTE y ya confiada
+`runProject()` — la que usa hoy el botón "Ejecutar" del Sandbox,
+`visual_review`, y cualquier futuro `verify_project` — a este runtime
+nuevo en cuanto detectaba `files["package.json"]`. Aplicar el ZIP tal
+cual no habría añadido una función de riesgo aparte: habría comprometido
+TODOS los caminos que ya confían en `runProject()`. Esto contradice
+directamente el modelo de seguridad establecido de la app: iframe
+sandboxed (`sandbox="allow-scripts…"` sin `allow-same-origin`), nunca
+ejecución del lado del servidor.
+
+Consultado el usuario con `AskUserQuestion` dado lo grave del hallazgo,
+la respuesta fue clara: descartar el runtime por completo, revisar el
+resto del ZIP por si traía algo aprovechable. Ni la ruta `runtime/
+route.ts`, ni el parche a `sandbox-runner.ts`, ni la redirección de
+`runProject()` se tocaron — no existen en el repo.
+
+También se descartaron, por redundancia o alcance: el diff de
+`preview-panel.tsx` (partía de la versión SIN `forwardRef`, ya
+sustituida en la v4.21.0 — aplicarlo habría deshecho ese trabajo) y
+`prism-web.ts` (un sistema nuevo de 8 "modos" de prompt que se solapa
+con `web-studio.ts` ya existente, sin que se pidiera).
+
+### Lo que sí se portó: `verify_project`
+
+El ZIP también proponía una idea real, separable del runtime: que el
+agente pudiera pedir una verificación INDEPENDIENTE del proyecto — no
+solo confiar en que "el código parece correcto" — combinando comprobaciones
+estáticas con evidencia real de ejecución y de QA visual.
+
+- `web-verifier.ts` (nuevo): función pura `verifyWebProject(files,
+  runtime?)`, sin dependencia de ejecución propia. Revisa HTML (`lang`,
+  `title`, `viewport`, `alt` en imágenes, nombres accesibles), enlaces
+  locales rotos, y patrones de secretos filtrados; y solo si se le pasa
+  evidencia de runtime (`executed`, `errors`) y de QA marca
+  `runtimeChecked`/`visualChecked`. `passed: true` exige AMBOS. Copiado
+  del ZIP tal cual — es una función pura, sin ningún vínculo con el
+  runtime descartado.
+- Tool `verify_project` (`tool-runner.ts`): llama a `ctx.runProject({qa:
+  true})` — el mismo camino seguro, en iframe sandboxed, que ya usan
+  `run_project` y `visual_review` — y alimenta su resultado a
+  `verifyWebProject()`. Nunca toca el runtime del servidor; ese camino
+  ni siquiera existe en el repo.
+- Regla nueva en `agent-loop.ts`: el ZIP proponía una regla "no marques
+  pass sin evidencia", pero su propio parche numeraba mal la lista
+  (repetía "2."). Se corrigió añadiéndola como regla 7, al final, sin
+  arrastrar el bug de numeración del ZIP.
+- Guarda de `..`/rutas absolutas (`projectPath()`) para `read_file`,
+  `write_file`, `apply_patch`, `edit_file`, `list_files`. Hoy
+  `projectFiles` es un mapa en memoria sin disco real detrás, pero una
+  clave con `..` sigue siendo una confusión de límites en cuanto se use
+  para exportar un ZIP o empujar a GitHub — higiene barata, se portó.
+
+### Tres listas exhaustivas de nombres de tools, tres sitios
+
+Convención de la casa (comentario en `tools-catalog.ts`): si se añade
+una tool, hay que actualizar su test. Hay TRES sitios que comprueban la
+lista completa y ordenada de nombres, no uno: `tests/unit/
+tools-catalog.test.ts`, `tests/unit/tool-permissions.test.ts` — los dos
+encontrados al correr los unitarios — y `tests/e2e/tools-agente.spec.ts`,
+que solo salió a la luz al correr la suite E2E COMPLETA (fallaba en el
+test 225 de 259, tras confirmar 224 en verde). Los tres se actualizaron
+para incluir `verify_project`.
+
+### Pruebas
+
+- `tests/unit/web-verifier.test.ts` (nuevo, 3 tests): PASS con proyecto
+  limpio, hallazgos de `alt`/enlace roto/secreto filtrado, y que
+  `runtimeChecked`/`visualChecked` solo se marcan con evidencia real.
+- `tests/unit/tool-runner.test.ts`: +5 tests de rutas (`..`, absolutas,
+  `C:/`, bytes de control — todas rechazadas) y +4 de `verify_project`
+  (sin Sandbox, ejecución fallida, hallazgos reales, limpio).
+- `tests/e2e/verify-project.spec.ts` (nuevo): un modelo mock escribe una
+  página rota (`<img>` sin `alt`, referencia local inexistente), llama
+  `verify_project`, ve NO PASS con los hallazgos reales, escribe la
+  versión corregida, vuelve a llamar `verify_project` y esta vez ve
+  PASS con `runtime=sí, visual=sí`. Primer intento falló dos veces: el
+  regex buscaba el `id` del hallazgo (`img-alt`) en vez del texto que de
+  verdad se renderiza (`summarizeVerification` imprime `f.message`); y
+  la página "corregida" del mock seguía citando un `<img>` que nunca se
+  escribió como archivo, así que seguía dando NO PASS después del
+  "arreglo". Corregido el regex y quitada esa imagen de la versión
+  corregida del mock.
+
+### Puerta
+
+- ✓ lint · ✓ knip (mismo ruido preexistente) · ✓ tsc limpio
+- ✓ **1 932** unitarios (1 920 + 12 nuevos) · ✓ **259** E2E (258 antes +
+  1 nuevo), suite completa
+- ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin
+  `standalone` y con el `.nft.json`

@@ -29,6 +29,7 @@ import {
 import { reglaQueBloquea, motivoBloqueo, type ReglaNo } from "./reglas-no";
 import { aplicarParches, mensajeResultado, parsearParches, type Parche } from "./patch";
 import { buscarEnWeb } from "./busqueda-web";
+import { verifyWebProject, summarizeVerification, type WebVerification } from "./web-verifier";
 import {
   crearSnapshot,
   guardarSnapshot,
@@ -37,6 +38,20 @@ import {
   MAX_CHARS_SNAPSHOT,
   type Snapshot,
 } from "./snapshots";
+
+/** Rutas de proyecto: nunca se permite escapar del workspace lógico. Hoy
+ *  `projectFiles` es un mapa en memoria (sin disco real detrás), pero un
+ *  `..` en la clave sigue siendo una confusión de límites que puede
+ *  importar en cuanto algo (exportar ZIP, empujar a GitHub) trate esa
+ *  clave como una ruta real. */
+function projectPath(raw: string): string | null {
+  const value = raw.trim().replace(/\\/g, "/");
+  if (!value || value.startsWith("/") || /^[A-Za-z]:\//.test(value)) return null;
+  const parts = value.split("/").filter(Boolean);
+  if (parts.some((p) => p === "..") || parts.some((p) => p === ".")) return null;
+  if (parts.some((p) => /[\x00-\x1f]/.test(p))) return null;
+  return parts.join("/");
+}
 
 /** Una página que no contesta en este tiempo no merece seguir bloqueando al
  *  agente: el modelo puede decidir otra cosa con el error. */
@@ -244,6 +259,8 @@ export async function runTool(
         return runSnapshotDiff(call, ctx);
       case "ask_memory":
         return runAskMemory(call, ctx);
+      case "verify_project":
+        return await runVerifyProject(call, ctx);
       case "visual_review":
         return await runVisualReview(call, ctx);
       default:
@@ -268,8 +285,10 @@ export async function runTools(
 /* ------------------------------------------------------------------ */
 
 function runReadFile(call: ToolCall, ctx: ToolContext): ToolResult {
-  const path = strArg(call, "path");
-  if (!path) return argError(call, "path");
+  const rawPath = strArg(call, "path");
+  if (!rawPath) return argError(call, "path");
+  const path = projectPath(rawPath);
+  if (!path) return invalidPath(call);
   if (!ctx.projectFiles[path]) {
     return toolError(
       call,
@@ -280,9 +299,11 @@ function runReadFile(call: ToolCall, ctx: ToolContext): ToolResult {
 }
 
 function runWriteFile(call: ToolCall, ctx: ToolContext): ToolResult {
-  const path = strArg(call, "path");
+  const rawPath = strArg(call, "path");
   const content = strArg(call, "content");
-  if (!path) return argError(call, "path");
+  if (!rawPath) return argError(call, "path");
+  const path = projectPath(rawPath);
+  if (!path) return invalidPath(call);
   if (content === undefined) return argError(call, "content");
   const veto = vetoDe(ctx, path, "write_file");
   if (veto) return toolError(call, veto);
@@ -312,8 +333,10 @@ function vetoDe(ctx: ToolContext, path: string, herramienta: string): string | n
  * no reescrituras: menos tokens, menos fallos, y si un bloque no aplica
  * el mensaje le dice cuál y cómo arreglarlo sin reescribir nada. */
 function runApplyPatch(call: ToolCall, ctx: ToolContext): ToolResult {
-  const path = strArg(call, "path");
-  if (!path) return argError(call, "path");
+  const rawPath = strArg(call, "path");
+  if (!rawPath) return argError(call, "path");
+  const path = projectPath(rawPath);
+  if (!path) return invalidPath(call);
   const veto = vetoDe(ctx, path, "apply_patch");
   if (veto) return toolError(call, veto);
   const actual = ctx.projectFiles[path];
@@ -366,11 +389,13 @@ function contarApariciones(pajar: string, aguja: string): number {
 }
 
 function runEditFile(call: ToolCall, ctx: ToolContext): ToolResult {
-  const path = strArg(call, "path");
+  const rawPath = strArg(call, "path");
   const find = strArg(call, "find");
   const replace = strArg(call, "replace") ?? "";
   const all = boolArg(call, "all");
-  if (!path) return argError(call, "path");
+  if (!rawPath) return argError(call, "path");
+  const path = projectPath(rawPath);
+  if (!path) return invalidPath(call);
   if (find === undefined || find === "") return argError(call, "find");
   const veto = vetoDe(ctx, path, "edit_file");
   if (veto) return toolError(call, veto);
@@ -405,7 +430,9 @@ function runEditFile(call: ToolCall, ctx: ToolContext): ToolResult {
 }
 
 function runListFiles(call: ToolCall, ctx: ToolContext): ToolResult {
-  const prefix = strArg(call, "prefix") ?? "";
+  const rawPrefix = strArg(call, "prefix") ?? "";
+  const prefix = rawPrefix ? projectPath(rawPrefix) : "";
+  if (rawPrefix && !prefix) return invalidPath(call);
   const all = Object.keys(ctx.projectFiles).sort();
   const filtered = prefix ? all.filter((p) => p.startsWith(prefix)) : all;
   if (!filtered.length) {
@@ -900,6 +927,33 @@ function runAskMemory(call: ToolCall, ctx: ToolContext): ToolResult {
 }
 
 /**
+ * `verify_project`: verificación INDEPENDIENTE del proyecto — nunca se
+ * infiere de lo que diga el modelo. Ejecuta el Sandbox (el mismo camino
+ * que ya usa `run_project`, en el iframe sandboxed del navegador — nunca
+ * un runtime en el servidor) y combina esa evidencia con comprobaciones
+ * estáticas de HTML/accesibilidad/secretos en `web-verifier.ts`. Un PASS
+ * solo puede salir de aquí; el modelo no puede declararlo por su cuenta.
+ */
+async function runVerifyProject(call: ToolCall, ctx: ToolContext): Promise<ToolResult> {
+  if (!ctx.runProject) {
+    return toolError(call, "No hay Sandbox disponible. El usuario no tiene un proyecto abierto en el Sandbox.");
+  }
+  const outcome = await ctx.runProject({ qa: true });
+  if (!outcome.ejecutado) {
+    return toolError(call, outcome.reason ?? "No se pudo ejecutar el proyecto; no hay evidencia suficiente para verificarlo.");
+  }
+  const verification = verifyWebProject(ctx.projectFiles, {
+    executed: outcome.ejecutado,
+    errors: outcome.errors,
+    errorLines: outcome.errorLines,
+    qa: outcome.qa,
+  });
+  ctx.lastConsole = { lines: (outcome.consola ?? []).slice(-MAX_CONSOLA), fecha: Date.now() };
+  ctx.lastRun = snapshotDeOutcome(outcome);
+  return toolOk(call, summarizeVerification(verification));
+}
+
+/**
  * `visual_review`: la mitad que le faltaba al QA — no medir el DOM, VER la
  * página. Renderiza el proyecto, toma una captura real (`screenshot.ts`) y
  * se la enseña a un modelo con visión para que la critique.
@@ -974,4 +1028,8 @@ function toolError(call: ToolCall, message: string): ToolResult {
 
 function argError(call: ToolCall, name: string): ToolResult {
   return toolError(call, `Falta el argumento «${name}» o no es una cadena.`);
+}
+
+function invalidPath(call: ToolCall): ToolResult {
+  return toolError(call, "Ruta inválida: usa una ruta relativa dentro del proyecto, sin «..», «.» ni rutas absolutas.");
 }
