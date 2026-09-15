@@ -6746,3 +6746,107 @@ o router nuevos, tal como dice el propio plan):
   completa
 - ✓ build · ✓ `npm start` + `/api/version` (`4.20.0`) · ✓ `VERCEL=1` sin
   `standalone` y con el `.nft.json`
+
+## v4.20.1 — Web Studio en el teléfono: un desborde real y una teoría que no lo era
+
+El usuario, tras probar la v4.20.0 en el móvil: *"El nuevo módulo no se
+adapta bien al teléfono"*. QA visual real a 320/390/768px (Playwright con
+el Chromium de este entorno, no capturas de pantalla adivinadas)
+confirmó el reporte: en el diálogo de Web Studio, la fila de nueva tarea
+de la pestaña Tasks se quedaba con un campo de texto de apenas 68px de
+ancho — ilegible, el placeholder recortado a "Nuev" — y las cuatro
+pestañas (Overview/QA/Security/Tasks) se apretaban sin separación visible
+entre sí a ese ancho.
+
+### La teoría que no sobrevivió a la medición
+
+La primera hipótesis, antes de medir con precisión, fue la clásica de
+Grid/Flexbox: que el stepper de 7 etapas (fila con `overflow-x-auto` y
+botones `min-w-max`) forzaba a su contenedor — la tarjeta "Workflow", un
+elemento de la rejilla `grid-cols-[1.6fr_1fr]` — a crecer más de la
+cuenta, empujando el propio diálogo fuera de la pantalla. Se añadió
+`min-w-0` a esa tarjeta y a la de Project Health como arreglo preventivo.
+
+Pero al escribir el test E2E permanente y medirlo de verdad (no solo
+mirar una captura) — comparando `scrollWidth` contra `clientWidth` del
+propio `[data-slot="dialog-content"]`, que revela el ancho de contenido
+real aunque `overflow-hidden` lo esté recortando visualmente — el
+resultado fue el mismo con y sin el `min-w-0`: sin desborde interno, ni
+antes ni después. La explicación real: la fila del stepper ya lleva
+`overflow-x-auto`, y un elemento con `overflow` distinto de `visible` es,
+por la propia especificación de CSS Sizing, un contenedor de scroll — su
+tamaño mínimo automático que cuenta para el layout de SUS ancestros pasa
+a ser 0, no el ancho de su contenido. La fila ya se protegía a sí misma;
+no había nada que min-w-0 tuviera que arreglar ahí. El `min-w-0` en las
+dos tarjetas se dejó de todos modos (es inofensivo y documenta la
+intención), pero el desborde real vivía en otro sitio.
+
+### El fallo real, confirmado con test rojo-antes-de-verde
+
+`git stash` del único archivo de origen tocado
+(`prism-studio-dialog.tsx`) y una vuelta del test nuevo contra el código
+de la v4.20.0 sin el arreglo: **falla exactamente donde debía** —
+`ancho del campo de nueva tarea: esperado > 100, recibido 68.359375` a
+320px. La fila de la pestaña Tasks (`<div className="mb-3 flex
+gap-2">` con el input y el botón "Añadir" codo a codo) no tenía dónde
+encoger: sin `flex-wrap` ni `min-w-0` en el campo, el botón de al lado se
+quedaba con su ancho natural y el input se comía lo que sobraba, que a
+320px era casi nada.
+
+Arreglo, ya con el `git stash pop`:
+- La fila pasa a `flex flex-wrap gap-2`: si no cabe todo junto, el botón
+  baja de línea en vez de aplastar el campo.
+- El `<Input id="prism-task-input">` lleva `min-w-0 flex-1 basis-40`:
+  encoge por debajo de su ancho natural (el `min-w-0` que si hacía
+  falta, aquí sí) y no baja nunca de 160px salvo que el flex-wrap ya haya
+  liberado espacio.
+- Las cuatro `TabsTrigger` bajan de `text-sm` a `text-[11px] px-1`: a
+  ese tamaño, las cuatro etiquetas (Overview/QA/Security/Tasks) dejan de
+  tocarse entre sí a 320-390px.
+
+### Un hallazgo lateral: el falso desborde del menú móvil
+
+El primer intento del test nuevo daba positivo en TODOS los anchos, pero
+por un motivo ajeno al diálogo: por debajo del breakpoint `lg`, la barra
+lateral vive dentro de un `Sheet` (hoja deslizante) que hay que abrir con
+el botón de hamburguesa antes de llegar al botón "Web Studio" — y al
+cerrarse tras el clic, sus nodos quedan a mitad de la animación de salida
+(con posiciones negativas, fuera de la pantalla) en el instante exacto en
+que el test medía. Se añadió una espera explícita a que
+`[data-slot="sheet-content"]` desaparezca del DOM antes de medir. Sin
+esa espera, el test habría sido un falso positivo constante, no una
+medición real del diálogo.
+
+### Pruebas
+
+- `tests/e2e/web-studio.spec.ts`: 3 tests nuevos (`Web Studio sin
+  desbordes a 320/390/768px`), cada uno comprobando cuatro cosas —
+  `document.documentElement.scrollWidth === clientWidth` (sin scroll
+  real de página), ningún elemento visible fuera del viewport que no
+  esté recortado a propósito por un ancestro, el borde derecho del
+  diálogo dentro del viewport, y `dialog.scrollWidth === clientWidth`
+  (sin desborde interno aunque esté recortado) — más una quinta
+  comprobación específica: el campo de nueva tarea mide más de 100px.
+  Rojo confirmado antes del arreglo (falla en el campo de tarea a
+  320px, verde en 390/768 porque a esos anchos el campo ya tenía sitio
+  de sobra), verde después en los tres.
+
+### Lo que sigue sin cubrir
+
+- No se verificó visualmente en un dispositivo físico, solo en Chromium
+  headless con viewport forzado — el comportamiento de teclado virtual
+  en iOS/Android (que puede reducir la altura visible y no el ancho) no
+  se prueba aquí.
+- El `min-w-0` de las tarjetas Workflow/Health queda como higiene
+  preventiva, no como arreglo de un fallo medido — si algún día esa fila
+  deja de tener `overflow-x-auto`, el argumento de esta entrada deja de
+  aplicar y habría que revisar de nuevo.
+
+### Puerta
+
+- ✓ lint · ✓ knip (mismo ruido preexistente, nada nuevo en los dos
+  archivos tocados) · ✓ tsc limpio
+- ✓ **1 920** unitarios · ✓ **256** E2E (253 antes + 3 nuevos), suite
+  completa
+- ✓ build · ✓ `npm start` + `/api/version` (`4.20.0` antes del bump) ·
+  ✓ `VERCEL=1` sin `standalone` y con el `.nft.json`

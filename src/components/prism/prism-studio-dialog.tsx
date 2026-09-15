@@ -96,11 +96,16 @@ export function PrismStudioDialog({
 
         <div className="min-h-0 overflow-y-auto p-5">
           <div className="mb-5 grid gap-3 md:grid-cols-[1.6fr_1fr]">
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
+            <div className="min-w-0 rounded-2xl border border-border/60 bg-card/60 p-4">
               <div className="mb-3 flex items-center justify-between">
                 <div><p className="text-xs font-medium text-muted-foreground">Workflow</p><p className="text-sm font-semibold">Proyecto → resultado</p></div>
                 <span className="font-mono text-[10px] text-muted-foreground">{stage.toUpperCase()}</span>
               </div>
+              {/* min-w-0 en el padre de arriba es lo que deja que ESTA fila
+                  se quede dentro del ancho del diálogo en móvil: sin él, un
+                  hijo grid/flex no se encoge por debajo del contenido de sus
+                  descendientes aunque tengan overflow-x-auto, y los 7 botones
+                  de etapa empujaban todo el diálogo fuera de la pantalla. */}
               <div className="flex gap-1 overflow-x-auto pb-1">
                 {WEB_STUDIO_STAGES.map((s, i) => (
                   <button key={s.id} onClick={() => setStage(s.id)} className={cn("flex min-w-max items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] transition", stage === s.id ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted")}>
@@ -109,18 +114,22 @@ export function PrismStudioDialog({
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
+            <div className="min-w-0 rounded-2xl border border-border/60 bg-card/60 p-4">
               <div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Project Health</p><p className="text-sm font-semibold">Solo evidencia disponible</p></div><Score value={health.score} /></div>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">{health.score != null && <div className={cn("h-full rounded-full", health.score >= 85 ? "bg-emerald-500" : health.score >= 65 ? "bg-amber-500" : "bg-red-500")} style={{ width: `${health.score}%` }} />}</div>
             </div>
           </div>
 
           <Tabs defaultValue="studio">
+            {/* text-[11px] y px-1: con las cuatro en una fila («Web Studio»
+                es la más larga) el tamaño de fuente de por defecto de Tabs
+                (text-sm) las dejaba pegadas sin separación visible en
+                320-390px. */}
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="studio">Web Studio</TabsTrigger>
-              <TabsTrigger value="health">Health</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="tasks">Tasks</TabsTrigger>
+              <TabsTrigger value="studio" className="px-1 text-[11px]">Web Studio</TabsTrigger>
+              <TabsTrigger value="health" className="px-1 text-[11px]">Health</TabsTrigger>
+              <TabsTrigger value="security" className="px-1 text-[11px]">Security</TabsTrigger>
+              <TabsTrigger value="tasks" className="px-1 text-[11px]">Tasks</TabsTrigger>
             </TabsList>
 
             <TabsContent value="studio" className="mt-4 space-y-4">
@@ -168,8 +177,13 @@ export function PrismStudioDialog({
             </TabsContent>
 
             <TabsContent value="tasks" className="mt-4">
-              <div className="mb-3 flex gap-2">
-                <Input id="prism-task-input" placeholder="Nueva tarea…" onKeyDown={e => { if(e.key==="Enter"){ const v=e.currentTarget.value; tasks.add(v); e.currentTarget.value=""; }}} />
+              <div className="mb-3 flex flex-wrap gap-2">
+                <Input
+                  id="prism-task-input"
+                  placeholder="Nueva tarea…"
+                  className="min-w-0 flex-1 basis-40"
+                  onKeyDown={e => { if(e.key==="Enter"){ const v=e.currentTarget.value; tasks.add(v); e.currentTarget.value=""; }}}
+                />
                 <Button onClick={() => { const el=document.getElementById("prism-task-input") as HTMLInputElement | null; if(el){tasks.add(el.value);el.value="";}}}><Plus className="size-4" /></Button>
                 <Button variant="outline" onClick={tasks.clearDone}>Limpiar hechas</Button>
               </div>
