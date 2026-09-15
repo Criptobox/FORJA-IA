@@ -6647,3 +6647,102 @@ sigue mandando trozos, no se toca. Solo se corta el silencio.
 - ✓ **1 914** unitarios (1 912 antes) · ✓ **249** E2E, suite completa
 - ✓ build · ✓ `npm start` + `/api/version` (`4.19.0`) · ✓ `VERCEL=1` sin
   `standalone` y con el `.nft.json`
+
+## v4.20.0 — Web Studio: el usuario trajo el código, aquí se revisó y se cerró la puerta
+
+El usuario subió un ZIP ("prism-ai-4.20-web-studio") con cambios hechos
+fuera de esta sesión y pidió revisar y subir a `main`. La propia
+`docs/PLAN-V9-WEB-STUDIO.md` que traía el ZIP lo decía con toda honestidad:
+*"no fue posible ejecutar la suite completa [...] no se afirma que lint,
+build o test hayan pasado"*. Así que esta entrada es esa verificación
+pendiente, hecha aquí.
+
+### Qué trae Web Studio
+
+Una superficie nueva en la barra lateral que junta cuatro piezas, todas
+reutilizando sistemas que Prism YA tenía (nada de memoria, navegador, QA
+o router nuevos, tal como dice el propio plan):
+- **`web-studio.ts`**: arma un prompt especializado (Brief → Plan → Build
+  → QA → Fix → Regression → Publish) que obliga al agente a inspeccionar
+  el proyecto existente antes de tocar nada y a no afirmar que algo pasó
+  una prueba sin haberla medido.
+- **`project-health.ts`**: una puntuación derivada de señales que YA
+  existen (mapa del proyecto, Visual QA, memoria de fallos, HTML). Sin
+  dato, el componente enseña `null` → la UI pinta «—», nunca un 0/100 o
+  100/100 inventado.
+- **`security-center.ts`**: un escáner estático LOCAL (nunca manda el
+  código a ningún sitio) de patrones conocidos — secretos incrustados,
+  HTTP sin cifrar, `eval`, `innerHTML`, scripts externos —, con un
+  disclaimer explícito de que es diagnóstico, no una auditoría.
+- **`project-tasks.ts`**: un tablero Pendiente/En curso/Hecha persistido
+  en local, donde los hallazgos de QA y seguridad pueden convertirse en
+  tareas automáticamente.
+- **`prism-studio-dialog.tsx`**: la superficie que junta las cuatro,
+  abierta desde «Web Studio» en la barra lateral.
+
+### Lo que se encontró al revisar de verdad
+
+- **Un fallo de seguridad real**: el iframe oculto donde Security Center
+  y Visual QA miden el HTML no llevaba el atributo `sandbox` que sí
+  llevan los otros dos iframes de vista previa del proyecto
+  (`preview-panel.tsx`, `sandbox-studio.tsx`: `allow-scripts
+  allow-forms allow-modals allow-popups allow-pointer-lock`, siempre SIN
+  `allow-same-origin`). Sin `sandbox`, un `srcDoc` corre en el mismo
+  origen que la propia app — cualquier JS en el HTML medido habría
+  podido leer el `localStorage` de Prism, donde viven las claves de API.
+  Añadido, igual que en los otros dos.
+- **Dos errores de `tsc` reales**: `sidebar.tsx` declaraba
+  `onOpenStudio?: () => void;` en el tipo de las props pero nunca lo
+  desestructuraba de los parámetros del componente — el botón "Web
+  Studio" de la barra lateral literalmente no podía compilar. Y
+  `project-tasks.ts` perdía el tipo literal `TaskStatus` al construir la
+  tarea nueva (`status: "todo"` se ensanchaba a `string` dentro del
+  objeto), rompiendo el store.
+- **`project-tasks.ts` sin el envoltorio de la casa para `localStorage`**:
+  usaba `createJSONStorage(() => localStorage)` en vez de
+  `safeLocalStorage()` (el que ya usan `limites-medidos.ts` y
+  `llamadas-texto-medidas.ts`), y le faltaba `"use client"` — el único de
+  los cuatro módulos nuevos que de verdad toca el navegador. Corregido
+  para que quede protegido igual que el resto de stores persistidos.
+- Un import muerto (`X` de lucide-react, nunca usado) y un `(list as
+  any[])` en la pestaña de tareas, sustituido por una tupla `as const`
+  tipada de verdad.
+
+### Pruebas
+
+- Los 6 unitarios que ya traía el ZIP (`project-health.test.ts`,
+  `security-center.test.ts`, `web-studio.test.ts`) pasan tal cual, sin
+  tocarlos.
+- 4 E2E nuevos (`web-studio.spec.ts`), probados primero a mano en el
+  navegador real (`npm run dev`, clic real en la barra lateral) antes de
+  escribirlos: abre desde la barra lateral y Health enseña «—» sin
+  datos, en vez de una puntuación inventada; el iframe de medición SÍ
+  lleva el `sandbox` correcto (la prueba directa del fallo de seguridad
+  que se corrigió); Security Center analiza y siempre enseña el
+  disclaimer; Project Tasks añade una tarea, la mueve de Pendiente a En
+  curso y el contador de cada columna se actualiza.
+
+### Lo que sigue sin cubrir
+
+- El propio plan ya lo dice: el tablero de tareas no está conectado
+  todavía al `AgentTrace` ni a los resultados de regresión — las tareas
+  que crea QA/Security quedan sueltas, no enlazadas a la iteración del
+  agente que las originó.
+- `security-center.ts` es deliberadamente conservador (cinco patrones
+  regex, con su propio disclaimer de que no es una auditoría) — no se
+  amplió el catálogo de reglas en esta revisión, solo se verificó que lo
+  que ya trae funciona y no miente sobre su alcance.
+- No se probó `web-studio.ts` (`buildWebStudioPrompt` → "Iniciar con
+  agente") contra un modelo real: el prompt se construye y se comprobó
+  que llega al compositor con el modo agente encendido, pero seguir el
+  flujo completo hasta una generación real requiere una clave de API que
+  este entorno no tiene (mismo límite que el resto de la sesión).
+
+### Puerta
+
+- ✓ lint · ✓ knip (sin huecos nuevos) · ✓ tsc (limpio tras corregir los
+  dos errores reales)
+- ✓ **1 920** unitarios (1 914 antes) · ✓ **253** E2E (249 antes), suite
+  completa
+- ✓ build · ✓ `npm start` + `/api/version` (`4.20.0`) · ✓ `VERCEL=1` sin
+  `standalone` y con el `.nft.json`

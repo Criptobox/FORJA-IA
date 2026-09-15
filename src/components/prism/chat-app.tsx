@@ -144,6 +144,7 @@ import { useOfertas } from "@/lib/prism/ofertas-store";
 import { extraerTarjetas, fechaHoy, PROMPT_REPASO, resumenRepaso } from "@/lib/prism/repaso";
 import { fusionarOfertas, novedadesOfertas, OFERTAS_BASE } from "@/lib/prism/ofertas";
 import { MemoriaPanel } from "./memoria-panel";
+import { PrismStudioDialog } from "./prism-studio-dialog";
 
 export function ChatApp() {
   // hidratación
@@ -282,6 +283,7 @@ export function ChatApp() {
   } | null>(null);
   const [snapshotsOpen, setSnapshotsOpen] = useState(false);
   const [memoriaOpen, setMemoriaOpen] = useState(false);
+  const [studioOpen, setStudioOpen] = useState(false);
 
   // ——— La tubería de generación (tercer corte, PLAN-V8) ———
   // Todo lo que convierte un envío en respuesta vive en `use-generation.ts`:
@@ -1800,6 +1802,7 @@ export function ChatApp() {
           onOpenGuide={() => setOnboardingOpen(true)}
           onOpenRepos={() => setReposOpen(true)}
           onOpenSandbox={() => setSandboxOpen(true)}
+          onOpenStudio={() => setStudioOpen(true)}
           onOpenUsage={() => setUsageOpen(true)}
           onOpenFailures={() => setFailuresOpen(true)}
           onOpenRepaso={() => setRepasoOpen(true)}
@@ -1870,6 +1873,10 @@ export function ChatApp() {
             }}
             onOpenSandbox={() => {
               setSandboxOpen(true);
+              setSidebarOpen(false);
+            }}
+            onOpenStudio={() => {
+              setStudioOpen(true);
               setSidebarOpen(false);
             }}
             onClose={() => setSidebarOpen(false)}
@@ -2080,6 +2087,18 @@ export function ChatApp() {
         open={presentationOpen}
         onOpenChange={setPresentationOpen}
         html={previewCode ?? ""}
+      />
+
+      <PrismStudioDialog
+        open={studioOpen}
+        onOpenChange={setStudioOpen}
+        map={activeSession?.projectMap ?? null}
+        html={previewCode ?? null}
+        onStart={(prompt) => {
+          setInput(prompt);
+          setSettings({ agentMode: true });
+          toast.success("Web Studio preparado", { description: "El modo agente quedó activado. Revisa el prompt y envíalo." });
+        }}
       />
 
       <SettingsDialog

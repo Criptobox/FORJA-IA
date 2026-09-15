@@ -19,6 +19,18 @@
 Prism AI es un chat de IA **100% local y privado**: tus claves API se guardan únicamente en tu dispositivo (localStorage), las peticiones van directas al proveedor o por el proxy incluido, y no existe ningún sistema de cuentas. Trae tu propia clave (BYOK) de AiHubMix, Gemini, Groq, OpenRouter y más — y Prism AI se encarga de mostrarte **solo los modelos gratis disponibles**, con radar de ofertas, failover automático y vista previa web en tiempo real de lo que la IA construye.
 
 ## ✨ Características
+## 🚀 Web Studio 4.20
+
+La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya existen, sin reemplazarlas:
+
+- **Web Studio**: flujo Brief → Plan → Build → Visual QA → Fix → Regression → Publish.
+- **Prompt especializado para web**: obliga a inspeccionar el proyecto existente, conservar su identidad y distinguir evidencia de suposiciones.
+- **Project Health**: estructura, Visual QA, fiabilidad local y seguridad básica; si falta evidencia muestra `—` en lugar de inventar una puntuación.
+- **Security Center**: análisis estático local conservador de secretos embebidos, HTTP, `eval`, `innerHTML` y scripts externos.
+- **Project Tasks**: tablero local Todo / En curso / Hechas; los hallazgos importantes de QA y seguridad pueden convertirse automáticamente en tareas.
+- **QA conectado al trabajo**: una medición real puede alimentar el panel de salud y crear pendientes verificables.
+- **Privacidad intacta**: estas funciones no añaden cuentas ni telemetría.
+
 
 | | |
 |---|---|

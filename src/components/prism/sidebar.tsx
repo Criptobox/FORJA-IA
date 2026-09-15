@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
+  Sparkles,
   BookOpen,
   Box,
   BrainCircuit,
@@ -64,6 +65,7 @@ export function Sidebar({
   onOpenGuide,
   onOpenRepos,
   onOpenSandbox,
+  onOpenStudio,
   onOpenUsage,
   onOpenFailures,
   onOpenRepaso,
@@ -82,6 +84,7 @@ export function Sidebar({
   onOpenGuide?: () => void;
   onOpenRepos?: () => void;
   onOpenSandbox?: () => void;
+  onOpenStudio?: () => void;
   onOpenUsage?: () => void;
   onOpenFailures?: () => void;
   onOpenRepaso?: () => void;
@@ -137,6 +140,7 @@ export function Sidebar({
       titulo: "Proyectos",
       items: [
         { label: "Sandbox", icon: <Box className="size-4" />, onClick: onOpenSandbox, title: "Sandbox: carga un ZIP y ejecuta el software (proyectos web), como Spck" },
+        { label: "Web Studio", icon: <Sparkles className="size-4" />, onClick: onOpenStudio, title: "Web Studio: flujo especializado para construir, medir y corregir interfaces web" },
         { label: "Repos", icon: <FolderGit2 className="size-4" />, onClick: onOpenRepos, title: "Repo Studio: conecta un repo de GitHub (directo sin descargar), edítalo y haz push" },
         { label: "GitHub", icon: <Github className="size-4" />, onClick: onOpenGithub, title: "Subir carpeta a GitHub sin límite de 100 archivos" },
       ],
