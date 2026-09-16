@@ -3,7 +3,7 @@
  *
  * Página DENTRO del host (misma barra, mismo tema claro/oscuro, mismo acento
  * FORJA): reúne el motor completo del módulo corriendo en el navegador y el
- * catálogo íntegro de opciones que PRISMA-D1 ya traía — nada se queda fuera
+ * catálogo íntegro de opciones que el motor ya traía — nada se queda fuera
  * de la vista. Reemplaza la pestaña suelta como puerta principal: la barra
  * lateral abre aquí, sin ventanas nuevas ni temas ajenos. */
 import { useEffect, useState } from "react";
@@ -235,9 +235,10 @@ function Catalogo({ motor }: { motor: Motor }) {
   return (
     <div className="space-y-3">
       <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
-        Todo lo que PRISMA-D1 ya traía, ahora a la vista y con el tema de tu
-        app. Las piezas interactivas corren aquí mismo; el resto vive en el
-        núcleo del módulo (y su Lab completo como vista avanzada en pestaña).
+        Todo lo que trae el motor de Forja Lab, ahora a la vista y con el
+        tema de tu app. Las piezas interactivas corren aquí mismo; el resto
+        vive en el núcleo del módulo (y su Lab completo como vista avanzada
+        en pestaña).
       </p>
       <div className="grid gap-3 md:grid-cols-2">
         {SISTEMAS.map((s, i) => (

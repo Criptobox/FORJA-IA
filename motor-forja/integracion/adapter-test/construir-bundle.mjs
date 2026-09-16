@@ -37,8 +37,8 @@ const res = await build({
   platform: "browser",
   target: "es2020",
   outfile: salida,
-  minify: false,
-  legalComments: "inline",
+  minify: true,
+  legalComments: "none",
   logLevel: "info",
 });
 
