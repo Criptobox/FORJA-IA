@@ -1,6 +1,20 @@
-import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
-import { join, relative, dirname, posix } from "node:path";
-const raiz = "/home/claude/cjs";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
+import { join, relative, dirname } from "node:path";
+import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
+
+const aqui = dirname(fileURLToPath(import.meta.url));
+
+// raiz: carpeta con el TS del módulo ya transpilado a CommonJS plano (un
+// paso previo a este script, fuera de su alcance — no hay tsc de por medio
+// aquí). Sin FORJA_CJS_DIR no hay manera segura de adivinar dónde vive esa
+// salida en la máquina de quien lo ejecute.
+const raiz = process.env.FORJA_CJS_DIR;
+if (!raiz) {
+  console.error("Falta FORJA_CJS_DIR: ruta a la carpeta con el módulo ya transpilado a CommonJS.");
+  console.error('Uso: FORJA_CJS_DIR=/ruta/al/cjs node construir-bundle-sin-esbuild.mjs [salida.mjs]');
+  process.exit(1);
+}
 const archivos = [];
 (function walk(d){ for(const f of readdirSync(d)){ const p=join(d,f); if(statSync(p).isDirectory()) walk(p); else if(f.endsWith(".js")) archivos.push(p);} })(raiz);
 
@@ -11,8 +25,9 @@ for (const p of archivos) {
   partes.push(`__mods[${JSON.stringify(clave(p))}] = function(module, exports, require){\n${codigo}\n};`);
 }
 
-// entrada: la superficie pública, en el mismo orden que entrada.mjs
-const entrada = readFileSync("/home/claude/forja/forja-ia-v4.6.0/integracion/adapter-test/entrada.mjs","utf8");
+// entrada: la superficie pública, en el mismo orden que entrada.mjs (vive
+// junto a este script, no en una ruta fija de una máquina concreta).
+const entrada = readFileSync(join(aqui, "entrada.mjs"), "utf8");
 const orden = [...entrada.matchAll(/src\/lib\/prism\/forja\/([a-z0-9/-]+)/g)].map(m=>`./${m[1]}.js`);
 const entryCode = orden.map(m=>`Object.assign(exports, require(${JSON.stringify(m)}));`).join("\n");
 partes.push(`__mods["./__entrada.js"] = function(module, exports, require){\n"use strict";\n${entryCode}\n};`);
@@ -52,11 +67,16 @@ const cabecera = `/** FORJA IA — BUNDLE DEL MOTOR (motor-forja.mjs) · v4.7.0
  */\n`;
 
 let salida = cabecera + runtime + partes.join("\n") + `\nvar __api = __hacer("./__entrada.js");\n`;
-writeFileSync("/tmp/_pre.mjs", salida);
 // descubrir los nombres exportados ejecutando el bundle en bruto
 const nombres = JSON.parse(process.env.NOMBRES ?? "[]");
 if (nombres.length) {
   salida += nombres.map(n=>`export var ${n} = __api[${JSON.stringify(n)}];`).join("\n") + "\n";
 }
-writeFileSync(process.argv[2] ?? "/tmp/motor-forja.mjs", salida);
+// Sin ruta de salida explícita: un directorio temporal único (no un nombre
+// fijo en /tmp compartido por todo el sistema, que cualquier otro proceso
+// podría predecir o haber dejado como symlink).
+const destino =
+  process.argv[2] ?? join(mkdtempSync(join(tmpdir(), "forja-bundle-")), "motor-forja.mjs");
+writeFileSync(destino, salida);
 console.log("partes", partes.length);
+console.log("salida:", destino);

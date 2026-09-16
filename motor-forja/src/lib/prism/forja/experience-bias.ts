@@ -55,16 +55,35 @@ export interface SenalesHtml {
   interactiveSurfaces: number;
 }
 
+/** Quita etiquetas HTML en bucle hasta que no queda ninguna: un solo pase
+ * de regex puede dejar una etiqueta reconstruida a partir de fragmentos
+ * anidados (p. ej. `<scr<script>ipt>`), así que se repite hasta que el
+ * resultado deja de cambiar. Solo se usa para medir densidad de texto —
+ * nunca se reinyecta como HTML —, pero mejor sanear de verdad que confiar
+ * en que nadie meta HTML adversarial en el brief. */
+function quitarEtiquetas(s: string, patron: RegExp): string {
+  let anterior: string;
+  let actual = s;
+  do {
+    anterior = actual;
+    actual = actual.replace(patron, "");
+  } while (actual !== anterior);
+  return actual;
+}
+
 /** Señales brutas 0..1 sobre el HTML (regex seguras, sin parsear DOM). */
 export function senalesHtml(html: string): SenalesHtml {
   const h = html || "";
   const clamp = (n: number): number => Math.max(0, Math.min(1, n));
-  const texto = h.replace(/<(script|style)[\s\S]*?<\/\1>/gi, "").replace(/<[^>]+>/g, " ");
+  const sinScripts = quitarEtiquetas(h, /<(script|style)[^>]*>[\s\S]*?<\/\1\s*>/gi);
+  const texto = quitarEtiquetas(sinScripts, /<[^>]+>/g).replace(/</g, " ");
   const textoLen = texto.replace(/\s+/g, " ").trim().length;
   const totalLen = Math.max(1, h.length);
 
   // textDensity: cuánto del archivo es párrafo corrido
-  const parrafos = [...h.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => m[1].replace(/<[^>]+>/g, "").trim());
+  const parrafos = [...h.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map((m) =>
+    quitarEtiquetas(m[1], /<[^>]+>/g).replace(/</g, " ").trim()
+  );
   const enParrafos = parrafos.join(" ").length;
   const textDensity = clamp(enParrafos / Math.max(1, totalLen * 0.18));
 

@@ -200,7 +200,7 @@ export class RuntimeLocal implements RuntimeOpenDesign {
       `<meta name="viewport" content="width=device-width, initial-scale=1">`,
       `<title>${escapar(titulo)}</title>`,
       `<style>`,
-      ds.tokensCss.replace(":root", ":root").slice(0, 4000),
+      ds.tokensCss.slice(0, 4000),
       `*{box-sizing:border-box;margin:0}`,
       `body{font-family:var(--font-texto);color:var(--color-dominante);background:#fff;line-height:1.6}`,
       `.envoltura{max-width:72rem;margin:0 auto;padding:var(--espacio-64) var(--espacio-24)}`,
