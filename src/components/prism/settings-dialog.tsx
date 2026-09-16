@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   Database,
+  Hammer,
   KeyRound,
   Loader2,
   LockKeyhole,
@@ -548,6 +549,48 @@ export function SettingsDialog({
                 checked={settings.autoSpeak}
                 onCheckedChange={(v) => setSettings({ autoSpeak: v })}
               />
+            </div>
+
+            <div className="space-y-2 rounded-xl border border-border/60 px-4 py-3">
+              <Label className="flex items-center gap-1.5 text-[13px]">
+                <Hammer className="size-3.5 text-orange-500" /> Forja Lab · techo de tokens por rol
+              </Label>
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                Límite de salida del Diseñador, Codificador y Revisor en el motor del{" "}
+                <span className="font-medium">Forja Lab</span> (<code className="rounded bg-muted px-1">/forja</code>).
+                Vacío = valor por defecto del motor. Rango válido: 256–65 536.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    ["disenador", "Diseñador", 8192],
+                    ["codificador", "Codificador", 16384],
+                    ["revisor", "Revisor", 8192],
+                  ] as const
+                ).map(([rol, etiqueta, defecto]) => (
+                  <div key={rol} className="space-y-1">
+                    <Label className="text-[10.5px] text-muted-foreground">{etiqueta}</Label>
+                    <Input
+                      type="number"
+                      min={256}
+                      max={65536}
+                      placeholder={String(defecto)}
+                      value={settings.maxTokensPorRol?.[rol] ?? ""}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const resto = { ...(settings.maxTokensPorRol ?? {}) };
+                        if (raw === "") {
+                          delete resto[rol];
+                        } else {
+                          resto[rol] = Math.min(65536, Math.max(256, Number(raw) || defecto));
+                        }
+                        setSettings({ maxTokensPorRol: resto });
+                      }}
+                      className="h-8 text-right text-xs"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-1.5 rounded-xl border border-border/60 px-4 py-3">

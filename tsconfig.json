@@ -41,6 +41,7 @@
     "workspace",
     "examples",
     "skills",
-    "scripts"
+    "scripts",
+    "motor-forja"
   ]
 }

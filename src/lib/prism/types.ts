@@ -295,6 +295,10 @@ export interface AppSettings {
    * `tool-permissions.ts`). Opcional porque los ajustes guardados de
    * versiones anteriores no lo traen; `normalizarPermisos` rellena. */
   permisosAgente?: Partial<import("./tool-permissions").PermisosConcedidos>;
+  /** Presupuesto de tokens por rol para el motor de Forja Lab
+   * (diseñador/codificador/revisor → número máximo de tokens). Opcional:
+   * si falta, el motor usa su propio valor por defecto. */
+  maxTokensPorRol?: Record<string, number>;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {

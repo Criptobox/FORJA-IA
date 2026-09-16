@@ -7167,3 +7167,192 @@ ajena para otra tool que el modelo no llamó.
   1 nuevo), suite completa
 - ✓ build · ✓ `npm start` + `/api/version` · ✓ `VERCEL=1` sin
   `standalone` y con el `.nft.json`
+
+## v4.24.0 — Forja Lab: un ZIP de 22 500 líneas, integrado y con una bala real encontrada
+
+El usuario subió `forja-ia-v4.7.2-CORREGIDO.zip`: dos carpetas. `host-forja-ia/`
+resultó ser el propio Prism AI, en un punto anterior a este mismo repo, bajo
+su marca previa («Forja IA», antes del cambio a Prism AI) — comparado archivo
+a archivo contra `main`, el 99% de las 401 diferencias eran solo texto de
+marca (FORJA→Prism, el yunque→el prisma); se descartaron todas, no se
+revierte el rebrand. Lo real: 10 archivos que `host-forja-ia` tenía y `main`
+no — una página `/forja` (el «Estudio»), 5 componentes, `motor-client.ts` +
+`lab-logica.ts`, y un bundle `motor-forja.mjs` de 1.87 MB. La segunda
+carpeta, `forja-ia-v4.7.1/`, era el código fuente de ese bundle: 65 archivos,
+22 514 líneas TypeScript — un motor de generación de páginas determinista
+(ficha → maqueta → ADN visual → jueces con evidencia → anti-genérico →
+composición), sin una sola llamada de red ni dependencia nueva, nunca antes
+en este git.
+
+### Qué se portó
+
+- **Motor fuente completo** → `motor-forja/` (nueva carpeta en la raíz, fuera
+  del build de Next: `tsconfig.json` y `eslint.config.mjs` la excluyen
+  explícitamente). Es su propio sub-proyecto con su script de bundle
+  (`integracion/adapter-test/construir-bundle.mjs`, esbuild), en vez de un
+  blob opaco sin fuente versionada.
+- **Forja Lab dentro de la app**: `src/app/forja/page.tsx` («El Estudio»,
+  con Catálogo/Ficha→Maqueta/ADN/Jueces/Anti-genérico/Motor), los 5
+  componentes de `src/components/forja/` y `motor-client.ts` (carga
+  `/motor-forja.mjs` en runtime con `import()` dinámico, fuera de
+  Turbopack). Entrada nueva «Forja Lab» en la barra lateral (`sidebar.tsx`)
+  con Estudio y Ficha→Maqueta — sin tocar el logo, el `layout.tsx` ni
+  `app-version.ts`, que sí traía el ZIP con la marca vieja.
+- `AppSettings.maxTokensPorRol` (opcional) en `types.ts`: el componente ya
+  lo leía (`cfg?.maxTokensPorRol?.[rol]`) pero el tipo no lo declaraba —
+  `tsc --strict` lo habría rechazado en cuanto alguien lo usara con tipos.
+
+### La bala real: el bundle entregado no era el que su propio código fuente produce
+
+`entrada.mjs` —el fichero que declara qué exporta `motor-forja.mjs`— NO
+incluía 16 de los 65 módulos del motor: `fuentes.ts`, `fuentes-usuario.ts`,
+`conocimiento-global.ts`, `conocimiento-usuario.ts`, `director.ts`,
+`arena.ts`, `representacion.ts`, `habilidades.ts`, `equipo.ts`, `modelo.ts`,
+`adapter-opendesign.ts`, `voz.ts`, `canvas.ts`, `mejora-pagina.ts` y, el más
+grave, **`composition-engine.ts`** — el módulo que el propio `CAMBIOS.md`
+anuncia como la novedad de portada de ESTA MISMA versión (v4.7.2,
+«Experience Composition»). El bundle que traía el ZIP nunca lo contenía:
+`page.tsx` lee `motor.FUENTES_SEMILLA` para pintar el contador de fuentes
+curadas en el Catálogo, y siempre habría mostrado 0 — sin crashear (hay
+`?? []`), pero mintiendo en silencio sobre lo que el motor trae.
+
+Corregido añadiendo las 16 exportaciones que faltaban a `entrada.mjs` (se
+dejó fuera solo `autoaprendizaje.ts`, que hace lecturas de internet —
+corresponde a una ruta de servidor, no al bundle del navegador) y
+reconstruyendo con `construir-bundle.mjs`: el propio script trae un
+post-chequeo de humo (`node --experimental` import del bundle) que confirmó
+los 45 nombres críticos presentes y cero colisiones de `export *`. El bundle
+nuevo son 479 exportaciones — antes 376 — y pesa 605 KB, un tercio de los
+1.87 MB que traía el ZIP (ese tamaño no venía de más código: era el bundle
+sin encoger de una build de desarrollo).
+
+### Lo que NO se portó
+
+- `integracion/api/forja/*` (rutas `chat`/`aprender`/`fuentes`/`estado`/
+  `config`) y `integracion/forja-lab/` (`llamador.ts`, `arena-config.ts`):
+  el propio `host-forja-ia` del ZIP —su implementación de referencia—
+  tampoco las cableaba. Encienden un ciclo de aprendizaje que lee URLs de
+  internet server-side; wirearlas es una decisión de producto aparte
+  (¿quién paga esas llamadas, con qué límites, qué dominios se permiten),
+  no una corrección de este ZIP.
+- `integracion/PanelAprendizaje.tsx`: panel de administración de ese mismo
+  ciclo, mismo motivo.
+- `lab-logica.ts` (635 líneas): su propio comentario decía que existía para
+  alimentar una página `/laboratorio` que consumiera esa lógica con el
+  tema del host — esa página no estaba en ninguna parte del ZIP, ni en
+  `host-forja-ia` ni en el módulo fuente. Decía además «reparar» un bug del
+  `public/FORJA-IA-Laboratorio.html` estático (`veredictoDe`/`identidadDe`/
+  `MECANICAS` perdidos por un `<title>` corrupto, `c1`/`c2` sin definir en
+  el benchmark) — comprobado contra el `.html` que trae ESTA entrega: ya
+  viene arreglado ahí mismo, el bug que describía es de una entrega
+  anterior. Archivo sin consumidor y sin bug que reparar: no se sube (knip
+  lo marcaba como fichero muerto).
+
+### Revisado y sin hallazgos
+
+- `ficha-tab.tsx` pinta la maqueta generada en un `<iframe sandbox=
+  "allow-same-origin" srcDoc=…>`: sin `allow-scripts`, así que el HTML que
+  el motor genera NO ejecuta JS dentro del iframe — no hay fuga hacia el
+  `localStorage` de la app (ahí viven las claves API). No hacía falta
+  tocarlo.
+- `motor-tab.tsx` usa `dangerouslySetInnerHTML` para el «Objeto 3D
+  forjado», pero el HTML/CSS viene de `objeto-3d.ts` (catálogo propio,
+  determinista, sin texto de usuario ni de modelo) — no de una IA. Riesgo
+  descartado.
+
+### Puerta
+
+- ✓ lint (`eslint .`, con `motor-forja/**` excluido — no comparte las
+  reglas del host) · ✓ tsc limpio (`motor-forja` fuera de `include`)
+- ✓ **1 945** unitarios, sin regresiones (los 4 previos + 0 nuevos: el
+  motor de Forja Lab trae su propia suite de verificación determinista,
+  fuera de Vitest, en `motor-forja/integracion/adapter-test/verificacion-*`)
+- ✓ build (`next build`, `/forja` sale como ruta estática) · ✓ `npm start`
+  sirvió `/`, `/forja` y `/motor-forja.mjs` con 200 y el bundle cargó en
+  Node sin errores de import
+
+## v4.25.0 — Forja Lab probado de verdad: la maqueta salía vacía siempre
+
+El usuario pidió levantar el servidor de verdad y usar Forja Lab como
+usuario real, no solo revisar código — «a ver si realmente crea una
+página web sin necesidad de API». Se hizo con un navegador real
+(Playwright/Chromium) contra `npm start`. Primer intento: pidió una
+landing de panadería y salió SIEMPRE la misma maqueta — cabecera + 3
+tarjetas genéricas («Hecho a mano» / «Con intención» / «A tu medida»),
+sin usar una sola palabra del brief. El usuario ya había visto este
+patrón «vacío» y avisó que llevaba 5 entregas intentándose corregir sin
+éxito.
+
+### La causa: el demo nunca llamaba al motor de contenido
+
+`ficha-tab.tsx` (pestaña «Ficha → Maqueta» del Estudio) sí llama a
+`ejecutarForja` de verdad, pero el «Codificador» de esa llamada era un
+`mock()` local que devolvía `maquetaDesdeTokens()` — una plantilla HTML
+fija con 3 tarjetas hardcodeadas, tokens de color aparte. El motor SÍ
+tiene un sistema para esto desde v4.7 («La Página, no el Hero»):
+`construirPlanoContenido()` extrae hechos del brief (precios, horarios,
+ciudad, teléfono, enumeraciones) y decide qué secciones lleva la página
+según el vertical detectado (saas/ecommerce/restaurante/local/…) — pero
+nadie en el demo lo invocaba. La corrección de v4.7 arregló el motor
+real; el atajo de demo del Estudio nunca se enteró.
+
+### La corrección
+
+`src/lib/prism/forja-pagina-demo.ts` (nuevo): `paginaCompletaDesdeMensaje()`
+llama a `motor.construirPlanoContenido(mensaje)` y renderiza CADA sección
+del plano (nav, hero, prueba social, oferta, cómo funciona, detalle,
+equipo, testimonios, precios, FAQ, ubicación, cierre, pie) con contenido
+real cuando el brief lo trae (precios, horarios, ciudad, teléfono) y con
+un banco de textos variados por vertical cuando no — nunca un dato que
+parezca real e inventado: los huecos sin dato quedan marcados
+`[DATO DEMO]`, tal como exige el propio plano de contenido. Usa
+`svgIcono()`/`figuraPlaceholder()` de `iconos.ts` para no caer en emoji
+como icono. `ficha-tab.tsx` pierde `maquetaDesdeTokens()` y sus 3
+funciones auxiliares (código muerto tras el cambio).
+
+Primera versión tenía un bug propio: pedir más ítems de los que había en
+el banco de copy producía texto LITERALMENTE repetido («Cuéntanos qué
+necesitas» dos veces en «Cómo funciona», tres testimonios duplicados).
+`tomar()` dejó de dar la vuelta al array — entrega los que hay y ya, una
+sección con menos piezas es mejor que una con dos frases idénticas. Los
+pasos de «Cómo funciona» y los roles de «Quién está detrás» se acotan a
+un tamaño natural (el propio catálogo de secciones del motor documenta
+«3-5 pasos», no 6+) en vez de forzar el mínimo del nivel de detalle.
+
+### Un bug real en el motor, encontrado al probar con datos reales
+
+Con un brief de SaaS («planes desde 29€/mes y 79€/mes») ningún precio se
+extraía. `RX_PRECIO` en `plano-contenido.ts` exigía un `\b` final tras el
+símbolo de moneda — pero `\b` nunca casa entre dos caracteres NO
+alfanuméricos, y en «29€/mes» el `€` va seguido de `/`. La rama
+número+símbolo nunca pudo casar el formato de precio por periodo más
+común en español («…€/mes», «…€/año»). Separada la alternancia: la rama
+de símbolo ya no exige `\b` final (el símbolo delimita por sí solo), la
+rama de palabra (`euros`, `usd`…) sigue exigiéndolo. Verificado con el
+propio `verificacion-v47.mjs` del módulo (95/95) y con un caso real
+(«29€/mes y 79€/mes» → ambos precios extraídos, sin falsos positivos en
+«100usdmensual» pegado dentro de una palabra).
+
+### Verificado de extremo a extremo con navegador real
+
+Dos briefs distintos contra `npm start` con Playwright: panadería
+(«7 a 20h» → sección «Dónde estamos» con el horario real; vertical
+`local` detectado → 10 secciones) y SaaS con dos precios («29€/mes»,
+«79€/mes» → sección «Precios» con ambos planes reales; vertical `saas`
+detectado → 11 secciones, incluye la sección de precios que la panadería
+no lleva). Antes: 2.366 caracteres de HTML, 3 tarjetas gemelas, ignoraba
+el brief entero. Ahora: ~18-20k caracteres, 10-11 secciones reales, sin
+texto duplicado, con los hechos del brief cuando existen y `[DEMO]`
+explícito cuando no. Sigue sin llamar a ningún proveedor de IA: 100%
+determinista, coste cero, tal como pide el propio módulo — lo que
+cambió es que ahora usa TODO lo que el motor ya traía, no solo el tema
+de color.
+
+### Puerta
+
+- ✓ lint · ✓ tsc limpio (`motor-forja` fuera de `include`, sin cambios)
+- ✓ **1 945** unitarios sin regresiones
+- ✓ `verificacion-v47.mjs` del módulo: 95/95 (incluida la extracción de
+  precios corregida)
+- ✓ build · smoke test con `npm start`: dos briefs distintos generados
+  con Chromium real, capturas y HTML resultante revisados a mano

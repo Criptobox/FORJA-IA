@@ -45,7 +45,7 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-useless-escape": "off",
   },
 }, {
-  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills", "workspace/**", "download/**", "scripts/**", "db/**", ".zscripts/**"]
+  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills", "workspace/**", "download/**", "scripts/**", "db/**", ".zscripts/**", "motor-forja/**", "public/motor-forja.mjs"]
 }];
 
 export default eslintConfig;
