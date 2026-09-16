@@ -8,9 +8,11 @@ import {
   Box,
   BrainCircuit,
   Check,
+  FlaskConical,
   FolderGit2,
   Github,
   GraduationCap,
+  Hammer,
   LayoutDashboard,
   MessageSquarePlus,
   Monitor,
@@ -30,6 +32,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -95,6 +98,7 @@ export function Sidebar({
   ofertasNuevas?: number;
   onClose?: () => void;
 }) {
+  const router = useRouter();
   const sessions = usePrism((s) => s.sessions);
   const radarSeenIds = usePrism((s) => s.radarSeenIds);
   const activeId = usePrism((s) => s.activeSessionId);
@@ -143,6 +147,26 @@ export function Sidebar({
         { label: "Web Studio", icon: <Sparkles className="size-4" />, onClick: onOpenStudio, title: "Web Studio: flujo especializado para construir, medir y corregir interfaces web" },
         { label: "Repos", icon: <FolderGit2 className="size-4" />, onClick: onOpenRepos, title: "Repo Studio: conecta un repo de GitHub (directo sin descargar), edítalo y haz push" },
         { label: "GitHub", icon: <Github className="size-4" />, onClick: onOpenGithub, title: "Subir carpeta a GitHub sin límite de 100 archivos" },
+      ],
+    },
+    {
+      // Forja Lab: el motor de generación determinista (coste cero, corre
+      // en el navegador) que compone el módulo "forja-ia" — su propio taller,
+      // con el mismo tema y la misma barra, sin salir de la app.
+      titulo: "Forja Lab",
+      items: [
+        {
+          label: "Estudio",
+          icon: <Hammer className="size-4" />,
+          onClick: () => router.push("/forja"),
+          title: "Forja Lab: laboratorio de generación de páginas determinista (ficha → maqueta, ADN, jueces, anti-genérico), sin coste de API",
+        },
+        {
+          label: "Ficha → Maqueta",
+          icon: <FlaskConical className="size-4" />,
+          onClick: () => router.push("/forja?tab=ficha"),
+          title: "Va directo a la pestaña Ficha → Maqueta del Estudio",
+        },
       ],
     },
     {
