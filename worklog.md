@@ -7356,3 +7356,32 @@ de color.
   precios corregida)
 - ✓ build · smoke test con `npm start`: dos briefs distintos generados
   con Chromium real, capturas y HTML resultante revisados a mano
+
+## v4.25.1 — El logo del README no era el de la app, y dos archivos huérfanos
+
+El usuario avisó tras el merge: «no se cambiaron los logos, sigue el logo
+viejo, y elimina archivos innecesarios». Revisado dónde vive cada logo:
+
+- **`public/logo.svg`** (el que muestra la cabecera de `README.md`) no era
+  el prisma violeta→cian→rosa actual (`public/icons/prism-icon.svg`,
+  `logo.tsx`): era un icono cuadrado con una «Z» blanca, de una entrega muy
+  anterior a Forja Lab e incluso a la marca «Forja IA» (`git log` lo sitúa
+  en `1e324ec`, sin relación con este trabajo). Nadie lo había tocado en
+  el rebrand a Prism AI porque en el propio código de la app nadie lo
+  referencia — solo lo veía quien abriera el README en GitHub.
+  Reemplazado su contenido por el mismo SVG que ya usan el favicon y el
+  icono de instalación, así README y app enseñan el mismo logo.
+- Dos archivos que sí llegaron con la integración del Forja Lab y no los
+  usa nada: `public/panel-v42.html` y `public/FORJA-IA-Laboratorio.html`
+  (páginas de demo aisladas, sin ningún enlace desde la app real —
+  comprobado con grep en `src/`) seguían con el texto «FORJA IA» y su
+  paleta naranja, y `panel-v42.html` era el único sitio que apuntaba al
+  `logo.svg` viejo. Eliminados. `public/icons/forja-icon.svg` (añadido en
+  la integración, nunca referenciado desde `layout.tsx` ni el manifest)
+  también fuera.
+
+### Puerta
+
+- ✓ lint · ✓ tsc limpio
+- ✓ **1 945** unitarios sin regresiones
+- ✓ build OK
