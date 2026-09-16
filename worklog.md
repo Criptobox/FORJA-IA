@@ -7270,3 +7270,89 @@ sin encoger de una build de desarrollo).
 - ✓ build (`next build`, `/forja` sale como ruta estática) · ✓ `npm start`
   sirvió `/`, `/forja` y `/motor-forja.mjs` con 200 y el bundle cargó en
   Node sin errores de import
+
+## v4.25.0 — Forja Lab probado de verdad: la maqueta salía vacía siempre
+
+El usuario pidió levantar el servidor de verdad y usar Forja Lab como
+usuario real, no solo revisar código — «a ver si realmente crea una
+página web sin necesidad de API». Se hizo con un navegador real
+(Playwright/Chromium) contra `npm start`. Primer intento: pidió una
+landing de panadería y salió SIEMPRE la misma maqueta — cabecera + 3
+tarjetas genéricas («Hecho a mano» / «Con intención» / «A tu medida»),
+sin usar una sola palabra del brief. El usuario ya había visto este
+patrón «vacío» y avisó que llevaba 5 entregas intentándose corregir sin
+éxito.
+
+### La causa: el demo nunca llamaba al motor de contenido
+
+`ficha-tab.tsx` (pestaña «Ficha → Maqueta» del Estudio) sí llama a
+`ejecutarForja` de verdad, pero el «Codificador» de esa llamada era un
+`mock()` local que devolvía `maquetaDesdeTokens()` — una plantilla HTML
+fija con 3 tarjetas hardcodeadas, tokens de color aparte. El motor SÍ
+tiene un sistema para esto desde v4.7 («La Página, no el Hero»):
+`construirPlanoContenido()` extrae hechos del brief (precios, horarios,
+ciudad, teléfono, enumeraciones) y decide qué secciones lleva la página
+según el vertical detectado (saas/ecommerce/restaurante/local/…) — pero
+nadie en el demo lo invocaba. La corrección de v4.7 arregló el motor
+real; el atajo de demo del Estudio nunca se enteró.
+
+### La corrección
+
+`src/lib/prism/forja-pagina-demo.ts` (nuevo): `paginaCompletaDesdeMensaje()`
+llama a `motor.construirPlanoContenido(mensaje)` y renderiza CADA sección
+del plano (nav, hero, prueba social, oferta, cómo funciona, detalle,
+equipo, testimonios, precios, FAQ, ubicación, cierre, pie) con contenido
+real cuando el brief lo trae (precios, horarios, ciudad, teléfono) y con
+un banco de textos variados por vertical cuando no — nunca un dato que
+parezca real e inventado: los huecos sin dato quedan marcados
+`[DATO DEMO]`, tal como exige el propio plano de contenido. Usa
+`svgIcono()`/`figuraPlaceholder()` de `iconos.ts` para no caer en emoji
+como icono. `ficha-tab.tsx` pierde `maquetaDesdeTokens()` y sus 3
+funciones auxiliares (código muerto tras el cambio).
+
+Primera versión tenía un bug propio: pedir más ítems de los que había en
+el banco de copy producía texto LITERALMENTE repetido («Cuéntanos qué
+necesitas» dos veces en «Cómo funciona», tres testimonios duplicados).
+`tomar()` dejó de dar la vuelta al array — entrega los que hay y ya, una
+sección con menos piezas es mejor que una con dos frases idénticas. Los
+pasos de «Cómo funciona» y los roles de «Quién está detrás» se acotan a
+un tamaño natural (el propio catálogo de secciones del motor documenta
+«3-5 pasos», no 6+) en vez de forzar el mínimo del nivel de detalle.
+
+### Un bug real en el motor, encontrado al probar con datos reales
+
+Con un brief de SaaS («planes desde 29€/mes y 79€/mes») ningún precio se
+extraía. `RX_PRECIO` en `plano-contenido.ts` exigía un `\b` final tras el
+símbolo de moneda — pero `\b` nunca casa entre dos caracteres NO
+alfanuméricos, y en «29€/mes» el `€` va seguido de `/`. La rama
+número+símbolo nunca pudo casar el formato de precio por periodo más
+común en español («…€/mes», «…€/año»). Separada la alternancia: la rama
+de símbolo ya no exige `\b` final (el símbolo delimita por sí solo), la
+rama de palabra (`euros`, `usd`…) sigue exigiéndolo. Verificado con el
+propio `verificacion-v47.mjs` del módulo (95/95) y con un caso real
+(«29€/mes y 79€/mes» → ambos precios extraídos, sin falsos positivos en
+«100usdmensual» pegado dentro de una palabra).
+
+### Verificado de extremo a extremo con navegador real
+
+Dos briefs distintos contra `npm start` con Playwright: panadería
+(«7 a 20h» → sección «Dónde estamos» con el horario real; vertical
+`local` detectado → 10 secciones) y SaaS con dos precios («29€/mes»,
+«79€/mes» → sección «Precios» con ambos planes reales; vertical `saas`
+detectado → 11 secciones, incluye la sección de precios que la panadería
+no lleva). Antes: 2.366 caracteres de HTML, 3 tarjetas gemelas, ignoraba
+el brief entero. Ahora: ~18-20k caracteres, 10-11 secciones reales, sin
+texto duplicado, con los hechos del brief cuando existen y `[DEMO]`
+explícito cuando no. Sigue sin llamar a ningún proveedor de IA: 100%
+determinista, coste cero, tal como pide el propio módulo — lo que
+cambió es que ahora usa TODO lo que el motor ya traía, no solo el tema
+de color.
+
+### Puerta
+
+- ✓ lint · ✓ tsc limpio (`motor-forja` fuera de `include`, sin cambios)
+- ✓ **1 945** unitarios sin regresiones
+- ✓ `verificacion-v47.mjs` del módulo: 95/95 (incluida la extracción de
+  precios corregida)
+- ✓ build · smoke test con `npm start`: dos briefs distintos generados
+  con Chromium real, capturas y HTML resultante revisados a mano

@@ -9,6 +9,7 @@ import { BadgeCheck, Flame, RefreshCw, ScrollText, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip, CodeBlock, Salida } from "./ui-forja";
 import type { Motor } from "@/lib/prism/motor-client";
+import { paginaCompletaDesdeMensaje } from "@/lib/prism/forja-pagina-demo";
 
 /* el caché vive a nivel de módulo: sobrevive a cambios de pestaña */
 let cacheGlobal: any = null;
@@ -49,7 +50,7 @@ export function FichaTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
       const nombre = nombreProyecto(mensaje);
       const tokens = tokensCssDesdeAdn2(adnLocal, nombre);
       const fichaTexto = fichaDesdeAdn(textoAdn2(adnLocal), mensaje);
-      const pagina = maquetaDesdeTokens(tokens, adnLocal, nombre);
+      const { html: pagina, plano } = paginaCompletaDesdeMensaje(motor, mensaje, adnLocal, tokens, nombre);
 
       const mock = async (a: any) => {
         const rol = a?.rol ?? "codificador";
@@ -78,7 +79,7 @@ export function FichaTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
       setR(res);
       setLlamadas({ ...cuenta.current });
       setDeltaDisenador(cuenta.current.disenador - antes.disenador);
-      setLog(pasos.join("\n") + `\n▸ estado final: ${res.estado}`);
+      setLog(pasos.join("\n") + `\n▸ estado final: ${res.estado}\n▸ plano de contenido: ${plano.resumen}`);
     } catch (e) {
       setLog("error: " + String(e));
     } finally {
@@ -198,73 +199,7 @@ function fichaDesdeAdn(textoAdn: string, mensaje: string): string {
   ].join("\n");
 }
 
-/** El «Codificador» del taller: una página honesta construida con los
- * tokens reales que salen del ADN (colores, tipografías, espaciado). */
-function maquetaDesdeTokens(tokensCss: string, adn: any, nombre: string): string {
-  const dominante = primerHex(adn?.color) ?? "#F97316";
-  const profundo = primerHex([...(adn?.color ?? [])].reverse()) ?? dominante;
-  const sens = (adn?.sensacion ?? [])
-    .slice(0, 3)
-    .map((e: any) => `${e.eje} ${e.valor}/10`)
-    .join(" · ");
-  return `<!doctype html>
-<html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(nombre)} — forjado con FORJA IA</title>
-<style>
-:root{${extraerVars(tokensCss)}}
-*{box-sizing:border-box;margin:0}
-body{font-family:var(--font-texto,system-ui);background:var(--fondo,#14181f);color:var(--texto,#E7E9EE);line-height:1.6}
-.cab{padding:4rem 1.5rem 3rem;text-align:center;background:linear-gradient(160deg,var(--dominante,${dominante}),var(--profundo,${profundo}))}
-.cab h1{font-family:var(--font-display,Georgia);font-size:clamp(1.9rem,5vw,3rem);letter-spacing:-.02em}
-.cab p{opacity:.9;max-width:34rem;margin:.8rem auto 1.6rem;font-size:.95rem}
-.boton{display:inline-block;background:var(--texto,#fff);color:var(--fondo,#14181f);padding:.7rem 1.4rem;border-radius:.6rem;font-weight:600;text-decoration:none}
-.rejilla{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));padding:2.5rem 1.5rem;max-width:60rem;margin:0 auto}
-.tarjeta{border:1px solid color-mix(in srgb,var(--texto,#fff) 12%,transparent);border-radius:.9rem;padding:1.2rem;background:color-mix(in srgb,var(--texto,#fff) 4%,transparent)}
-.tarjeta h3{font-size:.95rem;margin-bottom:.4rem;font-family:var(--font-display,Georgia)}
-.tarjeta p{font-size:.85rem;opacity:.75}
-.pie{padding:1.6rem;text-align:center;font-size:.75rem;opacity:.55}
-</style></head>
-<body>
-<header class="cab">
-  <h1>${esc(nombre)}</h1>
-  <p>${esc(String(adn?.identidad ?? "Forjada con identidad propia."))}</p>
-  <a class="boton" href="#">Ver más</a>
-</header>
-<section class="rejilla">
-  <div class="tarjeta"><h3>Hecho a mano</h3><p>Cada pieza sale del taller revisada una a una, sin atajos de plantilla.</p></div>
-  <div class="tarjeta"><h3>Con intención</h3><p>Sensación buscada: ${esc(sens || "equilibrio con carácter")}.</p></div>
-  <div class="tarjeta"><h3>A tu medida</h3><p>La paleta y la tipografía nacen del ADN del proyecto, no de un tema genérico.</p></div>
-</section>
-<footer class="pie">Forjada con FORJA IA · tokens del ADN aplicados</footer>
-</body></html>`;
-}
-
-function primerHex(lista: any): string | null {
-  const hex = (lista ?? []).find((c: string) => /#[0-9a-f]{3,8}/i.test(c ?? ""));
-  return hex ? (hex.match(/#[0-9a-f]{3,8}/i) ?? [null])[0] : null;
-}
-
-/** Extrae `--x: valor;` del tokens.css del módulo para el :root de la página. */
-function extraerVars(tokensCss: string): string {
-  const vars = [...tokensCss.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/gi)]
-    .slice(0, 12)
-    .map((m) => `${m[1]}:${m[2].trim()}`)
-    .join(";");
-  const display = tokensCss.match(/font-(?:display|titulo)[^;]*([^;]+);/i)?.[1];
-  return (
-    vars +
-    `;--dominante:${primerHexDe(tokensCss, "dominante") ?? "#F97316"}` +
-    `;--profundo:${primerHexDe(tokensCss, "profundo") ?? "#C2410C"}` +
-    `;--font-display:${display ?? "Georgia,serif"}`
-  );
-}
-
-function primerHexDe(css: string, clave: string): string | null {
-  const m = css.match(new RegExp(`--[^\\n]*${clave}[^\\n]*`, "i"))?.[0];
-  return m ? (m.match(/#[0-9a-f]{3,8}/i) ?? [null])[0] : null;
-}
-
-function esc(s: string): string {
-  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
-}
+/* la maqueta ya no la construye este componente: `paginaCompletaDesdeMensaje`
+ * (forja-pagina-demo.ts) usa el plano de contenido real del motor
+ * (construirPlanoContenido) para que salgan las secciones que el brief pide
+ * de verdad, no una plantilla fija de 3 tarjetas. */

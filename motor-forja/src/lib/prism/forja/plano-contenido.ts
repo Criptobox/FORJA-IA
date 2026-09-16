@@ -138,7 +138,12 @@ export interface PlanoContenido {
 
 /* ----------------------- 1 · extracción de hechos -------------------------- */
 
-const RX_PRECIO = /(?:[$€£]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?|\b\d{1,4}(?:[.,]\d{1,2})?\s?(?:€|eur|euros|usd|d[óo]lares?|pesos)\b)/gi;
+// El símbolo ($/€/£) delimita el número por sí solo — nunca exigir un \b
+// detrás de él: "29€/mes" tiene "/" a continuación, y \b no cruza entre
+// dos caracteres no alfanuméricos («€» y «/»), así que la versión con \b
+// final nunca casaba precios con periodo («€/mes», «€/año»), el formato
+// más común en planes de precios.
+const RX_PRECIO = /(?:[$€£]\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?|\b\d{1,4}(?:[.,]\d{1,2})?\s?[$€£]|\b\d{1,4}(?:[.,]\d{1,2})?\s?(?:eur|euros|usd|d[óo]lares?|pesos)\b)/gi;
 const RX_TEL = /(?:\+?\d{1,3}[\s.-]?)?(?:\(\d{2,4}\)[\s.-]?)?\d{3}[\s.-]?\d{2,4}[\s.-]?\d{2,4}/g;
 const RX_CORREO = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const RX_URL = /https?:\/\/[^\s<>"']+|\b(?:www\.)[^\s<>"']+/gi;
