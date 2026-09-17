@@ -233,6 +233,29 @@ describe("subir a GitHub", () => {
     expect(r.created).toBe(false);
     expect(r.branch).toBe("develop");
   });
+
+  it("un token de GitHub App sube a un repo YA EXISTENTE aunque crear (POST) le esté vetado", async () => {
+    // Bug real: un token de GitHub App (ghu_…) no tiene permiso para
+    // POST /user/repos (hace falta «Administration», que esta app no pide)
+    // — GitHub devuelve 403 «Resource not accessible by integration» en
+    // ESE endpoint sin importar si el repo de destino ya existe ni si la
+    // instalación tiene acceso de escritura a su contenido. Antes del
+    // reordenamiento, ghEnsureRepo intentaba crear PRIMERO y la subida a un
+    // repo ya existente y ya autorizado fallaba igual.
+    const g = githubFalso({ existe: true, defaultBranch: "main" });
+    const postSiempreVetado: GhFetch = async (url, init) => {
+      if (url.endsWith("/user/repos") && init?.method === "POST") {
+        return new Response(
+          JSON.stringify({ message: "Resource not accessible by integration" }),
+          { status: 403 }
+        );
+      }
+      return g.f(url, init);
+    };
+    const r = await ghEnsureRepo("ghu_faketoken", "w", false, postSiempreVetado);
+    expect(r.created).toBe(false);
+    expect(r.branch).toBe("main");
+  });
 });
 
 describe("qué hacer cuando GitHub dice que no", () => {

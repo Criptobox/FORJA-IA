@@ -412,10 +412,30 @@ export interface RepoDestino {
   branch: string;
 }
 
+type RepoInfo = { html_url?: string; owner?: { login?: string }; default_branch?: string };
+
+function repoDestinoDe(j: RepoInfo, login: string, name: string, created: boolean): RepoDestino {
+  return {
+    owner: j.owner?.login ?? login,
+    repo: name,
+    url: j.html_url ?? `https://github.com/${login}/${name}`,
+    created,
+    branch: j.default_branch || "main",
+  };
+}
+
 /** Crea el repo (con README) o devuelve el existente si ya estaba.
  *
- * Un 422 ya NO se interpreta como «existe y es mío»: 422 también es un nombre
- * inválido, y el repo puede existir bajo otro dueño. Se pregunta a GitHub. */
+ * Mira primero con un GET si el repo ya existe, y solo si no está intenta
+ * crearlo con POST — no al revés. `GET /repos/…` solo necesita permiso de
+ * LECTURA (metadata), que la app siempre tiene; `POST /user/repos` para
+ * CREAR uno necesita permiso de administración de cuenta, que esta app no
+ * pide (de sobra para «sube tus cambios»). Con un token de GitHub App, ese
+ * POST da 403 «Resource not accessible by integration» SIEMPRE, exista o no
+ * el repo y tenga o no la instalación acceso de escritura a su contenido —
+ * intentarlo primero hacía fallar hasta la subida a un repo ya existente y
+ * ya autorizado, con un mensaje que apuntaba a arreglar la instalación
+ * cuando el problema de verdad era el orden de las llamadas. */
 export async function ghEnsureRepo(
   token: string,
   name: string,
@@ -424,6 +444,12 @@ export async function ghEnsureRepo(
 ): Promise<RepoDestino> {
   const gh = ghFetchCon(fetchImpl);
   const login = await ghWhoAmI(token, fetchImpl);
+
+  const info = await gh(token, `/repos/${login}/${name}`);
+  if (info.ok) {
+    return repoDestinoDe((await info.json()) as RepoInfo, login, name, false);
+  }
+
   const res = await gh(token, "/user/repos", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -438,37 +464,14 @@ export async function ghEnsureRepo(
     }),
   });
   if (res.ok) {
-    const j = (await res.json()) as {
-      html_url?: string;
-      owner?: { login?: string };
-      default_branch?: string;
-    };
-    return {
-      owner: j.owner?.login ?? login,
-      repo: name,
-      url: j.html_url ?? `https://github.com/${login}/${name}`,
-      created: true,
-      branch: j.default_branch || "main",
-    };
+    return repoDestinoDe((await res.json()) as RepoInfo, login, name, true);
   }
   if (res.status === 422) {
-    // Puede ser «ya existe» o un nombre que GitHub no acepta. Se comprueba
-    // mirando el repo: si está, se usa el suyo —con SU rama—; si no, el 422
-    // era de verdad y hay que contarlo.
-    const info = await gh(token, `/repos/${login}/${name}`);
-    if (info.ok) {
-      const j = (await info.json()) as {
-        html_url?: string;
-        owner?: { login?: string };
-        default_branch?: string;
-      };
-      return {
-        owner: j.owner?.login ?? login,
-        repo: name,
-        url: j.html_url ?? `https://github.com/${login}/${name}`,
-        created: false,
-        branch: j.default_branch || "main",
-      };
+    // Carrera (se creó entre el GET y el POST) o nombre que GitHub no
+    // acepta: se vuelve a preguntar antes de dar el 422 por bueno.
+    const info2 = await gh(token, `/repos/${login}/${name}`);
+    if (info2.ok) {
+      return repoDestinoDe((await info2.json()) as RepoInfo, login, name, false);
     }
     return await ghJsonError(res, `No se pudo crear el repositorio «${name}»`, token);
   }
