@@ -20,7 +20,7 @@
  * la pantalla. La UI sigue mostrando el chat; el agente lee sus
  * propios errores y los corrige.
  */
-import { buildRunHtml, pickEntryPath, isHtmlPath, SANDBOX_ORIGIN } from "./sandbox";
+import { buildRunHtml, pickEntryPath, isHtmlPath, pareceProyectoConBuild, SANDBOX_ORIGIN } from "./sandbox";
 import { injectVisualQA, type QAResult } from "./visual-qa";
 import { injectScreenshot } from "./screenshot";
 import { enviarCmdPiloto } from "./sandbox-pilot";
@@ -83,6 +83,7 @@ export async function runProjectInMemory(
   // 2. Elegir entry HTML.
   const entry = pickEntryPath([...fileMap.keys()]);
   if (!entry) {
+    const paths = [...fileMap.keys()];
     return {
       ok: false,
       ejecutado: false,
@@ -90,7 +91,9 @@ export async function runProjectInMemory(
       errors: 0,
       logLines: [],
       errorLines: [],
-      reason: "No hay ningún archivo .html en el proyecto. Añade un index.html.",
+      reason: pareceProyectoConBuild(paths)
+        ? "Este proyecto necesita compilarse (Vite, Next, CRA…) antes de tener un HTML que servir; el Sandbox ejecuta archivos tal cual, sin bundler, así que no puede compilarlo. Súbelo a GitHub y despliégalo (p. ej. en Vercel) para verlo funcionando."
+        : "No hay ningún archivo .html en el proyecto. Añade un index.html.",
     };
   }
 

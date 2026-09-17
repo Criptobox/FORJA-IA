@@ -66,6 +66,7 @@ import {
   isHtmlPath,
   isJunkPath,
   isTextPath,
+  pareceProyectoConBuild,
   pickEntryPath,
   resolvePath,
   SANDBOX_ORIGIN,
@@ -1086,9 +1087,16 @@ export function SandboxStudio({
     const preferred = selPath && isHtmlPath(selPath) ? selPath : null;
     const entry = pickEntryPath([...map.keys()], preferred);
     if (!entry) {
-      toast.error("No hay ninguna página HTML que ejecutar", {
-        description: "El Sandbox corre proyectos web: añade un index.html o crea uno nuevo.",
-      });
+      if (pareceProyectoConBuild([...map.keys()])) {
+        toast.error("Este proyecto necesita compilarse antes de poder verse", {
+          description:
+            "Tiene package.json pero ningún HTML: es un proyecto de Vite, Next, CRA… El Sandbox ejecuta archivos tal cual, sin bundler. Súbelo a GitHub y despliégalo (p. ej. en Vercel) para verlo funcionando.",
+        });
+      } else {
+        toast.error("No hay ninguna página HTML que ejecutar", {
+          description: "El Sandbox corre proyectos web: añade un index.html o crea uno nuevo.",
+        });
+      }
       return;
     }
     const built = buildRunHtml(entry, map);

@@ -6,6 +6,7 @@ import {
   injectConsoleBridge,
   isTextPath,
   localRef,
+  pareceProyectoConBuild,
   pickEntryPath,
   raizComun,
   resolvePath,
@@ -92,6 +93,28 @@ describe("pickEntryPath", () => {
     expect(pickEntryPath(["web/index.html", "web/otra.html"], "web/otra.html")).toBe(
       "web/otra.html"
     );
+  });
+});
+
+describe("pareceProyectoConBuild", () => {
+  it("un package.json en la raíz sin ningún HTML es un proyecto que necesita compilarse", () => {
+    expect(pareceProyectoConBuild(["package.json", "src/App.tsx", "vite.config.ts"])).toBe(true);
+  });
+
+  it("un package.json una carpeta adentro (ZIP con carpeta envolvente) también cuenta", () => {
+    expect(pareceProyectoConBuild(["mi-app/package.json", "mi-app/src/main.tsx"])).toBe(true);
+  });
+
+  it("con HTML de verdad, no hace falta build: no es este caso", () => {
+    expect(pareceProyectoConBuild(["package.json", "index.html"])).toBe(false);
+  });
+
+  it("sin package.json, es un proyecto roto de verdad, no uno que falte compilar", () => {
+    expect(pareceProyectoConBuild(["app.js", "estilo.css"])).toBe(false);
+  });
+
+  it("un package.json muy hondo (dentro de node_modules, p. ej.) no cuenta", () => {
+    expect(pareceProyectoConBuild(["a/b/c/package.json"])).toBe(false);
   });
 });
 

@@ -173,6 +173,17 @@ export function pickEntryPath(paths: string[], preferred?: string | null): strin
   return sorted[0] ?? null;
 }
 
+/** ¿Este proyecto no tiene ningún HTML porque hace falta compilarlo primero
+ * (Vite, Next, CRA…)? El Sandbox ejecuta el HTML/CSS/JS tal cual está, sin
+ * bundler: un `package.json` con `build`/`dev` y sin ni un solo HTML es la
+ * huella de un proyecto que necesita ese paso antes de poder verse aquí —
+ * distinto de un proyecto roto al que de verdad le falta el index.html. */
+export function pareceProyectoConBuild(paths: string[]): boolean {
+  if (paths.some(isHtmlPath)) return false;
+  const depth = (p: string) => p.split("/").length;
+  return paths.some((p) => p.split("/").pop() === "package.json" && depth(p) <= 2);
+}
+
 function mimeFor(path: string): string | null {
   const e = extOf(path);
   return IMAGE_MIME[e] ?? AUDIO_MIME[e] ?? VIDEO_MIME[e] ?? null;
