@@ -38,6 +38,37 @@ import { aArchivosPrism, leerMemoria } from "@/lib/prism/memoria-proyecto";
 import { usePrism } from "@/lib/prism/store";
 import { GitHubConnect } from "./github-connect";
 import { ReviewGateCard, useReviewGate } from "./review-view";
+
+const URL_RE = /(https?:\/\/[^\s]+)/g;
+
+/** El motivo de un 403/404 a veces trae un enlace a la pantalla exacta que
+ * arregla el problema (p. ej. github.com/settings/installations). Como
+ * texto plano no se puede pulsar; esto lo vuelve enlace sin tocar el resto
+ * del mensaje. `split` con un grupo captor intercala los matches en las
+ * posiciones impares — no hace falta (ni conviene, por el `lastIndex`
+ * compartido de una regex global) volver a probar cada trozo. */
+function LinkifiedText({ text }: { text: string }) {
+  const parts = text.split(URL_RE);
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noreferrer"
+            className="text-prism-violet underline underline-offset-2"
+          >
+            {part}
+          </a>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
 import type { PublishSeed } from "@/lib/prism/sandbox";
 
 function fmtBytes(n: number): string {
@@ -350,7 +381,9 @@ export function GitHubDialog({
               className="space-y-1 rounded-xl border border-destructive/40 bg-destructive/[0.06] px-3.5 py-3"
             >
               <p className="text-xs font-semibold text-destructive">No se subió nada</p>
-              <p className="break-words text-[11px] leading-relaxed text-muted-foreground">{fallo}</p>
+              <p className="break-words text-[11px] leading-relaxed text-muted-foreground">
+                <LinkifiedText text={fallo} />
+              </p>
             </section>
           )}
 

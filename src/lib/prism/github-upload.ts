@@ -236,21 +236,40 @@ function ghFetchCon(fetchImpl?: GhFetch) {
 
 const ghFetch = ghFetchCon();
 
+/** El token dice cómo se consiguió, y eso importa para el 403: una GitHub
+ * App no tiene «scopes», tiene repos instalados; un token clásico sí tiene
+ * scopes. Decir «te falta el scope repo» a alguien conectado con la App
+ * (el camino de un clic, el que usa casi todo el mundo) es un consejo que
+ * no se puede seguir — esa pantalla no existe para ese tipo de token. */
+function tipoDeToken(token: string): "app" | "oauth-clasico" | "pat" {
+  if (token.startsWith("ghu_")) return "app";
+  if (token.startsWith("gho_")) return "oauth-clasico";
+  return "pat";
+}
+
 /** Qué hacer, no solo qué pasó.
  *
  * «GitHub 403» no le dice nada a nadie. Cada código tiene una causa que se
  * puede arreglar, y decirla es la diferencia entre volver a intentarlo y dar
  * la app por rota. */
-export function pistaDeGithub(status: number, mensaje: string): string {
+export function pistaDeGithub(status: number, mensaje: string, token = ""): string {
   if (status === 401) {
     return "tu conexión con GitHub caducó o se revocó: desconecta y vuelve a conectar";
   }
-  if (status === 403) {
-    if (/rate limit/i.test(mensaje)) return "has llegado al límite de peticiones: espera unos minutos";
-    return "el token no tiene permiso de escritura en ese repo (hace falta el alcance «repo»)";
-  }
-  if (status === 404) {
-    return "el repo no existe o tu token no puede verlo (los privados necesitan el alcance «repo»)";
+  if (status === 403 || status === 404) {
+    if (status === 403 && /rate limit/i.test(mensaje)) {
+      return "has llegado al límite de peticiones: espera unos minutos";
+    }
+    const tipo = tipoDeToken(token);
+    if (tipo === "app") {
+      return "la app de GitHub no tiene acceso a ESTE repo: entra en https://github.com/settings/installations, abre «Forja IA» y añade el repositorio (o elige «All repositories»); si es de una organización, hazlo desde su página de Settings → Installations";
+    }
+    if (tipo === "oauth-clasico") {
+      return "el token no tiene permiso de escritura en ese repo (hace falta el alcance «repo»); si el repo es de una organización con SSO, autorízalo también ahí";
+    }
+    return status === 403
+      ? "el token no tiene permiso de escritura en ese repo: revisa que tenga el alcance «repo» (clásico) o el repo listado en «Repository access» (fine-grained)"
+      : "el repo no existe o tu token no puede verlo: revisa que tenga el alcance «repo» (clásico) o el repo listado en «Repository access» (fine-grained)";
   }
   if (status === 409) return "el repositorio está vacío o la rama cambió mientras subías";
   if (status === 422) return "GitHub rechazó los datos: mira el detalle de arriba";
@@ -258,7 +277,7 @@ export function pistaDeGithub(status: number, mensaje: string): string {
   return "";
 }
 
-async function ghJsonError(res: Response, fallback: string): Promise<never> {
+async function ghJsonError(res: Response, fallback: string, token = ""): Promise<never> {
   let msg = fallback;
   try {
     const j = (await res.json()) as {
@@ -275,7 +294,7 @@ async function ghJsonError(res: Response, fallback: string): Promise<never> {
   } catch {
     /* sin cuerpo JSON */
   }
-  const pista = pistaDeGithub(res.status, msg);
+  const pista = pistaDeGithub(res.status, msg, token);
   throw new Error(`GitHub ${res.status}: ${msg}${pista ? ` — ${pista}` : ""}`);
 }
 
@@ -313,7 +332,7 @@ export const GH_TOKEN_URL =
 
 export async function ghWhoAmI(token: string, fetchImpl?: GhFetch): Promise<string> {
   const res = await ghFetchCon(fetchImpl)(token, "/user");
-  if (!res.ok) await ghJsonError(res, "No se pudo leer tu usuario");
+  if (!res.ok) await ghJsonError(res, "No se pudo leer tu usuario", token);
   const j = (await res.json()) as { login?: string };
   return j.login ?? "";
 }
@@ -321,7 +340,7 @@ export async function ghWhoAmI(token: string, fetchImpl?: GhFetch): Promise<stri
 /** Completa login/avatar a partir de un token (OAuth o PAT). */
 export async function ghResolveAccount(token: string, source: "oauth" | "pat"): Promise<GhAccount> {
   const res = await ghFetch(token, "/user");
-  if (!res.ok) await ghJsonError(res, "No se pudo leer tu usuario");
+  if (!res.ok) await ghJsonError(res, "No se pudo leer tu usuario", token);
   const j = (await res.json()) as { login?: string; name?: string; avatar_url?: string };
   const login = j.login ?? "";
   return {
@@ -337,7 +356,7 @@ export async function ghListRepos(token: string): Promise<
   { owner: string; repo: string; fullName: string; isPrivate: boolean; defaultBranch: string; htmlUrl: string }[]
 > {
   const res = await ghFetch(token, "/user/repos?per_page=30&sort=updated&affiliation=owner,collaborator");
-  if (!res.ok) await ghJsonError(res, "No se pudieron listar tus repositorios");
+  if (!res.ok) await ghJsonError(res, "No se pudieron listar tus repositorios", token);
   const j = (await res.json()) as {
     name?: string;
     full_name?: string;
@@ -425,9 +444,9 @@ export async function ghEnsureRepo(
         branch: j.default_branch || "main",
       };
     }
-    return await ghJsonError(res, `No se pudo crear el repositorio «${name}»`);
+    return await ghJsonError(res, `No se pudo crear el repositorio «${name}»`, token);
   }
-  return await ghJsonError(res, "No se pudo crear el repositorio");
+  return await ghJsonError(res, "No se pudo crear el repositorio", token);
 }
 
 type Head = { sha: string; treeSha: string } | null;
@@ -451,13 +470,13 @@ async function ghGetHead(
   const gh = ghFetchCon(fetchImpl);
   const res = await gh(token, `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`);
   if (res.status === 404 || res.status === 409) return null; // rama sin crear / repo vacío
-  if (!res.ok) await ghJsonError(res, `No se pudo leer la rama ${branch}`);
+  if (!res.ok) await ghJsonError(res, `No se pudo leer la rama ${branch}`, token);
   const j = (await res.json()) as { object?: { sha?: string } };
   const sha = j.object?.sha;
   if (!sha) return null;
   const cRes = await gh(token, `/repos/${owner}/${repo}/git/commits/${sha}`);
   if (!cRes.ok) {
-    await ghJsonError(cRes, `No se pudo leer el último commit de ${branch}`);
+    await ghJsonError(cRes, `No se pudo leer el último commit de ${branch}`, token);
   }
   const c = (await cRes.json()) as { tree?: { sha?: string } };
   const treeSha = c.tree?.sha ?? "";
@@ -501,7 +520,7 @@ async function ghCommitBatch(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: toBase64(bytes), encoding: "base64" }),
       });
-      if (!res.ok) await ghJsonError(res, `No se pudo subir el blob ${it.path}`);
+      if (!res.ok) await ghJsonError(res, `No se pudo subir el blob ${it.path}`, token);
       const j = (await res.json()) as { sha?: string };
       if (j.sha) blobShas.set(it.path, j.sha);
     }
@@ -522,7 +541,7 @@ async function ghCommitBatch(
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: toBase64(bytes), encoding: "base64" }),
         });
-        if (!res.ok) await ghJsonError(res, `No se pudo subir el blob ${it.path}`);
+        if (!res.ok) await ghJsonError(res, `No se pudo subir el blob ${it.path}`, token);
         const j = (await res.json()) as { sha?: string };
         entries.push({ path: it.path, mode: "100644", type: "blob", sha: j.sha ?? "" });
       } else {
@@ -537,7 +556,7 @@ async function ghCommitBatch(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(head?.treeSha ? { base_tree: head.treeSha, tree: entries } : { tree: entries }),
   });
-  if (!treeRes.ok) await ghJsonError(treeRes, "No se pudo crear el árbol de archivos");
+  if (!treeRes.ok) await ghJsonError(treeRes, "No se pudo crear el árbol de archivos", token);
   const tree = (await treeRes.json()) as { sha?: string };
 
   const commitRes = await ghFetch(token, `/repos/${owner}/${repo}/git/commits`, {
@@ -545,7 +564,7 @@ async function ghCommitBatch(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, tree: tree.sha, parents: head ? [head.sha] : [] }),
   });
-  if (!commitRes.ok) await ghJsonError(commitRes, "No se pudo crear el commit");
+  if (!commitRes.ok) await ghJsonError(commitRes, "No se pudo crear el commit", token);
   const commit = (await commitRes.json()) as { sha?: string; tree?: { sha?: string } };
 
   const rama = encodeURIComponent(branch);
@@ -555,7 +574,7 @@ async function ghCommitBatch(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sha: commit.sha, force: false }),
     });
-    if (!refRes.ok) await ghJsonError(refRes, `No se pudo actualizar la rama ${branch}`);
+    if (!refRes.ok) await ghJsonError(refRes, `No se pudo actualizar la rama ${branch}`, token);
   } else {
     const refRes = await ghFetch(token, `/repos/${owner}/${repo}/git/refs`, {
       method: "POST",
@@ -566,13 +585,13 @@ async function ghCommitBatch(
     // subida entera: la app decía «¡Completado!» y en GitHub no había nada.
     // Si la rama apareció mientras subíamos, se mueve; si no se puede, se dice.
     if (!refRes.ok) {
-      if (refRes.status !== 422) await ghJsonError(refRes, `No se pudo crear la rama ${branch}`);
+      if (refRes.status !== 422) await ghJsonError(refRes, `No se pudo crear la rama ${branch}`, token);
       const mover = await ghFetch(token, `/repos/${owner}/${repo}/git/refs/heads/${rama}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sha: commit.sha, force: false }),
       });
-      if (!mover.ok) await ghJsonError(mover, `No se pudo apuntar la rama ${branch} al commit`);
+      if (!mover.ok) await ghJsonError(mover, `No se pudo apuntar la rama ${branch} al commit`, token);
     }
   }
   return { sha: commit.sha ?? "", treeSha: commit.tree?.sha ?? tree.sha ?? "" };
@@ -593,7 +612,7 @@ async function ghVerificar(
 ): Promise<void> {
   const gh = ghFetchCon(fetchImpl);
   const res = await gh(token, `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`);
-  if (!res.ok) await ghJsonError(res, `No se pudo comprobar la rama ${branch} después de subir`);
+  if (!res.ok) await ghJsonError(res, `No se pudo comprobar la rama ${branch} después de subir`, token);
   const j = (await res.json()) as { object?: { sha?: string } };
   if (j.object?.sha !== sha) {
     throw new Error(
