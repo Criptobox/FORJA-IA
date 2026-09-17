@@ -1,4 +1,4 @@
-/** Prism AI — Permisos POR HERRAMIENTA del agente.
+/** Forja IA — Permisos POR HERRAMIENTA del agente.
  *
  * El catálogo llevaba versiones diciendo «dale permiso en
  * `tool-permissions.ts`» y este archivo no existía. Lo que sí existía es

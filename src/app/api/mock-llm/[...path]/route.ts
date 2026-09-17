@@ -84,7 +84,7 @@ const HTML_DOC = [
   "<head>",
   '<meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width, initial-scale=1">',
-  "<title>Demo Prism</title>",
+  "<title>Demo Forja</title>",
   "<style>",
   "  body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;",
   "  background:linear-gradient(135deg,#1e1b4b,#0f766e 55%,#be185d);color:#fff}",
@@ -101,7 +101,7 @@ const HTML_DOC = [
   "<body>",
   '<div class="card">',
   "<h1>Funciona en vivo ✨</h1>",
-  "<p>Esta página se generó con Prism AI y se renderiza mientras la IA escribe.</p>",
+  "<p>Esta página se generó con Forja IA y se renderiza mientras la IA escribe.</p>",
   '<button id="b">Púlsame</button>',
   '<span id="n">0</span>',
   "</div>",
@@ -258,7 +258,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
 
   // `mock-efectos`: una página que ENLAZA el kit de efectos sin escribirlo,
   // que es exactamente lo que se le pide al modelo real. Sirve para comprobar
-  // dos cosas: que Prism añade `prism-fx.css`/`prism-fx.js` al proyecto por su
+  // dos cosas: que Forja añade `prism-fx.css`/`prism-fx.js` al proyecto por su
   // cuenta, y que el contenido dentro de un `data-fx="reveal"` se ve — con o
   // sin JavaScript.
   if (modelo === "mock-efectos") {
@@ -288,7 +288,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // `mock-generica`: la página de manual de un generador — Lorem ipsum, tres
   // tarjetas clonadas, un solo tamaño de letra, la fuente del sistema y un
   // hero centrado con su botón. La segunda entrega es la pulida. Sirve para
-  // comprobar que Prism MIDE lo genérico en la página pintada y se lo
+  // comprobar que Forja MIDE lo genérico en la página pintada y se lo
   // devuelve al modelo, en vez de fiarse de que se autoevalúe.
   if (modelo === "mock-generica") {
     const lePulieron = msgs.some(
@@ -396,7 +396,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
 
   // `mock-3d-mal-puesto`: enlaza el motor 3D en una landing pedida
   // explícitamente "minimalista" — la dirección "minimal" lo tiene
-  // PROHIBIDO (EFECTOS_POR_DIRECCION). Sirve para comprobar que Prism lo
+  // PROHIBIDO (EFECTOS_POR_DIRECCION). Sirve para comprobar que Forja lo
   // detecta en la página ya pintada y se lo devuelve al modelo, igual que
   // hace con lo genérico — dogfooding: hasta ahora nadie comprobaba esto,
   // el prompt lo prohibía pero nadie miraba si se hacía caso.
@@ -464,7 +464,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
 
   // `mock-2d`: enlaza el marquee (clase suelta, sin corrección) — igual que
   // `mock-3d` para el motor 3D, sirve para comprobar en una dirección que SÍ
-  // lo permite (brutalista) que Prism no lo toca.
+  // lo permite (brutalista) que Forja no lo toca.
   if (modelo === "mock-2d") {
     return [
       "Aquí tienes la página.",
@@ -483,7 +483,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
 
   // `mock-generica-terca`: la MISMA página de manual, pero que NUNCA se
   // pule por mucho que se le corrija — sirve para llegar al tope de
-  // MAX_REVISIONES con la página todavía genérica, y comprobar que Prism lo
+  // MAX_REVISIONES con la página todavía genérica, y comprobar que Forja lo
   // dice al final en vez de quedarse callado (dogfooding: antes, la última
   // pasada ni se comprobaba).
   if (modelo === "mock-generica-terca") {
@@ -511,7 +511,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
 
   // `mock-3d`: enlaza el motor 3D (canvas con globo de líneas) sin
   // escribirlo — igual que `mock-efectos` para el kit normal, pero para
-  // comprobar que Prism también añade `prism-3d.js` cuando hace falta.
+  // comprobar que Forja también añade `prism-3d.js` cuando hace falta.
   if (modelo === "mock-3d") {
     return [
       "Aquí tienes la escena.",
@@ -532,7 +532,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // `mock-tema-en-head`: el patrón MÁS común en una web generada por un
   // modelo de verdad — leer el tema guardado ANTES del primer pintado, para
   // no dar el flash del tema equivocado. El script vive en `<head>`, antes
-  // de cualquier cosa que Prism inyecte. Sirve para comprobar que el puente
+  // de cualquier cosa que Forja inyecte. Sirve para comprobar que el puente
   // de consola gana esa carrera (dogfooding v4.10.0: un `pageerror` de
   // localStorage sandboxed salía justo con este patrón).
   if (modelo === "mock-tema-en-head") {
@@ -640,7 +640,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
     );
     if (pideSeguir) {
       return [
-        'rd"><h1>Prism</h1><p>Página entera tras empalmar los dos trozos.</p></div>',
+        'rd"><h1>Forja</h1><p>Página entera tras empalmar los dos trozos.</p></div>',
         "</body>",
         "</html>",
         "```",
@@ -750,7 +750,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   if (seesImage) {
     return "He recibido tu **imagen** correctamente 👀 El pipeline multimodal funciona: la imagen viajó como `image_url` en el protocolo OpenAI y el modelo la recibió. ¿Qué quieres que haga con ella?";
   }
-  return "¡Hola! Soy **Prism AI** funcionando con tu API.\n\nTodo el pipeline opera correctamente: `UI → proxy → servidor → SSE → UI`.";
+  return "¡Hola! Soy **Forja IA** funcionando con tu API.\n\nTodo el pipeline opera correctamente: `UI → proxy → servidor → SSE → UI`.";
 }
 
 function sse(reply: string): Response {
@@ -808,7 +808,7 @@ function respuestaAnthropic(body: {
   const crudo = JSON.stringify(body ?? {});
   const cortes = (crudo.match(/"cache_control"/g) ?? []).length;
   const texto =
-    "¡Hola! Soy **Prism AI** hablando el protocolo de Anthropic.\n\n" +
+    "¡Hola! Soy **Forja IA** hablando el protocolo de Anthropic.\n\n" +
     `Cortes de caché recibidos: ${cortes}.`;
   return Response.json({
     id: "msg_mock",
@@ -1105,7 +1105,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
 
     const pagina = (rota: boolean) => rota
       ? '<!doctype html><html><body><img src="logo.png"><button></button></body></html>'
-      : '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism</title></head><body><button aria-label="Abrir">OK</button></body></html>';
+      : '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title></head><body><button aria-label="Abrir">OK</button></body></html>';
 
     const fn = (name: string, args: unknown) => ({
       id: `call_verifica_${name}_${rondas}`,
@@ -1173,8 +1173,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
     // esquema de ids de abajo, el mismo id: el cliente los acumula por id
     // al reensamblar el streaming y uno pisa al otro.
     const pagina = (rota: boolean) => rota
-      ? '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism</title></head><body><img src="data:image/svg+xml,%3Csvg/%3E"></body></html>'
-      : '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism</title></head><body><img alt="Logo" src="data:image/svg+xml,%3Csvg/%3E"></body></html>';
+      ? '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title></head><body><img src="data:image/svg+xml,%3Csvg/%3E"></body></html>'
+      : '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title></head><body><img alt="Logo" src="data:image/svg+xml,%3Csvg/%3E"></body></html>';
 
     const fn = (name: string, args: unknown) => ({
       id: `call_diagnostica_${name}_${rondas}`,
@@ -1325,7 +1325,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
   // en vez de rellenar `tool_calls` de la API — el caso real reportado por
   // un usuario con nvidia/nemotron vía OpenRouter, dos veces seguidas en
   // la misma conversación. Nunca llama a `onToolCalls`: el texto crudo es
-  // TODO lo que manda. Sirve para comprobar que Prism reconoce esa
+  // TODO lo que manda. Sirve para comprobar que Forja reconoce esa
   // plantilla como una llamada de verdad (`tool-calls-texto.ts`), la
   // ejecuta, y no la enseña literal en el chat.
   if (body.model === "mock-llamada-en-texto") {

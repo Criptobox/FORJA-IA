@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Modo foco (zen): solo la conversación.
+/** Forja IA — Modo foco (zen): solo la conversación.
  *
  * Oculta la barra lateral y la vista previa, y evita que el split se abra solo
  * cuando el modelo escribe HTML. Se recuerda entre sesiones en localStorage

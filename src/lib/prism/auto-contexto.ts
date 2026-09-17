@@ -1,6 +1,6 @@
-/** Prism AI — Auto Context (plan técnico §2): el usuario no debería tener
+/** Forja IA — Auto Context (plan técnico §2): el usuario no debería tener
  * que explicar qué archivos ni qué decisiones son relevantes. Antes de
- * llamar al modelo, Prism detecta lo pertinente con heurística local
+ * llamar al modelo, Forja detecta lo pertinente con heurística local
  * (keywords + LIKE), sin gastar una llamada extra ni embeddings.
  *
  * Flujo:

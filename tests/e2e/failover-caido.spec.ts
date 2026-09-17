@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Si tu proveedor está caído, se salta a otro. No se queda ahí.
+/** Forja IA — Si tu proveedor está caído, se salta a otro. No se queda ahí.
  *
  * Reportado con captura: modelo elegido a mano, Google Gemini contesta
  * «503: This model is currently experiencing high demand», y el error se

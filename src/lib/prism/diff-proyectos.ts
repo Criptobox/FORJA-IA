@@ -1,4 +1,4 @@
-/** Prism AI — Comparar dos estados del proyecto (tool `snapshot_diff`).
+/** Forja IA — Comparar dos estados del proyecto (tool `snapshot_diff`).
  *
  * El agente edita, escribe y restaura archivos durante una conversación, y al
  * final dice «listo». Para saber QUÉ tocó había que abrir la pestaña Cambios
@@ -6,7 +6,7 @@
  * entran, un recuento honesto sale.
  *
  * Aquí NO hay git, y por eso la herramienta no se llama `diff_with_main` ni
- * acepta shas ni ramas: en Prism los puntos de restauración son los snapshots
+ * acepta shas ni ramas: en Forja los puntos de restauración son los snapshots
  * de `snapshots.ts` (s1, s2…), guardados en el dispositivo. Prometer `main` o
  * `head~1` sería prometer algo que no existe.
  *

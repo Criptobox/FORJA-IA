@@ -1,4 +1,4 @@
-/** Prism AI — Permisos por herramienta.
+/** Forja IA — Permisos por herramienta.
  *
  * Lo que se prueba aquí no es que la tabla exista: es que **se hace cumplir**.
  * Un permiso que se enseña y no se comprueba es peor que no tenerlo, porque

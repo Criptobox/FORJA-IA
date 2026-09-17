@@ -1,4 +1,4 @@
-/** Prism AI — Plantillas de marketing ligadas a la dirección de diseño
+/** Forja IA — Plantillas de marketing ligadas a la dirección de diseño
  * (plan escalado §2.5). Útil para una tienda online: no como «plantillas
  * fijas» sino como MODOS que usan los mismos tokens del proyecto — así
  * el email, el carrusel o el póster salen con la misma identidad visual
@@ -10,7 +10,7 @@
  *
  * Inspirado en las plantillas de marketing de OpenDesign (Apache-2.0):
  * email-marketing, social-carousel, magazine-poster — adaptadas a los
- * modos de Prism, no copiadas.
+ * modos de Forja, no copiadas.
  */
 
 import type { DireccionVisual } from "./design-directions";

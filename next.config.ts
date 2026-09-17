@@ -48,9 +48,9 @@ const nextConfig: NextConfig = {
   /* Datos de la build, para saber QUÉ copia se está usando. Sin esto no había
    * forma de distinguir un despliegue nuevo de uno servido desde la caché. */
   env: {
-    NEXT_PUBLIC_PRISM_VERSION: pkg.version,
-    NEXT_PUBLIC_PRISM_COMMIT: commit(),
-    NEXT_PUBLIC_PRISM_BUILT: new Date().toISOString(),
+    NEXT_PUBLIC_FORJA_VERSION: pkg.version,
+    NEXT_PUBLIC_FORJA_COMMIT: commit(),
+    NEXT_PUBLIC_FORJA_BUILT: new Date().toISOString(),
   },
 };
 

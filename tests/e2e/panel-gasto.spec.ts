@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — La pestaña «Gasto» del Panel del sistema, y los dos daños
+/** Forja IA — La pestaña «Gasto» del Panel del sistema, y los dos daños
  *  visuales que la destaparon.
  *
  * Lo que se comprueba aquí no es que «se vea bonito»: es que el panel diga en

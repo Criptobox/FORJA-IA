@@ -1,4 +1,4 @@
-# Prism AI — Plan V5
+# Forja IA — Plan V5
 
 > **Estado: terminado.** Las once tareas de la §8 están implementadas, más el
 > modo ahorro que se pidió después. De la v3.19.0 a la v3.27.0. El detalle de
@@ -129,7 +129,7 @@ servidor, las claves solo en tu dispositivo):
 
 - Un repo público `prism-skills` con un `index.json`: nombre, descripción,
   autor, tipos de tarea, URL del `.md`.
-- Prism lo lee igual que ya lee `/api/free-radar`. Es un fichero estático, no
+- Forja lo lee igual que ya lee `/api/free-radar`. Es un fichero estático, no
   un backend.
 - Cada entrada se instala por el camino que ya existe → **la puerta de permisos
   sigue en medio**. Esto es lo que hace que un catálogo abierto no sea un
@@ -148,7 +148,7 @@ tienes instaladas**.
 
 ---
 
-## 4. «Un navegador con pestañas dentro de Prism» → **no se puede. Y lo que sí se puede es otra cosa**
+## 4. «Un navegador con pestañas dentro de Forja» → **no se puede. Y lo que sí se puede es otra cosa**
 
 Aquí voy a ser claro porque es la idea en la que más tiempo se puede perder.
 
@@ -216,7 +216,7 @@ setModelKey(makeModelKey(candidate.providerId, candidate.modelId));
 relanzar(sessionId, depth + 1, continuaciones);
 ```
 
-Cuando un modelo se para a mitad de una web, Prism **borra lo que llevaba** y
+Cuando un modelo se para a mitad de una web, Forja **borra lo que llevaba** y
 el modelo nuevo **empieza de cero**. Cambia de modelo, sí; *seguir con la
 tarea*, no. Con modelos gratis lentos, eso son minutos tirados en cada salto —
 y es exactamente lo que describías.
@@ -302,7 +302,7 @@ sistema de ramas ya guarda la anterior, así que puedes comparar las dos.
 ### 7.3 · Leer `finish_reason`
 
 Los tres protocolos mandan un campo que dice **por qué** paró el modelo
-(`finish_reason` / `stop_reason`). Prism no lo lee en ningún sitio: lo
+(`finish_reason` / `stop_reason`). Forja no lo lee en ningún sitio: lo
 comprobé buscándolo en todo `src/`.
 
 Todo lo que arreglamos en la v3.18.0 —detectar que el código se cortó— va por

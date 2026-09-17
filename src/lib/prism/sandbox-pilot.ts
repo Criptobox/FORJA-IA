@@ -1,6 +1,6 @@
-/** Prism AI — Piloto del Sandbox: agente de navegador DENTRO de la vista previa.
+/** Forja IA — Piloto del Sandbox: agente de navegador DENTRO de la vista previa.
  *
- * La mitad del §8 (Browser Agent) que se puede construir de verdad: Prism solo
+ * La mitad del §8 (Browser Agent) que se puede construir de verdad: Forja solo
  * opera sobre el iframe que él mismo sirve — pulsar, escribir, cambiar el
  * ancho, leer la página y la consola. Nada de webs ajenas; eso no es posible
  * desde una pestaña y no se finge que lo es.

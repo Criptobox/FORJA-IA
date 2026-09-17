@@ -15,8 +15,8 @@ Léelo entero antes de escribir código.
 ## 0. Antes de nada
 
 ```bash
-git clone https://github.com/Criptobox/prism-ai.git
-cd prism-ai
+git clone https://github.com/Criptobox/FORJA-IA.git
+cd FORJA-IA
 npm ci
 npm run dev
 ```
@@ -138,7 +138,7 @@ entre el trozo y el corte.
 
 ### 1.9 `opossum` y cualquier librería de Node: no
 
-Prism corre en el navegador. Antes de añadir una dependencia, comprueba que
+Forja corre en el navegador. Antes de añadir una dependencia, comprueba que
 funciona en el navegador. Y mira si ya está hecho: el circuit breaker existe
 desde hace versiones en `src/lib/prism/health.ts`.
 
@@ -239,7 +239,7 @@ cambio. Compruébalo de verdad y dilo en el commit.**
 **Qué pasa hoy.** `isFreeModel` (`src/lib/prism/free-models.ts:29`) es una
 heurística **estática**: `free` en el id, `FULL_FREE_TIER`, `TRIAL_FREE_TIER`,
 `CURATED_FREE`. Nada vigila el cambio. Si mañana un modelo deja de ser gratis,
-Prism lo sigue tratando como gratis hasta que llega el 402.
+Forja lo sigue tratando como gratis hasta que llega el 402.
 
 **Qué hacer.** Un módulo nuevo, `src/lib/prism/cambio-gratis.ts`, con la
 decisión **pura** (sin red, sin store):
@@ -397,7 +397,7 @@ son un comando. Lo que falta es **no tener que clonar**.
 
 **Qué hacer.** Empaquetar y publicar para que `npx prism-ai` levante la app.
 
-**Antes de escribir nada, comprueba el tamaño.** Prism trae `sharp` y
+**Antes de escribir nada, comprueba el tamaño.** Forja trae `sharp` y
 `pdfjs-dist`, que no son pequeños en un `npx`:
 
 ```bash

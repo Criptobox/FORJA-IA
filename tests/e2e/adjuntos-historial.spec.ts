@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Una imagen mandada una vez no viaja en todas las peticiones.
+/** Forja IA — Una imagen mandada una vez no viaja en todas las peticiones.
  *
  * El fallo, reportado con captura: escribías «Hola», sin adjuntar nada, y
  * OpenRouter contestaba «404: No endpoints found that support image input».

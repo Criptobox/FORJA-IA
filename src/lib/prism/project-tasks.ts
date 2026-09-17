@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Project Tasks: tareas locales y verificables del proyecto. */
+/** Forja IA — Project Tasks: tareas locales y verificables del proyecto. */
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { safeLocalStorage } from "./store";

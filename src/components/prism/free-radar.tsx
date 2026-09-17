@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Radar de modelos gratis: novedades, ofertas con fecha,
+/** Forja IA — Radar de modelos gratis: novedades, ofertas con fecha,
  * fuentes permanentes, lista en vivo de OpenRouter y páginas rastreadas. */
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -474,7 +474,7 @@ export function FreeRadarDialog({
                         {REGISTRO_LABEL[s.registro]}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground/70" title="Nadie de Prism se ha dado de alta aquí para comprobarlo">
+                      <span className="text-muted-foreground/70" title="Nadie de Forja se ha dado de alta aquí para comprobarlo">
                         Registro: sin dato
                       </span>
                     )}
@@ -511,7 +511,7 @@ export function FreeRadarDialog({
                       className="h-6.5 gap-1 px-2 text-[10.5px]"
                       onClick={() => activateSource(s)}
                     >
-                      <Plus className="size-3" /> {s.providerId ? "Añadir a Prism" : "Configurar"}
+                      <Plus className="size-3" /> {s.providerId ? "Añadir a Forja" : "Configurar"}
                     </Button>
                     {s.keyUrl && (
                       <a href={s.keyUrl} target="_blank" rel="noreferrer">

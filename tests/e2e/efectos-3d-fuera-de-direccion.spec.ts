@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — El motor 3D, solo donde su dirección lo permite.
+/** Forja IA — El motor 3D, solo donde su dirección lo permite.
  *
  * Quedó anotado en el worklog de v4.10.0: "Nadie comprueba que el modelo
  * use el motor 3D solo en «experimental». Igual que con la lista negra de
@@ -9,7 +9,7 @@ import { expect, test, type Page } from "./fixtures";
  *
  * `mock-3d-mal-puesto` enlaza el motor 3D en una landing pedida
  * explícitamente "minimalista" (dirección "minimal", que lo prohíbe).
- * Prism lo mide en la página ya pintada y se lo devuelve al modelo por el
+ * Forja lo mide en la página ya pintada y se lo devuelve al modelo por el
  * mismo camino que las señas de página genérica.
  */
 
@@ -77,7 +77,7 @@ test("el motor 3D en una landing minimalista se detecta y se le pide quitarlo", 
   await input.fill("hazme una landing minimalista para mi tienda");
   await page.keyboard.press("Enter");
 
-  // Prism se lo devuelve al modelo sin que nadie pulse nada… «motor 3D» ya
+  // Forja se lo devuelve al modelo sin que nadie pulse nada… «motor 3D» ya
   // no sirve de marcador: `senasEfectosFueraDeDireccion` se generalizó para
   // 2D y 3D a la vez (v4.12.0) y el texto ahora es neutro, solo nombra los
   // ids reales — el marcador fiable es la apertura de `promptDeGenerico`.

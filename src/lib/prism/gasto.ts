@@ -1,4 +1,4 @@
-/** Prism AI — El techo de llamadas a modelos de pago.
+/** Forja IA — El techo de llamadas a modelos de pago.
  *
  * Con claves gratis, gastar de más cuesta un 429 y esperar. Con una clave de
  * pago cuesta dinero, y el orquestador (`orquesta.ts`) multiplica las llamadas

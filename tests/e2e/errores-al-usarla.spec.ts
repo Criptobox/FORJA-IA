@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Los fallos que salen cuando TÚ usas la página.
+/** Forja IA — Los fallos que salen cuando TÚ usas la página.
  *
  * El barrido automático (v3.29) pulsa botones a ciegas, en el orden del DOM y
  * sin escribir en los campos. Le faltan tres cosas que solo aporta el uso

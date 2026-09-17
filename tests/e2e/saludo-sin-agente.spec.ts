@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — «Hola» no arranca el bucle del agente.
+/** Forja IA — «Hola» no arranca el bucle del agente.
  *
  * Reportado con captura: en una conversación donde ya se había pedido una
  * página, escribir «Hola» devolvía el bucle entero —plan, pasos y «He

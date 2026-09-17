@@ -35,8 +35,8 @@ const MAX_REDIRECTS = 3;
  *
  * Sin esto, un proveedor que no contesta deja la petición colgada hasta que la
  * corta la plataforma, y el navegador ve un fetch fallido sin respuesta. El
- * usuario leía entonces «no se pudo contactar con el servidor de Prism» —
- * culpando a Prism— cuando el que no respondía era el proveedor. Se vio con
+ * usuario leía entonces «no se pudo contactar con el servidor de Forja» —
+ * culpando a Forja— cuando el que no respondía era el proveedor. Se vio con
  * NVIDIA NIM: 85 segundos y ni un byte.
  *
  * 90 s da margen a un modelo lento razonando; a partir de ahí, se dice quién
@@ -203,7 +203,7 @@ async function proxy(req: NextRequest, method: "GET" | "POST"): Promise<Response
         {
           error:
             `El proveedor (${t.url.host}) no respondió en ${TIMEOUT_MS / 1000} segundos. ` +
-            "No es tu conexión ni Prism: prueba con otro modelo, o vuelve a intentarlo " +
+            "No es tu conexión ni Forja: prueba con otro modelo, o vuelve a intentarlo " +
             "más tarde si el proveedor está saturado.",
         },
         { status: 504 }

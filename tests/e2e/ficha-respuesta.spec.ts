@@ -1,8 +1,8 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — «¿Por qué me contestó esto?»
+/** Forja IA — «¿Por qué me contestó esto?»
  *
- * Prism ya medía casi todo, pero repartido: un chip aquí, un panel allá, y el
+ * Forja ya medía casi todo, pero repartido: un chip aquí, un panel allá, y el
  * failover en un aviso que desaparece a los seis segundos. Cuando una
  * respuesta salía rara no había forma de reconstruir qué había pasado.
  *

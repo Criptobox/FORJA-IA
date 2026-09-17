@@ -1,4 +1,4 @@
-/** Prism AI — Separación de razonamiento tipo <think> (DeepSeek-R1, QwQ, GLM-Think…).
+/** Forja IA — Separación de razonamiento tipo <think> (DeepSeek-R1, QwQ, GLM-Think…).
  * Algunos modelos emiten el chain-of-thought dentro del propio contenido con
  * etiquetas <think>…</think> en vez de usar el campo reasoning_content.
  * Aquí se separa para mostrarlo en el acordeón de «Razonamiento del modelo».

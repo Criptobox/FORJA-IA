@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — El QR del traspaso: pintarlo y leerlo.
+/** Forja IA — El QR del traspaso: pintarlo y leerlo.
  *
  * Pintarlo se puede siempre. Leerlo depende del navegador: se usa el lector de
  * códigos que trae el propio sistema (BarcodeDetector), sin librería. Donde no

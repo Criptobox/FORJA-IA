@@ -1,4 +1,4 @@
-/** Prism AI — Ramas e hilos de conversación.
+/** Forja IA — Ramas e hilos de conversación.
  *
  * Hasta ahora, regenerar una respuesta la BORRABA: `truncateAfter` + `delete` y
  * a generar de nuevo. Si la anterior era mejor, no había vuelta atrás. Lo mismo

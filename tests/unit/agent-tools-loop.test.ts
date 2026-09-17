@@ -1,4 +1,4 @@
-/** Prism AI — Bucle de tools del agente: el techo de vueltas y el texto.
+/** Forja IA — Bucle de tools del agente: el techo de vueltas y el texto.
  *
  * Estos dos fallos son los que dejaban al agente parado a mitad del
  * trabajo. Se prueban aquí, sin React, inyectando un `streamChat` y un

@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Subir una carpeta entera a GitHub (sin límite de 100 archivos).
+/** Forja IA — Subir una carpeta entera a GitHub (sin límite de 100 archivos).
  * Token guardado solo en tu dispositivo; subida por lotes con 1 commit por lote. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import {
   ghGetToken,
   ghSetToken,
+  GithubUploadError,
   prepareFiles,
   toReviewFiles,
   uploadToGithub,
@@ -39,6 +40,9 @@ import { usePrism } from "@/lib/prism/store";
 import { GitHubConnect } from "./github-connect";
 import { ReviewGateCard, useReviewGate } from "./review-view";
 import type { PublishSeed } from "@/lib/prism/sandbox";
+
+/** Fija en el código, no se construye a partir de nada dinámico. */
+const GH_INSTALLATIONS_URL = "https://github.com/settings/installations";
 
 function fmtBytes(n: number): string {
   if (n >= 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
@@ -71,6 +75,9 @@ export function GitHubDialog({
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   /** El último fallo de subida, tal cual lo dijo GitHub. Se queda a la vista. */
   const [fallo, setFallo] = useState<string | null>(null);
+  /** ¿Ese fallo se arregla instalando la GitHub App en el repo? Viene del
+   * propio error (GithubUploadError), no de re-analizar el texto. */
+  const [necesitaInstalacion, setNecesitaInstalacion] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const gate = useReviewGate();
 
@@ -196,6 +203,7 @@ export function GitHubDialog({
     setUploading(true);
     setResultUrl(null);
     setFallo(null);
+    setNecesitaInstalacion(false);
     setProgress(null);
     try {
       const r = await uploadToGithub(t, {
@@ -215,6 +223,7 @@ export function GitHubDialog({
       // El aviso flotante se va en seis segundos y con él el motivo. Un fallo
       // de subida se queda escrito hasta que se arregle.
       setFallo(msg);
+      setNecesitaInstalacion(e instanceof GithubUploadError && e.necesitaInstalacion);
       toast.error("La subida falló", { description: msg.slice(0, 220) });
     } finally {
       setUploading(false);
@@ -351,6 +360,16 @@ export function GitHubDialog({
             >
               <p className="text-xs font-semibold text-destructive">No se subió nada</p>
               <p className="break-words text-[11px] leading-relaxed text-muted-foreground">{fallo}</p>
+              {necesitaInstalacion && (
+                <a
+                  href={GH_INSTALLATIONS_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] text-prism-violet underline underline-offset-2"
+                >
+                  Abrir instalaciones de GitHub <ExternalLink className="size-3" />
+                </a>
+              )}
             </section>
           )}
 

@@ -1,4 +1,4 @@
-/** Prism AI — Revisión del proyecto del Sandbox.
+/** Forja IA — Revisión del proyecto del Sandbox.
  *
  * Analiza TODO el proyecto cargado (ZIP, repo local o semilla) y devuelve una
  * lista de problemas ordenados por gravedad, pensada para responder a una

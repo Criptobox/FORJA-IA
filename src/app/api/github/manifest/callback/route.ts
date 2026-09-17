@@ -1,4 +1,4 @@
-/** Prism AI — GitHub devuelve el code del manifiesto; lo convertimos en client_id/secret. */
+/** Forja IA — GitHub devuelve el code del manifiesto; lo convertimos en client_id/secret. */
 import { NextResponse } from "next/server";
 import { GH_APP_COOKIE } from "@/lib/prism/github-oauth";
 import {
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
 
   const conv = await fetch(`https://api.github.com/app-manifests/${encodeURIComponent(code)}/conversions`, {
     method: "POST",
-    headers: { Accept: "application/vnd.github+json", "User-Agent": "prism-ai" },
+    headers: { Accept: "application/vnd.github+json", "User-Agent": "forja-ia" },
     signal: AbortSignal.timeout(20000),
   });
   if (!conv.ok) {

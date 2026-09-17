@@ -1,6 +1,6 @@
 import {  expect, test  } from "./fixtures";
 
-/** Prism AI — la presilla (+) del recuadro de chat.
+/** Forja IA — la presilla (+) del recuadro de chat.
  *
  * Seis iconos al lado del texto partían el campo («Escribe tu men…») y
  * escondían el enviar. Ahora van detrás del +: al tocarlo salen adjuntar,

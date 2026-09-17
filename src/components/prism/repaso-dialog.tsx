@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Diálogo del Modo Repaso.
+/** Forja IA — Diálogo del Modo Repaso.
  *
  * Dos pestañas: «Estudiar» (la cola de tarjetas vencidas de hoy, con volteo y
  * las cuatro calificaciones SM-2) y «Biblioteca» (lo que hay guardado, con
@@ -123,7 +123,7 @@ export function RepasoDialog({
               <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border/60 px-4 py-8 text-center">
                 <GraduationCap className="size-8 text-muted-foreground/50" />
                 <p className="text-sm text-muted-foreground">
-                  Todavía no hay tarjetas. Pídele a Prism que te examine de lo
+                  Todavía no hay tarjetas. Pídele a Forja que te examine de lo
                   que acabáis de hablar: él prepara el examen y aquí lo repases
                   el día que toca.
                 </p>

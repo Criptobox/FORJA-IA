@@ -1,4 +1,4 @@
-/** Prism AI — Pestañas de conversación (idea D2 del PLAN-V7): lógica pura.
+/** Forja IA — Pestañas de conversación (idea D2 del PLAN-V7): lógica pura.
  *
  * La UI vive en `convo-tabs.tsx`; aquí solo las decisiones, para poder
  * testearlas sin navegador:

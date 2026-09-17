@@ -1,10 +1,10 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — El motor 3D: se añade al proyecto, arranca cuando puede y se
+/** Forja IA — El motor 3D: se añade al proyecto, arranca cuando puede y se
  * calla cuando no debería.
  *
  * `mock-3d` enlaza `prism-3d.js` sin escribirlo (igual que `mock-efectos`
- * hace con el kit normal): comprueba que Prism lo añade al proyecto y que la
+ * hace con el kit normal): comprueba que Forja lo añade al proyecto y que la
  * escena arranca de verdad — y, en un equipo simulado de gama baja, que NO
  * arranca. `window.__prism3dActivo` es la única señal que expone el motor
  * para esto: no cambia el render, solo dice si decidió dibujar.
@@ -62,7 +62,7 @@ async function pedirLaEscena(page: Page) {
   await page.keyboard.press("Enter");
 }
 
-test("Prism añade prism-3d.js al proyecto: el modelo solo lo enlaza", async ({ page }) => {
+test("Forja añade prism-3d.js al proyecto: el modelo solo lo enlaza", async ({ page }) => {
   test.setTimeout(180_000);
   await seed(page);
   await page.setViewportSize({ width: 1440, height: 900 });

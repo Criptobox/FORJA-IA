@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Las tres herramientas de la v3.40, usadas de verdad.
+/** Forja IA — Las tres herramientas de la v3.40, usadas de verdad.
  *
  * `run_regression` mide un antes y un después, `snapshot_diff` dice qué
  * archivos se movieron y `ask_memory` consulta el mapa del proyecto. El modelo

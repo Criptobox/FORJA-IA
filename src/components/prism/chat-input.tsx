@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Entrada de mensajes con adjuntos, documentos, hojas de cálculo,
+/** Forja IA — Entrada de mensajes con adjuntos, documentos, hojas de cálculo,
  * comandos slash, modo imagen, biblioteca, skills, modo agente y dictado por voz.
  *
  * Las seis herramientas extra no caben al lado del texto: en el móvil el campo

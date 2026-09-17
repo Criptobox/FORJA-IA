@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Burbuja de mensaje (con soporte de modo agente, documentos e imágenes generadas) */
+/** Forja IA — Burbuja de mensaje (con soporte de modo agente, documentos e imágenes generadas) */
 import { memo, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,

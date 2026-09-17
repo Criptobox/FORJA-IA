@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — «Auto» aprende de lo que TE ha funcionado, y lo enseña.
+/** Forja IA — «Auto» aprende de lo que TE ha funcionado, y lo enseña.
  *
  * `useUsage` guardaba aciertos y tiempos por modelo desde hace versiones, y
  * `buildTaskChain` no los miraba: ordenaba por una tabla estática y por el

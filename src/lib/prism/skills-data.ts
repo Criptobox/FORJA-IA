@@ -1,4 +1,4 @@
-/** Prism AI — Skills integradas (instrucciones expertas que mejoran el modelo) */
+/** Forja IA — Skills integradas (instrucciones expertas que mejoran el modelo) */
 import type { SkillItem } from "./types";
 
 export const BUILTIN_SKILLS: SkillItem[] = [

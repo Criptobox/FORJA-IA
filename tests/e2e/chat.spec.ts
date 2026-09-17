@@ -13,7 +13,7 @@ async function seedMockProvider(page: import("@playwright/test").Page) {
         radarSeenIds: [],
         settings: {
           defaultModelKey: "custom::mock-mini-free",
-          systemPrompt: "Eres Prism AI (test).",
+          systemPrompt: "Eres Forja IA (test).",
           temperature: 0.7,
           maxTokens: null,
           stream: true,
@@ -44,7 +44,7 @@ async function seedMockProvider(page: import("@playwright/test").Page) {
   });
 }
 
-test.describe("Prism AI — flujo principal", () => {
+test.describe("Forja IA — flujo principal", () => {
   test.beforeEach(async ({ page }) => {
     await seedMockProvider(page);
   });
@@ -77,7 +77,7 @@ test.describe("Prism AI — flujo principal", () => {
   });
 });
 
-test.describe("Prism AI — nada se pierde", () => {
+test.describe("Forja IA — nada se pierde", () => {
   test.beforeEach(async ({ page }) => {
     await seedMockProvider(page);
   });

@@ -1,4 +1,4 @@
-/** Prism AI — Las tres herramientas nuevas del agente (v3.40).
+/** Forja IA — Las tres herramientas nuevas del agente (v3.40).
  *
  * `run_regression` mide su propio cambio, `snapshot_diff` dice qué se movió y
  * `ask_memory` consulta el mapa del proyecto. Lo que más se prueba aquí no es

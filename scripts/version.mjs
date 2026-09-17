@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Prism AI — Subir la versión sin que se queden dos números distintos.
+/** Forja IA — Subir la versión sin que se queden dos números distintos.
  *
  * La versión vive en package.json (next.config la inyecta en la build), pero
  * app-version.ts guarda un respaldo escrito a mano para los tests y para
@@ -44,7 +44,7 @@ pkg.version = siguiente;
 writeFileSync(PKG, JSON.stringify(pkg, null, 2) + "\n");
 
 const src = readFileSync(SRC, "utf8");
-const re = /(NEXT_PUBLIC_PRISM_VERSION \|\| ")[^"]+(")/;
+const re = /(NEXT_PUBLIC_FORJA_VERSION \|\| ")[^"]+(")/;
 if (!re.test(src)) {
   console.error("No encuentro el respaldo de la versión en app-version.ts");
   process.exit(1);

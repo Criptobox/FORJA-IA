@@ -1,4 +1,4 @@
-/** Prism AI — «Resumir hasta aquí» y «Traducir respuesta».
+/** Forja IA — «Resumir hasta aquí» y «Traducir respuesta».
  *
  * Los dos son mensajes-instruction: viajan al modelo con todo el contexto pero
  * se pintan como nota discreta en el hilo (igual que el «continuar trabajo» del

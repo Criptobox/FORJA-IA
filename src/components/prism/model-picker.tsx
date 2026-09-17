@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Selector de modelo con filtro «Solo gratis», modo Auto y salud (cooldowns) */
+/** Forja IA — Selector de modelo con filtro «Solo gratis», modo Auto y salud (cooldowns) */
 import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, KeyRound, Search, Sparkles, Star, Timer, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -288,7 +288,7 @@ export function ModelPicker({
                 <span className="min-w-0 flex-1">
                   <span className="block text-[13px] font-semibold">Auto</span>
                   <span className="text-xs text-muted-foreground">
-                    {isAutoKey(value) ? "activado · púlsalo para apagarlo" : "actívalo y Prism elige el modelo"}
+                    {isAutoKey(value) ? "activado · púlsalo para apagarlo" : "actívalo y Forja elige el modelo"}
                   </span>
                 </span>
               </button>

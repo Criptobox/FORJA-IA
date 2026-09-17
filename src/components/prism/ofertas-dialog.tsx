@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Diálogo de la Caza de ofertas IA.
+/** Forja IA — Diálogo de la Caza de ofertas IA.
  *
  * Dos pestañas: «Ofertas» (el catálogo con buscador, chips por tipo y
  * favoritas) y «Ajustes» (avisos del navegador, margen de días y la fuente
@@ -204,7 +204,7 @@ export function OfertasDialog({
     // hay permiso de verdad, el constructor lanza y se captura — el toast
     // dentro de la app ya avisó.
     try {
-      new Notification("Prism AI · Caza de ofertas", {
+      new Notification("Forja IA · Caza de ofertas", {
         body: "Los avisos funcionan. Cuando algo bueno aparezca, te enterarás.",
       });
     } catch {
@@ -307,7 +307,7 @@ export function OfertasDialog({
               </p>
               <p className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
                 Un aviso diario al abrir la app cuando haya ofertas nuevas o cerca de
-                caducar. Además del aviso dentro de Prism.
+                caducar. Además del aviso dentro de Forja.
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Button

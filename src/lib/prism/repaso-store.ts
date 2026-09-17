@@ -1,4 +1,4 @@
-/** Prism AI — Store del Modo Repaso (zustand + localStorage).
+/** Forja IA — Store del Modo Repaso (zustand + localStorage).
  *
  * Vive en SU propia clave (`prism-repaso-v1`) y no dentro del store principal:
  * es el mismo camino que `prism-usage-v1`. Si mañana las tarjetas crecen o

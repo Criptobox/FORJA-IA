@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const html = [
     "<!DOCTYPE html><html lang=\"es\"><head>",
-    "<title>Página de prueba de Prism</title>",
+    "<title>Página de prueba de Forja</title>",
     "<style>.x{color:red}</style>",
     "<script>var ruidoQueNoDebeLlegar = 1;</script>",
     "</head><body>",

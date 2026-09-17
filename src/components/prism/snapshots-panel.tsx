@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Panel de puntos de restauración (Pilar 1.3 del plan de escalado).
+/** Forja IA — Panel de puntos de restauración (Pilar 1.3 del plan de escalado).
  *
  * Los snapshots existían desde la v3.31 con persistencia y rollback completos,
  * pero solo el AGENTE podía usarlos (tool `git_snapshot`): cero UI para la

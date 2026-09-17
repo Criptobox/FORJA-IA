@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Rehacer la respuesta con OTRO modelo.
+/** Forja IA — Rehacer la respuesta con OTRO modelo.
  *
  * `regenerate` rehacía siempre con el mismo. Pero cuando una respuesta sale
  * mal, lo que quieres nueve de cada diez veces no es la misma tirada otra

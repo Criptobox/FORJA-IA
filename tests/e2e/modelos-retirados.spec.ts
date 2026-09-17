@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Que un modelo muerto se vea muerto ANTES del 404.
+/** Forja IA — Que un modelo muerto se vea muerto ANTES del 404.
  *
  * La app llegó a ofrecer ocho modelos que sus proveedores ya habían retirado
  * —uno desde diciembre de 2025— sin ninguna señal: elegías uno, la petición

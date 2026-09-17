@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Las piezas del prompt tal y como están AHORA MISMO.
+/** Forja IA — Las piezas del prompt tal y como están AHORA MISMO.
  *
  * Vive fuera de `chat-app` porque hay dos sitios que necesitan lo mismo: el
  * que manda el mensaje y el medidor de Ajustes. Si cada uno se lo montara por

@@ -1,11 +1,11 @@
-# Prism AI — imagen Docker para self-hosting (VPS, NAS, Raspberry…)
+# Forja IA — imagen Docker para self-hosting (VPS, NAS, Raspberry…)
 #
-# Construir:  docker build -t prism-ai .
-# Ejecutar:   docker run -p 3000:3000 prism-ai
+# Construir:  docker build -t forja-ia .
+# Ejecutar:   docker run -p 3000:3000 forja-ia
 #
 # Si lo publicas en internet, pásale el código de acceso o las rutas propias
 # quedan abiertas (ver README, «Si lo publicas en internet»):
-#   docker run -p 3000:3000 -e PRISM_ACCESS_CODE=loquesea prism-ai
+#   docker run -p 3000:3000 -e PRISM_ACCESS_CODE=loquesea forja-ia
 #
 # Aprovecha `output: "standalone"` de next.config.ts: la imagen final lleva
 # solo el servidor y sus dependencias, no todo node_modules.

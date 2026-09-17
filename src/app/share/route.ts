@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-/** Prism AI — Share Target handler (PLAN-V4 punto 4).
+/** Forja IA — Share Target handler (PLAN-V4 punto 4).
  *
  * Vive en `/share` (ruta aparte) para no chocar con el client
  * component de la página principal (`/`). El manifest referencia
  * esta ruta como `action` del `share_target`.
  *
- * Cuando una app externa comparte texto con Prism (PWA instalada), el
+ * Cuando una app externa comparte texto con Forja (PWA instalada), el
  * navegador POSTea aquí un `multipart/form-data`. Se extrae el
  * texto/título/URL y se redirige a `/?shared=1` con el contenido en
  * una cookie efímera de un solo uso. El `chat-app` lee la cookie en

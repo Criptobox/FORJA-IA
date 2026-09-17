@@ -1,4 +1,4 @@
-/** Prism AI — La herramienta `read_url` del agente.
+/** Forja IA — La herramienta `read_url` del agente.
  *
  * Lee una página CONCRETA y devuelve su texto. No es un buscador: eso aquí no
  * se puede hacer sin servidor, y además no hace falta.

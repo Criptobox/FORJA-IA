@@ -1,4 +1,4 @@
-/** Prism AI — Catálogo de herramientas para el agente.
+/** Forja IA — Catálogo de herramientas para el agente.
  *
  * Hasta la v3.13 el agente era «prompt + parser XML»: el modelo escribía
  * etiquetas y este lado interpretaba. No llamaba funciones. El PLAN-V4

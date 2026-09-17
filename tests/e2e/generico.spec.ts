@@ -1,14 +1,14 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Que «no parezca hecha por una IA» se MIDA.
+/** Forja IA — Que «no parezca hecha por una IA» se MIDA.
  *
- * Prism traía una checklist anti-slop de cinco puntos que se autoevaluaba el
+ * Forja traía una checklist anti-slop de cinco puntos que se autoevaluaba el
  * propio modelo. La nota era siempre buena, claro. Es el mismo fallo de fondo
  * que el resto del proyecto: un dato que nadie comprueba.
  *
  * `mock-generica` entrega la página de manual de un generador —Lorem ipsum,
  * tres tarjetas clonadas, un solo tamaño de letra, la fuente del sistema y un
- * hero centrado con su botón—. Prism la abre, la mide y se la devuelve.
+ * hero centrado con su botón—. Forja la abre, la mide y se la devuelve.
  */
 
 const MODEL_ID = "mock-generica";
@@ -73,7 +73,7 @@ test("una página genérica se mide y vuelve al modelo con qué arreglar", async
   await input.fill("hazme una landing");
   await page.keyboard.press("Enter");
 
-  // Prism se lo devuelve al modelo sin que nadie pulse nada…
+  // Forja se lo devuelve al modelo sin que nadie pulse nada…
   await expect
     .poll(() => cuerpos.filter((c) => c.includes("y la he medido")).length, {
       timeout: 90_000,

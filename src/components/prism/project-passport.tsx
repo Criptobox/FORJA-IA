@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Ficha del proyecto (Project Passport): la cabecera del mapa
+/** Forja IA — Ficha del proyecto (Project Passport): la cabecera del mapa
  * convertida en tarjeta informativa de un vistazo: pila, entrada, núcleo,
  * huérfanos y contadores. Se calcula del mapa (passport.ts), nunca inventada.
  */

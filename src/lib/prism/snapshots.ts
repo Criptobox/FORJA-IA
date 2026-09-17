@@ -1,4 +1,4 @@
-/** Prism AI — Puntos de restauración del proyecto (tool `git_snapshot`).
+/** Forja IA — Puntos de restauración del proyecto (tool `git_snapshot`).
  *
  * El agente trabaja sobre el Sandbox y las regeneraciones ramifican los
  * MENSAJES, pero el proyecto en sí no tenía historia: después de una

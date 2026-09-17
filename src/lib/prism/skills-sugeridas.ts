@@ -1,4 +1,4 @@
-/** Prism AI — Proponer la skill que encaja con lo que acabas de pedir.
+/** Forja IA — Proponer la skill que encaja con lo que acabas de pedir.
  *
  * `classifyTask` ya clasifica cada mensaje en seis tipos de encargo, y ya se
  * usaba para elegir MODELO. Para elegir skills no la miraba nadie: tenías

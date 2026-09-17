@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
-/** Prism AI — la versión se VE, no solo existe.
+/** Forja IA — la versión se VE, no solo existe.
  *
  * Hubo un commit que decía «en la barra lateral aparece vX.Y.Z» y añadía el
  * componente… sin llamarlo desde ningún sitio. Quedó como código muerto y

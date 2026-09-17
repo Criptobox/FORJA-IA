@@ -1,4 +1,4 @@
-/** Prism AI — Escudo de red del proxy (anti-SSRF).
+/** Forja IA — Escudo de red del proxy (anti-SSRF).
  *
  * El proxy existe para saltarse el CORS de los proveedores de IA: el navegador
  * le pasa una URL y el servidor la pide por él. Sin filtro, eso convierte al

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Un modelo que ya no existe no puede ser el final del camino.
+/** Forja IA — Un modelo que ya no existe no puede ser el final del camino.
  *
  * Caso real, con captura: Auto eligió un modelo retirado de OpenRouter, llegó
  * «404 No endpoints found» y la app se paró en seco — en rojo, con otros

@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Renderizado de markdown con código resaltado.
+/** Forja IA — Renderizado de markdown con código resaltado.
  *
  * v3 (v3.34.3): contenedor de código rediseñado.
  * - wrap REAL: `overflow-wrap: anywhere` + `word-break: break-all` en

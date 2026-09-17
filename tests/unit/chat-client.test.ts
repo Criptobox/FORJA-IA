@@ -204,9 +204,9 @@ describe("cuando el fetch ni llega a responder", () => {
 
   beforeEach(() => clearRecentRequests());
 
-  it("explica que falló el propio servidor de Prism, no repite «Failed to fetch»", async () => {
+  it("explica que falló el propio servidor de Forja, no repite «Failed to fetch»", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("Failed to fetch"); }));
-    await expect(enviar(cfg())).rejects.toThrow(/servidor de Prism \(\/api\/proxy\)/);
+    await expect(enviar(cfg())).rejects.toThrow(/servidor de Forja \(\/api\/proxy\)/);
     await expect(enviar(cfg())).rejects.toThrow(/VPN/);
   });
 

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — La ventana de referencia usa un dato REAL cuando ya lo hay.
+/** Forja IA — La ventana de referencia usa un dato REAL cuando ya lo hay.
  *
  * `recorte-proactivo.spec.ts` prueba el recorte con una ventana CONFIGURADA
  * pequeña (`ventanaCtx: 1000`). Esto prueba el caso distinto: la ventana
@@ -8,7 +8,7 @@ import { expect, test, type Page } from "./fixtures";
  * YA aprendió —de un rechazo real del proveedor, no de una suposición— que
  * ESTE modelo admite mucho menos. Sin `ventanaReferencia()`, el recorte
  * proactivo (v4.14.0) seguiría confiando en la ventana genérica y no
- * dispararía hasta muy tarde, aunque Prism ya supiera que este modelo
+ * dispararía hasta muy tarde, aunque Forja ya supiera que este modelo
  * no llega ahí.
  */
 
@@ -83,7 +83,7 @@ async function seed(page: Page) {
           version: 0,
         })
       );
-      // Lo que Prism YA sabe de este modelo por un rechazo real anterior:
+      // Lo que Forja YA sabe de este modelo por un rechazo real anterior:
       // admite 1.000 tokens de entrada. Con eso, los ~950 estimados de la
       // conversación sembrada SÍ caen en zona roja (95% de 1.000 = 950).
       localStorage.setItem(

@@ -1,4 +1,4 @@
-/** Prism AI — Modo presentación de la vista previa (U6, PLAN-V7).
+/** Forja IA — Modo presentación de la vista previa (U6, PLAN-V7).
  *
  * Convierte el HTML de la vista previa en una lista de diapositivas:
  * una por `<section>` si hay varias, o una por `<h2>` si no. Si no

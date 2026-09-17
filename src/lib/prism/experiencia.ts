@@ -1,4 +1,4 @@
-/** Prism AI — Lo que TE ha funcionado a ti, aplicado a «Auto».
+/** Forja IA — Lo que TE ha funcionado a ti, aplicado a «Auto».
  *
  * `useUsage` guarda de cada respuesta el modelo, si fue bien, los
  * milisegundos y los caracteres. Es un historial real de qué funciona en tu

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Permisos del agente: se ven, se apagan y se cumplen.
+/** Forja IA — Permisos del agente: se ven, se apagan y se cumplen.
  *
  * El catálogo llevaba versiones diciendo «dale permiso en
  * `tool-permissions.ts`» y ese archivo no existía. Y la propuesta de v3.36

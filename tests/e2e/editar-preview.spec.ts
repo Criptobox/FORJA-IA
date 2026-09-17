@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Tocar un texto de la vista previa y editarlo ahí mismo.
+/** Forja IA — Tocar un texto de la vista previa y editarlo ahí mismo.
  *
  * El botón «Editar» activa el piloto inyectado: el texto que pasas por
  * encima se marca, lo tocas, escribes y confirmas con Enter. El cambio se

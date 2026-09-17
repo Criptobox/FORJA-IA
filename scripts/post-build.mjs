@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Prism AI — Rellena la carpeta `standalone` después de compilar.
+/** Forja IA — Rellena la carpeta `standalone` después de compilar.
  *
  * `output: "standalone"` deja un servidor autónomo en `.next/standalone`, pero
  * sin los estáticos ni `public`: hay que copiarlos a mano. Eso es lo que hacía

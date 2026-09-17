@@ -1,4 +1,4 @@
-/** Prism AI — Compresión de contexto (inspirada en RTK + Caveman de OmniRoute).
+/** Forja IA — Compresión de contexto (inspirada en RTK + Caveman de OmniRoute).
  *
  * Objetivo: que la historia larga gaste menos tokens en modelos gratis con
  * ventanas y límites ajustados. Dos modos:

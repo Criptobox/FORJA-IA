@@ -1,4 +1,4 @@
-/** Prism AI — Caza de ofertas IA: las ofertas vigentes de los proveedores,
+/** Forja IA — Caza de ofertas IA: las ofertas vigentes de los proveedores,
  * cazadas desde tu navegador.
  *
  * La idea: los planes gratuitos, los días de regalo y los créditos de
@@ -100,7 +100,7 @@ export const OFERTAS_BASE: Oferta[] = [
     tipo: "gratis",
     valor: "Gratis",
     descripcion:
-      "Z.ai sirve su familia Flash (GLM-4.5-Flash y siguientes) sin coste por token en su API, que es la misma que Prism usa cuando eliges ese proveedor. La cuota por minuto la publica Z.ai.",
+      "Z.ai sirve su familia Flash (GLM-4.5-Flash y siguientes) sin coste por token en su API, que es la misma que Forja usa cuando eliges ese proveedor. La cuota por minuto la publica Z.ai.",
     url: "https://z.ai",
     termina: null,
     verificado: OFERTAS_VERIFICADO,

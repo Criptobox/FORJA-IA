@@ -1,4 +1,4 @@
-# Prism AI — Plan V6
+# Forja IA — Plan V6
 
 Análisis de seis ideas traídas de otro proyecto (free-claude-code) y plan de
 trabajo a partir de ellas.
@@ -37,7 +37,7 @@ inservible aquí.
 
 ### 1 · Panel de control de proveedores → **sí, pero como unificación, no como obra nueva**
 
-El diagnóstico acierta: Prism tiene los datos y no tiene **un sitio donde
+El diagnóstico acierta: Forja tiene los datos y no tiene **un sitio donde
 verlos juntos**. Lo que ya existe, repartido:
 
 - **Uso**: peticiones, media, p95, caracteres, y desde la v3.26 el acierto
@@ -98,7 +98,7 @@ funciona: una pieza normalizada cada vez, no un adaptador de golpe.
 El punto 3 no lo tiene un circuit breaker genérico: es específico de este
 problema, y salió de un fallo real.
 
-Y `opossum` es una librería de Node. Prism corre en el navegador: no se puede
+Y `opossum` es una librería de Node. Forja corre en el navegador: no se puede
 usar, y meterla contradice además la regla de no añadir dependencias sin
 necesidad.
 
@@ -109,7 +109,7 @@ Aquí el diagnóstico acierta de pleno y es el único hueco limpio.
 La rotación automática **ya está** (v3.17–v3.20, cuatro versiones). Lo que no
 existe es **detectar el cambio**: `isFreeModel` es una heurística estática
 —`:free` en el id, listas curadas— que no vigila nada. Si mañana un modelo deja
-de ser gratis, Prism lo sigue tratando como gratis hasta que te llega el 402.
+de ser gratis, Forja lo sigue tratando como gratis hasta que te llega el 402.
 
 Ya hay dónde apoyarse: el radar pregunta a tus proveedores (v3.31), y `useUsage`
 guarda lo que has usado. Comparar la lista de hoy con la de ayer y avisar de lo
@@ -119,16 +119,16 @@ que **desapareció de la capa gratis** es pequeño y muy visible.
 
 ### 5 · API compatible con Anthropic Messages → **la más interesante y la más peligrosa**
 
-El análisis estratégico es correcto: convierte Prism de «PWA de un solo cliente»
+El análisis estratégico es correcto: convierte Forja de «PWA de un solo cliente»
 en algo con lo que hablan otros. Y es verdad que el router de modelos gratis
-con failover es lo que Prism tiene y otros no.
+con failover es lo que Forja tiene y otros no.
 
 **Pero choca de frente con la promesa del producto.** Para que otro cliente
-hable con Prism, Prism tiene que **tener las claves donde las pueda usar sin
+hable con Forja, Forja tiene que **tener las claves donde las pueda usar sin
 ti**: en el servidor. Hoy viven en tu navegador, y esa frase —«las claves solo
 en tu dispositivo»— es la mitad de por qué existe la app.
 
-Hay una versión que sí encaja, y solo una: **una pasarela LOCAL**. Si Prism
+Hay una versión que sí encaja, y solo una: **una pasarela LOCAL**. Si Forja
 corre en tu máquina, «el servidor» eres tú, y las claves siguen sin salir de tu
 dispositivo. Con dos condiciones que no se pueden negociar:
 
@@ -159,7 +159,7 @@ cuatro pasos que menciona el análisis, **tres ya son un comando**.
 Lo que falta de verdad es no tener que clonar: un `npx prism-ai` que levante la
 app sin repositorio. Es real y reduce fricción, pero es **empaquetado y
 publicación en npm**, no una función. Y hay un detalle que conviene mirar antes:
-Prism trae `sharp` y `pdfjs-dist`, que no son pequeños en un `npx`.
+Forja trae `sharp` y `pdfjs-dist`, que no son pequeños en un `npx`.
 
 **Coste: 2-3 días.** Valor: alto para quien llega nuevo, cero para quien ya lo
 tiene instalado.
@@ -198,7 +198,7 @@ tiene instalado.
 
 - **No he visto el código de free-claude-code.** El análisis está hecho sobre
   la descripción que me diste, así que puede que su implementación sea más fina
-  de lo que suena. Lo que sí está comprobado es **el lado de Prism**: todo lo
+  de lo que suena. Lo que sí está comprobado es **el lado de Forja**: todo lo
   que digo que existe, existe, y he citado el archivo.
 - **Las tasaciones son mías y no las he ejecutado.** Lo medido es el código
   actual: 15/17 proveedores en protocolo OpenAI, 936 líneas de paneles, las

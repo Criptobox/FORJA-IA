@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Un director reparte, varios ejecutan, el director cierra.
+/** Forja IA — Un director reparte, varios ejecutan, el director cierra.
  *
  * De `PLAN-EVOLUCION.md` §5. Se había descartado con el argumento de que los
  * modelos gratis fallan en cadenas largas. El argumento estaba incompleto:

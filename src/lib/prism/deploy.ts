@@ -1,5 +1,5 @@
-/** Prism AI — Despliegue real: de prompt a sitio publicado sin salir de
- * Prism (Pilar 3 del plan de escalado).
+/** Forja IA — Despliegue real: de prompt a sitio publicado sin salir de
+ * Forja (Pilar 3 del plan de escalado).
  *
  * Tres piezas:
  *   1. `workflowPages()` — el YAML de GitHub Actions que publica el sitio
@@ -20,7 +20,7 @@
  * `.github/workflows/pages.yml` y se activa con una llamada a la API de
  * Pages (build_type: workflow). */
 export function workflowPages(): string {
-  return `# Desplegado por Prism AI — publica el sitio en GitHub Pages en cada push a main.
+  return `# Desplegado por Forja IA — publica el sitio en GitHub Pages en cada push a main.
 name: Deploy to GitHub Pages
 
 on:

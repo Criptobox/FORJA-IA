@@ -1,4 +1,4 @@
-/** Prism AI — Skill "Antimuestrario + paletas listas" (skill-anti-slop).
+/** Forja IA — Skill "Antimuestrario + paletas listas" (skill-anti-slop).
  *
  * El usuario preguntó por skills públicas de la comunidad (DESIGN.md,
  * Impeccable, UI/UX Pro Max) que dan a los agentes de código reglas

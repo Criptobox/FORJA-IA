@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Forja Lab: maqueta COMPLETA para la pestaña Ficha → Maqueta.
+/** Forja IA — Forja Lab: maqueta COMPLETA para la pestaña Ficha → Maqueta.
  *
  * Antes, `maquetaDesdeTokens()` (en ficha-tab.tsx) era una plantilla fija
  * — header + 3 tarjetas gemelas + pie — que ignoraba el brief entero y

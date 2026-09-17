@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Qué te van a pedir para darte la clave, ANTES de ir a por ella.
+/** Forja IA — Qué te van a pedir para darte la clave, ANTES de ir a por ella.
  *
  * El radar te mandaba a por una clave sin avisar de que ahí piden teléfono o
  * tarjeta. Mucha gente se entera a mitad del registro y se da la vuelta. Ahora

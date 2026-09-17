@@ -1,9 +1,9 @@
-/** Prism AI — Modos de agente: reglas cortas que se suman al prompt de sistema.
+/** Forja IA — Modos de agente: reglas cortas que se suman al prompt de sistema.
  *
  * La idea viene de leer cómo están escritos los prompts de los agentes serios,
  * no de copiarlos: son propietarios y además están hechos para sus propias
  * herramientas, así que pegarlos aquí le contaría al modelo herramientas que
- * en Prism no existen. Lo que sí se puede tomar es la ESTRUCTURA, que no es de
+ * en Forja no existen. Lo que sí se puede tomar es la ESTRUCTURA, que no es de
  * nadie:
  *
  *   · decir qué NO hacer, no solo qué hacer
@@ -11,7 +11,7 @@
  *   · un formato fijo de salida en vez de dejar improvisar
  *   · permiso expreso para decir «no lo sé»
  *
- * Y una restricción que aquí manda sobre todo lo demás: Prism apunta a modelos
+ * Y una restricción que aquí manda sobre todo lo demás: Forja apunta a modelos
  * GRATUITOS, de ventana corta y peor obediencia. Un prompt de 10.000 tokens se
  * come el contexto que hace falta para tu código. Por eso cada modo cabe en
  * unos pocos cientos de caracteres y hay un test que lo vigila: si un modo

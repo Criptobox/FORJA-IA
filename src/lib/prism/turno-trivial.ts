@@ -1,4 +1,4 @@
-/** Prism AI — Un saludo no es un encargo.
+/** Forja IA — Un saludo no es un encargo.
  *
  * Escribías «Hola» en una conversación donde ya habías pedido una página, y el
  * modelo contestaba con el bucle del agente entero: plan, pasos, y «he

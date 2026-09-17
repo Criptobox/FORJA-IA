@@ -1,4 +1,4 @@
-/** Prism AI — Búsqueda web para el agente (tool `search_web`).
+/** Forja IA — Búsqueda web para el agente (tool `search_web`).
  *
  * `read_url` lee una página EXACTA que el modelo ya conoce. El hueco era
  * encontrar la página: «¿cuál es la sintaxis de X en 2026?», «¿qué API

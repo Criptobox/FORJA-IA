@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Panel de la memoria de fallos.
+/** Forja IA — Panel de la memoria de fallos.
  * Lista de `{ resultado, regla }` aprendidas de errores VERIFICABLES (revisión
  * del Sandbox, trabajo del agente a medias, desbordes medidos en la vista
  * previa). Cada entrada se borra de una en una — quien decide qué se le enseña

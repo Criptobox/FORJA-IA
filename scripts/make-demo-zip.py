@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Genera public/demo-sandbox.zip — proyecto web demo para el Sandbox de Prism AI."""
+"""Genera public/demo-sandbox.zip — proyecto web demo para el Sandbox de Forja IA."""
 import os
 import zipfile
 
@@ -13,14 +13,14 @@ INDEX = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Demo Sandbox Prism</title>
+  <title>Demo Sandbox Forja</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <main class="card">
     <img src="assets/prisma.svg" alt="Prisma" width="72" height="72">
     <h1>Funciona <span>de verdad</span></h1>
-    <p>Este proyecto vino de un ZIP y ahora corre en el Sandbox de Prism AI.</p>
+    <p>Este proyecto vino de un ZIP y ahora corre en el Sandbox de Forja IA.</p>
     <button id="btn">Pulsado 0 veces</button>
     <canvas id="lienzo" width="260" height="90"></canvas>
     <p class="tip">Abre la pestaña «Consola» para ver los logs.</p>
@@ -90,7 +90,7 @@ SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"
 
 README = """# Demo del Sandbox
 
-Proyecto web estático de ejemplo para probar Prism AI Sandbox.
+Proyecto web estático de ejemplo para probar Forja IA Sandbox.
 
 - `index.html` — entrada
 - `css/style.css` — estilos (inlineado automático)

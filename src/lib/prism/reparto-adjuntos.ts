@@ -1,4 +1,4 @@
-/** Prism AI — Qué se hace con cada archivo que sueltas en el chat.
+/** Forja IA — Qué se hace con cada archivo que sueltas en el chat.
  *
  * Esta lógica vivía dentro de `attachFiles`, en `chat-app.tsx`, mezclada con
  * el I/O (leer el ZIP, parsear la hoja, comprimir la imagen) y con los avisos.

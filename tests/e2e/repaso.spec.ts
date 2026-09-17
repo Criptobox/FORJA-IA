@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Modo Repaso: tarjetas de estudio con repetición espaciada.
+/** Forja IA — Modo Repaso: tarjetas de estudio con repetición espaciada.
  *
  * Dos caminos que tienen que funcionar de verdad:
  *

@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Cuota real por proveedor: el medidor honesto.
+/** Forja IA — Cuota real por proveedor: el medidor honesto.
  *
  * Los porcentajes de cuota solo se pueden saber donde el proveedor los reporta.
  * Inventar un «82%» en una pantalla es peor que no tener pantalla: te acostumbras

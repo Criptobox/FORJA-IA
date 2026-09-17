@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable react-hooks/refs -- grafo con física imperativa: las posiciones viven en refs y se leen durante el render controlado por el tick de animación (patrón canvas-like) */
-/** Prism AI — Grafo de relaciones estilo Obsidian: física de fuerzas propia en
+/** Forja IA — Grafo de relaciones estilo Obsidian: física de fuerzas propia en
  * SVG (sin dependencias). Nodos por tipo (archivo/funcionalidad/tech/nota),
  * drag, zoom, pan, hover con resaltado de vecinos, filtros, búsqueda y panel
  * de detalles con backlinks — como el graph view de obsidian.md.

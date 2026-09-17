@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Los cuatro diálogos del plan V7 se abren y se usan.
+/** Forja IA — Los cuatro diálogos del plan V7 se abren y se usan.
  *
  * Snippets, Plantillas, Wrapped y Presentación llegaron con unitarios de su
  * lógica pura y con CERO tests que abrieran la pantalla. La regla del

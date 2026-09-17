@@ -1,4 +1,4 @@
-/** Prism AI — QA visual sobre la vista previa.
+/** Forja IA — QA visual sobre la vista previa.
  *
  * El mismo método que mide la app en los tests E2E (`tests/e2e/responsive.spec.ts`)
  * aplicado al iframe de la vista previa, a los anchos donde de verdad se mira:

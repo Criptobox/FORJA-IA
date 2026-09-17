@@ -1,4 +1,4 @@
-/** Prism AI — Qué copia de la app se está ejecutando.
+/** Forja IA — Qué copia de la app se está ejecutando.
  *
  * La versión sale de package.json a través de next.config; el literal de aquí
  * es solo el respaldo para las pruebas y para cualquier entorno que no pase la
@@ -6,13 +6,13 @@
  * mano en dos sitios ya hizo que divergieran: Ajustes anunció «v3.1» durante
  * cuatro versiones.
  */
-export const APP_VERSION = process.env.NEXT_PUBLIC_PRISM_VERSION || "4.25.1";
-export const APP_REPO = "Criptobox/prism-ai";
+export const APP_VERSION = process.env.NEXT_PUBLIC_FORJA_VERSION || "4.26.0";
+export const APP_REPO = "Criptobox/FORJA-IA";
 
 /** Commit de esta build (7 caracteres), vacío si no se supo. */
-export const APP_COMMIT = process.env.NEXT_PUBLIC_PRISM_COMMIT || "";
+export const APP_COMMIT = process.env.NEXT_PUBLIC_FORJA_COMMIT || "";
 /** Momento en que se compiló, en ISO. */
-export const APP_BUILT = process.env.NEXT_PUBLIC_PRISM_BUILT || "";
+export const APP_BUILT = process.env.NEXT_PUBLIC_FORJA_BUILT || "";
 
 /**
  * Etiqueta corta e inequívoca de la copia en ejecución: «v3.5.0 · a1b2c3d».

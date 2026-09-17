@@ -176,7 +176,7 @@ describe("la fecha viaja con el precio", () => {
 });
 
 describe("la tabla que se empaqueta", () => {
-  it("trae precio para TODOS los modelos que Prism cuenta como de pago", () => {
+  it("trae precio para TODOS los modelos que Forja cuenta como de pago", () => {
     // es el dato que justifica que esta app enseñe importes: si un solo
     // modelo de pago se quedara fuera, el total mentiría por defecto
     const sinPrecio: string[] = [];

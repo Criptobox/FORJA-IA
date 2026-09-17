@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/** Prism AI — los modos de agente llegan de verdad al modelo.
+/** Forja IA — los modos de agente llegan de verdad al modelo.
  *
  * Un interruptor que se ilumina y no cambia nada es peor que no tenerlo. Aquí
  * no se comprueba el botón: se intercepta la petición que sale hacia el

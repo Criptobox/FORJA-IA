@@ -1,4 +1,4 @@
-/** Prism AI — Memoria negativa: los patrones y el bloqueo.
+/** Forja IA — Memoria negativa: los patrones y el bloqueo.
  *
  * Lo que se prueba aquí no es que el glob funcione: es que una regla protege
  * lo que el usuario cree que protege, y NADA más. Un patrón que casa de menos

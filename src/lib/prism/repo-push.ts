@@ -1,4 +1,4 @@
-/** Prism AI — Publicación de cambios de Repo Studio a GitHub.
+/** Forja IA — Publicación de cambios de Repo Studio a GitHub.
  * Dos vías:
  *  1. pushFilesToRepo   → commit directo en el repo original (si es tuyo) con la Contents API
  *  2. publishAsNewRepo  → publica los archivos editados como un repo nuevo de tu cuenta
@@ -24,7 +24,7 @@ async function ghFetch(token: string, path: string, init?: RequestInit): Promise
   });
 }
 
-async function ghError(res: Response, fallback: string): Promise<never> {
+async function ghError(res: Response, fallback: string, token = ""): Promise<never> {
   let msg = fallback;
   try {
     const j = (await res.json()) as { message?: string };
@@ -33,8 +33,14 @@ async function ghError(res: Response, fallback: string): Promise<never> {
     /* sin cuerpo JSON */
   }
   if (res.status === 401) msg += " — el token no es válido o expiró";
-  if (res.status === 403)
-    msg += " — probablemente el repo no es tuyo o el token no tiene scope «repo»";
+  if (res.status === 403) {
+    // Un token de GitHub App (ghu_…) no tiene «scopes»: lo que le falta es
+    // que la app esté instalada en ESE repo. Decirle «falta scope repo» a
+    // alguien conectado por el camino de un clic es un consejo inaplicable.
+    msg += token.startsWith("ghu_")
+      ? " — la app de GitHub no tiene acceso a este repo: entra en https://github.com/settings/installations, abre «Forja IA» y añádelo"
+      : " — probablemente el repo no es tuyo o el token no tiene scope «repo»";
+  }
   throw new Error(`GitHub ${res.status}: ${msg}`);
 }
 
@@ -71,18 +77,18 @@ export async function pushFilesToRepo(
       const j = (await getRes.json()) as { sha?: string };
       sha = j.sha;
     } else if (getRes.status !== 404) {
-      await ghError(getRes, `No se pudo leer ${f.path}`);
+      await ghError(getRes, `No se pudo leer ${f.path}`, token);
     }
     // 2) commit del archivo
     const putRes = await ghFetch(token, `/repos/${owner}/${repo}/contents/${encodePath(f.path)}`, {
       method: "PUT",
       body: JSON.stringify({
-        message: `Prism AI: actualizar ${f.path}`,
+        message: `Forja IA: actualizar ${f.path}`,
         content: toBase64(f.content),
         ...(sha ? { sha } : {}),
       }),
     });
-    if (!putRes.ok) await ghError(putRes, `No se pudo subir ${f.path}`);
+    if (!putRes.ok) await ghError(putRes, `No se pudo subir ${f.path}`, token);
     done++;
     onProgress?.(done, files.length, f.path);
   }

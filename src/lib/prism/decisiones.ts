@@ -1,4 +1,4 @@
-/** Prism AI — Qué hacer cuando un intento sale mal.
+/** Forja IA — Qué hacer cuando un intento sale mal.
  *
  * Estas decisiones vivían dentro del `useCallback` de `runGeneration`, en
  * `chat-app.tsx` (2.300+ líneas), enredadas con React, toasts y el store. Eso

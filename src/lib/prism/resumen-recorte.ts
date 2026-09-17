@@ -1,4 +1,4 @@
-/** Prism AI — Resumir lo que se recorta, en vez de tirarlo.
+/** Forja IA — Resumir lo que se recorta, en vez de tirarlo.
  *
  * La v4.6.0 dejó de morir cuando la conversación no cabía: quita los mensajes
  * viejos y reintenta. Funciona, pero **lo que quita se pierde**. Si en el

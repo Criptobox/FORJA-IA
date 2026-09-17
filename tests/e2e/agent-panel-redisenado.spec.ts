@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Rediseño del panel del agente (v3.16).
+/** Forja IA — Rediseño del panel del agente (v3.16).
  *
  * Antes (v3.15): el plan, las iteraciones y las revisiones se mostraban
  * de golpe en una lista de `<details>`. El estado del bucle y el botón
@@ -8,7 +8,7 @@ import { expect, test } from "./fixtures";
  *
  * Ahora (v3.16): el trabajo del agente se organiza en pestañas
  * (Plan · Estructura · Edits · Resultados) con la activa en púrpura
- * sólido, el logo de Prism como marca, un spinner animado mientras
+ * sólido, el logo de Forja como marca, un spinner animado mientras
  * genera, y debajo el estado del bucle + botón «Continuar el agente».
  *
  * Esta prueba siembra un proveedor custom con el mock-llm en modo
@@ -121,17 +121,17 @@ test.describe("Rediseño del panel del agente (v3.16)", () => {
     expect(classes).toContain("bg-prism-violet");
   });
 
-  test("la marca del agente muestra el logo de Prism", async ({ page }) => {
+  test("la marca del agente muestra el logo de Forja", async ({ page }) => {
     await page.goto("/");
     const input = page.locator("textarea").first();
     await expect(input).toBeVisible({ timeout: 30_000 });
     await input.fill("hazme una página");
     await page.getByRole("button", { name: "Enviar mensaje" }).click();
 
-    // El logo de Prism (SVG con aria-label "Prism AI") aparece en la
+    // El logo de Forja (SVG con aria-label "Forja IA") aparece en la
     // cabecera del panel del agente.
     await expect(
-      page.getByRole("img", { name: "Prism AI" }).first()
+      page.getByRole("img", { name: "Forja IA" }).first()
     ).toBeVisible({ timeout: 30_000 });
   });
 });

@@ -1,4 +1,4 @@
-/** Prism AI — Hojas de cálculo (CSV / TSV / XLSX / XLS) leídas EN LOCAL.
+/** Forja IA — Hojas de cálculo (CSV / TSV / XLSX / XLS) leídas EN LOCAL.
  *
  * El archivo no sale del dispositivo: se parsea en el navegador y lo único que
  * viaja al modelo es una tabla markdown, igual que el texto de un PDF. El
@@ -226,7 +226,7 @@ export const TIMEOUT_EXCEL_MS = 20_000;
  * Lee un Excel en un Worker que se destruye al terminar.
  *
  * `xlsx` tiene dos vulnerabilidades altas sin arreglo en npm (contaminación de
- * prototipos y ReDoS) que se disparan al leer un archivo preparado. Como Prism
+ * prototipos y ReDoS) que se disparan al leer un archivo preparado. Como Forja
  * guarda las claves en el dispositivo, ensuciar el `Object.prototype` del hilo
  * principal iría justo contra la promesa del producto. En un Worker eso ocurre
  * en otro realm y muere con él.

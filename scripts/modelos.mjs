@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Prism AI — Auditar las listas de modelos contra un catálogo vivo.
+/** Forja IA — Auditar las listas de modelos contra un catálogo vivo.
  *
  * El problema que resuelve, dicho por quien lo sufrió: «ahí sigue con los
  * viejos como si estuvieran escritos, en vez de buscar de los sitios oficiales
@@ -33,7 +33,7 @@ import { dirname, join } from "node:path";
 const FUENTE =
   "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json";
 
-/** De cómo llama LiteLLM al proveedor a cómo lo llama Prism. Igual que en
+/** De cómo llama LiteLLM al proveedor a cómo lo llama Forja. Igual que en
  * `precios.mjs` y en `/api/precios`: si divergen, la tabla y los precios
  * dejarían de hablar del mismo modelo. */
 const PROVEEDORES = {
@@ -51,7 +51,7 @@ const PROVEEDORES = {
   zai: "zai",
 };
 
-/** El id que usa Prism: el catálogo a veces lo escribe «proveedor/modelo». */
+/** El id que usa Forja: el catálogo a veces lo escribe «proveedor/modelo». */
 function pelar(clave) {
   return clave.includes("/") ? clave.slice(clave.lastIndexOf("/") + 1) : clave;
 }
@@ -65,9 +65,9 @@ async function main() {
   const crudo = await res.json();
   const hoy = new Date().toISOString().slice(0, 10);
 
-  /** proveedor de Prism → { modelo: fecha de retirada } */
+  /** proveedor de Forja → { modelo: fecha de retirada } */
   const retirados = {};
-  /** proveedor de Prism → Set de modelos que el catálogo conoce */
+  /** proveedor de Forja → Set de modelos que el catálogo conoce */
   const conocidos = {};
   for (const [clave, v] of Object.entries(crudo)) {
     if (!v || typeof v !== "object") continue;
@@ -134,7 +134,7 @@ async function main() {
 export const MODELOS_FECHA = "${hoy}";
 export const MODELOS_FUENTE = "${FUENTE}";
 
-/** proveedor de Prism → { id del modelo: día de retirada } */
+/** proveedor de Forja → { id del modelo: día de retirada } */
 export const RETIRADOS: Record<string, Record<string, string>> = ${JSON.stringify(retirados, null, 0)};
 `;
   writeFileSync(salida, cuerpo);

@@ -1,4 +1,4 @@
-/** Prism AI — El escudo PII aplicado a una conversación.
+/** Forja IA — El escudo PII aplicado a una conversación.
  *
  * Los dos fallos que se arreglan aquí los vio el usuario con un «hola»:
  * el aviso decía «2 datos enmascarados… en lo que se envió» como si fueran

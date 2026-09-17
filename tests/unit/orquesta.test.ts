@@ -1,4 +1,4 @@
-/** Prism AI — El director reparte, los ejecutores hacen, el director cierra.
+/** Forja IA — El director reparte, los ejecutores hacen, el director cierra.
  *
  * Lo que más se prueba aquí no es que funcione: es que **no se descontrole**.
  * Con un modelo de pago dirigiendo, lo que hace usable esta pieza es que el

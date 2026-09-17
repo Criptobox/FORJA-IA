@@ -48,7 +48,7 @@ describe("ida y vuelta", () => {
     expect(await unpackTransfer(codigo, FRASE)).toEqual(b);
   });
 
-  it("el código se reconoce como de Prism y no lleva la clave a la vista", async () => {
+  it("el código se reconoce como de Forja y no lleva la clave a la vista", async () => {
     const codigo = await packTransfer(bundle(), FRASE);
     expect(codigo.startsWith(TRANSFER_PREFIX)).toBe(true);
     // lo importante: la clave de API NO se puede leer en el texto

@@ -1,4 +1,4 @@
-/** Prism AI — «Auto Context»: qué contexto viajó de verdad.
+/** Forja IA — «Auto Context»: qué contexto viajó de verdad.
  *
  * Idea de `PLAN-EVOLUCION.md` §12, en la parte que se puede hacer sin
  * inventar: enseñar lo que se USÓ, no adivinar lo que haría falta.

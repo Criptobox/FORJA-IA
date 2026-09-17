@@ -1,7 +1,7 @@
-/** Prism AI — Modo Repaso: tus conversaciones se convierten en tarjetas de estudio.
+/** Forja IA — Modo Repaso: tus conversaciones se convierten en tarjetas de estudio.
  *
  * La idea: le pides al modelo que te examine sobre lo que acabáis de hablar,
- * él responde con un bloque ```prism-repaso lleno de tarjetas, y Prism las
+ * él responde con un bloque ```prism-repaso lleno de tarjetas, y Forja las
  * guarda y las trae de vuelta el día que toca repasarlas (repetición espaciada,
  * algoritmo SM-2 de SuperMemo, el mismo que usa Anki). Nada sale del
  * navegador: las tarjetas viven en localStorage y el calendario se calcula aquí.

@@ -1,4 +1,4 @@
-/** Prism AI — Arranca el login de GitHub (popup o pestaña). */
+/** Forja IA — Arranca el login de GitHub (popup o pestaña). */
 import { NextResponse } from "next/server";
 import { githubManifestPayload } from "@/lib/prism/github-oauth";
 import {
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 <html lang="es">
 <head>
   <meta charset="utf-8"/>
-  <title>Conectar GitHub · Prism</title>
+  <title>Conectar GitHub · Forja</title>
   <style>
     body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:ui-sans-serif,system-ui,sans-serif;background:#0b0b12;color:#eee}
     p{opacity:.7;font-size:.9rem}

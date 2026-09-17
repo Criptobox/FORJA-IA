@@ -1,6 +1,6 @@
 "use client";
 /**
- * Prism AI — Logos de marca por modelo.
+ * Forja IA — Logos de marca por modelo.
  * Detecta la familia del modelo por su ID (gpt→OpenAI, claude→Anthropic,
  * gemini→Google, kimi→Moonshot, deepseek, llama→Meta, qwen, glm→Z.ai,
  * grok→xAI, mistral, groq, phi→Microsoft, command→Cohere…) y pinta un
@@ -333,7 +333,7 @@ const BRANDS: Record<ModelBrand, ReactNode> = {
       <circle cx="12" cy="14.2" r="1.5" fill="#FFFFFF" />
     </>
   ),
-  // Genérico Prism — chispa con degradado de la marca
+  // Genérico Forja — chispa con degradado de la marca
   generic: (
     <>
       <defs>

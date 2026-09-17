@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Ejecutor del Sandbox en memoria (para el bucle del agente).
+/** Forja IA — Ejecutor del Sandbox en memoria (para el bucle del agente).
  *
  * Hoy (pre-v3.15) el Sandbox vive en `sandbox-studio.tsx`: el usuario
  * pulsa «Ejecutar» y el HTML autocontenido se carga en un iframe visible.
@@ -20,7 +20,7 @@
  * la pantalla. La UI sigue mostrando el chat; el agente lee sus
  * propios errores y los corrige.
  */
-import { buildRunHtml, pickEntryPath, isHtmlPath, SANDBOX_ORIGIN } from "./sandbox";
+import { buildRunHtml, pickEntryPath, isHtmlPath, pareceProyectoConBuild, SANDBOX_ORIGIN } from "./sandbox";
 import { injectVisualQA, type QAResult } from "./visual-qa";
 import { injectScreenshot } from "./screenshot";
 import { enviarCmdPiloto } from "./sandbox-pilot";
@@ -83,6 +83,7 @@ export async function runProjectInMemory(
   // 2. Elegir entry HTML.
   const entry = pickEntryPath([...fileMap.keys()]);
   if (!entry) {
+    const paths = [...fileMap.keys()];
     return {
       ok: false,
       ejecutado: false,
@@ -90,7 +91,9 @@ export async function runProjectInMemory(
       errors: 0,
       logLines: [],
       errorLines: [],
-      reason: "No hay ningún archivo .html en el proyecto. Añade un index.html.",
+      reason: pareceProyectoConBuild(paths)
+        ? "Este proyecto necesita compilarse (Vite, Next, CRA…) antes de tener un HTML que servir; el Sandbox ejecuta archivos tal cual, sin bundler, así que no puede compilarlo. Súbelo a GitHub y despliégalo (p. ej. en Vercel) para verlo funcionando."
+        : "No hay ningún archivo .html en el proyecto. Añade un index.html.",
     };
   }
 
@@ -112,7 +115,7 @@ export async function runProjectInMemory(
 
   // 4. Inyectar el medidor de QA y el runtime del piloto (por si el
   //    agente quiere seguir operando con `sandbox-pilot`).
-  // Peso del proyecto ya empaquetado, sin la instrumentación de Prism.
+  // Peso del proyecto ya empaquetado, sin la instrumentación de Forja.
   // Lo calcula `buildRunHtml`, que es el único sitio que ve el HTML antes
   // de que se le inyecte nada.
   const htmlBytes = built.htmlBytes;

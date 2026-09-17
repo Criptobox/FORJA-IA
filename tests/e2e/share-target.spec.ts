@@ -1,8 +1,8 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Share Target (PLAN-V4 punto 4).
+/** Forja IA — Share Target (PLAN-V4 punto 4).
  *
- * Cuando una app externa comparte texto con Prism (PWA instalada),
+ * Cuando una app externa comparte texto con Forja (PWA instalada),
  * el navegador POSTea al `action` del `share_target` del manifest.
  * Aquí se prueba el handler directamente: se hace POST con
  * `multipart/form-data` (como haría el navegador) y se verifica que
@@ -65,6 +65,6 @@ test.describe("Share Target (PLAN-V4 punto 4)", () => {
     expect(res.status()).toBe(200);
     // La página sirve el HTML de la app.
     const text = await res.text();
-    expect(text).toContain("Prism AI");
+    expect(text).toContain("Forja IA");
   });
 });

@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Panel de vista previa en vivo + mapa del proyecto */
+/** Forja IA — Panel de vista previa en vivo + mapa del proyecto */
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   Code2,

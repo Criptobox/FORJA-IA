@@ -1,7 +1,7 @@
-/** Prism AI — Por qué paró el modelo, según el propio proveedor.
+/** Forja IA — Por qué paró el modelo, según el propio proveedor.
  *
  * Los tres protocolos mandan un campo diciendo por qué terminaron
- * (`finish_reason`, `stop_reason`, `finishReason`) y Prism no lo leía en
+ * (`finish_reason`, `stop_reason`, `finishReason`) y Forja no lo leía en
  * ningún sitio. La detección de respuestas cortadas de la v3.18.0 va por la
  * FORMA del texto —una cerca ``` sin pareja—, que funciona pero es un indicio.
  * Esto es el proveedor diciéndolo con todas las letras.

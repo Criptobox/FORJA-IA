@@ -1,11 +1,11 @@
-/** Prism AI — Lector de Excel en un hilo aparte y desechable.
+/** Forja IA — Lector de Excel en un hilo aparte y desechable.
  *
  * `xlsx` (SheetJS) arrastra dos vulnerabilidades altas sin arreglo en npm:
  * contaminación de prototipos y un ReDoS. Las dos se disparan al LEER un
  * archivo preparado.
  *
  * En una app normal eso sería «que el usuario abra lo que quiera». Aquí no:
- * Prism guarda las claves API en el dispositivo, y contaminar
+ * Forja guarda las claves API en el dispositivo, y contaminar
  * `Object.prototype` del hilo principal pone en riesgo justo la promesa del
  * producto. Así que el archivo se abre en un Worker:
  *

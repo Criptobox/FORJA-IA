@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 import { writeZip } from "../../src/lib/prism/zip";
 
-/** Prism AI — Al cargar un ZIP, el Sandbox abre el `index.html`.
+/** Forja IA — Al cargar un ZIP, el Sandbox abre el `index.html`.
  *
  * El «Download ZIP» de GitHub —y cualquier proyecto exportado— mete todo
  * dentro de una carpeta. Con esa carpeta por medio, la regla que prefería el

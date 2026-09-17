@@ -1,4 +1,4 @@
-/** Prism AI — Página de ejemplo para enseñar la vista previa en vivo.
+/** Forja IA — Página de ejemplo para enseñar la vista previa en vivo.
  * No llama a ningún modelo: el chat escribe el HTML a trozos. */
 
 export const DEMO_PROMPT =

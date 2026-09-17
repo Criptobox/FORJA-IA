@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Almacén IndexedDB para los binarios de los adjuntos.
+/** Forja IA — Almacén IndexedDB para los binarios de los adjuntos.
  *
  * Hasta la v3.13 los adjuntos se guardaban como `dataUrl` base64 dentro del
  * store de zustand, y el store entero vivía en localStorage. LocalStorage

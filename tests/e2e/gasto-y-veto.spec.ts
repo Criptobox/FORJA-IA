@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "./fixtures";
 import { TOPE_MINIMO } from "../../src/lib/prism/gasto";
 
-/** Prism AI — El techo de gasto y el veto de proveedores.
+/** Forja IA — El techo de gasto y el veto de proveedores.
  *
  * Con claves gratis, pasarse cuesta un 429. Con una de pago cuesta dinero, y
  * el orquestador multiplica: seis llamadas por encargo. Diez encargos son

@@ -1,4 +1,4 @@
-/** Prism AI — Ejecutor de llamadas a herramientas (tools) del agente.
+/** Forja IA — Ejecutor de llamadas a herramientas (tools) del agente.
  *
  * El modelo devuelve `tool_calls` (OpenAI), `tool_use` (Anthropic) o
  * `functionCall` (Gemini). Aquí se ejecuta cada llamada contra cosas
@@ -166,7 +166,7 @@ export interface RunOutcome {
    * que `run_regression` pueda negarse a comparar dos ejecuciones de
    * páginas distintas en vez de restar peras y manzanas. */
   entry?: string;
-  /** Tamaño del HTML del proyecto (sin la instrumentación que inyecta Prism). */
+  /** Tamaño del HTML del proyecto (sin la instrumentación que inyecta Forja). */
   htmlBytes?: number;
   /** Última medida de QA que respondió, entera. `null` si no se pidió QA o
    * si el medidor no contestó — que no es lo mismo que «cero hallazgos». */

@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Panel de cuota por proveedor: el medidor honesto.
+/** Forja IA — Panel de cuota por proveedor: el medidor honesto.
  *
  * Tres estados y la verdad en cada uno:
  *  · MEDIDA     — barra real con las cabeceras x-ratelimit-* que el proveedor

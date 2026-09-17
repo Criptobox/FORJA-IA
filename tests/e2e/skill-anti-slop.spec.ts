@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — La skill «Antimuestrario + paletas listas» se activa desde
+/** Forja IA — La skill «Antimuestrario + paletas listas» se activa desde
  * el diálogo de Skills y, activada, SÍ viaja al modelo; desactivada (el
  * default de fábrica), no.
  */

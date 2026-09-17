@@ -1,4 +1,4 @@
-/** Prism AI — Fallos que salen cuando TÚ usas la página generada.
+/** Forja IA — Fallos que salen cuando TÚ usas la página generada.
  *
  * El barrido automático pulsa a ciegas, en el orden del DOM y sin escribir en
  * los campos. El uso real aporta lo que a ese le falta: tu orden, tus datos y

@@ -1,4 +1,4 @@
-/** Prism AI — Un director reparte, varios ejecutan, el director da el veredicto.
+/** Forja IA — Un director reparte, varios ejecutan, el director da el veredicto.
  *
  * `consensus.ts` manda LA MISMA pregunta a varios y uno compone la respuesta.
  * Esto es distinto: el director **parte el encargo** en trozos que se pueden

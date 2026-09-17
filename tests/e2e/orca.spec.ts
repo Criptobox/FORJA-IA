@@ -1,6 +1,6 @@
 import {  expect, test  } from "./fixtures";
 
-/** Prism AI — E2E de las mejoras «Edición Orca» (v2.9):
+/** Forja IA — E2E de las mejoras «Edición Orca» (v2.9):
  * Escudo PII al enviar y registro de peticiones con Copiar como cURL. */
 
 async function seedMockProvider(page: import("@playwright/test").Page) {
@@ -14,7 +14,7 @@ async function seedMockProvider(page: import("@playwright/test").Page) {
         radarSeenIds: [],
         settings: {
           defaultModelKey: "custom::mock-mini-free",
-          systemPrompt: "Eres Prism AI (test).",
+          systemPrompt: "Eres Forja IA (test).",
           temperature: 0.7,
           maxTokens: null,
           stream: true,
@@ -48,7 +48,7 @@ async function seedMockProvider(page: import("@playwright/test").Page) {
   });
 }
 
-test.describe("Prism AI — edición Orca (escudo PII + cURL)", () => {
+test.describe("Forja IA — edición Orca (escudo PII + cURL)", () => {
   test.beforeEach(async ({ page }) => {
     await seedMockProvider(page);
   });

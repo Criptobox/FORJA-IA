@@ -1,4 +1,4 @@
-# Prism AI — qué de ese plan vale la pena
+# Forja IA — qué de ese plan vale la pena
 
 Análisis del documento «PRISM AI — PLAN DE EVOLUCIÓN» (30 ago 2026) y de la
 propuesta de *Free Pool* + *Health/Quota Manager*.
@@ -14,7 +14,7 @@ El documento se basa en «las capacidades visibles del repositorio y su README»
 Eso se nota: propone como nuevo lo que ya está construido y probado. No es un
 detalle menor, porque cambia qué merece la pena hacer ahora.
 
-| El plan propone | En Prism ya está | Dónde |
+| El plan propone | En Forja ya está | Dónde |
 |---|---|---|
 | §13 Arena Judge, «combinar lo mejor» | Modo consenso: varios modelos en paralelo + síntesis, con las respuestas anonimizadas para que el sintetizador no se deje llevar por la marca | `consensus.ts` |
 | §14 Model Intelligence (elegir por capacidad) | Router por tipo de tarea + memoria del último modelo que funcionó (LKGP) | `task-router.ts`, `health.ts` |
@@ -39,7 +39,7 @@ es otra cosa, y está más abajo.
 
 ## 2. La restricción que decide casi todo
 
-Prism corre **en el navegador, sin servidor**. Eso no es un detalle de
+Forja corre **en el navegador, sin servidor**. Eso no es un detalle de
 implementación: es la promesa del producto («sin cuentas, tus claves solo en tu
 dispositivo»). Y descarta o recorta varias propuestas del plan.
 
@@ -48,11 +48,11 @@ dispositivo»). Y descarta o recorta varias propuestas del plan.
 - **No se puede automatizar un navegador ajeno.** El §8 Browser Agent, tal y
   como está descrito (abrir una web, hacer clic, leer la consola), no es
   posible desde una pestaña. **Sí** lo es dentro del propio Sandbox, que es un
-  iframe que Prism controla. Es una versión más pequeña, pero real.
+  iframe que Forja controla. Es una versión más pequeña, pero real.
 - **No hay dónde guardar estado compartido.** Memoria, tareas y eventos viven en
   el dispositivo. Sirve para un usuario; no para «el equipo se entera».
 
-Y una segunda restricción, más incómoda: **Prism apunta a modelos gratuitos**,
+Y una segunda restricción, más incómoda: **Forja apunta a modelos gratuitos**,
 que son justo los peores en cadenas largas de herramientas. Un supervisor
 multiagente de diez pasos falla más cuanto más barato es el modelo. El plan
 pone eso primero; yo lo pondría al final, y solo cuando el resto esté sólido.
@@ -107,7 +107,7 @@ a «útil siempre».
 
 **Y el paso que de verdad cambia el uso diario:** `health.ts` hoy enfría **por
 modelo**. Los límites de las cuotas gratuitas son **por proveedor**. Si Groq te
-corta, te corta con todos sus modelos, y Prism los prueba uno por uno
+corta, te corta con todos sus modelos, y Forja los prueba uno por uno
 gastándose los reintentos. Subir el enfriamiento a nivel de proveedor cuando el
 `429` es de cuota es un cambio pequeño con efecto inmediato: el failover deja de
 dar tumbos dentro del proveedor agotado y salta al siguiente.
@@ -130,7 +130,7 @@ enfriamiento de cuota subido a nivel de proveedor.
 
 ### 2. Visual QA sobre la vista previa
 El plan lo pone en la fase 2. Yo lo pondría el segundo, por un motivo concreto:
-**el código para medirlo ya está escrito**, en los tests E2E de Prism. Ahí se
+**el código para medirlo ya está escrito**, en los tests E2E de Forja. Ahí se
 detecta desbordamiento horizontal, elementos fuera del viewport y ancho mínimo
 del campo de escribir, midiendo el DOM real a 320, 390, 768 y 1440 px.
 
@@ -141,7 +141,7 @@ Ese mismo método aplicado al iframe de la vista previa da, gratis:
 - texto por debajo de 12 px
 - contraste insuficiente
 
-Y encaja con lo que de verdad haces con Prism: pedirle páginas y mirarlas. Que
+Y encaja con lo que de verdad haces con Forja: pedirle páginas y mirarlas. Que
 te avise «esto se rompe a 320 px» antes de que lo descargues vale más que
 cualquier agente.
 
@@ -177,7 +177,7 @@ ejecutar lo que ya se ejecutaba antes y **comparar**. No «Regression AI»: un
 antes y un después medidos, y qué dejó de funcionar.
 
 ### 7. Agente de navegador, dentro del Sandbox
-Acotado a lo que Prism controla: abrir la vista previa, cambiar el viewport,
+Acotado a lo que Forja controla: abrir la vista previa, cambiar el viewport,
 pulsar, escribir, leer la consola y las excepciones. Nada de webs ajenas.
 Es la mitad del §8, pero es la mitad que se puede construir de verdad.
 
@@ -188,7 +188,7 @@ Es la mitad del §8, pero es la mitad que se puede construir de verdad.
 **§2 Supervisor y §3 Auto Team, ahora.** Es lo primero del plan y sería lo
 último de mi lista. Un supervisor que reparte trabajo entre seis modelos falla
 en cadena: cada paso multiplica la probabilidad de que algo salga mal, y los
-modelos gratuitos —los que Prism usa— son los que peor aguantan cadenas largas.
+modelos gratuitos —los que Forja usa— son los que peor aguantan cadenas largas.
 El modo consenso ya te da la ventaja principal (varias opiniones, una síntesis)
 sin ese riesgo. Volvería a esto cuando la memoria de fallos y la regresión
 estén funcionando, porque son justo lo que hace falta para que un supervisor no
@@ -201,7 +201,7 @@ que sí sirve —y ya está— es medir el gasto **después**, que es lo que hac
 panel de Uso.
 
 **§19 Workspaces.** Reescribir toda la navegación es de las cosas con peor
-relación entre riesgo y beneficio. Prism cabe hoy en una barra lateral. Cuando
+relación entre riesgo y beneficio. Forja cabe hoy en una barra lateral. Cuando
 no quepa, se rehace; hacerlo antes es trabajo a cuenta de un problema que aún no
 tienes.
 
@@ -211,7 +211,7 @@ semanas de trabajo antes de que nada cambie en la pantalla. Tienen sentido
 cuando haya varias funciones peleándose por coordinarse. Hoy no las hay.
 
 **§12 Git Time Machine.** Es git. Comparar dos versiones y volver atrás ya lo
-hace, mejor y sin riesgo de que Prism se equivoque.
+hace, mejor y sin riesgo de que Forja se equivoque.
 
 **§17 Credential Vault como rearquitectura.** Ya está hecho (`vault.ts`). Lo que
 propone el plan por encima de eso es redibujar un diagrama.

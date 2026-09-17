@@ -1,4 +1,4 @@
-/** Prism AI — Traducción del catálogo de herramientas a los 3 protocolos.
+/** Forja IA — Traducción del catálogo de herramientas a los 3 protocolos.
  *
  * OpenAI pide `tools: [{type: "function", function: {name, description, parameters}}]`.
  * Anthropic pide `tools: [{name, description, input_schema}]`.

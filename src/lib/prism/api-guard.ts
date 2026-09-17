@@ -1,6 +1,6 @@
-/** Prism AI — Guardián común de las rutas de servidor.
+/** Forja IA — Guardián común de las rutas de servidor.
  *
- * Prism es una app de navegador, pero tiene tres rutas que corren en el
+ * Forja es una app de navegador, pero tiene tres rutas que corren en el
  * servidor. Cuando la despliegas en Vercel esas rutas quedan expuestas a
  * internet, y hasta ahora solo el proxy comprobaba algo — y lo que comprobaba
  * (el `Origin`) no sirve contra `curl`, que sencillamente no lo manda.

@@ -1,4 +1,4 @@
-/** Prism AI — Memoria estructurada del proyecto (Pilar 3 del plan de escalado).
+/** Forja IA — Memoria estructurada del proyecto (Pilar 3 del plan de escalado).
  *
  * Hasta ahora la memoria estaba fragmentada: fallos verificados en una clave
  * global con TTL, reglas «no tocar» por sesión, notas dentro del mapa, y

@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El agente pulsa los botones de lo que entrega.
+/** Forja IA — El agente pulsa los botones de lo que entrega.
  *
  * La revisión de la v3.28.0 solo cazaba lo que revienta **al cargar**. Pero en
  * una página generada la mayoría de los fallos viven detrás de un clic: el
@@ -73,7 +73,7 @@ test("un botón que revienta SOLO al pulsarlo se detecta y se corrige", async ({
   await input.fill("hazme una página con un botón");
   await page.keyboard.press("Enter");
 
-  // 1. Prism pulsa el botón y le devuelve el fallo al modelo, sin que nadie
+  // 1. Forja pulsa el botón y le devuelve el fallo al modelo, sin que nadie
   //    toque nada. La página cargaba limpia: sin pulsar no había señal.
   await expect(page.getByText("Se pidió al agente continuar el trabajo").first()).toBeVisible({
     timeout: 60_000,

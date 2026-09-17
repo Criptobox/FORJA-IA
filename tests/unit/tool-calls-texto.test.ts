@@ -1,4 +1,4 @@
-/** Prism AI — Cuando el modelo pide la herramienta como TEXTO, no como
+/** Forja IA — Cuando el modelo pide la herramienta como TEXTO, no como
  * tool_calls. Reportado por un usuario dos veces seguidas en la misma
  * conversación (nvidia/nemotron vía OpenRouter): la burbuja enseñaba
  * literal `<function=write_file> <parameter=path>...` en vez de escribir

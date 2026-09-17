@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/** Prism AI — El modo ahorro llega de verdad al modelo, y el medidor no miente.
+/** Forja IA — El modo ahorro llega de verdad al modelo, y el medidor no miente.
  *
  * Dos cosas que un interruptor bonito no garantiza:
  *   1. Que la instrucción de ir al grano VIAJE en el prompt de sistema.

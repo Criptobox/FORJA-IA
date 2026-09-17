@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Extracción de texto de PDFs en local con pdf.js (pdfjs-dist).
+/** Forja IA — Extracción de texto de PDFs en local con pdf.js (pdfjs-dist).
  * El texto extraído viaja como contexto del mensaje: nunca sale hacia
  * ningún servidor aparte, solo hacia el modelo que tú elijas.
  */

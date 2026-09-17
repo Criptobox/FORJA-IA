@@ -1,4 +1,4 @@
-/** Prism AI — Tipos centrales */
+/** Forja IA — Tipos centrales */
 
 import type { MessageFork, SessionThread } from "./branches";
 
@@ -304,7 +304,7 @@ export interface AppSettings {
 export const DEFAULT_SETTINGS: AppSettings = {
   defaultModelKey: null,
   systemPrompt:
-    "Eres Prism AI, un asistente útil, preciso y directo. Responde en el idioma del usuario y usa markdown cuando mejore la legibilidad.",
+    "Eres Forja IA, un asistente útil, preciso y directo. Responde en el idioma del usuario y usa markdown cuando mejore la legibilidad.",
   temperature: 0.7,
   maxTokens: null,
   stream: true,
@@ -314,8 +314,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   agentMode: false,
   consensus: false,
   agentMaxLoops: 3,
-  accent: "violeta",
-  accentCustom: "#8b5cf6",
+  accent: "naranja",
+  accentCustom: "#f97316",
   autoSpeak: false,
   accessCode: "",
   compression: "off",

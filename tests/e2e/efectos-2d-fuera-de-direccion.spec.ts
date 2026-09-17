@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Los efectos 2D, solo donde su dirección los permite.
+/** Forja IA — Los efectos 2D, solo donde su dirección los permite.
  *
  * La mitad 2D de la misma comprobación que ya existe para el motor 3D
  * (`efectos-3d-fuera-de-direccion.spec.ts`): `senasEfectosFueraDeDireccion`
@@ -10,7 +10,7 @@ import { expect, test, type Page } from "./fixtures";
  *
  * `mock-2d-mal-puesto` pone un `<div class="fx-marquee">` en una landing
  * pedida explícitamente "editorial de revista" (dirección "editorial", que
- * lo prohíbe). Prism lo mide en la página ya pintada y se lo devuelve al
+ * lo prohíbe). Forja lo mide en la página ya pintada y se lo devuelve al
  * modelo por el mismo camino que las señas de página genérica.
  */
 

@@ -43,10 +43,10 @@
 
 :root {
   --radius: 0.75rem;
-  /* Acentos Prism */
-  --prism-violet: #8b5cf6;
-  --prism-cyan: #22d3ee;
-  --prism-pink: #f472b6;
+  /* Acentos Forja — el naranja del yunque es el acento por defecto */
+  --prism-violet: #f97316;
+  --prism-cyan: #f59e0b;
+  --prism-pink: #ef4444;
   /* Tema claro */
   --background: oklch(0.976 0.003 286);
   --foreground: oklch(0.18 0.014 285);
@@ -54,7 +54,7 @@
   --card-foreground: oklch(0.18 0.014 285);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.014 285);
-  --primary: oklch(0.54 0.24 291);
+  --primary: #f97316;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.945 0.006 286);
   --secondary-foreground: oklch(0.24 0.02 285);
@@ -66,15 +66,15 @@
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.9 0.008 286);
   --input: oklch(0.9 0.008 286);
-  --ring: oklch(0.54 0.24 291);
+  --ring: #f97316;
   --sidebar: oklch(0.985 0.002 286);
   --sidebar-foreground: oklch(0.18 0.014 285);
-  --sidebar-primary: oklch(0.54 0.24 291);
+  --sidebar-primary: #f97316;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.94 0.02 291);
   --sidebar-accent-foreground: oklch(0.3 0.06 291);
   --sidebar-border: oklch(0.9 0.008 286);
-  --sidebar-ring: oklch(0.54 0.24 291);
+  --sidebar-ring: #f97316;
 }
 
 .dark {
@@ -85,7 +85,7 @@
   --card-foreground: oklch(0.93 0.006 286);
   --popover: oklch(0.19 0.016 285);
   --popover-foreground: oklch(0.93 0.006 286);
-  --primary: oklch(0.68 0.19 291);
+  --primary: #f97316;
   --primary-foreground: oklch(0.13 0.02 285);
   --secondary: oklch(0.235 0.016 285);
   --secondary-foreground: oklch(0.93 0.006 286);
@@ -97,15 +97,15 @@
   --destructive-foreground: oklch(0.97 0 0);
   --border: oklch(0.28 0.018 285);
   --input: oklch(0.28 0.018 285);
-  --ring: oklch(0.6 0.18 291);
+  --ring: #f97316;
   --sidebar: oklch(0.165 0.014 285);
   --sidebar-foreground: oklch(0.93 0.006 286);
-  --sidebar-primary: oklch(0.68 0.19 291);
+  --sidebar-primary: #f97316;
   --sidebar-primary-foreground: oklch(0.13 0.02 285);
   --sidebar-accent: oklch(0.25 0.025 291);
   --sidebar-accent-foreground: oklch(0.93 0.01 291);
   --sidebar-border: oklch(0.26 0.018 285);
-  --sidebar-ring: oklch(0.6 0.18 291);
+  --sidebar-ring: #f97316;
 }
 
 @layer base {
@@ -122,7 +122,16 @@
   }
 }
 
-/* ===== Temas de acento (Prism) — ganan a :root y .dark ===== */
+/* ===== Temas de acento (Forja) — ganan a :root y .dark ===== */
+html[data-accent="violeta"] {
+  --prism-violet: #8b5cf6;
+  --prism-cyan: #22d3ee;
+  --prism-pink: #f472b6;
+  --primary: #8b5cf6;
+  --ring: #8b5cf6;
+  --sidebar-primary: #8b5cf6;
+  --sidebar-ring: #8b5cf6;
+}
 html[data-accent="esmeralda"] {
   --prism-violet: #10b981;
   --prism-cyan: #2dd4bf;
@@ -186,7 +195,7 @@ html[data-accent="naranja"] {
   background: transparent;
 }
 
-/* ===== Utilidades Prism ===== */
+/* ===== Utilidades Forja ===== */
 @layer utilities {
   .prism-gradient-text {
     background: linear-gradient(120deg, var(--prism-violet), var(--prism-cyan) 55%, var(--prism-pink));

@@ -2,7 +2,7 @@ import { expect, test, type Page } from "./fixtures";
 import { PRECIOS } from "../../src/lib/prism/precios-datos";
 import { costeDe, fmtDinero } from "../../src/lib/prism/precios";
 
-/** Prism AI — El dinero, y la regla que lo hace posible.
+/** Forja IA — El dinero, y la regla que lo hace posible.
  *
  *   importe = (tokens que dijo el proveedor) × (precio fechado del catálogo)
  *
@@ -37,7 +37,7 @@ async function seed(page: Page) {
               stream: false,
               piiShield: false,
               onlyFree: false,
-              systemPrompt: "Eres Prism AI.",
+              systemPrompt: "Eres Forja IA.",
             },
             providers: {
               anthropic: {

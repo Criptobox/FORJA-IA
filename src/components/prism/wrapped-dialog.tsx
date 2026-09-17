@@ -1,9 +1,9 @@
 "use client";
-/** Prism AI — Diálogo Wrapped (U4, PLAN-V7).
+/** Forja IA — Diálogo Wrapped (U4, PLAN-V7).
  *
  * Muestra el informe semanal calculado por `lib/prism/wrapped.ts` a
  * partir de las métricas locales de `usage.ts`. Ofrece descargar el
- * informe como HTML autocontenido (estilo Prism Link) y reiniciar
+ * informe como HTML autocontenido (estilo Forja Link) y reiniciar
  * las métricas (lo que ya hace el panel de uso).
  */
 import { useMemo } from "react";
@@ -88,7 +88,7 @@ export function WrappedDialog({
             <div className="rounded-2xl border border-dashed border-border/60 p-10 text-center text-[13px] text-muted-foreground">
               Aún no hay actividad en esta ventana.
               <br />
-              Vuelve cuando lleves unos días usando Prism. 🌱
+              Vuelve cuando lleves unos días usando Forja. 🌱
             </div>
           ) : (
             <>

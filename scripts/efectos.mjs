@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Prism AI — Empaquetar el kit de efectos dentro del bundle.
+/** Forja IA — Empaquetar el kit de efectos dentro del bundle.
  *
  * El kit vive en `assets/prism-fx.css` y `assets/prism-fx.js` como archivos de
  * verdad: se editan con resaltado, se pueden abrir en un navegador y no hay
@@ -12,7 +12,7 @@
  *
  * Porque la página generada acaba en el ZIP del usuario, en su GitHub Pages y
  * en un iframe sin `allow-same-origin`. Con un CDN, cualquiera de los tres
- * caminos se rompe en silencio el día que ese CDN no responde — y Prism no
+ * caminos se rompe en silencio el día que ese CDN no responde — y Forja no
  * sabría distinguir «tu código falla» de «no cargó la librería». Local no
  * tiene ese problema: lo que se ve en la vista previa es lo que se publica.
  *

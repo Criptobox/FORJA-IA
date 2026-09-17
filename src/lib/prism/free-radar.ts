@@ -1,4 +1,4 @@
-/** Prism AI — Radar de modelos gratis
+/** Forja IA — Radar de modelos gratis
  * Catálogo curado de proveedores con capa gratuita, ofertas del momento
  * (algunas con fecha/límite) y páginas que rastrean modelos gratis.
  * La lista «en vivo» de OpenRouter se obtiene de /api/free-radar. */
@@ -7,7 +7,7 @@ import type { ProviderId } from "./types";
 export type RadarSource = {
   id: string;
   name: string;
-  /** proveedor con integración nativa en Prism (null = usar «Personalizado») */
+  /** proveedor con integración nativa en Forja (null = usar «Personalizado») */
   providerId: ProviderId | null;
   /** baseUrl OpenAI-compatible para configurar el proveedor Personalizado */
   customBase?: string;
@@ -131,7 +131,7 @@ export const RADAR_OFFERS: RadarOffer[] = [
 
 /* De dónde salen los `registro` de aquí abajo: del listado de itsfree.ai
  * (recopilado por @midudev), consultado el 2026-09-02. NO están medidos por
- * Prism: nadie de aquí se ha dado de alta en los 13 para comprobarlo. Los que
+ * Forja: nadie de aquí se ha dado de alta en los 13 para comprobarlo. Los que
  * ese listado no cubre se quedan en `null` — «sin dato» — antes que rellenar a
  * ojo y mandar a alguien a dar su teléfono por una etiqueta inventada. */
 export const RADAR_SOURCES: RadarSource[] = [

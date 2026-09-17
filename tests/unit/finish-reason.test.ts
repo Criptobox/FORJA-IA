@@ -1,6 +1,6 @@
-/** Prism AI — Por qué paró el modelo, según el proveedor.
+/** Forja IA — Por qué paró el modelo, según el proveedor.
  *
- * Los tres protocolos lo mandan y Prism no lo leía en ningún sitio. La
+ * Los tres protocolos lo mandan y Forja no lo leía en ningún sitio. La
  * detección de corte de la v3.18.0 va por la forma del texto —una cerca ```
  * sin pareja—, que funciona pero es un indicio: un corte a media frase, sin
  * bloque de código de por medio, no deja ninguna señal. `finish_reason:

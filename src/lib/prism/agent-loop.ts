@@ -1,4 +1,4 @@
-/** Prism AI — Modo agente: bucle plan → ejecutar → revisar (método iterativo
+/** Forja IA — Modo agente: bucle plan → ejecutar → revisar (método iterativo
  * popularizado por Claude Code). El modelo estructura su respuesta con etiquetas
  * XML y este parser las convierte en una línea de tiempo de iteraciones que la
  * UI renderiza EN VIVO mientras llega el streaming.
@@ -326,7 +326,7 @@ export interface AgentSuggestion {
  *
  * Chatbox resuelve esto con un modelo clasificador barato en el primer turno.
  * Aquí se hace con reglas locales a propósito: gastar una llamada extra —y en
- * Prism, una petición a TU clave— para adivinar una preferencia no compensa.
+ * Forja, una petición a TU clave— para adivinar una preferencia no compensa.
  * A cambio hay que ser conservador: solo se sugiere cuando hay verbo de
  * construcción Y algo concreto que construir, y jamás se activa solo.
  */

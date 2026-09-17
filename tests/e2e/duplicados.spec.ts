@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/** Prism AI — cada control de la aplicación, en un solo sitio.
+/** Forja IA — cada control de la aplicación, en un solo sitio.
  *
  * En el escritorio la barra lateral está siempre a la vista, y su pie ya lleva
  * Ajustes, instalar, tema y Arena. La cabecera repetía los cuatro: la misma
@@ -49,7 +49,7 @@ async function seed(page: Page) {
  *  de accesibilidad, que es exactamente el criterio que nos interesa. */
 const CHROME = [
   { nombre: "Ajustes", re: /^Ajustes$/ },
-  { nombre: "instalar", re: /instalar Prism AI/i },
+  { nombre: "instalar", re: /instalar Forja IA/i },
 ];
 
 test("en el escritorio no hay dos veces el mismo control", async ({ page }) => {

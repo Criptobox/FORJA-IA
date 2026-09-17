@@ -1,4 +1,4 @@
-/** Prism AI — Los permisos de una skill no pueden quedarse desfasados.
+/** Forja IA — Los permisos de una skill no pueden quedarse desfasados.
  *
  * El análisis corría solo en la pantalla que instala desde URL. Cualquier otro
  * camino —editar el texto, importar un backup, una migración— dejaba unos

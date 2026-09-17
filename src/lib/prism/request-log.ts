@@ -1,8 +1,8 @@
-/** Prism AI — Registro de peticiones con «Copiar como cURL»
+/** Forja IA — Registro de peticiones con «Copiar como cURL»
  * (inspirado en los Request Logs de OrcaRouter: «Grade, model, latency — copy as cURL»).
  *
  * Anillo en MEMORIA (no se persiste en localStorage): las últimas 10 peticiones
- * que Prism envió a proveedores, con su cuerpo saneado (sin imágenes base64,
+ * que Forja envió a proveedores, con su cuerpo saneado (sin imágenes base64,
  * contenidos recortados) y las claves SIEMPRE redactadas a «TU_API_KEY».
  */
 

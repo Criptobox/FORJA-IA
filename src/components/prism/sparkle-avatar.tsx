@@ -1,4 +1,4 @@
-/** Prism AI — SparkleAvatar: avatar del asistente en el chat.
+/** Forja IA — SparkleAvatar: avatar del asistente en el chat.
  *
  * Solo el icono «sparkle» (estrella de 4 puntas con signo «+» y punto
  * decorativo), SIN contenedor alrededor — pinta directo sobre el
@@ -27,7 +27,7 @@ export function SparkleAvatar({
     <span
       className={cn("inline-flex shrink-0 items-center justify-center", generating && "generating", className)}
       style={{ width: size, height: size, color: "var(--prism-violet)" }}
-      aria-label="Asistente Prism AI"
+      aria-label="Asistente Forja IA"
       role="img"
     >
       <svg

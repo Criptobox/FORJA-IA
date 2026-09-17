@@ -254,7 +254,7 @@ describe("verify_project", () => {
   it("con ejecución y QA limpios, aprueba (PASS)", async () => {
     const c = ctx({
       projectFiles: {
-        "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width"><title>Prism</title></head><body><img alt="Logo" src="logo.svg"></body></html>',
+        "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width"><title>Forja</title></head><body><img alt="Logo" src="logo.svg"></body></html>',
         "logo.svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>",
       },
       runProject: async () => ({
@@ -315,7 +315,7 @@ describe("diagnose_project", () => {
   it("con el proyecto limpio, el diagnóstico dice que está listo", async () => {
     const c = ctx({
       projectFiles: {
-        "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width"><title>Prism</title></head><body><img alt="Logo" src="logo.svg"></body></html>',
+        "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width"><title>Forja</title></head><body><img alt="Logo" src="logo.svg"></body></html>',
         "logo.svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>",
       },
       runProject: async () => ({

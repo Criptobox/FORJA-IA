@@ -1,4 +1,4 @@
-/** Prism AI — Lo que cada modelo demostró sobre CÓMO pide las herramientas.
+/** Forja IA — Lo que cada modelo demostró sobre CÓMO pide las herramientas.
  *
  * `tools-probe.ts` solo sabe si el proveedor ACEPTA `tools`, nunca si el
  * modelo va a devolver `tool_calls` de verdad — nvidia/nemotron pasa el

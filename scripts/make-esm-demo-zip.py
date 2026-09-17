@@ -54,7 +54,7 @@ export function suma(a, b) {
 }
 """
 
-CONSTANTES = """export const MARCA = "Prism Sandbox";
+CONSTANTES = """export const MARCA = "Forja Sandbox";
 """
 
 CSS = """body {

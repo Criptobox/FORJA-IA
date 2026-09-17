@@ -1,4 +1,4 @@
-/** Prism AI — El kit de efectos, y a quién pertenece cada uno.
+/** Forja IA — El kit de efectos, y a quién pertenece cada uno.
  *
  * Una página generada por un modelo se nota a un kilómetro: los bloques están
  * bien, el color está bien, y aun así parece una maqueta. Lo que falta casi
@@ -12,7 +12,7 @@
  *  1. La vista previa, un iframe con `srcdoc` y SIN `allow-same-origin`. El
  *     script externo carga, sí, hasta el día que no: CDN caído, red que lo
  *     bloquea, avión. Y entonces la página se ve rota sin decir por qué —
- *     Prism no sabe distinguir «tu código falla» de «no cargó la librería».
+ *     Forja no sabe distinguir «tu código falla» de «no cargó la librería».
  *  2. El ZIP que te descargas, que tiene que abrirse con doble clic y ya.
  *  3. Tu GitHub Pages, donde una dependencia de terceros es tuya para siempre.
  *
@@ -186,13 +186,13 @@ export function efectosDe(direccionId: string): EfectosDeDireccion {
  *
  * El modelo NO escribe el kit: lo enlaza y ya. Escribirlo costaría ~2.500
  * tokens de salida por respuesta, saldría distinto cada vez y con erratas.
- * Prism añade los dos archivos al proyecto por su cuenta. */
+ * Forja añade los dos archivos al proyecto por su cuenta. */
 export function promptEfectos(direccionId: string): string {
   const { usa, evita } = efectosDe(direccionId);
   if (!usa.length) return "";
   return [
     "## EFECTOS (kit local, ya incluido — NO lo escribas)",
-    `Enlaza <link rel="stylesheet" href="${FX_CSS_PATH}"> y <script src="${FX_JS_PATH}" defer></script>: Prism añade los dos archivos al proyecto. Nunca uses librerías de animación por CDN.`,
+    `Enlaza <link rel="stylesheet" href="${FX_CSS_PATH}"> y <script src="${FX_JS_PATH}" defer></script>: Forja añade los dos archivos al proyecto. Nunca uses librerías de animación por CDN.`,
     `Usa entre 2 y ${MAX_EFECTOS} de estos, los que la página pida — no todos:`,
     ...usa.map((e) => `- ${e.uso}`),
     `PROHIBIDOS en esta dirección (romperían su mundo visual): ${evita.join(", ")}.`,

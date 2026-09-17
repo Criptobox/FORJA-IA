@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — El QA por visión: `visual_review`.
+/** Forja IA — El QA por visión: `visual_review`.
  *
  * Hasta ahora el QA visual solo MEDÍA el DOM (scroll, texto pequeño,
  * contraste calculado, señas de página genérica) — nunca VIO la página,

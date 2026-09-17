@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Biblioteca de prompts: guarda, busca y reutiliza tus prompts */
+/** Forja IA — Biblioteca de prompts: guarda, busca y reutiliza tus prompts */
 import { useMemo, useState } from "react";
 import { BookOpen, Plus, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";

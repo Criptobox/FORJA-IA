@@ -1,4 +1,4 @@
-/** Prism AI — Edición por parches: bloques SEARCH/REPLACE que el modelo
+/** Forja IA — Edición por parches: bloques SEARCH/REPLACE que el modelo
  * devuelve y este lado aplica (Pilar 1 del plan de escalado).
  *
  * La causa #1 de fallos en cualquier agente de código es pedirle que

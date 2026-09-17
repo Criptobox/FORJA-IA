@@ -1,4 +1,4 @@
-/** Prism AI — Evidence Mode (plan técnico §5): cuando el modelo afirma
+/** Forja IA — Evidence Mode (plan técnico §5): cuando el modelo afirma
  * algo sobre el código del usuario, muestra la fuente (archivo + línea)
  * o admite que no hay evidencia suficiente.
  *

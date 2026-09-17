@@ -1,9 +1,9 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El agente que se corta a mitad se retoma solo.
+/** Forja IA — El agente que se corta a mitad se retoma solo.
  *
  * El fallo que esto cubre: un modelo se quedaba sin tokens en mitad de una
- * etiqueta (`<step>` sin cerrar) y Prism lo daba por respuesta buena. No
+ * etiqueta (`<step>` sin cerrar) y Forja lo daba por respuesta buena. No
  * salía ni el aviso ni el botón «Continuar», y el trabajo moría ahí. Es lo
  * que se veía como «el agente se detiene y no continúa».
  *
@@ -33,7 +33,7 @@ async function seedAgente(page: import("@playwright/test").Page) {
           radarSeenIds: [],
           settings: {
             defaultModelKey: `custom::${model}`,
-            systemPrompt: "Eres Prism AI (test).",
+            systemPrompt: "Eres Forja IA (test).",
             temperature: 0.7,
             maxTokens: null,
             stream: false,

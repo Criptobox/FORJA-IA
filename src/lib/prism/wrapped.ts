@@ -1,10 +1,10 @@
 "use client";
-/** Prism AI — Informe semanal (U4 «Wrapped», PLAN-V7).
+/** Forja IA — Informe semanal (U4 «Wrapped», PLAN-V7).
  *
  * Calcula un resumen amable de las métricas locales que ya vive en
  * `usage.ts` (peticiones, OK/fallos, latencia, volumen, ahorro por
  * compresión) y lo devuelve como dato + como HTML autocontenido
- * (estilo Prism Link, para descargar o compartir).
+ * (estilo Forja Link, para descargar o compartir).
  *
  * Lógica pura (sin React ni DOM) para poder probarla en Node, como el
  * resto de piezas que calculan antes de pintar (`free-radar.ts`,
@@ -150,7 +150,7 @@ export function ahorroPct(s: WrappedStats): number {
 }
 
 /** Genera un HTML autocontenido con el informe, listo para descargar
- *  (estilo Prism Link: una sola página, sin dependencias externas). */
+ *  (estilo Forja Link: una sola página, sin dependencias externas). */
 export function wrappedToHtml(s: WrappedStats, version = "3.34.0"): string {
   const desdeTxt = new Date(s.desde).toLocaleDateString("es-ES", {
     day: "numeric",
@@ -184,7 +184,7 @@ export function wrappedToHtml(s: WrappedStats, version = "3.34.0"): string {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Prism AI · Wrapped ${desdeTxt} – ${hastaTxt}</title>
+<title>Forja IA · Wrapped ${desdeTxt} – ${hastaTxt}</title>
 <style>
   :root{
     --bg:#0b0a12;--card:rgba(255,255,255,.045);--stroke:rgba(255,255,255,.09);
@@ -243,10 +243,10 @@ export function wrappedToHtml(s: WrappedStats, version = "3.34.0"): string {
 <body>
 <div class="wrap">
   <header>
-    <div class="brand">Prism <span>AI</span> · Wrapped</div>
+    <div class="brand">Forja <span>AI</span> · Wrapped</div>
     <div class="meta">v${version} · ${desdeTxt} – ${hastaTxt}</div>
   </header>
-  <h1>Tu semana en <em>Prism</em></h1>
+  <h1>Tu semana en <em>Forja</em></h1>
   <p class="lede">Lo que usaste, lo que ahorraste y cómo te fue — medido en tu navegador, sin que nada saliera del dispositivo.</p>
 
   ${
@@ -293,11 +293,11 @@ export function wrappedToHtml(s: WrappedStats, version = "3.34.0"): string {
       : ""
   }
   `
-      : `<div class="empty">Aún no hay actividad en esta ventana. Vuelve cuando lleves unos días usando Prism. 🌱</div>`
+      : `<div class="empty">Aún no hay actividad en esta ventana. Vuelve cuando lleves unos días usando Forja. 🌱</div>`
   }
 
   <footer>
-    <span>Generado por Prism AI v${version}</span>
+    <span>Generado por Forja IA v${version}</span>
     <span>Tus datos, tu navegador — nada salió de aquí</span>
   </footer>
 </div>

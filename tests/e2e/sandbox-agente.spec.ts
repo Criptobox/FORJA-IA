@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Bucle Sandbox → agente (PLAN-V4 punto 3).
+/** Forja IA — Bucle Sandbox → agente (PLAN-V4 punto 3).
  *
  * Antes (v3.14): el agente escribía código y te preguntaba a ti si
  * funcionaba. Ahora (v3.15): el agente puede llamar `run_project` y
@@ -36,7 +36,7 @@ async function seedAgentWithProject(page: import("@playwright/test").Page) {
           radarSeenIds: [],
           settings: {
             defaultModelKey: `custom::${model}`,
-            systemPrompt: "Eres Prism AI (test).",
+            systemPrompt: "Eres Forja IA (test).",
             temperature: 0.7,
             maxTokens: null,
             stream: false,

@@ -1,4 +1,4 @@
-/** Prism AI — Diff por líneas, sin dependencias.
+/** Forja IA — Diff por líneas, sin dependencias.
  *
  * Antes de exportar un ZIP o de subir a GitHub conviene ver QUÉ has cambiado,
  * no solo cuántos archivos. Esto produce el diff unificado de siempre —

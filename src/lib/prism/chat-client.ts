@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Cliente de chat streaming multi-protocolo.
+/** Forja IA — Cliente de chat streaming multi-protocolo.
  * Todas las peticiones van por /api/proxy (mismo origen, sin CORS) o directas
  * al proveedor si el usuario lo prefiere. Las claves viajan solo en cabeceras.
  */
@@ -208,7 +208,7 @@ export const ABORTED = -1;
 /** Mensaje para un fetch que ni siquiera llegó a tener respuesta. */
 function fallaDeRed(target: string, providerName: string): string {
   return target.startsWith("/")
-    ? `No se pudo contactar con el servidor de Prism (${target.split("?")[0]}). ` +
+    ? `No se pudo contactar con el servidor de Forja (${target.split("?")[0]}). ` +
         "Revisa tu conexión; si usas VPN, bloqueador de anuncios o una red con " +
         "filtro, prueba a desactivarlos para este sitio."
     : `No se pudo conectar directamente con ${providerName}. En modo directo el ` +

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const APP_NAME = "Prism AI";
+const APP_NAME = "Forja IA";
 const APP_DESCRIPTION =
   "Tu hub premium de IA: chat con GPT, Claude, Gemini, DeepSeek y más usando tus propias APIs. Sin cuentas, sin límites, sin restricciones.";
 
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   keywords: ["IA", "chat", "AiHubMix", "OpenAI", "Claude", "Gemini", "DeepSeek", "PWA", "asistente"],
-  authors: [{ name: "Prism AI" }],
+  authors: [{ name: "Forja IA" }],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     icon: [
       { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
-      { url: "/icons/prism-icon.svg", type: "image/svg+xml" },
+      { url: "/icons/forja-icon.svg", type: "image/svg+xml" },
     ],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },

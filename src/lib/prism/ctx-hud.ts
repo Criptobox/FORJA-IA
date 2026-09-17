@@ -1,4 +1,4 @@
-/** Prism AI — HUD de contexto del compositor (idea D4 del PLAN-V7).
+/** Forja IA — HUD de contexto del compositor (idea D4 del PLAN-V7).
  *
  * El chip «ctx −%» de cada respuesta llega DESPUÉS de gastar el
  * contexto. Este módulo estima cuánto lleva la conversación ANTES de
@@ -6,7 +6,7 @@
  * cifra delante y no a ciegas.
  *
  * Honestidad primero (regla de la casa: sin números inventados):
- *  - No hay una TABLA de ventanas por modelo en Prism (los modelos
+ *  - No hay una TABLA de ventanas por modelo en Forja (los modelos
  *    gratis cambian cada semana; una tabla sería mentir con cariño).
  *    Se usa una VENTANA DE REFERENCIA ajustable en Ajustes.
  *  - Pero si el PROVEEDOR ya dijo un número real para este modelo —

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — `diagnose_project` (v4.25.0): la misma verificación
+/** Forja IA — `diagnose_project` (v4.25.0): la misma verificación
  * INDEPENDIENTE que `verify_project`, pero convertida en un diagnóstico
  * accionable — causa observada, acción recomendada, archivo candidato y
  * criterio de cierre — en vez de solo PASS/NO PASS. No inventa líneas

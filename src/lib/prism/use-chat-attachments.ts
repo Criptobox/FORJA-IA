@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Adjuntos del borrador: imágenes, documentos, hojas de cálculo y ZIP.
+/** Forja IA — Adjuntos del borrador: imágenes, documentos, hojas de cálculo y ZIP.
  *
  * Segundo corte de `chat-app.tsx` (PLAN-V8 punto 1). La lógica pura del reparto
  * ya vivía en `reparto-adjuntos.ts` desde el primer corte (v3.44.0); lo que se

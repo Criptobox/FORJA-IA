@@ -1,4 +1,4 @@
-/** Prism AI — Versión local y, si GitHub responde, si hay una más nueva. */
+/** Forja IA — Versión local y, si GitHub responde, si hay una más nueva. */
 import { NextResponse } from "next/server";
 import { APP_COMMIT, APP_REPO, APP_VERSION, versionCheck } from "@/lib/prism/app-version";
 
@@ -8,7 +8,7 @@ export async function GET() {
   let latest: string | null = null;
   try {
     const res = await fetch(`https://raw.githubusercontent.com/${APP_REPO}/main/package.json`, {
-      headers: { "User-Agent": "prism-ai", Accept: "application/json" },
+      headers: { "User-Agent": "forja-ia", Accept: "application/json" },
       signal: AbortSignal.timeout(8000),
       cache: "no-store",
     });

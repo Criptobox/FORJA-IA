@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Barra lateral de conversaciones */
+/** Forja IA — Barra lateral de conversaciones */
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
@@ -43,7 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
-import { PrismLogo } from "./logo";
+import { ForjaLogo } from "./logo";
 import { InstallButton } from "./pwa";
 import { sortSessions, usePrism } from "@/lib/prism/store";
 import { tiempoRelativo, tituloVisible, vistaPrevia } from "@/lib/prism/session-list";
@@ -240,10 +240,10 @@ export function Sidebar({
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       {/* Cabecera */}
       <div className="flex items-center gap-2 px-4 pb-2 pt-4">
-        <PrismLogo size={26} />
+        <ForjaLogo size={26} />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-[15px] font-semibold tracking-tight">
-            Prism <span className="prism-gradient-text">AI</span>
+            Forja <span className="prism-gradient-text">IA</span>
           </h1>
         </div>
         {onClose && (

@@ -1,12 +1,12 @@
-/** Prism AI — Qué hacer cuando el HTML pide un archivo que no está.
+/** Forja IA — Qué hacer cuando el HTML pide un archivo que no está.
  *
  * Reportado con captura: un ZIP con `index.html`, `css.css` y `javascript.js`
  * se abría en la vista previa sin estilos y sin scripts. El fallo NO era de
- * Prism resolviendo rutas: el HTML pedía `styles.css` y `script.js`, y en el
+ * Forja resolviendo rutas: el HTML pedía `styles.css` y `script.js`, y en el
  * ZIP los archivos se llamaban de otra forma. Ese `index.html` se ve igual de
  * pelado en cualquier navegador.
  *
- * Lo que sí era fallo de Prism es habérselo callado. `buildRunHtml` ya
+ * Lo que sí era fallo de Forja es habérselo callado. `buildRunHtml` ya
  * apuntaba los archivos ausentes, pero se enseñaban en un aviso que se va solo
  * a los pocos segundos y que además no decía lo evidente: «pides styles.css y
  * en el proyecto tienes UN css, que se llama css.css».

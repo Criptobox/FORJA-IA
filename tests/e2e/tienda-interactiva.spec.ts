@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Cuando piden una tienda o un menú, la instrucción de
+/** Forja IA — Cuando piden una tienda o un menú, la instrucción de
  * funcionalidad real viaja en el prompt.
  *
  * Reportado por el usuario: al pedir una tienda o el menú de un

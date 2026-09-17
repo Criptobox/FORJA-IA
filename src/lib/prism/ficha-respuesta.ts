@@ -1,6 +1,6 @@
-/** Prism AI — Por qué te contestó esto.
+/** Forja IA — Por qué te contestó esto.
  *
- * Prism ya medía casi todo: qué contexto viajó, cuántos tokens dijo el
+ * Forja ya medía casi todo: qué contexto viajó, cuántos tokens dijo el
  * proveedor, si la caché acertó, si hubo failover, si se recortó el historial.
  * Y estaba **todo repartido**: un chip aquí, un panel allá, y varias cosas en
  * ningún sitio. Cuando una respuesta salía rara —y salen— no había forma de

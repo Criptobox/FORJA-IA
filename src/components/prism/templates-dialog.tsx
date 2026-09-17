@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Diálogo de plantillas (U3, PLAN-V7).
+/** Forja IA — Diálogo de plantillas (U3, PLAN-V7).
  *
  * Catálogo de los ZIPs que viven en `/public` (demos y starters).
  * Un clic descarga el ZIP y se lo pasa al cargador del Sandbox, que

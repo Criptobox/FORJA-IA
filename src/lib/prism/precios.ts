@@ -1,10 +1,10 @@
-/** Prism AI — De tokens a dinero, y solo cuando se puede de verdad.
+/** Forja IA — De tokens a dinero, y solo cuando se puede de verdad.
  *
  * Durante muchas versiones esta app se negó a enseñar un importe, y la razón
  * escrita era «los precios no se pueden saber desde el navegador». Era falsa:
  * no se pueden *adivinar*, que es otra cosa. Existen catálogos públicos que los
  * mantienen al día, y uno de ellos —el de LiteLLM— cubre **los 17 modelos que
- * Prism cuenta como de pago, los 17**. Comprobado, no supuesto.
+ * Forja cuenta como de pago, los 17**. Comprobado, no supuesto.
  *
  * Así que ahora sí hay importes. Con una regla que no se salta nunca:
  *

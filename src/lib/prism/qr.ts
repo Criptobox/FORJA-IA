@@ -1,4 +1,4 @@
-/** Prism AI — El código de traspaso, en un QR.
+/** Forja IA — El código de traspaso, en un QR.
  *
  * La idea original era «sale un QR o un texto corto». El texto salió primero;
  * esto es el QR. Y trae una limitación que no se puede esconder, porque es

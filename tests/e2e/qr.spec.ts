@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import jsQR from "jsqr";
 
-/** Prism AI — el QR del traspaso se lee de verdad.
+/** Forja IA — el QR del traspaso se lee de verdad.
  *
  * La promesa era «pones una frase y sale un QR o un texto corto». El texto se
  * entregó antes; esto comprueba el QR, y no mirando si aparece un dibujo: se

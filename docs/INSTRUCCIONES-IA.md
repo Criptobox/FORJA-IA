@@ -1,6 +1,6 @@
 # Instrucciones para quien implemente `PLAN-V4.md`
 
-Este archivo es el contrato de trabajo del repositorio `Criptobox/prism-ai`.
+Este archivo es el contrato de trabajo del repositorio `Criptobox/FORJA-IA`.
 No son buenas prácticas genéricas: **cada regla viene de un fallo real que ya
 ocurrió aquí**, y al lado está el incidente que la provocó. Si algo te parece
 excesivo, mira la columna de la derecha antes de saltártelo.
@@ -12,8 +12,8 @@ Léelo entero antes de escribir código.
 ## 0. Antes de nada
 
 ```bash
-git clone https://github.com/Criptobox/prism-ai.git
-cd prism-ai
+git clone https://github.com/Criptobox/FORJA-IA.git
+cd FORJA-IA
 npm ci
 npm run dev
 ```

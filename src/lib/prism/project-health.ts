@@ -1,4 +1,4 @@
-/** Prism AI — Project Health: puntuación derivada, no opinión del modelo.
+/** Forja IA — Project Health: puntuación derivada, no opinión del modelo.
  * Cada componente solo suma si existe evidencia local. Un dato ausente no se convierte en 100%.
  */
 import type { ProjectMap } from "./types";

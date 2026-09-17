@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Salud de modelos: circuit breaker ligero + LKGP (inspirado en OmniRoute).
+/** Forja IA — Salud de modelos: circuit breaker ligero + LKGP (inspirado en OmniRoute).
  *
  * Cuatro ideas tomadas del router y adaptadas al navegador:
  *  1. Cooldown por modelo: tras un 429/5xx el modelo se «enfría» unos segundos y el

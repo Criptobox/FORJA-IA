@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — «Auto Context»: se ve qué contexto viajó con tu mensaje.
+/** Forja IA — «Auto Context»: se ve qué contexto viajó con tu mensaje.
  *
  * Idea de `PLAN-EVOLUCION.md` §12. Cada turno se manda mucho más que lo que
  * escribes —el mapa del proyecto, tus notas, las reglas «no tocar», las skills
@@ -121,7 +121,7 @@ test("sin nada del proyecto NO sale el chip: un aviso constante deja de leerse",
   await enviar(page, "hola qué tal");
 
   // la respuesta llega…
-  await expect(page.locator("main").getByText(/Prism|respuesta|Hola/i).first()).toBeVisible({
+  await expect(page.locator("main").getByText(/Forja|respuesta|Hola/i).first()).toBeVisible({
     timeout: 60_000,
   });
   // …y no hay chip

@@ -1,4 +1,4 @@
-# Prism AI — Plan V7 (v3.32.0)
+# Forja IA — Plan V7 (v3.32.0)
 
 Las mejoras de la **Propuesta v7**: el análisis previo está en el mockup
 `prism-ai-propuesta-v7-mockup.html`; aquí queda lo implementado, lo que
@@ -118,11 +118,11 @@ INSTRUCCIONES-V6).
 
 **De las 15 ideas del mockup**, quedan:
 
-- **U1** Prism Sync (gist privado cifrado con el PIN de la bóveda) —
+- **U1** Forja Sync (gist privado cifrado con el PIN de la bóveda) —
   la de más impacto; usar `github-oauth.ts` + `vault.ts`.
 - **U2** biblioteca de snippets reutilizables (`/snip`).
 - **U3** plantillas de Sandbox (los ZIP ya se cargan; falta el catálogo).
-- **U4** informe semanal (Wrapped) sobre `usage.ts` + Prism Link.
+- **U4** informe semanal (Wrapped) sobre `usage.ts` + Forja Link.
 - **U5** cola offline con IndexedDB + service worker.
 - **U6** modo presentación de la vista previa (diapositivas por
   `section`/`h2`, mando por QR con `qr.ts`).
@@ -161,7 +161,7 @@ reales comprobados), luego U1 (Sync), luego el resto de V7.
 ## 5. v3.34.0 — Segunda tanda de utilidad (U2, U3, U4, U6)
 
 Las 4 piezas que faltaban del mockup v7, sin tocar nada de lo que ya
-funciona. U1 (Prism Sync) y U5 (cola offline) quedan para más adelante
+funciona. U1 (Forja Sync) y U5 (cola offline) quedan para más adelante
 porque piden infra que esta tanda no tiene (gist cifrado + bóveda, e
 interceptación del service worker) — conviene hacerlas cuando se
 revisitte la bóveda y el SW.
@@ -170,7 +170,7 @@ revisitte la bóveda y el SW.
 |---|---|---|
 | **U2** Snippets | Biblioteca de trozos reutilizables (`/snip`): guarda, busca y edita. Snippets de fábrica + los que tú añadas. Atajos cortos (`/snip fn`). Lógica en `snippets.ts` (zustand persist `prism-snippets-v1`), UI en `snippets-dialog.tsx`. | `src/lib/prism/snippets.ts` + `src/components/prism/snippets-dialog.tsx` |
 | **U3** Plantillas | Catálogo de los ZIPs que ya viven en `/public` (`demo-sandbox.zip`, `demo-modulos.zip`): nombre, qué enseña, de dónde viene. Un clic abre el Sandbox con el ZIP cargado (prop `initialZipUrl` nueva en `SandboxStudio`). | `src/lib/prism/templates.ts` + `src/components/prism/templates-dialog.tsx` |
-| **U4** Wrapped | Informe semanal sobre `usage.ts`: peticiones, éxito, latencia, ahorro por compresión, top modelos, día más activo. Botón de descarga como HTML autocontenido (estilo Prism Link). | `src/lib/prism/wrapped.ts` + `src/components/prism/wrapped-dialog.tsx` |
+| **U4** Wrapped | Informe semanal sobre `usage.ts`: peticiones, éxito, latencia, ahorro por compresión, top modelos, día más activo. Botón de descarga como HTML autocontenido (estilo Forja Link). | `src/lib/prism/wrapped.ts` + `src/components/prism/wrapped-dialog.tsx` |
 | **U6** Presentación | Convierte el HTML de la vista previa en diapositivas (una por `<section>` o por `<h2>`) y las muestra a pantalla completa con flechas, teclado y mando por QR. | `src/lib/prism/slides.ts` + `src/components/prism/presentation-dialog.tsx` |
 
 ### Detalles que importan

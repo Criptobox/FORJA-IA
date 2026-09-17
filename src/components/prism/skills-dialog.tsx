@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Skills: packs de instrucciones, creación manual o instalación desde URL.
+/** Forja IA — Skills: packs de instrucciones, creación manual o instalación desde URL.
  *
  * Con permisos (skill-permissions.ts): ANTES de instalar se analiza el texto y
  * se muestran las capacidades que declara — cargar recursos de internet, pedir
@@ -327,7 +327,7 @@ export function SkillsDialog({
           </DialogTitle>
           <DialogDescription className="text-xs">
             Las skills activas se añaden a las instrucciones del modelo en todas tus conversaciones.
-            Antes de instalar una, Prism te muestra qué permisos declara su texto.
+            Antes de instalar una, Forja te muestra qué permisos declara su texto.
           </DialogDescription>
         </DialogHeader>
 

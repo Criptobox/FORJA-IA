@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — «No te cabe» no es «ríndete».
+/** Forja IA — «No te cabe» no es «ríndete».
  *
  * Este caso es el del proveedor que NO dice cuánto admite: sin ese número no
  * hay a qué recortar (ver `recorte-y-reintento.spec.ts` para el que sí lo

@@ -1,4 +1,4 @@
-/** Prism AI — Pulsar los botones de lo que genera el agente.
+/** Forja IA — Pulsar los botones de lo que genera el agente.
  *
  * Lo delicado no es pulsar: es qué se puede AFIRMAR después. «Este botón no
  * funciona» es indecidible —un «Cancelar» que cierra algo ya cerrado no hace

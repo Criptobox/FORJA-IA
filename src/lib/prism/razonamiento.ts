@@ -1,4 +1,4 @@
-/** Prism AI — Normalización de los bloques de razonamiento (T4, plan V6).
+/** Forja IA — Normalización de los bloques de razonamiento (T4, plan V6).
  *
  * Cada familia de modelos manda el chain-of-thought a su manera y no había un
  * sitio único que lo tradujera — como sí lo hay para las herramientas

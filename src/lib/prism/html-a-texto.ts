@@ -1,4 +1,4 @@
-/** Prism AI — Sacar el texto legible de una página HTML.
+/** Forja IA — Sacar el texto legible de una página HTML.
  *
  * Lo usa la herramienta `read_url` del agente. Mandarle al modelo el HTML en
  * crudo es tirar su contexto: entre `<script>`, `<style>` y la maraña de

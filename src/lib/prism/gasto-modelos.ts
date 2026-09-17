@@ -1,4 +1,4 @@
-/** Prism AI — En qué se te va el gasto: por modelo de pago y por tipo de encargo.
+/** Forja IA — En qué se te va el gasto: por modelo de pago y por tipo de encargo.
  *
  * El panel de Uso ya decía cuántas peticiones hizo cada modelo. Con una clave
  * gratis eso basta. Con una de pago, no: lo que quieres saber es **cuál de tus

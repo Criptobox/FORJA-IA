@@ -1,4 +1,4 @@
-/** Prism AI — Exportación de conversaciones a Markdown y PDF (100% local, sin servidor).
+/** Forja IA — Exportación de conversaciones a Markdown y PDF (100% local, sin servidor).
  * El PDF se genera con el diálogo de impresión del navegador sobre una vista limpia,
  * lo que permite «Guardar como PDF» en escritorio y móvil sin dependencias pesadas.
  */
@@ -35,7 +35,7 @@ function modelOfSession(s: Session): string {
 export function sessionToMarkdown(s: Session): string {
   const lines: string[] = [];
   lines.push(`# ${s.title || "Conversación"}`, "");
-  lines.push(`> Exportado desde **Prism AI** · ${fmtDate(s.updatedAt)}`);
+  lines.push(`> Exportado desde **Forja IA** · ${fmtDate(s.updatedAt)}`);
   const model = modelOfSession(s);
   if (model) lines.push(`> Modelo: \`${model}\``);
   lines.push("", `**${s.messages.length} mensajes**`, "", "---", "");
@@ -102,8 +102,8 @@ async function withResolvedAttachments(s: Session): Promise<Session> {
   return { ...s, messages };
 }
 
-/** Descarga la conversación como «Prism Link»: HTML autocontenido que se abre
- * en cualquier navegador con doble clic, sin servidor y sin Prism AI.
+/** Descarga la conversación como «Forja Link»: HTML autocontenido que se abre
+ * en cualquier navegador con doble clic, sin servidor y sin Forja IA.
  *
  * Desde la v3.14 es `async`: primero resuelve los binarios de IndexedDB
  * y luego genera el HTML. */
@@ -119,7 +119,7 @@ export async function downloadSessionHtml(s: Session): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
-/** Conversación como página HTML estáta con estilos Prism (sin JS, sin dependencias) */
+/** Conversación como página HTML estáta con estilos Forja (sin JS, sin dependencias) */
 export function sessionToStandaloneHtml(s: Session): string {
   const model = modelOfSession(s);
   const body = s.messages
@@ -158,7 +158,7 @@ export function sessionToStandaloneHtml(s: Session): string {
 <html lang="es"><head><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="color-scheme" content="dark"/>
-<title>${escapeHtml(s.title || "Conversación")} · Prism Link</title>
+<title>${escapeHtml(s.title || "Conversación")} · Forja Link</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
@@ -195,12 +195,12 @@ export function sessionToStandaloneHtml(s: Session): string {
   footer b { background: linear-gradient(90deg,#22D3EE,#A78BFA); -webkit-background-clip:text; background-clip:text; color:transparent; }
 </style></head><body><div class="wrap">
 <header>
-  <div class="brand">◆ Prism Link</div>
+  <div class="brand">◆ Forja Link</div>
   <h1>${escapeHtml(s.title || "Conversación")}</h1>
   <div class="meta">${fmtDate(s.updatedAt)} · ${s.messages.length} mensajes${model ? ` · ${escapeHtml(model)}` : ""}</div>
 </header>
 ${body}
-<footer>Compartido con <b>Prism AI</b> — archivo autocontenido, sin servidor</footer>
+<footer>Compartido con <b>Forja IA</b> — archivo autocontenido, sin servidor</footer>
 </div></body></html>`;
 }
 
@@ -260,7 +260,7 @@ export async function printSessionPdf(s: Session): Promise<void> {
 
   const html = `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"/>
-<title>${escapeHtml(resolved.title || "Conversación")} — Prism AI</title>
+<title>${escapeHtml(resolved.title || "Conversación")} — Forja IA</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:#1a1a22; margin:0; padding:32px 40px; line-height:1.6; }
@@ -286,7 +286,7 @@ export async function printSessionPdf(s: Session): Promise<void> {
   figcaption { font-size:10px; color:#888; }
   @page { margin: 14mm; }
 </style></head><body>
-<header><div class="brand">Prism AI</div><h1>${escapeHtml(resolved.title || "Conversación")}</h1>
+<header><div class="brand">Forja IA</div><h1>${escapeHtml(resolved.title || "Conversación")}</h1>
 <div class="meta">${fmtDate(resolved.updatedAt)} · ${resolved.messages.length} mensajes${model ? ` · <code>${escapeHtml(model)}</code>` : ""}</div></header>
 ${body}
 </body></html>`;

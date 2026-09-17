@@ -1,4 +1,4 @@
-/** Prism AI — API de repositorios locales (Repo Studio).
+/** Forja IA — API de repositorios locales (Repo Studio).
  * Abre un repo de GitHub en el workspace local; si aún no está descargado, lo clona.
  * Acciones (POST JSON):
  *  - open  { url, token? }        → comprueba si ya está descargado; si no, clona (git o tarball)
@@ -79,7 +79,7 @@ function hasGit(): boolean {
 function ghHeaders(token?: string): HeadersInit {
   return {
     Accept: "application/vnd.github+json",
-    "User-Agent": "prism-ai",
+    "User-Agent": "forja-ia",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }

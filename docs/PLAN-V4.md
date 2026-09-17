@@ -1,4 +1,4 @@
-# Prism AI — Plan hacia la v4
+# Forja IA — Plan hacia la v4
 
 Revisión del documento «Roadmap para una super-herramienta» (30 ago 2026) y
 plan de trabajo a partir de él.
@@ -55,7 +55,7 @@ hecho.**
 Es el hueco real que el documento identifica bien: el agente no llama
 funciones, interpreta etiquetas XML del texto.
 
-Pero el documento lo tasa en «2-3 días» y se deja lo importante: **Prism apunta
+Pero el documento lo tasa en «2-3 días» y se deja lo importante: **Forja apunta
 a modelos gratuitos, y muchos no admiten `tools`, o los admiten mal.** Encender
 `tools` a secas rompe el agente justo en los modelos para los que existe la app.
 
@@ -86,11 +86,11 @@ Hoy el agente escribe código y **te pregunta a ti si funciona**. Con esto lo
 ejecuta, lee su propio error y lo corrige. Es el mayor salto de sensación de
 producto por el menor trabajo de la lista, y solo es cableado.
 
-### 4 · Compartir a Prism desde otras apps (Share Target)
+### 4 · Compartir a Forja desde otras apps (Share Target)
 
 No existe nada, ni en el manifest ni el handler. Es pequeño y encaja con la
 promesa de la app: compartes un texto o una imagen desde el móvil y se abre
-Prism con eso dentro. Un par de días.
+Forja con eso dentro. Un par de días.
 
 ### 5 · Partir `chat-app.tsx` — pero después, no antes
 
@@ -144,7 +144,7 @@ resuelve un análisis de texto.
 
 El 1 es un arreglo, no una función: va primero porque protege lo que ya tienes.
 El 3 es el que más se nota por lo que cuesta. El 2 es el que de verdad cambia
-lo que Prism puede hacer, y por eso es el que más cuidado necesita.
+lo que Forja puede hacer, y por eso es el que más cuidado necesita.
 
 Y una cosa en la que el documento acierta de pleno, igual que el anterior: la
 ventaja no está en tener más proveedores. Los diecisiete que hay ya sobran; lo

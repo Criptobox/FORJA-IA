@@ -1,4 +1,4 @@
-/** Prism AI — Comprobar que un modelo responde ANTES de fiarse de él.
+/** Forja IA — Comprobar que un modelo responde ANTES de fiarse de él.
  *
  * Los catálogos mienten. Un proveedor lista glm-4.5 con la etiqueta de gratis y
  * al usarlo devuelve que ese modelo no está disponible en la capa gratuita; un

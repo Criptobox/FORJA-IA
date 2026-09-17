@@ -1,11 +1,11 @@
 import { expect, test } from "./fixtures";
 import * as XLSX from "xlsx";
 
-/** Prism AI — El Excel se lee en un hilo aparte, y se sigue leyendo bien.
+/** Forja IA — El Excel se lee en un hilo aparte, y se sigue leyendo bien.
  *
  * `xlsx` arrastra dos vulnerabilidades altas sin arreglo en npm —contaminación
  * de prototipos y ReDoS— que se disparan al leer un archivo preparado. Como
- * Prism guarda las claves en el dispositivo, ensuciar el `Object.prototype`
+ * Forja guarda las claves en el dispositivo, ensuciar el `Object.prototype`
  * del hilo principal iría contra la promesa del producto, así que el parseo
  * se hace en un Worker que se destruye al terminar.
  *

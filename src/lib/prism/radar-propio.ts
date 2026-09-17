@@ -1,4 +1,4 @@
-/** Prism AI — Lo que TUS claves pueden usar hoy, gratis.
+/** Forja IA — Lo que TUS claves pueden usar hoy, gratis.
  *
  * El radar es en su mayor parte un catálogo escrito a mano, y solo la lista
  * `:free` de OpenRouter viene de la red. De ahí el «siempre pone lo mismo»:

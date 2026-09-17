@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Tarea 2 del plan V6: orden de fallback configurable.
+/** Forja IA — Tarea 2 del plan V6: orden de fallback configurable.
  *
  * Antes, para que Groq fuese antes que Gemini había que recompilar:
  * FAILOVER_ORDER era una constante. Ahora el orden vive en el store y se

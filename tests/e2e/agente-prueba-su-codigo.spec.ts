@@ -1,12 +1,12 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El agente prueba su propio código, también sin `tools`.
+/** Forja IA — El agente prueba su propio código, también sin `tools`.
  *
  * `PLAN-V4` §3 decía: «hoy el agente escribe código y te pregunta a TI si
  * funciona». Se arregló a medias — el agente ejecuta el proyecto cuando el
  * modelo soporta `tools` y llama a `run_project`—, pero **la mayoría de los
  * modelos gratis no soportan `tools`**. Esos van por el camino XML, así que
- * el arreglo llegaba justo a los modelos para los que Prism NO existe.
+ * el arreglo llegaba justo a los modelos para los que Forja NO existe.
  *
  * `mock-codigo-roto` entrega una página que llama a una función inexistente:
  * la consola del iframe suelta un ReferenceError de verdad. Si se le
@@ -77,7 +77,7 @@ test("el agente ejecuta lo que entrega, ve el error y se corrige solo", async ({
   await input.fill("hazme una página");
   await page.keyboard.press("Enter");
 
-  // 1. Prism le devuelve los errores de consola AL MODELO, sin que nadie pulse
+  // 1. Forja le devuelve los errores de consola AL MODELO, sin que nadie pulse
   //    nada. La nota discreta del centro lo deja ver en el hilo.
   await expect(page.getByText("Se pidió al agente continuar el trabajo").first()).toBeVisible({
     timeout: 60_000,
