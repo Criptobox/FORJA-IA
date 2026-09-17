@@ -41,6 +41,19 @@ import { ReviewGateCard, useReviewGate } from "./review-view";
 
 const URL_RE = /(https?:\/\/[^\s]+)/g;
 
+/** Solo http/https, y solo si `new URL` lo acepta entero. El texto de un
+ * mensaje de error no es de fiar como href tal cual —aunque hoy solo lo
+ * alimenten mensajes fijos de este archivo, mañana puede pasar por aquí
+ * texto de GitHub— así que esto es la comprobación, no un adorno. */
+function esUrlSegura(candidata: string): boolean {
+  try {
+    const u = new URL(candidata);
+    return u.protocol === "https:" || u.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 /** El motivo de un 403/404 a veces trae un enlace a la pantalla exacta que
  * arregla el problema (p. ej. github.com/settings/installations). Como
  * texto plano no se puede pulsar; esto lo vuelve enlace sin tocar el resto
@@ -52,7 +65,7 @@ function LinkifiedText({ text }: { text: string }) {
   return (
     <>
       {parts.map((part, i) =>
-        i % 2 === 1 ? (
+        i % 2 === 1 && esUrlSegura(part) ? (
           <a
             key={i}
             href={part}

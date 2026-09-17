@@ -73,13 +73,13 @@ describe("pistaDeGithub", () => {
   it("en un 403 con token de GitHub App, apunta a instalar el repo (no a un scope que no existe)", () => {
     const pista = pistaDeGithub(403, "Resource not accessible by integration", "ghu_abc123");
     expect(pista).toMatch(/no tiene acceso a ESTE repo/);
-    expect(pista).toMatch(/github\.com\/settings\/installations/);
+    expect(pista).toContain("https://github.com/settings/installations");
     expect(pista).not.toMatch(/scope/);
   });
 
   it("en un 404 con token de GitHub App, también apunta a instalar el repo", () => {
     const pista = pistaDeGithub(404, "Not Found", "ghu_abc123");
-    expect(pista).toMatch(/github\.com\/settings\/installations/);
+    expect(pista).toContain("https://github.com/settings/installations");
   });
 
   it("en un 403 con token clásico (PAT), sigue hablando del alcance «repo»", () => {
