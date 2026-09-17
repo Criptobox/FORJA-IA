@@ -1,7 +1,7 @@
-/** Prism AI — Respuestas cortadas a mitad del código.
+/** Forja IA — Respuestas cortadas a mitad del código.
  *
  * El síntoma que reportó el usuario: «cuando es largo el código de una web se
- * detienen los modelos y lo dejan a medias». Prism lo daba por respuesta
+ * detienen los modelos y lo dejan a medias». Forja lo daba por respuesta
  * completa, la vista previa recibía HTML sin cerrar y no cargaba.
  */
 import { describe, it, expect } from "vitest";

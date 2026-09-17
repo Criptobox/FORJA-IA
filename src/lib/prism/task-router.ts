@@ -1,4 +1,4 @@
-/** Prism AI — Auto elige el modelo más acorde a la tarea y arma una
+/** Forja IA — Auto elige el modelo más acorde a la tarea y arma una
  * cadena de reserva: si se acaba la cuota, pasa al segundo mejor. */
 
 import type { ProviderId } from "./types";

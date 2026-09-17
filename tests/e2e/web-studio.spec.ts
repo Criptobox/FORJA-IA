@@ -53,7 +53,7 @@ async function seedConPreview(page: Page) {
   await page.locator("textarea").first().waitFor({ state: "visible", timeout: 30_000 });
 }
 
-/** Prism AI — Web Studio (v4.20.0): Project Health, Security Center y
+/** Forja IA — Web Studio (v4.20.0): Project Health, Security Center y
  * Project Tasks en una sola superficie, accesible desde la barra lateral.
  *
  * Ninguna de las tres piezas inventa datos que no tiene: Health enseña
@@ -100,7 +100,7 @@ test("se abre desde la barra lateral y sin datos enseña «—», no una puntuac
   page,
 }) => {
   await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
-  await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole("tab", { name: "Health" }).click();
   // sin mapa de proyecto ni QA medido: se dice explícitamente, no se
@@ -113,10 +113,10 @@ test("el iframe oculto de medición va sandboxed, igual que el resto de vistas p
   page,
 }) => {
   await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
-  await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
-  const sandbox = await page.locator('iframe[title="Prism QA"]').getAttribute("sandbox");
-  expect(sandbox, "sin allow-same-origin: el HTML medido no puede leer el localStorage de Prism").toBe(
+  const sandbox = await page.locator('iframe[title="Forja QA"]').getAttribute("sandbox");
+  expect(sandbox, "sin allow-same-origin: el HTML medido no puede leer el localStorage de Forja").toBe(
     "allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock"
   );
 });
@@ -133,7 +133,7 @@ test("Visual QA mide la vista previa en vivo cuando está abierta", async ({ pag
   await seedConPreview(page);
   await expect(page.getByRole("button", { name: "Cerrar vista previa" })).toBeVisible({ timeout: 10_000 });
   await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
-  await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole("button", { name: "Ejecutar Visual QA" }).click();
   // QA_WIDTHS = [320, 390]: con la vista previa real montada debe volver
@@ -149,7 +149,7 @@ test("Visual QA sigue funcionando por el iframe propio si la vista previa está 
   await expect(page.getByRole("button", { name: "Cerrar vista previa" })).toBeVisible({ timeout: 10_000 });
   await page.getByRole("button", { name: "Cerrar vista previa" }).click();
   await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
-  await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole("button", { name: "Ejecutar Visual QA" }).click();
   await expect(page.getByText("320px")).toBeVisible({ timeout: 10_000 });
@@ -158,7 +158,7 @@ test("Visual QA sigue funcionando por el iframe propio si la vista previa está 
 
 test("Security Center analiza y nunca afirma que el código está limpio", async ({ page }) => {
   await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
-  await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole("tab", { name: "Security" }).click();
   await page.getByRole("button", { name: "Analizar código" }).click();
@@ -170,7 +170,7 @@ test("Project Tasks: añadir, avanzar de pendiente a hecha y borrar, todo persis
   page,
 }) => {
   await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
-  await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole("tab", { name: "Tasks" }).click();
   const input = page.locator("#prism-task-input");
@@ -203,7 +203,7 @@ for (const w of [320, 390, 768]) {
       await abrirMenu.click();
     }
     await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
-    await expect(page.getByText("Prism Web Studio")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
     // El Sheet de la barra lateral (si se abrió) tarda su transición en
     // desmontarse; sin esperarlo, sus nodos aparecen a mitad de camino
     // fuera de la pantalla y se confunden con un desborde real.

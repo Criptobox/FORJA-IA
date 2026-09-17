@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Diálogo de snippets (U2, PLAN-V7).
+/** Forja IA — Diálogo de snippets (U2, PLAN-V7).
  *
  * Biblioteca de trozos de texto reutilizables: los que trae la app de
  * fábrica y los que tú guardas. `/snip` abre este diálogo; elegir uno

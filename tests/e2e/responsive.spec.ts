@@ -1,6 +1,6 @@
 import {  expect, test, type Page  } from "./fixtures";
 
-/** Prism AI — la interfaz cabe en la pantalla, también en las estrechas.
+/** Forja IA — la interfaz cabe en la pantalla, también en las estrechas.
  *
  * Fija dos regresiones concretas que ya ocurrieron: a 320 px el campo de
  * escribir se quedaba sin ancho y el texto se partía letra a letra, y el botón

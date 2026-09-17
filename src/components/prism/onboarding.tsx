@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Asistente de primera ejecución (3 pasos: bienvenida → clave gratis → instalar como app) */
+/** Forja IA — Asistente de primera ejecución (3 pasos: bienvenida → clave gratis → instalar como app) */
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PrismLogo } from "./logo";
+import { ForjaLogo } from "./logo";
 import { usePrism } from "@/lib/prism/store";
 import { fetchModels } from "@/lib/prism/chat-client";
 import { makeModelKey } from "@/lib/prism/types";
@@ -111,8 +111,8 @@ export function OnboardingDialog({
     >
       <DialogContent className="max-w-lg gap-0 overflow-hidden rounded-2xl border-border/60 p-0">
         <DialogHeader className="sr-only">
-          <DialogTitle>Guía inicial de Prism AI</DialogTitle>
-          <DialogDescription>Configura Prism AI en tres pasos</DialogDescription>
+          <DialogTitle>Guía inicial de Forja IA</DialogTitle>
+          <DialogDescription>Configura Forja IA en tres pasos</DialogDescription>
         </DialogHeader>
 
         {/* Indicador de progreso */}
@@ -135,11 +135,11 @@ export function OnboardingDialog({
               <div className="mb-4 flex justify-center">
                 <div className="relative">
                   <div className="absolute inset-0 -z-10 blur-2xl prism-gradient-bg opacity-25" />
-                  <PrismLogo size={64} glow />
+                  <ForjaLogo size={64} glow />
                 </div>
               </div>
               <h2 className="text-xl font-bold tracking-tight">
-                Bienvenido a Prism <span className="prism-gradient-text">AI</span>
+                Bienvenido a Forja <span className="prism-gradient-text">IA</span>
               </h2>
               <p className="mx-auto mt-1.5 max-w-sm text-balance text-[13px] leading-relaxed text-muted-foreground">
                 Un prisma, todos tus modelos. Chatea con las mejores IAs usando
@@ -288,7 +288,7 @@ export function OnboardingDialog({
                   <p className="text-xs text-muted-foreground">
                     {providers.aihubmix.enabled
                       ? "Tu clave quedó guardada solo en este dispositivo."
-                      : "Instala Prism AI como app y descubre el Radar de gratis."}
+                      : "Instala Forja IA como app y descubre el Radar de gratis."}
                   </p>
                 </div>
               </div>

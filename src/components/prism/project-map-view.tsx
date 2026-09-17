@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Vista del mapa del proyecto (memoria compacta), edición Obsidian:
+/** Forja IA — Vista del mapa del proyecto (memoria compacta), edición Obsidian:
  * pestañas Lista | Grafo, backlinks y huérfanos por archivo, notas de memoria
  * e historial de versiones con restauración. Grafo en project-graph.tsx.
  */

@@ -1,4 +1,4 @@
-/** Prism AI — Security Center: análisis local conservador del código visible.
+/** Forja IA — Security Center: análisis local conservador del código visible.
  * Es diagnóstico, no un escáner de seguridad completo. Nunca afirma ausencia de vulnerabilidades.
  */
 export interface SecurityFinding {

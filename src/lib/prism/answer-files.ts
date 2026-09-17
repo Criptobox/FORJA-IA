@@ -1,4 +1,4 @@
-/** Prism AI — Los archivos que hay dentro de una respuesta.
+/** Forja IA — Los archivos que hay dentro de una respuesta.
  *
  * La vista previa sabe sacar el HTML para pintarlo, y descargar bajaba solo
  * eso. Pero cuando el modelo entrega un proyecto —index.html, styles.css,

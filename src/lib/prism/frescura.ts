@@ -1,4 +1,4 @@
-/** Prism AI — Cuándo se verificó por última vez lo que enseña el radar.
+/** Forja IA — Cuándo se verificó por última vez lo que enseña el radar.
  *
  * El radar es, en su mayor parte, un catálogo escrito a mano: proveedores con
  * capa gratuita, ofertas del momento, páginas que seguir. Eso no cambia solo,

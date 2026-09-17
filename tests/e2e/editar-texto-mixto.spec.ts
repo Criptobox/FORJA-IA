@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Editar un nodo de texto SUELTO junto a otros elementos.
+/** Forja IA — Editar un nodo de texto SUELTO junto a otros elementos.
  *
  * Hallazgo del dogfooding de v4.10.0/.1: `<h1>El café,<em>despacio.</em></h1>`
  * no es una hoja del árbol —tiene un `<em>` dentro—, así que la regla

@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Vista y puerta de la revisión de proyecto.
+/** Forja IA — Vista y puerta de la revisión de proyecto.
  *
  * Lo mismo que enseña el Sandbox se usa en los tres caminos que suben código a
  * GitHub, para que la revisión no sea un rincón donde mirar sino algo por lo

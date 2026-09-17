@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Store global (zustand + persistencia localStorage, 100% local) */
+/** Forja IA — Store global (zustand + persistencia localStorage, 100% local) */
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type {
@@ -559,7 +559,7 @@ export const usePrism = create<PrismState>()(
         const includeSessions = opts?.includeSessions !== false;
         return JSON.stringify(
           {
-            app: "prism-ai",
+            app: "forja-ia",
             version: 3,
             exportedAt: new Date().toISOString(),
             ...(includeSessions ? { sessions } : {}),
@@ -591,7 +591,10 @@ export const usePrism = create<PrismState>()(
       importData: (json) => {
         try {
           const data = JSON.parse(json);
-          if (data.app !== "prism-ai") return false;
+          // "prism-ai" es el marcador de un backup exportado antes del
+          // rebrand a Forja IA — se sigue aceptando para no romper la
+          // importación de copias de seguridad ya guardadas.
+          if (data.app !== "forja-ia" && data.app !== "prism-ai") return false;
           const sessions: Session[] | undefined = Array.isArray(data.sessions) ? data.sessions : undefined;
           if (!sessions && data.version === 2) return false;
 

@@ -1,4 +1,4 @@
-/** Prism AI — La mitad de `visual_review` que llama al modelo con visión.
+/** Forja IA — La mitad de `visual_review` que llama al modelo con visión.
  *
  * `tool-runner.test.ts` prueba la herramienta con un `ctx.visionCritique`
  * falso. Esto prueba la implementación REAL de ese callback

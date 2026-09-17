@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/** Prism AI — «he subido cambios y no los veo».
+/** Forja IA — «he subido cambios y no los veo».
  *
  * El service worker se actualiza solo en segundo plano, pero la pestaña ya
  * abierta sigue con el JavaScript viejo hasta que recargas. Con la app
@@ -51,7 +51,7 @@ test("avisa cuando el servidor ya sirve otra copia, y recarga", async ({ page })
 
   // Es un banner, no un aviso flotante: tiene que seguir ahí pasado el tiempo
   // en que un toast ya se habría ido solo. Eso es justo lo que se le pide.
-  const banner = page.getByText("Hay una versión nueva de Prism");
+  const banner = page.getByText("Hay una versión nueva de Forja");
   await expect(banner).toBeVisible({ timeout: 15_000 });
   await page.waitForTimeout(6_000);
   await expect(banner, "un banner no se va solo").toBeVisible();
@@ -81,5 +81,5 @@ test("si el servidor sirve la misma copia, no molesta", async ({ page }) => {
   await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
   await page.waitForTimeout(4_000);
   expect(visto, "la página tiene que haber preguntado").toBe(true);
-  await expect(page.getByText("Hay una versión nueva de Prism")).toHaveCount(0);
+  await expect(page.getByText("Hay una versión nueva de Forja")).toHaveCount(0);
 });

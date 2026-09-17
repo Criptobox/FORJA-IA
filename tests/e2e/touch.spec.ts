@@ -164,7 +164,7 @@ test("el botón de instalar sigue estando aunque el navegador no ofrezca el diá
   // ninguna pista de cómo instalar la app
   await page.goto("/");
   await page.getByLabel("Abrir conversaciones").click();
-  const boton = page.getByRole("dialog").getByLabel(/instalar Prism AI/i);
+  const boton = page.getByRole("dialog").getByLabel(/instalar Forja IA/i);
   await expect(boton).toBeVisible({ timeout: 30_000 });
   await expect(boton).toBeEnabled();
 

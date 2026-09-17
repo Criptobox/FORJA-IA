@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Panel de la memoria del proyecto (Pilar 3 del plan de escalado).
+/** Forja IA — Panel de la memoria del proyecto (Pilar 3 del plan de escalado).
  *
  * El «cerebro» del proyecto hecho visible y editable:
  *   · decisiones tomadas (usuario / agente / modelo)
@@ -130,7 +130,7 @@ export function MemoriaPanel({
             <Brain className="size-4 text-prism-violet" /> Memoria del proyecto
           </DialogTitle>
           <DialogDescription>
-            {sesionTitulo ? `«${sesionTitulo}» — ` : ""}Lo que Prism sabe de este
+            {sesionTitulo ? `«${sesionTitulo}» — ` : ""}Lo que Forja sabe de este
             proyecto: decisiones, errores con su solución, tareas hechas y estilos
             ya usados. Viaja con el proyecto si exportas la memoria a `.prism/`.
           </DialogDescription>

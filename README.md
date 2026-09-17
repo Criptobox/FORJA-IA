@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="public/logo.svg" alt="Prism AI" width="88" />
+<img src="public/logo.svg" alt="Forja IA" width="88" />
 
-# Prism AI
+# Forja IA
 
-**Un prisma, todos tus modelos.** Chat PWA premium con tus propias APIs · solo modelos gratis · vista previa web en vivo · sin cuentas, sin servidores, sin límites.
+**Todos tus modelos, forjados en uno.** Chat PWA premium con tus propias APIs · solo modelos gratis · vista previa web en vivo · sin cuentas, sin servidores, sin límites.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -16,7 +16,7 @@
 
 ---
 
-Prism AI es un chat de IA **100% local y privado**: tus claves API se guardan únicamente en tu dispositivo (localStorage), las peticiones van directas al proveedor o por el proxy incluido, y no existe ningún sistema de cuentas. Trae tu propia clave (BYOK) de AiHubMix, Gemini, Groq, OpenRouter y más — y Prism AI se encarga de mostrarte **solo los modelos gratis disponibles**, con radar de ofertas, failover automático y vista previa web en tiempo real de lo que la IA construye.
+Forja IA es un chat de IA **100% local y privado**: tus claves API se guardan únicamente en tu dispositivo (localStorage), las peticiones van directas al proveedor o por el proxy incluido, y no existe ningún sistema de cuentas. Trae tu propia clave (BYOK) de AiHubMix, Gemini, Groq, OpenRouter y más — y Forja IA se encarga de mostrarte **solo los modelos gratis disponibles**, con radar de ofertas, failover automático y vista previa web en tiempo real de lo que la IA construye.
 
 ## ✨ Características
 ## 🚀 Web Studio 4.20
@@ -37,7 +37,7 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 | 🔓 **Sin login ni servidores** | Todo vive en tu navegador. Exporta/importa tu backup JSON cuando quieras. |
 | 🆓 **Solo modelos gratis** | Filtro «Solo gratis» activado por defecto: 27+ modelos `-free` de AiHubMix, `:free` de OpenRouter, Gemini, Groq, GLM-Flash, Ollama local… |
 | 📡 **Radar de modelos gratis** | Ofertas vigentes (con fechas límite), 12 fuentes permanentes, lista **EN VIVO** de OpenRouter y activación de modelos en 1 clic. |
-| 🛡 **Failover automático** | ¿Cuota agotada? Prism avisa y reintenta solo con otro modelo gratis conectado. |
+| 🛡 **Failover automático** | ¿Cuota agotada? Forja avisa y reintenta solo con otro modelo gratis conectado. |
 | 🛡 **Escudo PII local** | Enmascara correos, teléfonos, tarjetas (Luhn), IBAN y DNI/NIE en lo que se envía al modelo — activado por defecto, tu texto visible no cambia. |
 | 🖥 **Copiar como cURL** | Registro de las últimas peticiones con su estado y latencia: copia cualquier llamada como comando curl con las claves redactadas a `TU_API_KEY`. |
 | ⚡ **Auto (router gratis)** | Un pseudo-modelo que elige el mejor candidato gratis (LKGP: el último que funcionó va primero), salta al siguiente si falla y respeta los cooldowns — inspirado en el `auto` de OmniRoute. |
@@ -63,13 +63,13 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 | 🌿 **Regenerar no borra** | Cada regeneración guarda la anterior como rama: las flechas del mensaje te llevan entre versiones (`2/3`) para comparar. Editar un mensaje tuyo tampoco destruye lo que venía después. |
 | 🧵 **Hilos** | Archiva el tema actual y empieza otro **dentro de la misma conversación**, sin arrastrar contexto que ya no viene a cuento ni llenar la lista de conversaciones. |
 | ▶️ **Continuar al agente** | Si el modo agente se queda a medias —revisión pendiente o sin cerrar—, se dice y se ofrece retomar desde donde lo dejó, en vez de dejar el trabajo colgado en silencio. |
-| 🔗 **Prism Link** | Comparte cualquier chat como página HTML autocontenida que se abre con doble clic. |
+| 🔗 **Forja Link** | Comparte cualquier chat como página HTML autocontenida que se abre con doble clic. |
 | 📚 **Snippets** (`/snip`) | Biblioteca de trozos reutilizables: tus prompts parciales, plantillas de función y cabeceras, con atajos cortos (`/snip fn`). Viven en tu navegador. |
 | 📦 **Plantillas del Sandbox** (`/plantillas`) | Catálogo de los ZIPs de demo (web de una página, web modular): un clic y el Sandbox abre con el proyecto cargado. |
 | 📊 **Wrapped semanal** (`/wrapped`) | Informe de tu actividad de los últimos 7 días (peticiones, éxito, latencia, ahorro por compresión, top modelos). Descargable como HTML autocontenido. |
 | 🎞 **Modo presentación** (`/presentar`) | Convierte el HTML de la vista previa en diapositivas (por `<section>` o `<h2>`), a pantalla completa con flechas, teclado y mando por QR. |
 | 🧩 **Skills por URL** | Instala skills desde cualquier .md/.json en raw.githubusercontent o un gist. |
-| 🛡 **Permisos de las Skills** | Antes de instalar, Prism analiza el texto y te muestra qué declara hacer: generar código, cargar recursos de internet (y de qué dominios), pedir claves o enviar datos a servidores. Lo de riesgo no se instala sin aceptación expresa de dos pasos, el permiso queda visible en la lista para siempre y viaja al system prompt como techo: la skill no puede colar claves ni envíos de datos por encima del usuario. |
+| 🛡 **Permisos de las Skills** | Antes de instalar, Forja analiza el texto y te muestra qué declara hacer: generar código, cargar recursos de internet (y de qué dominios), pedir claves o enviar datos a servidores. Lo de riesgo no se instala sin aceptación expresa de dos pasos, el permiso queda visible en la lista para siempre y viaja al system prompt como techo: la skill no puede colar claves ni envíos de datos por encima del usuario. |
 | 🧪 **Tests** | 1 076 tests unitarios (Vitest) y 131+ escenarios E2E con Playwright, **todos en CI en cada push** (`npm run test` / `npm run test:e2e`). |
 | 🧠 **Mapa del proyecto** | Memoria compacta por sesión que se inyecta en el contexto: continúa proyectos gastando muchos menos tokens. |
 | 🪪 **Ficha del proyecto** | La portada del mapa convertida en tarjeta de un vistazo: pila con nº de archivos, punto de entrada, archivo núcleo, notas y páginas huérfanas — calculada del código, nunca inventada. El agente la lee ANTES de trabajar: llega al proyecto con la pila y las decisiones ya dentro. |
@@ -117,37 +117,37 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 | 🗄 **Caché del prompt con Anthropic** | El prompt de sistema y el historial viajan con puntos de corte, así que la parte que el modelo ya vio se cobra a precio de caché en vez de a precio de entrada nueva. El panel enseña **cuánto acertó la caché según el proveedor** —no una estimación nuestra— y «sin dato» donde el proveedor no lo dice. La compresión de contexto se apaga sola con Anthropic: reescribir el historial rompería el prefijo y saldría más caro. |
 | 💵 **Lo que llevas gastado, en dinero** | Importe real por modelo y por tipo de encargo, con lo que la caché del prompt te ahorró. La regla no se salta nunca: **importe = tokens que dijo tu proveedor × precio fechado de un catálogo público** ([LiteLLM](https://github.com/BerriAI/litellm), MIT, regenerable con `npm run precios` y refrescable en caliente desde `/api/precios`). Si falta cualquiera de las dos mitades verás «sin dato» **y cuál falta** — nunca un número redondeado a ojo. La fuente y la fecha van siempre pegadas al importe, y pasados 45 días avisa de que la instantánea es vieja. |
 | 🕰 **Modelos retirados, marcados antes del 404** | `npm run modelos` audita las listas contra el catálogo público (el mismo de los precios, que publica `deprecation_date`) y el selector marca **retirado** o **se retira** con la fecha. Cuando se estrenó encontró **ocho modelos muertos** que la app seguía ofreciendo —`pixtral-12b-2409` desde diciembre de 2025, los `grok-3` desde febrero— y un Gemini nuevo sin poner. Un unitario impide que vuelva a colarse uno. |
-| 🔀 **Un modelo retirado ya no corta la conversación** | Si el proveedor contesta «no existe» (404, «no endpoints found»), Prism **sigue con otro** en vez de dejarte el error en rojo, marca ese modelo para que Auto deje de elegirlo, y te dice cuál murió — no «falló tu clave», que manda a mirar donde no es. Una petición mal formada sí para: ahí probar otro escondería tu error. |
+| 🔀 **Un modelo retirado ya no corta la conversación** | Si el proveedor contesta «no existe» (404, «no endpoints found»), Forja **sigue con otro** en vez de dejarte el error en rojo, marca ese modelo para que Auto deje de elegirlo, y te dice cuál murió — no «falló tu clave», que manda a mirar donde no es. Una petición mal formada sí para: ahí probar otro escondería tu error. |
 | 🧱 **Ningún error deja la conversación muerta** | La regla se invirtió: antes se enumeraban los fallos que merecían reintento y se paraba en todo lo demás, así que cada error nuevo del mundo era un callejón. Ahora **lo único que para es una petición mal hecha por nosotros**; con todo lo demás —proveedor caído, modelo retirado, router que devuelve el fallo de otro, mensaje demasiado grande— se sigue con otro modelo. Y si el proveedor dijo el tope («Limit 7000, Requested 21138»), se recuerda para no volver a elegir ese modelo con un mensaje igual de grande. |
 | ✂️ **Si no cabe, recorta y reintenta** | Cuando un proveedor dice «Limit 7000, Requested 21138», la app quita los mensajes **más viejos** —turnos enteros, nunca la pregunta que acabas de escribir— y vuelve a probar **con el mismo modelo**: el que sobra es el historial, no el modelo que elegiste. Y lo dice, con cuántos quitó. Si el proveedor no dice su tope, no hay a qué recortar y entonces sí cambia de modelo. |
 | 🧾 **«¿Por qué me contestó esto?»** | Cada respuesta lleva su expediente en un botón del pie: qué modelos fallaron **antes** (con su código y qué se decidió), qué contexto viajó, cuánto historial se apartó y si se resumió, los tokens que dijo **el proveedor** y el coste con la fecha de sus precios. Lo que no se sabe no sale, y el importe solo aparece con sus dos mitades: si falta una, se dice **cuál**. |
 | 🩺 **Lo que ya sabíamos del modelo, antes de elegirlo** | El selector marca «techo» o «falla» en los modelos que ya rechazaron por tamaño o que fallan a menudo, con el detalle encima; el Panel → Uso lista «Modelos con pegas medidas», lo peor primero. Con dos frenos: por debajo de cinco llamadas **no se afirma un porcentaje**, y un techo medido caduca a las 6 h porque muchos de esos topes son por minuto. |
-| 🧪 **El código se ejecuta antes de enseñártelo** | Ya no hace falta encender el modo agente: si la respuesta trae algo abrible, Prism lo carga en el Sandbox, **pulsa sus botones** y le devuelve al modelo los errores de consola que salgan (dos rondas como mucho). Ejecutar es local y gratis; solo cuesta una llamada si de verdad hay que corregir. |
+| 🧪 **El código se ejecuta antes de enseñártelo** | Ya no hace falta encender el modo agente: si la respuesta trae algo abrible, Forja lo carga en el Sandbox, **pulsa sus botones** y le devuelve al modelo los errores de consola que salgan (dos rondas como mucho). Ejecutar es local y gratis; solo cuesta una llamada si de verdad hay que corregir. |
 | 🧷 **Los botones de la vista previa funcionan** | El iframe sigue **sin** `allow-same-origin` —esa línea sostiene que tus claves no salen del dispositivo—, y por eso el navegador prohíbe ahí `localStorage` y las cookies: cualquier página generada que las tocara reventaba en el primer clic. Ahora se les da un almacenamiento **en memoria**, con un aviso de que no persiste. Aislamiento intacto, botones vivos. |
 | 📝 **Lo que se recorta viaja como resumen** | Cuando el historial no cabe y hay que apartar mensajes viejos, el tramo se resume con el mismo modelo y entra marcado como resumen, en vez de perderse. No se resume lo que no llega a 1 200 caracteres, ni se resume un resumen; si la llamada falla, el recorte a secas sigue funcionando. |
 | 🧪 **Un medidor de «esto lo ha hecho una IA»** | La checklist anti-genérico se la autoevaluaba el modelo, así que la nota siempre era buena. Ahora se **mide en la página ya pintada**: texto de relleno (citado tal cual), imágenes de placehold.co, menos de cuatro tamaños de letra, titular y cuerpo con la misma fuente, filas de tarjetas clonadas, catorce elementos con el mismo redondeo, titulares con emoji. Los hallazgos vuelven al modelo por el mismo camino que los errores de consola, con qué hacer en cada caso — y le dejan defender una decisión de la dirección en vez de obedecer a ciegas. Una página corta no se juzga, y una que ya está bien no gasta ni una vuelta. |
 | ✍️ **Reglas de contenido, no solo de estilo** | Una página genérica se reconoce antes por lo que dice que por cómo se ve, y eso no lo arregla ninguna paleta: cero relleno, un h1 que afirma en vez de saludar, escala tipográfica de cuatro escalones con el titular al doble del cuerpo, pareja tipográfica real, nada de imágenes prestadas y una composición con un protagonista. Van en el prompt encabezadas por lo que las hace distintas: **esto se mide después**. |
-| 🎬 **Kit de efectos propio (`prism-fx`)** | Veintitrés efectos —entradas al hacer scroll, scroll anclado con pasos narrativos, carril horizontal, titulares partidos en palabras o revelados con caracteres al azar, cursor propio, inclinación 3D, botón imán, foco que sigue al cursor, contadores, parallax, marquesina, grano, mesh, retícula, subrayado que se dibuja, destello, flotar, blob— en archivos que **viajan dentro del proyecto**. Nada de CDN: la página acaba en un iframe sin `allow-same-origin`, en tu ZIP y en tu GitHub Pages, y en los tres una dependencia de terceros se rompe en silencio el día que no responde. El modelo solo los enlaza; Prism añade los archivos. |
+| 🎬 **Kit de efectos propio (`prism-fx`)** | Veintitrés efectos —entradas al hacer scroll, scroll anclado con pasos narrativos, carril horizontal, titulares partidos en palabras o revelados con caracteres al azar, cursor propio, inclinación 3D, botón imán, foco que sigue al cursor, contadores, parallax, marquesina, grano, mesh, retícula, subrayado que se dibuja, destello, flotar, blob— en archivos que **viajan dentro del proyecto**. Nada de CDN: la página acaba en un iframe sin `allow-same-origin`, en tu ZIP y en tu GitHub Pages, y en los tres una dependencia de terceros se rompe en silencio el día que no responde. El modelo solo los enlaza; Forja añade los archivos. |
 | 🎭 **Los efectos son de la dirección, no del catálogo** | Cada una de las seis direcciones visuales declara **los suyos y los que tiene prohibidos**: el neobrutalismo entra a corte seco y con marquesina, el editorial con subrayados que se dibujan, y ninguno puede usar los del otro. Sin esa lista negra, un catálogo de efectos es AI-slop con brillo — todas las páginas con el mismo desvanecido. Un unitario impide que dos direcciones acaben con la misma receta. |
 | 🧊 **Motor 3D propio (`prism-3d.js`)** | WebGL2 crudo, sin librería —no es Three.js recortado—: cámara en perspectiva, campo de partículas que sigue el cursor, un globo de líneas que gira, un shader de fondo con un blob fluido. Tres frenos en orden: sin `prefers-reduced-motion` no dibuja, sin WebGL2 se queda vacío (se ve el fondo de respaldo), y en un equipo de gama baja (`deviceMemory`/`hardwareConcurrency`) tampoco — una escena que hace ir un móvil a 12 fps no es «más pro». Solo la dirección **Estudio experimental** tiene permiso de usarlo. |
 | ✍️ **Editar tocando la vista previa** | Un botón activa el modo edición: el texto que pasas por encima se marca, lo tocas, escribes y Enter confirma. El cambio se localiza en el CÓDIGO de la respuesta —no en el DOM del iframe, que se pierde al repintar— y se persiste ahí, así que sigue estando en el ZIP y en GitHub. Solo se editan hojas del árbol (nunca un contenedor, para no borrar lo que hay dentro), y si el texto aparece más de una vez se rechaza con el motivo en vez de adivinar cuál. |
 | ♿ **Todo se ve sin JavaScript** | La regla de oro del kit: los efectos **quitan** un estado, no lo ponen. Sin JS, sin `IntersectionObserver` o con `prefers-reduced-motion`, no se esconde nada. Y si el observer no llega a disparar, a los 1,2 s se revela todo igual: un efecto perdido es una molestia, contenido invisible es un fallo. |
 | 🪟 **Aurora glass** | El `.glass` gana volumen y las burbujas estrenan cristal: la del asistente es translúcida y la tuya, un lavado violeta-cian de marca. Todo por CSS, el layout intacto. |
-| ✂️ **Parches SEARCH/REPLACE (`apply_patch`)** | El agente edita con bloques `<<<<<<< SEARCH / ======= / REPLACE` que Prism aplica LOCALMENTE: menos tokens, menos fallos, y si un bloque no casa se le dice cuál y cómo reintentarlo — nunca reescribir el archivo. Tolerante a sangría distinta y a rutas en la primera línea del bloque. |
+| ✂️ **Parches SEARCH/REPLACE (`apply_patch`)** | El agente edita con bloques `<<<<<<< SEARCH / ======= / REPLACE` que Forja aplica LOCALMENTE: menos tokens, menos fallos, y si un bloque no casa se le dice cuál y cómo reintentarlo — nunca reescribir el archivo. Tolerante a sangría distinta y a rutas en la primera línea del bloque. |
 | 🕰 **Checkpoints automáticos + Deshacer de un clic** | Antes de cada tarea del agente se guarda un punto de restauración (por conversación). Cada respuesta del agente trae botón «Deshacer» que devuelve el proyecto al estado anterior — y deshacer es reversible. Panel «Puntos de restauración» en la cabecera con diff antes/después. |
 | 🧠 **Memoria del proyecto (`.prism/`)** | Decisiones, errores con su solución, tareas (Task DNA), direcciones de diseño y reglas, en datos estructurados por proyecto. Se exporta a `decisions.json`, `errors.json`, `tasks.json`, `design-tokens.json` y `negative-rules.json` y viaja **dentro del repo** al subirlo a GitHub: si clonas en otra máquina, la memoria vuelve con él. |
-| 🎨 **Dirección de diseño obligatoria** | 6 direcciones curadas (editorial, minimal, tech, neobrutalismo, cálido orgánico, **estudio experimental**) con paleta OKLCH, pareja tipográfica y composición. Si tu encargo trae estilo se respeta; si no, Prism elige **rotando para no repetirse** entre tus proyectos y lo anuncia. Auto-crítica anti-slop de 5 dimensiones antes de entregar. |
-| 🔎 **Evidence Mode** | Cuando el agente afirma algo de tu código cita `archivo:línea`; Prism lo renderiza como chips y, si el archivo está en el Sandbox, el tooltip muestra la línea citada. Sin evidencia, lo dice — prohibido inventar. |
+| 🎨 **Dirección de diseño obligatoria** | 6 direcciones curadas (editorial, minimal, tech, neobrutalismo, cálido orgánico, **estudio experimental**) con paleta OKLCH, pareja tipográfica y composición. Si tu encargo trae estilo se respeta; si no, Forja elige **rotando para no repetirse** entre tus proyectos y lo anuncia. Auto-crítica anti-slop de 5 dimensiones antes de entregar. |
+| 🔎 **Evidence Mode** | Cuando el agente afirma algo de tu código cita `archivo:línea`; Forja lo renderiza como chips y, si el archivo está en el Sandbox, el tooltip muestra la línea citada. Sin evidencia, lo dice — prohibido inventar. |
 | 🧭 **Auto Context pre-envío** | Antes de enviar ves qué va a usarse: «3 archivo(s) · 2 decisión(es) · 1 error(es) previo(s) · 1 regla(s)». Las decisiones y errores pertinentes viajan al modelo sin que tengas que pegar nada. |
-| 🛑 **Modal de reglas bloqueadas** | Si tu encargo nombra un archivo protegido por una regla «no tocar», Prism lo pausa ANTES de gastar tokens: [Cancelar] [Autorizar una vez] [Autorizar y desactivar regla]. |
+| 🛑 **Modal de reglas bloqueadas** | Si tu encargo nombra un archivo protegido por una regla «no tocar», Forja lo pausa ANTES de gastar tokens: [Cancelar] [Autorizar una vez] [Autorizar y desactivar regla]. |
 | 🎯 **Recomendación con el porqué** | Mientras escribes: «Tarea: página web → kimi-k2 · Tarea de UI: buen historial y gratis». La razón sale del historial REAL del proyecto (un modelo que acumula reintentos deja de recomendarse) con botón Usar. |
 | ⬆️ **Subida a GitHub que no miente** | Se sube a la rama por defecto **del repo** (antes se asumía `main`: en uno con `master` se creaba un commit huérfano, el error se ignoraba y la app cantaba «¡Completado!» con GitHub intacto). Al terminar se comprueba que la rama apunta de verdad al commit subido. Si algo falla, el motivo se queda **escrito**, con el detalle de GitHub y qué hacer: 401 reconecta, 403 falta el alcance «repo», 404 el token no ve ese repo. Y si no se puede leer el árbol base, para — seguir habría borrado el resto de archivos del repo. |
-| 🚀 **Publicar en GitHub Pages** | Botón en Repo Studio: sube el workflow de Actions, habilita Pages y devuelve la URL viva. Prompt → sitio publicado sin salir de Prism. Y los commits sin mensaje salen con significado: «Añade galería, actualiza index.html». |
+| 🚀 **Publicar en GitHub Pages** | Botón en Repo Studio: sube el workflow de Actions, habilita Pages y devuelve la URL viva. Prompt → sitio publicado sin salir de Forja. Y los commits sin mensaje salen con significado: «Añade galería, actualiza index.html». |
 | ✉️ **Marketing con la identidad del proyecto** | `/email`, `/carrusel` y `/poster`: HTML de email a prueba de Gmail/Outlook, carrusel 1080×1080 y póster editorial — todos con la paleta/tipografía de tu dirección de diseño, no una plantilla desconectada. |
 
 ## 🔒 Si lo publicas en internet
 
-Prism funciona en tu navegador, pero tiene tres rutas que corren en el servidor.
+Forja funciona en tu navegador, pero tiene tres rutas que corren en el servidor.
 Al desplegarlo en Vercel o un VPS quedan expuestas, así que:
 
 - **`/api/proxy`** solo acepta destinos públicos. Las direcciones privadas, el
@@ -167,8 +167,8 @@ Mira [`.env.example`](.env.example) para el detalle.
 
 ```bash
 # 1) Clona el repositorio
-git clone https://github.com/TU_USUARIO/prism-ai.git
-cd prism-ai
+git clone https://github.com/TU_USUARIO/FORJA-IA.git
+cd FORJA-IA
 
 # 2) Instalación automática (dependencias + entorno)
 npm run setup
@@ -199,7 +199,7 @@ npm start        # sirve el build optimizado en http://localhost:3000
 
 ## 🔑 Claves gratis en 1 minuto
 
-Prism AI funciona con **tu propia clave** (BYOK). Recomendados con capa gratuita:
+Forja IA funciona con **tu propia clave** (BYOK). Recomendados con capa gratuita:
 
 | Proveedor | Consigue tu clave | Notas |
 |---|---|---|
@@ -214,7 +214,7 @@ Pega las claves en **Ajustes → Proveedores** (o deja que el asistente inicial 
 
 ## 📲 Instalar como app (PWA)
 
-- **Escritorio (Chrome/Edge):** icono «Instalar» en la barra de direcciones, o el botón «Instalar Prism AI» dentro de la app.
+- **Escritorio (Chrome/Edge):** icono «Instalar» en la barra de direcciones, o el botón «Instalar Forja IA» dentro de la app.
 - **Android:** menú del navegador → «Instalar aplicación».
 - **iOS (Safari):** Compartir → «Añadir a pantalla de inicio».
 - **Desde el móvil en tu red local:** `npm run dev -- -H 0.0.0.0` y entra desde el móvil a `http://TU_IP_LOCAL:3000`.
@@ -234,7 +234,7 @@ Pega las claves en **Ajustes → Proveedores** (o deja que el asistente inicial 
 ## 📁 Estructura del proyecto
 
 ```
-prism-ai/
+forja-ia/
 ├── setup.sh / setup.bat        # instaladores con doble clic
 ├── scripts/
 │   └── setup.mjs               # instalador multiplataforma (npm run setup)
@@ -274,7 +274,7 @@ prism-ai/
 |---|---|
 | Puerto 3000 ocupado | `npm run dev -- -p 3001` |
 | «Necesita tu API key» | Ajustes → proveedor → pega la clave (o reabre la **Guía inicial** en la barra lateral) |
-| AiHubMix responde «10 times» | Cuenta sin recargar: recarga saldo mínimo o usa Gemini/Groq (gratis) — Prism hará failover solo |
+| AiHubMix responde «10 times» | Cuenta sin recargar: recarga saldo mínimo o usa Gemini/Groq (gratis) — Forja hará failover solo |
 | Repo privado no clona | Pega tu token de GitHub en Repo Studio (scope `repo`) |
 | «Subir cambios» da 403 | El repo original no es tuyo: usa «Publicar como repo nuevo» |
 | El dictado no funciona | Usa Chrome/Edge/Safari y permite el micrófono |
@@ -286,7 +286,7 @@ prism-ai/
 - Las claves API se guardan **solo en tu dispositivo** (localStorage) y viajan cifradas en HTTPS directo al proveedor, o por el proxy local que no almacena nada.
 - Conversaciones, prompts, skills y ajustes nunca salen de tu navegador.
 - Repo Studio descarga los repos en `workspace/repos/` de tu equipo; la edición y la subida a GitHub pasan por tu token local.
-- El dictado y la lectura por voz usan las APIs nativas del navegador: el audio no se envía a ningún servidor de Prism.
+- El dictado y la lectura por voz usan las APIs nativas del navegador: el audio no se envía a ningún servidor de Forja.
 - El Radar consulta el endpoint público de OpenRouter desde el servidor local de Next (sin clave) y cachea 10 minutos.
 
 ### Los Excel se abren en un hilo desechable
@@ -304,7 +304,7 @@ auditoría:
   app, donde están tus claves. Del Worker solo salen cadenas de texto.
 - Hay un tope de **15 MB** y un límite de **20 segundos**, tras el cual el hilo
   se mata. Un ReDoS cuelga ese hilo, no la interfaz.
-- Si el navegador no deja crear el Worker, Prism **falla con un aviso** y te
+- Si el navegador no deja crear el Worker, Forja **falla con un aviso** y te
   pide un CSV, en vez de leerlo por el camino inseguro «por comodidad».
 
 Si prefieres no tener la dependencia, quita `xlsx` de `package.json` y borra
@@ -318,7 +318,7 @@ la rama `excel` de `src/lib/prism/sheets.ts`: CSV y TSV seguirán funcionando.
 
 - **v3.52 — Caza de ofertas IA**: un apartado que junta las ofertas vigentes de los proveedores (niveles gratuitos, créditos de bienvenida, programas de estudiante) con fecha de verificación a la vista, buscador sin tildes, chips por tipo y favoritas; una comprobación diaria avisa de lo nuevo y de lo que está a punto de caducar (insignia ámbar, toast y, con permiso, notificación del navegador), y una fuente JSON propia permite añadir promos relámpago pisando el catálogo por id. Todo se calcula en el navegador — sin servidor, sin rastreo.
 - **v3.51 — Modo Repaso**: tus conversaciones se convierten en tarjetas de estudio con repetición espaciada (SM-2, el algoritmo de Anki, con techo de facilidad y «otra vez» que vuelve el mismo día). Pides el examen con `/repaso`, el modelo responde con un bloque `prism-repaso`, el mensaje ofrece «Guardar repaso» y la biblioteca te trae cada tarjeta el día que toca — con insignia de vencidas en la barra lateral. Todo en tu navegador: las tarjetas viven en su propia clave de localStorage y el calendario se calcula aquí.
-- **v3.12 — El piloto del Sandbox**: la mitad del «browser agent» que de verdad se puede construir desde una pestaña: el agente opera DENTRO de la vista previa que Prism sirve — pulsar por selector o por texto visible, escribir en campos (con las mayúsculas y acentos intactos), cambiar el ancho del viewport, leer la página (botones, enlaces, campos) y la consola paso a paso. Los pasos se escriben en un mini-lenguaje de una línea (`pulsa "Añadir"`, `escribe "Hola" en #nombre`, `ve a 320px`, `lee`, `qa`); cada uno deja un resultado honesto —ok, fallido y qué errores nuevos soltó— y el informe final se copia para pegárselo al agente del chat, que corrige y la prueba se vuelve a pasar. Runtime inyectado por `postMessage`, sin `eval`: tres operaciones fijas que no pueden hacer más que lo que haría un usuario.
+- **v3.12 — El piloto del Sandbox**: la mitad del «browser agent» que de verdad se puede construir desde una pestaña: el agente opera DENTRO de la vista previa que Forja sirve — pulsar por selector o por texto visible, escribir en campos (con las mayúsculas y acentos intactos), cambiar el ancho del viewport, leer la página (botones, enlaces, campos) y la consola paso a paso. Los pasos se escriben en un mini-lenguaje de una línea (`pulsa "Añadir"`, `escribe "Hola" en #nombre`, `ve a 320px`, `lee`, `qa`); cada uno deja un resultado honesto —ok, fallido y qué errores nuevos soltó— y el informe final se copia para pegárselo al agente del chat, que corrige y la prueba se vuelve a pasar. Runtime inyectado por `postMessage`, sin `eval`: tres operaciones fijas que no pueden hacer más que lo que haría un usuario.
 - **v3.11 — Medir, declarar y recordar**: la ficha del proyecto (Project Passport) presenta la memoria como una tarjeta y el agente la lee antes de trabajar; las skills declaran permisos y la instalación de riesgo exige aceptación expresa (un permiso que nadie hace cumplir es una etiqueta, no una barrera); y el Sandbox compara ejecuciones: qué rompió o arregló tu último cambio, medido. Las tres ideas salieron del análisis del plan de evolución: presentación sobre datos que ya existían, una puerta donde antes había un campo de texto, y comparar lo que ya se medía.
 - **v3.4 — Nada se pierde**: regenerar y editar pasan a bifurcar en vez de borrar, llegan los hilos dentro de una conversación, «Nueva conversación» deja de crear sesiones vacías y el agente ofrece continuar cuando se queda a medias. Ideas tomadas del diseño de [Chatbox](https://github.com/chatboxai/chatbox) (GPLv3) y **reimplementadas desde cero**: aquí no hay código suyo, solo lo aprendido de sus documentos técnicos.
 - **v3.3 — Ver antes de subir**: el diff línea a línea entra en el Sandbox y en Repo Studio, la revisión mira también dentro de los binarios y pasa a ser incremental (de ~250 ms por pausa al escribir a menos de 2 ms en un repo grande). Los E2E dejan de ser manuales: vigilan cada push.
@@ -326,6 +326,6 @@ la rama `excel` de `src/lib/prism/sheets.ts`: CSV y TSV seguirán funcionando.
 - **v3.1.1 — Sandbox revisor**: el Sandbox pasa de «abre un ZIP» a espacio de trabajo — árbol de carpetas, editor con números de línea, pestañas de Vista/Revisión/Consola y, sobre todo, una **revisión estática del proyecto entero** pensada para lo que de verdad duele: subir una clave de API a un repo público. Se ejecuta en tu navegador, sin mandar el proyecto a ningún sitio.
 - **v3.1 — Edición Obsidian**: el grafo de relaciones del mapa (física de fuerzas, resaltado de vecinos, filtros por tipo y búsqueda), las notas de memoria, los backlinks/notas huérfanas y el historial de versiones están inspirados en [Obsidian](https://obsidian.md), adaptados a la memoria de proyectos que genera tu IA.
 - **v3.0 — Repo directo + Sandbox**: Repo Studio trabaja ahora **sin descargar nada** (árbol + lectura + commit único por Git Data API desde el navegador, con sincronización automática del HEAD) y llega el **Sandbox** estilo [Spck Editor](https://spck.io): ZIP → explorar → editar → ejecutar con consola, en un iframe aislado y con exportación del proyecto modificado. Si el repo está conectado a Vercel/Netlify, cada push se despliega y publica solo.
-- **v2.9 — Edición Orca**: el escudo PII (guardrails antes de enviar) y el «Copiar como cURL» de los request logs están inspirados en [OrcaRouter](https://www.orcarouter.ai/blog/openrouter-alternative), implementados 100% en local. Sobre las comisiones que motiva su artículo: Prism no cobra nada — modelos gratis y tus propias claves.
+- **v2.9 — Edición Orca**: el escudo PII (guardrails antes de enviar) y el «Copiar como cURL» de los request logs están inspirados en [OrcaRouter](https://www.orcarouter.ai/blog/openrouter-alternative), implementados 100% en local. Sobre las comisiones que motiva su artículo: Forja no cobra nada — modelos gratis y tus propias claves.
 - **v2.8 — Router & compresión**: las ideas de salud de modelos (circuit breaker + cooldown con Retry-After), LKGP, el pseudo-modelo `Auto`, la compresión de contexto (RTK/Caveman) y el panel de uso están inspiradas en [OmniRoute](https://github.com/diegosouzapw/OmniRoute), adaptadas a un navegador sin backend.
-- Prism AI mantiene su filosofía: **solo modelos gratis, cero cuentas, todo local**.
+- Forja IA mantiene su filosofía: **solo modelos gratis, cero cuentas, todo local**.

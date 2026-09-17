@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Repo Studio · modo DIRECTO (sin descargar).
+/** Forja IA — Repo Studio · modo DIRECTO (sin descargar).
  * Conecta con un repo de GitHub por API, edita en vivo y hace push
  * en un único commit. Nada se clona: el repo vive en GitHub.
  * Incluye sincronización automática (poll del HEAD) y puente al Sandbox.
@@ -347,7 +347,7 @@ export function RepoCloudPanel({
     try {
       // Commits con significado (Pilar 3.3): si el usuario no escribió un
       // mensaje, se genera de los cambios reales — «Añade galería, actualiza
-      // index.html» — en vez del «Cambios desde Prism AI» que no decía nada.
+      // index.html» — en vez del «Cambios desde Forja IA» que no decía nada.
       const mensajeGenerado = mensajeCommit(
         upserts.map((u) =>
           u.path in changes && (changes[u.path]?.orig ?? "") === ""
@@ -389,7 +389,7 @@ export function RepoCloudPanel({
 
   /** Publicar el sitio en GitHub Pages (Pilar 3.2): sube el workflow de
    * Actions junto con los cambios pendientes y habilita Pages. El resultado
-   * es una URL viva: prompt → sitio publicado sin salir de Prism. */
+   * es una URL viva: prompt → sitio publicado sin salir de Forja. */
   const publicarPages = async () => {
     if (!info || pushing) return;
     const t = token.trim() || ghGetToken();

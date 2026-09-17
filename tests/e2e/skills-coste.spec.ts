@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El precio de una skill, al lado del interruptor que lo cobra.
+/** Forja IA — El precio de una skill, al lado del interruptor que lo cobra.
  *
  * Una skill activa mete su texto en el prompt de CADA mensaje. Hasta la
  * v3.19 eso no se veía en ninguna parte: podías tener cinco activas

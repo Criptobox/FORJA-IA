@@ -1,4 +1,4 @@
-/** Prism AI — Preguntar a varios modelos a la vez y quedarse con lo mejor de todos.
+/** Forja IA — Preguntar a varios modelos a la vez y quedarse con lo mejor de todos.
  *
  * La idea de partida era que las IA «dialogaran hasta ponerse de acuerdo». Un
  * debate de varias rondas multiplica el coste por el número de modelos EN CADA

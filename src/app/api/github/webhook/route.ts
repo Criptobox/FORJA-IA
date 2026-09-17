@@ -1,4 +1,4 @@
-/** Prism AI — Webhook inactivo que exige el manifiesto de GitHub App. */
+/** Forja IA — Webhook inactivo que exige el manifiesto de GitHub App. */
 export const runtime = "nodejs";
 
 export async function POST() {

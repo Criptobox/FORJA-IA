@@ -67,7 +67,7 @@ test("pregunta a los dos a la vez y combina en UNA sola pasada", async ({ page }
   await input.fill("Cómo centro un div");
   await input.press("Enter");
 
-  await expect(page.locator('[data-role="assistant"]').first()).toContainText(/Prism AI|pipeline/i, {
+  await expect(page.locator('[data-role="assistant"]').first()).toContainText(/Forja IA|pipeline/i, {
     timeout: 30_000,
   });
 
@@ -141,7 +141,7 @@ test("con un solo proveedor avisa y responde de la forma normal", async ({ page 
 
   // lo dice en vez de fallar en silencio, y contesta igual
   await expect(page.getByText(/necesita al menos dos proveedores/i)).toBeVisible({ timeout: 15_000 });
-  await expect(page.locator('[data-role="assistant"]').first()).toContainText(/Prism AI|pipeline/i, {
+  await expect(page.locator('[data-role="assistant"]').first()).toContainText(/Forja IA|pipeline/i, {
     timeout: 30_000,
   });
 });

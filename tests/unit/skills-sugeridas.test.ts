@@ -1,4 +1,4 @@
-/** Prism AI — Proponer la skill que encaja con el encargo.
+/** Forja IA — Proponer la skill que encaja con el encargo.
  *
  * La señal ya existía: `classifyTask` clasifica en seis tipos y se usaba solo
  * para elegir modelo. Estos tests fijan las dos reglas que hacen que la

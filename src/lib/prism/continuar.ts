@@ -1,7 +1,7 @@
-/** Prism AI — Respuestas que se cortan a mitad del código.
+/** Forja IA — Respuestas que se cortan a mitad del código.
  *
  * El caso real: pides una web larga, el modelo llega a su techo de tokens de
- * salida y el stream termina dentro del bloque de código. Prism lo daba por
+ * salida y el stream termina dentro del bloque de código. Forja lo daba por
  * respuesta buena: la cerca ``` quedaba sin cerrar, la vista previa recibía un
  * documento incompleto y no cargaba, y no había ni aviso ni forma de seguir.
  *

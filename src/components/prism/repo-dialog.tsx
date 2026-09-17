@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Repo Studio: dos formas de trabajar con un repo de GitHub.
+/** Forja IA — Repo Studio: dos formas de trabajar con un repo de GitHub.
  *  · Directo (recomendado): API de GitHub, sin descargar nada, push en 1 commit.
  *  · Descargado: clona el repo en workspace/repos, edita en disco y sube cambios.
  * Incluye editor de archivos, «Corregir con IA» y puente al Sandbox.
@@ -729,7 +729,7 @@ export function RepoStudioDialog({
             <FolderGit2 className="size-4 text-prism-violet" /> Repo Studio
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Trabaja con un repo de GitHub sin salir de Prism: edita en vivo y haz push directo.
+            Trabaja con un repo de GitHub sin salir de Forja: edita en vivo y haz push directo.
           </DialogDescription>
           <div className="mt-3 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
             <button

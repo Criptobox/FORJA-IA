@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Generate Prism AI PWA icons (regular, maskable, apple-touch, favicon) from SVG."""
+"""Generate Forja IA PWA icons (regular, maskable, apple-touch, favicon) from SVG.
+
+Nota: los PNG actuales de public/icons/ vienen ya generados del kit de marca
+(motor-forja/marca/) — este script queda para cuando haga falta regenerarlos
+desde el SVG maestro; su plantilla MASKABLE_SVG estaba ajustada al viewBox
+del icono anterior (prism-icon.svg, 100x100) y puede necesitar retocarse
+para el viewBox del yunque (240x240)."""
 import os
 
 import cairosvg
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, "public", "icons", "prism-icon.svg")
+SRC = os.path.join(ROOT, "motor-forja", "marca", "forja-logo.svg")
 OUT = os.path.join(ROOT, "public", "icons")
 
 # Maskable icon: content must fit in the inner 80% safe zone -> wrap with padding.

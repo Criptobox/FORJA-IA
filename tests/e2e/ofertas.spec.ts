@@ -1,7 +1,7 @@
 import { OFERTAS_BASE } from "../../src/lib/prism/ofertas";
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Caza de ofertas IA: ofertas vigentes de los proveedores, con
+/** Forja IA — Caza de ofertas IA: ofertas vigentes de los proveedores, con
  * avisos de novedades y de expiración.
  *
  * Tres caminos que tienen que funcionar de verdad:

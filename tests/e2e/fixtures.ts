@@ -1,6 +1,6 @@
 import { test as base, expect } from "@playwright/test";
 
-/** Prism AI — base común de los E2E.
+/** Forja IA — base común de los E2E.
  *
  * La demo de vista previa (src/lib/prism/preview-demo.ts) se escribe SOLA en la
  * primera visita: teclea una landing entera, abre el split y encoge el

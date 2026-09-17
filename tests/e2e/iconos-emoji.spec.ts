@@ -1,12 +1,12 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Un emoji como icono se MIDE, no se confía en que el modelo
+/** Forja IA — Un emoji como icono se MIDE, no se confía en que el modelo
  * se autoevalúe.
  *
  * `skill-anti-slop` (v4.17.0) le pide al modelo que NO use emoji como
  * icono de interfaz — pero pedirlo no es lo mismo que comprobarlo.
  * `mock-iconos-emoji` entrega una página con dos botones cuyo único
- * contenido es un emoji (🛒, 🔍); Prism debe medirlo en la página pintada
+ * contenido es un emoji (🛒, 🔍); Forja debe medirlo en la página pintada
  * (nueva seña `iconos-emoji` de `generico.ts`) y devolvérselo al modelo,
  * igual que ya hace con el resto de señas de «página genérica».
  */

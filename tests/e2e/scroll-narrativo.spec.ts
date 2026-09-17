@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Scrollytelling: anclar y deslizar en horizontal.
+/** Forja IA — Scrollytelling: anclar y deslizar en horizontal.
  *
  * `mock-scroll` entrega una sección `pin` con tres pasos y una sección
  * `horizontal` con tres paneles. Se comprueba lo que de verdad importa:

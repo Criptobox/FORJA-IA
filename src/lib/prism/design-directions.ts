@@ -1,4 +1,4 @@
-/** Prism AI — Dirección de diseño: tokens obligatorios antes de generar UI
+/** Forja IA — Dirección de diseño: tokens obligatorios antes de generar UI
  * (Pilar 2 del plan de escalado).
  *
  * El problema típico de «hazme una landing»: hero centrado, botones

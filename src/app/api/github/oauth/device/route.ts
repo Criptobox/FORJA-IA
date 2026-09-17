@@ -1,4 +1,4 @@
-/** Prism AI — Device flow de GitHub (si el navegador bloquea la ventana). */
+/** Forja IA — Device flow de GitHub (si el navegador bloquea la ventana). */
 import { NextResponse } from "next/server";
 import { guardRequest, guardResponse } from "@/lib/prism/api-guard";
 import { credsFrom, githubUser, pollDeviceFlow, startDeviceFlow } from "@/lib/prism/github-oauth-server";

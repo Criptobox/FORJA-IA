@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — La caché del prompt en el camino de Anthropic.
+/** Forja IA — La caché del prompt en el camino de Anthropic.
  *
  * Lo que se comprueba es **lo que sale de la app**, leyendo el cuerpo real de
  * la petición: que el prompt de sistema viaja como bloque con corte, que el
@@ -32,7 +32,7 @@ async function seed(page: Page, over: Record<string, unknown> = {}) {
               stream: false,
               piiShield: false,
               onlyFree: false,
-              systemPrompt: "Eres Prism AI. Responde en español.",
+              systemPrompt: "Eres Forja IA. Responde en español.",
               ...over,
             },
             providers: {

@@ -1,10 +1,10 @@
-/** Prism AI — Puntos de caché en la petición, y el uso REAL que devuelve el proveedor.
+/** Forja IA — Puntos de caché en la petición, y el uso REAL que devuelve el proveedor.
  *
  * ——— El problema ———
  *
  * Un cliente de chat reenvía toda la conversación en cada turno. Con claves
  * gratis eso solo gasta cuota; con una de pago se paga entera cada vez. Y el
- * prompt de Prism no es corto: mapa del proyecto, notas, reglas «no tocar»,
+ * prompt de Forja no es corto: mapa del proyecto, notas, reglas «no tocar»,
  * skills y N mensajes de historial viajan en todos los turnos.
  *
  * Anthropic (y otros) cobran mucho menos por la parte del prompt que ya vieron
@@ -18,7 +18,7 @@
  * al corte sean idénticos. Un solo carácter distinto al principio invalida
  * todo lo que viene detrás. De ahí dos decisiones de esta casa:
  *
- *  · **El corte del sistema va al final del prompt de sistema**, que en Prism
+ *  · **El corte del sistema va al final del prompt de sistema**, que en Forja
  *    no lleva ni fecha ni hora ni nada que cambie solo (comprobado: las piezas
  *    se montan en `prompt-actual.ts` y ninguna es volátil).
  *  · **Comprimir el historial y cachearlo son incompatibles.** La compresión

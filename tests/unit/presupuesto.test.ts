@@ -1,4 +1,4 @@
-/** Prism AI — Presupuesto del prompt y modo ahorro.
+/** Forja IA — Presupuesto del prompt y modo ahorro.
  *
  * El medidor y el prompt salen de la MISMA función a propósito: uno que
  * calculara por su cuenta se desincronizaría a la primera pieza nueva y
@@ -20,7 +20,7 @@ import { BUILTIN_SKILLS } from "../../src/lib/prism/skills-data";
 import { DEFAULT_SETTINGS } from "../../src/lib/prism/types";
 import { agentPrompt } from "../../src/lib/prism/agent-loop";
 
-const base = { sistema: "Eres Prism AI." };
+const base = { sistema: "Eres Forja IA." };
 
 describe("construirPrompt — lo medido es lo que se manda", () => {
   it("el total coincide EXACTAMENTE con la longitud del prompt", () => {
@@ -39,7 +39,7 @@ describe("construirPrompt — lo medido es lo que se manda", () => {
       mapa: "## MAPA\nindex.html",
     });
     // cada texto declarado está de verdad dentro del prompt
-    expect(prompt).toContain("Eres Prism AI.");
+    expect(prompt).toContain("Eres Forja IA.");
     expect(prompt).toContain("[Estilo: conciso] corto");
     expect(prompt).toContain("## MAPA\nindex.html");
 

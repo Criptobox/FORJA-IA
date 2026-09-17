@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — «Hay una versión nueva», en un banner que no se va solo.
+/** Forja IA — «Hay una versión nueva», en un banner que no se va solo.
  *
  * Antes era un aviso flotante. Un aviso desaparece a los pocos segundos, y si
  * estabas mirando otra cosa te lo perdías: justo lo que NO puede pasar con lo
@@ -65,7 +65,7 @@ export function BannerVersionNueva() {
     >
       <ArrowUpCircle className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
       <p className="min-w-0 flex-1 truncate">
-        <span className="font-medium">Hay una versión nueva de Prism.</span>{" "}
+        <span className="font-medium">Hay una versión nueva de Forja.</span>{" "}
         <span className="text-muted-foreground">
           Tienes la v{APP_VERSION}
           {APP_COMMIT ? ` · ${APP_COMMIT}` : ""}; ya está la v{nueva.version}

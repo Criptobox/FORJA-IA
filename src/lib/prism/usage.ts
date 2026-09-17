@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Métricas locales de uso (analytics lite inspirado en OmniRoute).
+/** Forja IA — Métricas locales de uso (analytics lite inspirado en OmniRoute).
  * Todo vive en tu navegador (`prism-usage-v1`): peticiones, OK/fallos, latencia
  * media y p95, volumen y ahorro de compresión por modelo. Nada sale del dispositivo.
  */

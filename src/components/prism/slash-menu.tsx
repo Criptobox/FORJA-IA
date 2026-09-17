@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Menú de comandos slash sobre el compositor.
+/** Forja IA — Menú de comandos slash sobre el compositor.
  *
  * Solo pinta: qué comandos salen, cuál está marcado y cómo se mueve la
  * selección lo decide lib/prism/slash.ts (probado en Node).

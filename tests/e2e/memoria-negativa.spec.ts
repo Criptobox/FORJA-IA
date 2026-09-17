@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — «No tocar»: una regla que se hace cumplir, no una nota.
+/** Forja IA — «No tocar»: una regla que se hace cumplir, no una nota.
  *
  * El mapa del proyecto ya guardaba notas y el modelo las leía. Pero una nota
  * es una sugerencia: el agente la entiende y aun así reescribe el archivo que

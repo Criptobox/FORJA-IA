@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Tarea 3 del plan V6: panel unificado.
+/** Forja IA — Tarea 3 del plan V6: panel unificado.
  *
  * Uso, Cuota y Arena existían, cada uno en su diálogo. Aquí se reúnen en un
  * panel con pestañas montando los mismos componentes (sin reescribirlos), más

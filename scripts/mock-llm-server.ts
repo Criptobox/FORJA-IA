@@ -94,7 +94,7 @@ Bun.serve({
             "<head>",
             '<meta charset="utf-8">',
             '<meta name="viewport" content="width=device-width, initial-scale=1">',
-            "<title>Demo Prism</title>",
+            "<title>Demo Forja</title>",
             "<style>",
             "  body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;",
             "  background:linear-gradient(135deg,#1e1b4b,#0f766e 55%,#be185d);color:#fff}",
@@ -111,7 +111,7 @@ Bun.serve({
             "<body>",
             '<div class="card">',
             "<h1>Funciona en vivo ✨</h1>",
-            "<p>Esta página se generó con Prism AI y se renderiza mientras la IA escribe.</p>",
+            "<p>Esta página se generó con Forja IA y se renderiza mientras la IA escribe.</p>",
             '<button id="b">Púlsame</button>',
             '<span id="n">0</span>',
             "</div>",
@@ -127,7 +127,7 @@ Bun.serve({
           "He recibido tu **imagen** correctamente 👀 El pipeline multimodal funciona: la imagen viajó como `image_url` en el protocolo OpenAI y el modelo la recibió. ¿Qué quieres que haga con ella?";
       } else {
         reply =
-          "¡Hola! Soy **Prism AI** funcionando con tu API.\n\nTodo el pipeline opera correctamente: `UI → proxy → servidor → SSE → UI`.";
+          "¡Hola! Soy **Forja IA** funcionando con tu API.\n\nTodo el pipeline opera correctamente: `UI → proxy → servidor → SSE → UI`.";
       }
 
       if (body.stream) {

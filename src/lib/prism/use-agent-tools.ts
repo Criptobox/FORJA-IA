@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Bucle de tools del agente (PLAN-V4 punto 5).
+/** Forja IA — Bucle de tools del agente (PLAN-V4 punto 5).
  *
  * El bloque de `runGeneration` que maneja `probeTools` + el bucle de
  * `tool_calls` vivía dentro de `chat-app.tsx` (unas 130 líneas). Aquí
@@ -307,7 +307,7 @@ export async function ejecutarConTools(
 
     // Verificación automática después de CUALQUIER escritura. El agente no
     // debe tener que acordarse de pedir verify_project: si acaba de cambiar
-    // el proyecto, Prism vuelve a ejecutarlo y le entrega evidencia objetiva
+    // el proyecto, Forja vuelve a ejecutarlo y le entrega evidencia objetiva
     // en la misma conversación — editar → ejecutar → verificar → corregir,
     // en vez de depender de una promesa textual del modelo. No se duplica
     // si el modelo ya llamó verify_project en esta misma tanda.

@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Tools con detección de capacidad (PLAN-V4 punto 2).
+/** Forja IA — Tools con detección de capacidad (PLAN-V4 punto 2).
  *
  * Antes (v3.13): el agente era prompt + parser XML. No llamaba funciones.
  * Ahora (v3.14): si el modelo soporta `tools`, se le pasa el catálogo y
@@ -38,7 +38,7 @@ async function seedAgent(page: import("@playwright/test").Page) {
           radarSeenIds: [],
           settings: {
             defaultModelKey: `custom::${model}`,
-            systemPrompt: "Eres Prism AI (test).",
+            systemPrompt: "Eres Forja IA (test).",
             temperature: 0.7,
             maxTokens: null,
             stream: false, // no-streaming: más fácil de inspeccionar el body

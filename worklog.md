@@ -7385,3 +7385,83 @@ viejo, y elimina archivos innecesarios». Revisado dónde vive cada logo:
 - ✓ lint · ✓ tsc limpio
 - ✓ **1 945** unitarios sin regresiones
 - ✓ build OK
+
+## v4.26.0 — Rebrand completo: Prism AI vuelve a ser Forja IA
+
+El usuario renombró el repositorio de GitHub a `FORJA-IA` y avisó que la
+app seguía enseñando "Prism" y el logo viejo en varios sitios. Aquí se
+entiende por qué: yo había asumido que "Prism AI" era la marca definitiva
+y descarté como "revert" todo lo que el ZIP de Forja Lab traía con la
+marca "Forja IA" — al revés de lo que el usuario quería. Confirmado con
+él explícitamente (todo el texto visible Y el código interno, con el
+yunque naranja original del ZIP como logo), se deshace el rebrand a Prism
+en toda la app.
+
+### Qué cambió
+
+- **Texto**: reemplazo mecánico de "Prism AI" → "Forja IA" y "Prism"
+  suelto → "Forja" en `src/`, `tests/`, `docs/`, `scripts/`, `README.md`,
+  `public/manifest.json`, `.env.example`, `Dockerfile`, `setup.sh/.bat`,
+  `assets/prism-fx.css`, `public/sw.js` — con cuidado de NO tocar
+  `usePrism` (el hook de Zustand), las clases CSS `prism-gradient-*` /
+  `prism-violet` (identificadores internos, cero coste de renombrar mal y
+  cero beneficio visible) ni las rutas `src/lib/prism/` /
+  `src/components/prism/` (así se organizaba el código incluso en la
+  Forja IA original, antes de existir "Prism" como marca — renombrar
+  carpetas aquí es un refactor invasivo sin beneficio para el usuario).
+- **Logo**: `logo.tsx` recupera el `ForjaLogo` original del ZIP (el
+  yunque con la chispa, degradado durazno→naranja) en vez del triángulo
+  violeta. Iconos PWA/favicon regenerados desde el kit de marca del ZIP
+  (`motor-forja/marca/`) — ya venían pre-renderizados, no hizo falta
+  `cairosvg`.
+- **Acento de color**: la app ya tenía un sistema de temas de acento
+  (`accent.ts`, 6 presets) con un preset "naranja" (`#f97316`) que
+  coincide casi exacto con el naranja del yunque. Se cambió
+  `ACCENT_DEFAULT` y `DEFAULT_SETTINGS.accent` de "violeta" a "naranja",
+  y los valores por defecto en `:root`/`.dark` de `globals.css` (antes
+  oklch violeta) para que no haya un parpadeo violeta antes de que el
+  JS aplique el acento — con una regla `html[data-accent="violeta"]`
+  nueva para que quien lo prefiera lo siga teniendo disponible.
+- **`Prism <span>AI</span>`** en el encabezado de la barra lateral y
+  onboarding: el reemplazo mecánico no lo pilló (el texto va partido en
+  dos nodos JSX) — corregido a mano a "Forja **IA**" (orden del acrónimo
+  en español).
+
+### Lo que se protegió a propósito (riesgo de pérdida de datos)
+
+- **`"prism-ai-v1"`** (la clave de `localStorage` donde vive TODO el
+  estado persistido: sesiones, ajustes, proveedores) y `"prism-vault-v1"`
+  (bóveda cifrada de claves API) NO se tocan. Renombrar la clave habría
+  hecho que la app dejara de encontrar los datos de quien ya la usaba —
+  no es una cuestión de marca, es continuidad de datos reales.
+- El marcador `app: "prism-ai"` de los backups exportados (`exportData`/
+  `importData` en `store.ts`) pasa a escribirse como `"forja-ia"`, pero
+  `importData` sigue aceptando también `"prism-ai"` para no romper la
+  importación de una copia de seguridad ya guardada de una versión
+  anterior.
+- `PRISM_ACCESS_CODE` (variable de entorno real, configurable en
+  Vercel/VPS) se deja igual: cambiar el nombre sin poder migrar la
+  variable ya puesta en el despliegue real del usuario habría desactivado
+  su proxy en producción sin aviso. Si en algún momento quiere
+  renombrarla también, hay que coordinarlo con el valor que tenga puesto
+  donde despliega.
+- `NEXT_PUBLIC_PRISM_VERSION/COMMIT/BUILT` sí se renombraron a
+  `NEXT_PUBLIC_FORJA_*`: estas las genera `next.config.ts` en cada build,
+  no las configura el usuario a mano en ningún sitio — cero riesgo.
+
+### Verificado
+
+Con navegador real (Playwright) contra `npm start`: sidebar con el
+yunque, "Forja IA" y el acento naranja en el botón de nueva conversación,
+las insignias y el footer con la versión — capturas revisadas a mano. La
+sesión anterior del usuario (persistida en `prism-ai-v1`, sin tocar)
+seguía ahí intacta tras el cambio, confirmando que la protección del
+storage funcionó.
+
+### Puerta
+
+- ✓ lint · ✓ tsc limpio
+- ✓ **1 945** unitarios sin regresiones (los textos "Forja IA" en headers
+  de test y aserciones de contenido cambiaron juntos, así que siguen
+  casando)
+- ✓ build OK · smoke test visual con navegador real

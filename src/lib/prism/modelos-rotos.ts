@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Memoria de los modelos que el proveedor no reconoce.
+/** Forja IA — Memoria de los modelos que el proveedor no reconoce.
  *
  * «Probar modelos» ya sabía cuáles fallan y los tachaba en rojo. El problema:
  * ese resultado vivía en un `useState` DENTRO del diálogo de Ajustes. Al

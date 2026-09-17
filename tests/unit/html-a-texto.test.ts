@@ -1,4 +1,4 @@
-/** Prism AI — HTML a texto legible para el agente.
+/** Forja IA — HTML a texto legible para el agente.
  *
  * Mandarle el HTML crudo al modelo es tirar su contexto: entre scripts,
  * estilos y la maraña de divs, el texto útil suele ser menos de la décima

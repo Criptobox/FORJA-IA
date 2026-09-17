@@ -1,4 +1,4 @@
-/** Prism AI — Lo que se ve de una conversación en la lista lateral.
+/** Forja IA — Lo que se ve de una conversación en la lista lateral.
  *
  * La lista mostraba solo el título. Con tres conversaciones que empiezan por
  * «Hola» no hay forma de saber cuál es cuál sin abrirlas una por una, ni de

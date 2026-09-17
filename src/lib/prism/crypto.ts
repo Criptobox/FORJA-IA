@@ -1,4 +1,4 @@
-/** Prism AI — Primitivas de cifrado Web Crypto (AES-GCM + PBKDF2).
+/** Forja IA — Primitivas de cifrado Web Crypto (AES-GCM + PBKDF2).
  * Módulo puro, sin dependencias del store, para poder testearlo de forma aislada.
  */
 

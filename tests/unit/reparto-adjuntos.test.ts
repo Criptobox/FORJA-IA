@@ -1,4 +1,4 @@
-/** Prism AI — Qué se hace con cada archivo que sueltas en el chat.
+/** Forja IA — Qué se hace con cada archivo que sueltas en el chat.
  *
  * Esta lógica vivía dentro de `attachFiles`, mezclada con el I/O y con los
  * avisos, y por eso no tenía un solo test. Los fallos de esta semana —un `.py`

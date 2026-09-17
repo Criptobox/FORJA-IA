@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Los modelos que se proponen tienen que existir.
+/** Forja IA — Los modelos que se proponen tienen que existir.
  *
  * El fallo real: «Probar» decía «423 modelos visibles» y, justo debajo, los
  * «Sugeridos» salían de una lista escrita a mano en el código. Cuatro de los

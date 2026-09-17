@@ -1,4 +1,4 @@
-/** Prism AI — Lo que TUS claves pueden usar hoy, gratis.
+/** Forja IA — Lo que TUS claves pueden usar hoy, gratis.
  *
  * El «siempre pone lo mismo» del radar era literal: casi todo es un catálogo
  * escrito a mano. Esto es la parte que cambia sola, porque sale de preguntarle

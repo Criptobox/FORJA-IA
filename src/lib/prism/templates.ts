@@ -1,4 +1,4 @@
-/** Prism AI — Catálogo de plantillas del Sandbox (U3, PLAN-V7).
+/** Forja IA — Catálogo de plantillas del Sandbox (U3, PLAN-V7).
  *
  * Los ZIPs de demo ya viven en `/public` (`demo-sandbox.zip`,
  * `demo-modulos.zip`) y el Sandbox ya sabe cargarlos. Lo que falta es

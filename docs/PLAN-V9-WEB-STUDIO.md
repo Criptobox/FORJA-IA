@@ -1,8 +1,8 @@
-# Prism AI 4.20 — Web Studio y Project Intelligence
+# Forja IA 4.20 — Web Studio y Project Intelligence
 
 ## Objetivo
 
-Llevar Prism a un flujo de desarrollo web más profundo sin duplicar las herramientas que ya existen.
+Llevar Forja a un flujo de desarrollo web más profundo sin duplicar las herramientas que ya existen.
 
 ### Ya existente y reutilizado
 

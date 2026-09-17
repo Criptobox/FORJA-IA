@@ -1,4 +1,4 @@
-/** Prism AI — Que «Auto» aprenda de lo que TE ha funcionado.
+/** Forja IA — Que «Auto» aprenda de lo que TE ha funcionado.
  *
  * `useUsage` guarda aciertos, milisegundos y caracteres por modelo desde hace
  * versiones, y `buildTaskChain` no lo miraba: ordenaba por una tabla estática

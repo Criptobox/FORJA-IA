@@ -1,13 +1,13 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — La web larga que se quedaba a medias.
+/** Forja IA — La web larga que se quedaba a medias.
  *
  * Lo que reportó el usuario: «cuando es largo el código de una web se detienen
  * los modelos y lo dejan a medias». El modelo llega a su techo de tokens de
  * salida y el stream acaba DENTRO del bloque de código: la cerca ``` queda sin
  * cerrar y el documento sin `</html>`.
  *
- * Prism lo daba por respuesta completa. La vista previa recibía un documento
+ * Forja lo daba por respuesta completa. La vista previa recibía un documento
  * incompleto y no cargaba, y no había ni aviso ni forma de seguir.
  *
  * `mock-largo` reproduce el corte exacto y entrega el resto solo si se le pide
@@ -28,7 +28,7 @@ async function seed(page: import("@playwright/test").Page) {
         radarSeenIds: [],
         settings: {
           defaultModelKey: `custom::${model}`,
-          systemPrompt: "Eres Prism AI (test).",
+          systemPrompt: "Eres Forja IA (test).",
           temperature: 0.7,
           maxTokens: null,
           stream: false,
@@ -92,7 +92,7 @@ test("una web cortada por longitud se completa y la vista previa la pinta entera
   // Lo que fallaba: la página no llegaba a cargar. El <h1> vive en el SEGUNDO
   // trozo, así que si no se hubiera cosido, esto no aparece.
   const marco = page.frameLocator('iframe[title="Vista previa de la página generada"]');
-  await expect(marco.locator("h1")).toHaveText("Prism", { timeout: 45_000 });
+  await expect(marco.locator("h1")).toHaveText("Forja", { timeout: 45_000 });
   await expect(marco.locator("p")).toContainText("tras empalmar los dos trozos");
 
   // Y se cosió en la MISMA respuesta: un solo bloque de código, no dos

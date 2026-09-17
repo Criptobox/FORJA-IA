@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Si no cabe, se recorta y se reintenta con el MISMO modelo.
+/** Forja IA — Si no cabe, se recorta y se reintenta con el MISMO modelo.
  *
  * Saltar a otro modelo estaba bien como último recurso, pero cuando el que no
  * puede es justo el que quieres, lo que sobra no es el modelo: es el historial

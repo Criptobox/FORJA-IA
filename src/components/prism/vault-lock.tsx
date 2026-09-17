@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Diálogo de desbloqueo de la bóveda de claves (PIN) */
+/** Forja IA — Diálogo de desbloqueo de la bóveda de claves (PIN) */
 import { useEffect, useRef, useState } from "react";
 import { Loader2, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";

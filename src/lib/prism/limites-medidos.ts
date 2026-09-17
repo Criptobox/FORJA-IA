@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Lo que cada modelo demostró que NO le cabe.
+/** Forja IA — Lo que cada modelo demostró que NO le cabe.
  *
  * Un modelo puede existir, estar vivo y tener tu clave bien y aun así no
  * servirte: Groq contestó «Request too large … input tokens per minute (ITPM):

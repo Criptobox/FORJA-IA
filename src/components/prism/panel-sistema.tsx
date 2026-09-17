@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Panel del sistema (T3, plan V6).
+/** Forja IA — Panel del sistema (T3, plan V6).
  *
  * Los datos ya existían, repartidos en tres paneles: Uso, Cuota y Arena. Esto
  * no los reescribe — monta los CUERPOS de esos mismos componentes en pestañas;

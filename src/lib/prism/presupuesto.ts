@@ -1,4 +1,4 @@
-/** Prism AI — Qué ocupa lo que se manda, y el modo ahorro.
+/** Forja IA — Qué ocupa lo que se manda, y el modo ahorro.
  *
  * El system prompt se monta con ocho piezas y hasta ahora nadie lo medía. Los
  * números reales del arranque de fábrica: dos skills activas de 1.797

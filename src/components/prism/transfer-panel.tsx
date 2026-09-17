@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Llevarte tus claves y conversaciones a otro dispositivo.
+/** Forja IA — Llevarte tus claves y conversaciones a otro dispositivo.
  *
  * Sin cuenta y sin servidor: sale un texto cifrado que no significa nada sin la
  * frase que elijas. Lo pasas como quieras y lo pegas en el otro dispositivo.

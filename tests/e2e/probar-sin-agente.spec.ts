@@ -1,8 +1,8 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El código se ejecuta aunque el modo agente esté apagado.
+/** Forja IA — El código se ejecuta aunque el modo agente esté apagado.
  *
- * Prism ya ejecutaba lo que entregaba… dentro del modo agente. Y el modo
+ * Forja ya ejecutaba lo que entregaba… dentro del modo agente. Y el modo
  * agente viene apagado: el caso más común —abres la app, escribes «hazme una
  * página» y te llega el HTML— salía sin ejecutarse ni una vez, y el fallo lo
  * descubrías tú al abrirlo. La comprobación estaba escrita, probada y puesta

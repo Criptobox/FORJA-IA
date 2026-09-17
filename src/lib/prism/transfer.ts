@@ -1,9 +1,9 @@
-/** Prism AI — Llevarte tus cosas a otro dispositivo, sin cuentas ni servidor.
+/** Forja IA — Llevarte tus cosas a otro dispositivo, sin cuentas ni servidor.
  *
  * El problema real es «no quiero volver a poner las claves en el portátil». La
  * respuesta habitual —una cuenta y un servidor que guarde tus claves— es
  * justamente la que no quiero: si ese servidor se filtra, se filtran claves de
- * API de otra gente, que son dinero. Y Prism anuncia «sin cuentas, tus claves
+ * API de otra gente, que son dinero. Y Forja anuncia «sin cuentas, tus claves
  * solo en tu dispositivo» en la propia app.
  *
  * Aquí los datos viajan CIFRADOS y sin intermediario: sale un texto que no
@@ -26,7 +26,7 @@ export interface TransferBundle {
   v: 1;
   /** cuándo se creó, para saber qué copia es más reciente */
   at: number;
-  /** versión de Prism que lo generó, informativo */
+  /** versión de Forja que lo generó, informativo */
   app?: string;
   providers?: Partial<Record<ProviderId, ProviderConfig>>;
   settings?: AppSettings;
@@ -150,13 +150,13 @@ export async function packTransfer(bundle: TransferBundle, frase: string): Promi
 
 /**
  * Abre un paquete. Distingue los tres fallos posibles, porque el consejo es
- * distinto en cada caso: esto no es de Prism, esto está cortado, o la frase no
+ * distinto en cada caso: esto no es de Forja, esto está cortado, o la frase no
  * es la misma.
  */
 export async function unpackTransfer(texto: string, frase: string): Promise<TransferBundle> {
   const limpio = texto.trim().replace(/\s+/g, "");
   if (!limpio.startsWith(TRANSFER_PREFIX)) {
-    throw new Error("Eso no parece un código de Prism");
+    throw new Error("Eso no parece un código de Forja");
   }
   let blob: VaultBlob;
   try {

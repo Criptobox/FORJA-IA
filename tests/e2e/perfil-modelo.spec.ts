@@ -1,9 +1,9 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Lo que la app ya sabía del modelo, dicho ANTES de elegirlo.
+/** Forja IA — Lo que la app ya sabía del modelo, dicho ANTES de elegirlo.
  *
  * El usuario lo describió así: «hay modelos que me los da como que están
- * buenos y al final no funcionan». Y era verdad: Prism medía el techo de
+ * buenos y al final no funcionan». Y era verdad: Forja medía el techo de
  * entrada de cada modelo la primera vez que lo rechazaba por tamaño, lo
  * guardaba, lo usaba para no volver a elegirlo… y no lo enseñaba en ninguna
  * parte. El selector los pintaba a todos iguales.

@@ -1,11 +1,11 @@
-/** Prism AI — Que el agente pruebe su propio código.
+/** Forja IA — Que el agente pruebe su propio código.
  *
  * `PLAN-V4` §3: «Hoy el agente escribe código y te pregunta a ti si funciona.»
  * Se arregló a medias — el agente ejecuta el proyecto cuando el modelo soporta
  * `tools` y llama a `run_project`—, pero **la mayoría de los modelos gratis no
  * soportan `tools`**. Esos van por el camino XML, y ahí el agente seguía
  * entregando código sin comprobarlo. O sea: el arreglo llegaba justo a los
- * modelos para los que Prism NO existe.
+ * modelos para los que Forja NO existe.
  *
  * Aquí está la decisión de cuándo revisar y qué decirle al modelo. La
  * ejecución la hace `sandbox-runner` (necesita un iframe), y el cableado vive
@@ -53,7 +53,7 @@ export function proyectoDeLaRespuesta(content: string): ProyectoRevisable | null
  * cookies e IndexedDB ahí dentro, y cualquier acceso lanza un `SecurityError`.
  *
  * Y una página generada usa `localStorage` constantemente —una lista de
- * tareas que se guarda, un contador que persiste—. Sin este filtro, Prism le
+ * tareas que se guarda, un contador que persiste—. Sin este filtro, Forja le
  * diría al modelo «tu código lanza un error» y le haría «arreglar» código que
  * está perfectamente bien: el peor resultado posible para una revisión
  * automática.

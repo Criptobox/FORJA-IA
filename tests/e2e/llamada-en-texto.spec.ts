@@ -1,13 +1,13 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Cuando el modelo pide la herramienta como TEXTO, no tool_calls.
+/** Forja IA — Cuando el modelo pide la herramienta como TEXTO, no tool_calls.
  *
  * Reportado por un usuario dos veces seguidas en la misma conversación real:
  * con nvidia/nemotron vía OpenRouter en modo agente, la burbuja del chat
  * enseñaba literal `<function=write_file> <parameter=path>...` en vez de
  * escribir la página. El modelo SÍ intentaba llamar a la herramienta, con
  * la plantilla de function-calling de su propio entrenamiento en vez del
- * campo `tool_calls` de la API — y Prism no tenía dónde reconocerla.
+ * campo `tool_calls` de la API — y Forja no tenía dónde reconocerla.
  *
  * `mock-llamada-en-texto` reproduce exactamente eso: nunca llama a
  * `onToolCalls`, todo lo que manda es el texto crudo de la plantilla.

@@ -3,7 +3,7 @@
  * Precios por token, en dólares, de 448 modelos.
  *
  *  · Fuente: https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
- *    (LiteLLM, BerriAI — licencia MIT, la misma que Prism)
+ *    (LiteLLM, BerriAI — licencia MIT, la misma que Forja)
  *  · Instantánea del 2026-09-04
  *
  * Los precios cambian sin avisar. Lo que la app enseña siempre lleva esta
@@ -11,7 +11,7 @@
  * seguir enseñando un número con cara de actual.
  *
  * Campos: `in` entrada · `out` salida · `cr` lectura de caché ·
- * `cw` escritura de caché · `p` proveedor en Prism. Todos por TOKEN.
+ * `cw` escritura de caché · `p` proveedor en Forja. Todos por TOKEN.
  */
 export const PRECIOS_FECHA = "2026-09-04";
 export const PRECIOS_FUENTE = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json";
@@ -26,7 +26,7 @@ export interface PrecioToken {
   cr?: number;
   /** dólares por token escrito a la caché */
   cw?: number;
-  /** proveedor, con el id que usa Prism */
+  /** proveedor, con el id que usa Forja */
   p: string;
 }
 

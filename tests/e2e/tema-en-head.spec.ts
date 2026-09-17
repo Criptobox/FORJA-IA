@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — El puente de consola tiene que ganar la carrera con los
+/** Forja IA — El puente de consola tiene que ganar la carrera con los
  * scripts del propio proyecto que viven en `<head>`.
  *
  * Hallazgo del dogfooding de v4.10.0 ("pruébalo tú mismo y dime qué

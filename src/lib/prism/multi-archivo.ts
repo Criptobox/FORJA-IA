@@ -1,4 +1,4 @@
-/** Prism AI — Cuando piden un PROYECTO, no una página suelta.
+/** Forja IA — Cuando piden un PROYECTO, no una página suelta.
  *
  * La skill «Desarrollador web experto» manda entregar SIEMPRE un único
  * archivo HTML autónomo (`skills-data.ts`) — sin excepción, ni para cuando

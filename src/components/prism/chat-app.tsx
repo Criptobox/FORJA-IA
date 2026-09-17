@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — App principal: chat + vista previa en vivo + agente con bucles + mapa del proyecto
+/** Forja IA — App principal: chat + vista previa en vivo + agente con bucles + mapa del proyecto
  * + Arena A/B, modo imagen, documentos (PDF), atajos de teclado, bóveda PIN y lista virtualizada. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -60,7 +60,7 @@ import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/prism/use-media-query";
 import { Welcome } from "./welcome";
 import { registerServiceWorker } from "./pwa";
 import { BannerVersionNueva } from "./app-update";
-import { PrismLogo } from "./logo";
+import { ForjaLogo } from "./logo";
 import { ModelArenaDialog } from "./model-arena";
 import { SystemPanel } from "./panel-sistema";
 import { ShortcutsDialog } from "./shortcuts-dialog";
@@ -394,7 +394,7 @@ export function ChatApp() {
   }, [hydrated]);
 
   // Share Target (PLAN-V4 punto 4): cuando una app externa comparte
-  // texto con Prism (PWA instalada), el navegador POSTea al action del
+  // texto con Forja (PWA instalada), el navegador POSTea al action del
   // share_target del manifest. El handler en `src/app/route.ts` guarda
   // el contenido en una cookie efímera `prism-share` y redirige a
   // `/?shared=1`. Aquí la leemos en mount, la volcamos en el input y la
@@ -1101,7 +1101,7 @@ export function ChatApp() {
     );
     if (st.ajustes.notificaciones && typeof Notification !== "undefined" && Notification.permission === "granted") {
       try {
-        new Notification("Prism AI · Caza de ofertas", { body: lineas });
+        new Notification("Forja IA · Caza de ofertas", { body: lineas });
       } catch {
         // en algunos navegadores móviles el constructor exige service worker:
         // el toast dentro de la app ya avisó
@@ -1325,7 +1325,7 @@ export function ChatApp() {
   if (!hydrated) {
     return (
       <div className="flex h-dvh items-center justify-center">
-        <PrismLogo size={56} className="generating" />
+        <ForjaLogo size={56} className="generating" />
       </div>
     );
   }
@@ -1383,7 +1383,7 @@ export function ChatApp() {
           title={
             isAutoKey(modelKey)
               ? "Auto está on. Púlsalo para volver al modelo que tenías."
-              : "Auto: Prism elige el modelo según la tarea."
+              : "Auto: Forja elige el modelo según la tarea."
           }
         >
           <Zap className="size-3.5" />
@@ -1437,13 +1437,13 @@ export function ChatApp() {
                   // se muestra inmediatamente; la descarga llega un instante
                   // después. No bloquea la UI.
                   void downloadSessionHtml(activeSession).then(() =>
-                    toast.success("Prism Link creado — comparte el .html con quien quieras")
+                    toast.success("Forja Link creado — comparte el .html con quien quieras")
                   );
                 }}
               >
                 <Globe className="size-4" />
                 <div className="flex flex-col">
-                  <span>Prism Link (.html)</span>
+                  <span>Forja Link (.html)</span>
                   <span className="text-[10.5px] text-muted-foreground">
                     Página autocontenida para compartir
                   </span>

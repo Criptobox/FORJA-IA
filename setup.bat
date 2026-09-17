@@ -1,7 +1,7 @@
 @echo off
-rem Prism AI - instalador para Windows (doble clic)
+rem Forja IA - instalador para Windows (doble clic)
 rem Requiere Node.js 20.9+: https://nodejs.org
-title Prism AI - Instalador
+title Forja IA - Instalador
 cd /d "%~dp0"
 where node >nul 2>nul
 if errorlevel 1 (

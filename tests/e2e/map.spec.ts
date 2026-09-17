@@ -1,6 +1,6 @@
 import {  expect, test, type Page  } from "./fixtures";
 
-/** Prism AI — E2E v3.1.0: Mapa del proyecto edición Obsidian (grafo, backlinks,
+/** Forja IA — E2E v3.1.0: Mapa del proyecto edición Obsidian (grafo, backlinks,
  * notas de memoria e historial). Se siembra una sesión con projectMap completo. */
 
 const MAP = {
@@ -68,7 +68,7 @@ async function seedApp(page: Page) {
         radarSeenIds: [],
         settings: {
           defaultModelKey: "custom::mock-mini-free",
-          systemPrompt: "Eres Prism AI (test).",
+          systemPrompt: "Eres Forja IA (test).",
           temperature: 0.7,
           maxTokens: null,
           stream: true,
@@ -102,7 +102,7 @@ async function seedApp(page: Page) {
   }, MAP);
 }
 
-test.describe("Prism AI — Mapa del proyecto (edición Obsidian)", () => {
+test.describe("Forja IA — Mapa del proyecto (edición Obsidian)", () => {
   test.beforeEach(async ({ page }) => {
     await seedApp(page);
   });

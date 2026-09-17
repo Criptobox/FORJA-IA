@@ -1,4 +1,4 @@
-/** Prism AI — ZIP mínimo sin dependencias (para el Sandbox).
+/** Forja IA — ZIP mínimo sin dependencias (para el Sandbox).
  * Lector: usa DecompressionStream nativo del navegador (deflate-raw) + stored.
  * Escritor: método STORE (sin comprimir) con CRC32 — válido y universal.
  * Soporta nombres UTF-8 y carpetas anidadas. Sin zip64 (proyectos pequeños).

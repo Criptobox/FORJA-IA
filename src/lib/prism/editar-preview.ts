@@ -1,4 +1,4 @@
-/** Prism AI — Tocar un texto de la vista previa y editarlo ahí mismo.
+/** Forja IA — Tocar un texto de la vista previa y editarlo ahí mismo.
  *
  * Hasta ahora, para cambiar un titular tenías que abrir Ajustes → Sandbox,
  * encontrar el archivo, buscar la línea y escribirle al modelo «cambia esto

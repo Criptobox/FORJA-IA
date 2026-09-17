@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Ejecutor del Sandbox en memoria (para el bucle del agente).
+/** Forja IA — Ejecutor del Sandbox en memoria (para el bucle del agente).
  *
  * Hoy (pre-v3.15) el Sandbox vive en `sandbox-studio.tsx`: el usuario
  * pulsa «Ejecutar» y el HTML autocontenido se carga en un iframe visible.
@@ -112,7 +112,7 @@ export async function runProjectInMemory(
 
   // 4. Inyectar el medidor de QA y el runtime del piloto (por si el
   //    agente quiere seguir operando con `sandbox-pilot`).
-  // Peso del proyecto ya empaquetado, sin la instrumentación de Prism.
+  // Peso del proyecto ya empaquetado, sin la instrumentación de Forja.
   // Lo calcula `buildRunHtml`, que es el único sitio que ve el HTML antes
   // de que se le inyecte nada.
   const htmlBytes = built.htmlBytes;

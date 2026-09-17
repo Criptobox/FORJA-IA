@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Prism AI — Instalador multiplataforma (Windows / macOS / Linux)
+ * Forja IA — Instalador multiplataforma (Windows / macOS / Linux)
  * Uso: npm run setup   |   node scripts/setup.mjs
  *
  * Qué hace:
@@ -43,7 +43,7 @@ ${c.violet}${c.bold}
  /    |    \\| |     | | /  |/  /  |  |  |  |   |
  \\____|____/|_|     |_|/__/|__/   |__|__|__|___|
 ${c.reset}
-${c.bold}  Prism AI${c.reset} ${c.dim}· Un prisma, todos tus modelos${c.reset}
+${c.bold}  Forja IA${c.reset} ${c.dim}· Todos tus modelos, forjados en uno${c.reset}
 ${c.dim}  Chat PWA con tus propias APIs · solo modelos gratis${c.reset}
 `);
 }
@@ -83,7 +83,7 @@ const [major, minor] = process.versions.node.split(".").map(Number);
 if (major < REQUIRED_NODE || (major === REQUIRED_NODE && minor < REQUIRED_MINOR)) {
   console.error(`\n  Detectado: Node ${process.versions.node}`);
   fail(
-    `Prism AI usa Next.js 16, que requiere Node ${REQUIRED_NODE}.${REQUIRED_MINOR} o superior.\n` +
+    `Forja IA usa Next.js 16, que requiere Node ${REQUIRED_NODE}.${REQUIRED_MINOR} o superior.\n` +
       `  Descarga la versión LTS desde https://nodejs.org y vuelve a ejecutar este instalador.`
   );
 }

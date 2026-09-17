@@ -1,4 +1,4 @@
-/** Prism AI — Propiedades del perímetro y de lo que rompió esta semana.
+/** Forja IA — Propiedades del perímetro y de lo que rompió esta semana.
  *
  * Un test de ejemplo comprueba un caso; una propiedad comprueba una REGLA
  * sobre miles de casos generados. La diferencia no es teórica: los tres fallos
@@ -365,7 +365,7 @@ describe("sandbox", () => {
     );
   });
 
-  it("`htmlBytes` nunca cuenta la instrumentación que inyecta Prism", () => {
+  it("`htmlBytes` nunca cuenta la instrumentación que inyecta Forja", () => {
     fc.assert(
       fc.property(fc.string({ maxLength: 300 }), (texto) => {
         const html = `<!doctype html><html><head></head><body>${texto.replace(/[<>&]/g, "")}</body></html>`;

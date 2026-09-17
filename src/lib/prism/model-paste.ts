@@ -1,4 +1,4 @@
-/** Prism AI — Extrae proveedor, clave, URL y modelo de un snippet
+/** Forja IA — Extrae proveedor, clave, URL y modelo de un snippet
  * (Python de NVIDIA Build, OpenAI SDK de TokenRouter/Groq/OpenRouter, cURL…). */
 
 import { PROVIDERS } from "./providers";

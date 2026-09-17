@@ -1,6 +1,6 @@
 import {  expect, test  } from "./fixtures";
 
-/** Prism AI — E2E del router (v2.8, inspirado en OmniRoute):
+/** Forja IA — E2E del router (v2.8, inspirado en OmniRoute):
  * Auto en el selector, badges de cooldown (salud) y panel de métricas de uso. */
 
 /** Semilla idéntica a chat.spec.ts: proveedor custom apuntando al mock interno. */
@@ -15,7 +15,7 @@ async function seedMockProvider(page: import("@playwright/test").Page) {
         radarSeenIds: [],
         settings: {
           defaultModelKey: "custom::mock-mini-free",
-          systemPrompt: "Eres Prism AI (test).",
+          systemPrompt: "Eres Forja IA (test).",
           temperature: 0.7,
           maxTokens: null,
           stream: true,
@@ -48,7 +48,7 @@ async function seedMockProvider(page: import("@playwright/test").Page) {
   });
 }
 
-test.describe("Prism AI — router (Auto, salud, uso)", () => {
+test.describe("Forja IA — router (Auto, salud, uso)", () => {
   test.beforeEach(async ({ page }) => {
     await seedMockProvider(page);
   });
@@ -58,7 +58,7 @@ test.describe("Prism AI — router (Auto, salud, uso)", () => {
     const input = page.getByPlaceholder("Escribe tu mensaje…");
     await expect(input).toBeVisible({ timeout: 30_000 });
     await page.getByRole("combobox").first().click();
-    await expect(page.getByText("actívalo y Prism elige el modelo")).toBeVisible();
+    await expect(page.getByText("actívalo y Forja elige el modelo")).toBeVisible();
     await page.getByRole("switch", { name: "Activar Auto" }).click();
     // el botón del picker muestra Auto
     await expect(page.getByRole("combobox").first()).toContainText("Auto");

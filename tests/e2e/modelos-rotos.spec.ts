@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Un modelo que no responde deja de ofrecerse en el chat.
+/** Forja IA — Un modelo que no responde deja de ofrecerse en el chat.
  *
  * Reportado con captura: «Probar modelos» tachaba en rojo los cuatro modelos
  * de Groq que el proveedor no reconoce… y el selector del chat los seguía

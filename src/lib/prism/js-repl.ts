@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — REPL de JavaScript aislado para el agente (tool `run_js`).
+/** Forja IA — REPL de JavaScript aislado para el agente (tool `run_js`).
  *
  * `run_project` arranca el proyecto ENTERO: sirve para ver si la web
  * funciona, pero es el martillo. Cuando el agente quiere probar UNA
@@ -7,7 +7,7 @@
  * son segundos y tokens; y muchas veces ni siquiera hay proyecto.
  *
  * Aquí se crea un iframe OCULTO con `sandbox="allow-scripts"` (sin
- * `allow-same-origin`: el código no toca las claves ni el DOM de Prism,
+ * `allow-same-origin`: el código no toca las claves ni el DOM de Forja,
  * igual que el ejecutor del Sandbox), se inyecta el snippet y se recoge:
  *  - el valor de la variable `resultado` (contrato simple y explícito:
  *    el modelo lo sabe por la descripción de la tool),
@@ -194,7 +194,7 @@ export function runJsInMemory(codigo: string): Promise<ReplOutcome> {
     iframe.style.pointerEvents = "none";
     iframe.style.zIndex = "-1";
     iframe.style.border = "0";
-    // allow-scripts SIN allow-same-origin: sin acceso a las claves de Prism
+    // allow-scripts SIN allow-same-origin: sin acceso a las claves de Forja
     iframe.sandbox.add("allow-scripts");
     iframe.srcdoc = buildSrcdoc(codigo);
 

@@ -1,4 +1,4 @@
-/** Prism AI — Detección de modelos gratis por proveedor.
+/** Forja IA — Detección de modelos gratis por proveedor.
  *
  * Reglas (verificado con la documentación oficial de cada proveedor):
  *  - AiHubMix subsidia 27+ modelos con sufijo «-free» (gpt-5.5-free, deepseek-v3-free…).

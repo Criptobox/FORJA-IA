@@ -1,6 +1,6 @@
-/** Prism AI — El medidor de «esto lo ha hecho una IA».
+/** Forja IA — El medidor de «esto lo ha hecho una IA».
  *
- * Prism ya traía una checklist anti-slop de cinco puntos… que **se
+ * Forja ya traía una checklist anti-slop de cinco puntos… que **se
  * autoevaluaba el modelo**. Le pedíamos que se pusiera nota y la nota era
  * siempre buena. Es el mismo fallo sistémico de todo lo demás en este
  * proyecto: un dato que nadie comprueba.

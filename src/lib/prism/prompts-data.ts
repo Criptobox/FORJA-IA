@@ -1,4 +1,4 @@
-/** Prism AI — Biblioteca de prompts integrada */
+/** Forja IA — Biblioteca de prompts integrada */
 import type { PromptItem } from "./types";
 
 export const PROMPT_CATEGORIES = [

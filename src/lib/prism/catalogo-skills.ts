@@ -1,4 +1,4 @@
-/** Prism AI — Catálogo de skills.
+/** Forja IA — Catálogo de skills.
  *
  * Instalar desde URL ya funcionaba —y con la puerta de permisos delante—, pero
  * había que **conocer la URL de memoria**. Lo que faltaba no era el mecanismo:

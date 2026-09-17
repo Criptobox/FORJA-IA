@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — El kit de efectos: local, y que no rompa nada.
+/** Forja IA — El kit de efectos: local, y que no rompa nada.
  *
  * La pregunta de la que salió esto era «¿podemos añadir una librería de
  * efectos para que las páginas queden más pro?». La respuesta fue que sí pero
@@ -9,7 +9,7 @@ import { expect, test, type Page } from "./fixtures";
  * silencio.
  *
  * Aquí se comprueba lo que eso significa de verdad:
- *  · el modelo solo ENLAZA el kit, y Prism lo añade al proyecto;
+ *  · el modelo solo ENLAZA el kit, y Forja lo añade al proyecto;
  *  · sin JavaScript no se esconde nada (la regla de oro del kit);
  *  · con JavaScript, lo que entra por scroll acaba entrando igual.
  */
@@ -66,7 +66,7 @@ async function pedirLaPagina(page: Page) {
   await page.keyboard.press("Enter");
 }
 
-test("el modelo solo enlaza el kit y Prism lo añade al proyecto", async ({ page }) => {
+test("el modelo solo enlaza el kit y Forja lo añade al proyecto", async ({ page }) => {
   test.setTimeout(180_000);
   await seed(page);
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -74,7 +74,7 @@ test("el modelo solo enlaza el kit y Prism lo añade al proyecto", async ({ page
 
   // Ojo con lo que se mide: el nombre `prism-fx.css` sale igualmente en el
   // chat porque el HTML del modelo lo ENLAZA. Eso no prueba nada. Lo que
-  // prueba que Prism añadió los archivos es el menú de descarga, que cuenta
+  // prueba que Forja añadió los archivos es el menú de descarga, que cuenta
   // los archivos REALES del proyecto: uno solo ni siquiera abre menú.
   const descargar = page.getByRole("button", { name: "Descargar lo creado" });
   await expect(descargar).toBeVisible({ timeout: 90_000 });

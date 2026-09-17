@@ -1,4 +1,4 @@
-/* Prism AI — Service Worker
+/* Forja IA — Service Worker
  * Estrategia (v5): todo network-first con fallback a caché.
  * Así las actualizaciones de la app llegan siempre al instante y sin
  * quedarnos con CSS/JS viejos; offline se usan las copias cacheadas.
@@ -7,8 +7,12 @@
  * que cacheó los chunks del bundle viejo en algunos navegadores y no
  * los soltaba aunque el servidor tuviera el nuevo. Con v5, el activate
  * borra todo lo que no empiece por 'prism-ai-v5' y se queda limpio.
+ *
+ * v8 (4.26.0): rebrand a Forja IA — nuevo prefijo de VERSION a propósito,
+ * para que el logo y los iconos viejos cacheados no sobrevivan al cambio
+ * de marca en ningún navegador.
  */
-const VERSION = 'prism-ai-v7';
+const VERSION = 'forja-ia-v8';
 const PAGE_CACHE = `${VERSION}-pages`;
 const PRECACHE = ['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 

@@ -1,7 +1,7 @@
-/** Prism AI — Avisar de que el modelo que usas ya está retirado.
+/** Forja IA — Avisar de que el modelo que usas ya está retirado.
  *
  * Las listas de modelos que trae la app son una foto, y las fotos envejecen.
- * Cuando esto se escribió, Prism ofrecía ocho modelos que sus proveedores ya
+ * Cuando esto se escribió, Forja ofrecía ocho modelos que sus proveedores ya
  * habían retirado —`pixtral-12b-2409` desde diciembre de 2025, los `grok-3`
  * desde febrero— y no ofrecía el Gemini más nuevo. Nadie se enteraba hasta
  * que una petición volvía con un 404 y parecía culpa de la clave.

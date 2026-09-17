@@ -1,4 +1,4 @@
-/** Prism AI — Catálogo de skills.
+/** Forja IA — Catálogo de skills.
  *
  * Instalar desde URL ya funcionaba, y con la puerta de permisos delante. Lo
  * que faltaba no era el mecanismo: era el índice. Aquí se prueba que el índice

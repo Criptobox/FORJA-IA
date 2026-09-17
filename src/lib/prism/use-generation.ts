@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — La tubería de generación: lo que convierte un envío en respuesta.
+/** Forja IA — La tubería de generación: lo que convierte un envío en respuesta.
  *
  * Tercer corte de `chat-app.tsx` (PLAN-V8 punto 1) y el grande: aquí vive
  * `runGeneration` (la cadena de candidatos, el failover con rescate de trabajo
@@ -1326,7 +1326,7 @@ export function useGeneration(ctx: CtxGeneracion) {
           // si funciona». Se arregló solo para los modelos que soportan
           // `tools` y llaman a `run_project`; la mayoría de los gratis van
           // por el camino XML, o sea que el arreglo llegaba justo a los
-          // modelos para los que Prism NO existe.
+          // modelos para los que Forja NO existe.
           //
           // Y quedaba una puerta más: esto vivía DENTRO del modo agente.
           // Con el modo agente apagado —que es como se pide «hazme una web
@@ -1341,7 +1341,7 @@ export function useGeneration(ctx: CtxGeneracion) {
           // la condición era falsa y el bloque entero se saltaba: la
           // respuesta que salió del último intento de corrección nunca se
           // llegaba a mirar. Si seguía genérica, o con un botón roto, o con
-          // un error de consola, Prism se quedaba callado — parecía que
+          // un error de consola, Forja se quedaba callado — parecía que
           // había terminado bien cuando en realidad se había rendido sin
           // decirlo. Ahora SIEMPRE se comprueba; lo que cambia con el
           // presupuesto agotado es que ya no se relanza más, solo se avisa.

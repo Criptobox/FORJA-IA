@@ -1,4 +1,4 @@
-/** Prism AI — Módulos ES dentro del Sandbox.
+/** Forja IA — Módulos ES dentro del Sandbox.
  *
  * Un proyecto moderno reparte el código en archivos que se importan entre sí:
  *

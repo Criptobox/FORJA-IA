@@ -123,7 +123,7 @@ describe("wrappedToHtml", () => {
     expect(html.startsWith("<!DOCTYPE html>")).toBe(true);
     expect(html).toContain("<html");
     expect(html).toContain("</html>");
-    expect(html).toContain("Prism");
+    expect(html).toContain("Forja");
   });
 
   it("muestra mensaje de vacío si no hay actividad", () => {

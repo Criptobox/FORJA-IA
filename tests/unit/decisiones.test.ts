@@ -1,4 +1,4 @@
-/** Prism AI — Las decisiones del failover, probadas sin navegador.
+/** Forja IA — Las decisiones del failover, probadas sin navegador.
  *
  * Vivían dentro del `useCallback` de `runGeneration`, enredadas con React y
  * los toasts, así que la única forma de probarlas era abrir Chromium: cada

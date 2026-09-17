@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El modelo que cierra sin escribir nada.
+/** Forja IA — El modelo que cierra sin escribir nada.
  *
  * Lo que se veía: NVIDIA NIM · moonshotai/kimi-k3, 91,5 s, la caja de
  * «Razonamiento del modelo» y debajo una burbuja **vacía**. Ni error, ni
@@ -29,7 +29,7 @@ async function seed(page: import("@playwright/test").Page) {
           radarSeenIds: [],
           settings: {
             defaultModelKey: `custom::${model}`,
-            systemPrompt: "Eres Prism AI (test).",
+            systemPrompt: "Eres Forja IA (test).",
             temperature: 0.7,
             maxTokens: null,
             stream: false,

@@ -1,4 +1,4 @@
-/** Prism AI — Sandbox: ejecuta proyectos web estáticos (estilo Spck).
+/** Forja IA — Sandbox: ejecuta proyectos web estáticos (estilo Spck).
  * Del ZIP o del Repo Studio se construye un HTML autocontenido:
  *  - <link rel=stylesheet> locales → <style> inline (con @import y url() reescritos)
  *  - <script src> locales → inline (clásicos)
@@ -40,7 +40,7 @@ export interface RunBuildResult {
   /** paquetes de npm importados que el Sandbox no puede resolver */
   bareImports: string[];
   /** Peso del proyecto: el HTML ya empaquetado (CSS, JS e imágenes dentro)
-   * pero ANTES del puente de consola que Prism inyecta para poder observarlo.
+   * pero ANTES del puente de consola que Forja inyecta para poder observarlo.
    * Es lo que el usuario se llevaría al exportar, y por tanto lo único que
    * tiene sentido enseñarle como «peso». `html.length` incluye ~1,8 KB de
    * instrumentación que no es suya y que no puede bajar. */
@@ -268,7 +268,7 @@ export const CONSOLE_BRIDGE = `(function(){
   /* ——— Almacenamiento de mentira, para que la página no se muera ———
 
      El iframe corre SIN allow-same-origin, y tiene que seguir así: con él, la
-     página generada sería del mismo origen que Prism y podría leer tus claves
+     página generada sería del mismo origen que Forja y podría leer tus claves
      del localStorage. El precio es que ahí dentro **tocar localStorage lanza
      una excepción**.
 
@@ -334,7 +334,7 @@ export const CONSOLE_BRIDGE = `(function(){
      «al pulsar Guardar» le dice al modelo dónde mirar; un stack trace suelto,
      no. Va en captura para enterarse ANTES de que el manejador reviente. */
   if(simulados.length){
-    send('info',['Prism: '+simulados.join(' y ')+' simulados en memoria dentro de la vista previa (el iframe no tiene origen propio). La página funciona; lo que guardes aquí no persiste.']);
+    send('info',['Forja: '+simulados.join(' y ')+' simulados en memoria dentro de la vista previa (el iframe no tiene origen propio). La página funciona; lo que guardes aquí no persiste.']);
   }
 
   document.addEventListener('click',function(e){
@@ -514,7 +514,7 @@ export function buildRunHtml(
   }
 
   // El peso se apunta AQUÍ, con el proyecto ya empaquetado y antes de que
-  // Prism le meta nada suyo. Medirlo después contaba como peso de la página
+  // Forja le meta nada suyo. Medirlo después contaba como peso de la página
   // los kilobytes del puente de consola, que no salen de aquí.
   res.htmlBytes = html.length;
 

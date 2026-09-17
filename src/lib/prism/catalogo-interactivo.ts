@@ -1,4 +1,4 @@
-/** Prism AI — Cuando el encargo es una tienda, menú o catálogo: exige que
+/** Forja IA — Cuando el encargo es una tienda, menú o catálogo: exige que
  * de verdad SE PUEDA comprar o pedir, no solo enseñar productos en una foto.
  *
  * Reportado por el usuario: al pedir una tienda o un menú de restaurante,

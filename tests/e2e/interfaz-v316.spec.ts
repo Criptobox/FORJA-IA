@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-/** Prism AI — la interfaz que salió del prototipo.
+/** Forja IA — la interfaz que salió del prototipo.
  *
  * Tres cosas, y ninguna se comprueba mirando si un elemento existe:
  *  · la barra lateral está agrupada y ya no hay cajón «Más»

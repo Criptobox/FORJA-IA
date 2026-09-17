@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Diálogo de presentación (U6, PLAN-V7).
+/** Forja IA — Diálogo de presentación (U6, PLAN-V7).
  *
  * Convierte el HTML de la vista previa en diapositivas (una por
  * `<section>` o por `<h2>`) y las muestra a pantalla completa dentro

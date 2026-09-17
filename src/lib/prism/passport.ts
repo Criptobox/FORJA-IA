@@ -1,4 +1,4 @@
-/** Prism AI — Ficha del proyecto (Project Passport).
+/** Forja IA — Ficha del proyecto (Project Passport).
  *
  * `project-map.ts` ya detecta tecnologías, dependencias y puntos de entrada;
  * lo que faltaba era PRESENTARLO como una ficha de un vistazo y que el agente

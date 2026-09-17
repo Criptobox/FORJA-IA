@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Línea de tiempo del modo agente (rediseño v3.16).
+/** Forja IA — Línea de tiempo del modo agente (rediseño v3.16).
  *
  * Antes (v3.15): el plan, las iteraciones y las revisiones se mostraban
  * de golpe en una lista de `<details>` sin orden claro. El estado del
@@ -8,7 +8,7 @@
  * Ahora (v3.16): todo el trabajo del agente se organiza en pestañas
  * (Plan · Estructura · Edits · Resultados) que se ven como en apps
  * tipo Cursor/Windsurf: la activa con fondo púrpura sólido, el logo
- * de Prism como marca del agente, un spinner animado mientras
+ * de Forja como marca del agente, un spinner animado mientras
  * genera, y debajo de las pestañas el estado del bucle + el botón
  * «Continuar el agente».
  *
@@ -31,7 +31,7 @@ import {
   ListChecks,
 } from "lucide-react";
 import { Markdown } from "./markdown";
-import { PrismLogo } from "./logo";
+import { ForjaLogo } from "./logo";
 import { cn } from "@/lib/utils";
 import type { AgentTrace, AgentStepBlock, AgentReviewBlock } from "@/lib/prism/agent-loop";
 import type { StalledInfo } from "@/lib/prism/agent-loop";
@@ -210,7 +210,7 @@ export function AgentTraceView({
     <div className="agent-trace-v316 space-y-2">
       {/* ── Cabecera: marca del agente + estado ── */}
       <div className="agent-trace-header flex items-center gap-2">
-        <PrismLogo size={18} className="text-prism-violet" />
+        <ForjaLogo size={18} className="text-prism-violet" />
         <span className="text-[11px] font-semibold uppercase tracking-wide text-prism-violet">
           Bucle del agente
         </span>

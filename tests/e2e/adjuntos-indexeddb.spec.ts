@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Adjuntos en IndexedDB (v3.14).
+/** Forja IA — Adjuntos en IndexedDB (v3.14).
  *
  * Antes, los adjuntos vivían como `dataUrl` base64 enteros dentro del store
  * de zustand, y el store entero vivía en localStorage (~5 MB de techo). Un
@@ -204,7 +204,7 @@ test.describe("Adjuntos migrados a IndexedDB (v3.14)", () => {
 
     // El mock-llm responde "He recibido tu imagen" cuando el body lleva
     // `image_url`. Si el adjunto se hubiera perdido al migrar a IDB,
-    // el mock-llm respondería "¡Hola! Soy Prism AI funcionando...".
+    // el mock-llm respondería "¡Hola! Soy Forja IA funcionando...".
     // Verificamos que la respuesta menciona la imagen — es la prueba
     // de que el `dataUrl` se resolvió desde IDB y viajó al modelo.
     await expect(

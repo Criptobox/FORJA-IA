@@ -1,4 +1,4 @@
-/** Prism AI — Pulsar los botones de lo que genera el agente.
+/** Forja IA — Pulsar los botones de lo que genera el agente.
  *
  * La revisión de la v3.28.0 solo caza lo que revienta **al cargar**. Pero en
  * una página generada, la mayoría de los fallos viven detrás de un clic: el

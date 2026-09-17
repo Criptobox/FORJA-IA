@@ -1,4 +1,4 @@
-/** Prism AI — Regresión visible: un antes y un después medidos.
+/** Forja IA — Regresión visible: un antes y un después medidos.
  *
  * «Regression AI» no: comparar lo que YA se medía. Cada ejecución del Sandbox
  * deja una instantánea (errores de consola, avisos, hallazgos del QA móvil y
@@ -23,7 +23,7 @@ export interface RunSnapshot {
   /** medida de QA automática a ese ancho (null si el medidor no respondió) */
   qa: QAResult | null;
   /** tamaño del HTML del PROYECTO, sin el medidor de QA ni el piloto que
-   * Prism le inyecta para poder observarlo (esos bytes no son del usuario) */
+   * Forja le inyecta para poder observarlo (esos bytes no son del usuario) */
   htmlBytes: number;
 }
 

@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El corte que el texto no delata, pero el proveedor sí.
+/** Forja IA — El corte que el texto no delata, pero el proveedor sí.
  *
  * La detección de la v3.18.0 va por la FORMA del texto: una cerca ``` sin
  * pareja, un `<html>` sin cerrar. Funciona con código, pero es un indicio.
@@ -8,7 +8,7 @@ import { expect, test } from "./fixtures";
  * de código de por medio, la forma no ve absolutamente nada.
  *
  * Los tres protocolos mandan `finish_reason`/`stop_reason`/`finishReason`
- * diciendo por qué pararon, y Prism no lo leía en ningún sitio.
+ * diciendo por qué pararon, y Forja no lo leía en ningún sitio.
  *
  * `mock-prosa-cortada` devuelve prosa cortada a media palabra con
  * `finish_reason: "length"`, y el resto solo si se le pide continuar.

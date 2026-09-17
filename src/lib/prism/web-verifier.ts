@@ -1,4 +1,4 @@
-/** Prism Web — verificador independiente del agente.
+/** Forja Web — verificador independiente del agente.
  *
  * No confía en lo que diga el modelo. Combina comprobaciones estáticas sobre
  * los archivos con evidencia de ejecución que llega de `run_project`.

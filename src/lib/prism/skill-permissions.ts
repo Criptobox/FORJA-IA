@@ -1,4 +1,4 @@
-/** Prism AI — Permisos declarados de las Skills.
+/** Forja IA — Permisos declarados de las Skills.
  *
  * Hoy una skill instalada puede instruir al modelo para lo que sea: cargar
  * scripts de dominios desconocidos en las páginas que genera, pedirle al

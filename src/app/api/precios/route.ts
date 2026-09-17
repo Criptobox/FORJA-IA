@@ -4,15 +4,15 @@ import { PRECIOS, PRECIOS_FECHA, PRECIOS_FUENTE } from "@/lib/prism/precios-dato
 
 export const dynamic = "force-dynamic";
 
-/** Prism AI — Precios frescos, sin esperar a una versión nueva.
+/** Forja IA — Precios frescos, sin esperar a una versión nueva.
  *
  * La app trae una instantánea de precios generada con `npm run precios`. Sirve
  * para funcionar sin red y para que las pruebas sean deterministas, pero
- * envejece: entre dos versiones de Prism pueden pasar meses y los precios
+ * envejece: entre dos versiones de Forja pueden pasar meses y los precios
  * cambian antes.
  *
  * Esta ruta baja el catálogo público (sin clave, sin datos del usuario) y
- * devuelve la parte que a Prism le sirve, con su fecha. Si falla —sin red, el
+ * devuelve la parte que a Forja le sirve, con su fecha. Si falla —sin red, el
  * repo movido, el formato cambiado— se devuelve la instantánea empaquetada y
  * se dice que es esa: nunca se inventa un precio ni se deja la pantalla vacía.
  *
@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 const FUENTE = PRECIOS_FUENTE;
 const TTL = 24 * 60 * 60 * 1000; // los precios no cambian cada hora
 
-/** De cómo llama LiteLLM al proveedor a cómo lo llama Prism. Igual que en
+/** De cómo llama LiteLLM al proveedor a cómo lo llama Forja. Igual que en
  * `scripts/precios.mjs`: si aquí y allí divergen, la instantánea y lo vivo
  * dejarían de ser comparables. */
 const PROVEEDORES: Record<string, string> = {

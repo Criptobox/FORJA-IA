@@ -1,6 +1,6 @@
 # La regla de la casa: todo dato que envejece necesita fecha, fuente y un `npm run` que lo regenere
 
-Este documento existe por un fallo que se repitió en Prism cuatro veces, con
+Este documento existe por un fallo que se repitió en Forja cuatro veces, con
 cuatro caras distintas y siempre la misma raíz.
 
 ## Qué pasó
@@ -32,7 +32,7 @@ Las tres, y por qué cada una:
 1. **Fecha.** Un precio sin fecha no es un precio, es un rumor. Con fecha, el
    usuario puede decidir si se fía; sin ella solo puede creerse a la app.
 2. **Fuente.** Nombrada y comprobable. «Según el catálogo público de LiteLLM,
-   foto del 2026-09-04» se puede verificar; «según Prism» no.
+   foto del 2026-09-04» se puede verificar; «según Forja» no.
 3. **Un comando que lo regenere.** Sin él, el dato solo se actualiza cuando
    alguien se acuerda — y nadie se acuerda. El comando convierte «hay que
    revisarlo» en «ejecuta esto».
@@ -60,7 +60,7 @@ comprobación pasa de `DIAS_VERIFICACION_VIEJA`.
 
 ## Lo que se deduce de la regla
 
-**El dinero solo se enseña con sus dos mitades.** Un importe en Prism es
+**El dinero solo se enseña con sus dos mitades.** Un importe en Forja es
 siempre `tokens que reportó tu proveedor × precio fechado de un catálogo con
 nombre`. Si falta cualquiera de las dos, no se enseña un número: se dice «sin
 dato» **y cuál de las dos falta** (`motivoSinCoste` en `precios.ts`). Un cero

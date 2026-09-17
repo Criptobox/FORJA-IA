@@ -1,4 +1,4 @@
-/** Prism AI — Qué imágenes viajan en cada petición.
+/** Forja IA — Qué imágenes viajan en cada petición.
  *
  * El fallo: los adjuntos se quedaban pegados a su mensaje y el historial
  * entero se reenvía en cada turno, así que **una imagen mandada una vez

@@ -1,6 +1,6 @@
 import { ChatApp } from "@/components/prism/chat-app";
 
-/** Prism AI — Página principal.
+/** Forja IA — Página principal.
  *
  * El handler POST del Share Target vive en `src/app/share/route.ts`
  * (ruta aparte, `/share`) para no chocar con el client component de

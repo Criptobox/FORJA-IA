@@ -1,4 +1,4 @@
-/** Prism AI — El diagnóstico de archivos que el HTML pide y no están.
+/** Forja IA — El diagnóstico de archivos que el HTML pide y no están.
  *
  * El caso real: un ZIP con `index.html`, `css.css` y `javascript.js`, y un
  * HTML que pide `styles.css` y `script.js`. La vista previa salía pelada y la

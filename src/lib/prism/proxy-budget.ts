@@ -1,4 +1,4 @@
-/** Prism AI — Presupuesto de `/api/proxy`: que no te usen de relé.
+/** Forja IA — Presupuesto de `/api/proxy`: que no te usen de relé.
  *
  * El proxy ya tiene escudo anti-SSRF (`net-guard.ts`): valida el destino y
  * revalida cada redirección. Eso impide que te lo usen para llegar a la red

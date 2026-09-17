@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Lo que cada modelo demostró sobre CÓMO pide las herramientas.
+/** Forja IA — Lo que cada modelo demostró sobre CÓMO pide las herramientas.
  *
  * `tools-probe.ts` solo comprueba que un proveedor ACEPTA el parámetro
  * `tools` (un código HTTP). Eso no dice nada sobre si el modelo va a
@@ -60,7 +60,7 @@ interface LlamadasTextoState {
  * sospecha. */
 export function mensajeLlamadaComoTexto(vista: boolean): string | null {
   if (!vista) return null;
-  return "Este modelo pide las herramientas como texto, con su propia plantilla, en vez de la respuesta estructurada de la API. Prism lo reconoce y lo ejecuta igual.";
+  return "Este modelo pide las herramientas como texto, con su propia plantilla, en vez de la respuesta estructurada de la API. Forja lo reconoce y lo ejecuta igual.";
 }
 
 export const useLlamadasTexto = create<LlamadasTextoState>()(

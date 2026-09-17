@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Arena: envía el mismo prompt a 2-3 modelos gratis en paralelo
+/** Forja IA — Arena: envía el mismo prompt a 2-3 modelos gratis en paralelo
  * y compara las respuestas lado a lado (tiempo, caracteres, contenido). */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Swords, X } from "lucide-react";

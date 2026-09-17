@@ -1,4 +1,4 @@
-/** Prism AI — Extracción de HTML para la vista previa en vivo.
+/** Forja IA — Extracción de HTML para la vista previa en vivo.
  * Detecta bloques ```html cerrados O EN CURSO (streaming) y documentos sueltos.
  */
 

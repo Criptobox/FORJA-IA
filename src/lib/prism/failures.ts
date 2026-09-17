@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Memoria de fallos: `{ intento, resultado, regla }` que el agente
+/** Forja IA — Memoria de fallos: `{ intento, resultado, regla }` que el agente
  * consulta antes de actuar.
  *
  * La idea: de todo lo que falla en una sesión, lo que sirve para la próxima vez

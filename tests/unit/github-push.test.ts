@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ghEnsureRepo, pistaDeGithub, uploadToGithub, type GhFetch, type GhItem } from "../../src/lib/prism/github-upload";
 
-/** Prism AI — La subida a GitHub, con un GitHub de mentira delante.
+/** Forja IA — La subida a GitHub, con un GitHub de mentira delante.
  *
  * Esto no existía. Toda la subida era código sin una sola prueba porque hacía
  * falta una cuenta de GitHub de verdad para ejecutarlo — y por eso el fallo de

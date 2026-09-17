@@ -38,7 +38,7 @@ describe("buscarEnMapa", () => {
 
   it("las notas del usuario ganan al archivo que menciona lo mismo", () => {
     // «estilos.css» resume «Paleta y tipografías» y hay una nota sobre la
-    // paleta: manda lo que decidió el usuario, no lo que dedujo Prism.
+    // paleta: manda lo que decidió el usuario, no lo que dedujo Forja.
     const r = buscarEnMapa(mapa(), "paleta");
     expect(r[0].origen).toBe("nota");
   });

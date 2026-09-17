@@ -1,10 +1,10 @@
-/** Prism AI — Detección de capacidad de tools por modelo.
+/** Forja IA — Detección de capacidad de tools por modelo.
  *
  * `probeModel` solo dice si el modelo responde. Aquí se va un paso más:
  * se manda una petición MÍNIMA con un `tools` inventado y se mira si el
  * modelo lo acepta o lo rechaza. Muchos modelos gratis no soportan
  * `tools` (o lo soportan mal) y encenderlo a secas rompe el agente justo
- * en los modelos para los que existe Prism — es el fallo que el PLAN-V4
+ * en los modelos para los que existe Forja — es el fallo que el PLAN-V4
  * identifica y arregla aquí.
  *
  * La prueba es cara (un round-trip), así que el resultado se cachea en

@@ -1,4 +1,4 @@
-/** Prism AI — Store de la Caza de ofertas (zustand + localStorage).
+/** Forja IA — Store de la Caza de ofertas (zustand + localStorage).
  *
  * Vive en SU propia clave (`prism-ofertas-v1`) y no dentro del store
  * principal, por la misma razón que `prism-repaso-v1` y `prism-usage-v1`:

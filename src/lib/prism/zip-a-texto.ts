@@ -1,4 +1,4 @@
-/** Prism AI — Un ZIP entero, leído y puesto en el prompt.
+/** Forja IA — Un ZIP entero, leído y puesto en el prompt.
  *
  * «Sube un zip y que lea todo lo de dentro» choca con la realidad del
  * producto: los modelos gratis de aquí tienen 8k de contexto y un proyecto

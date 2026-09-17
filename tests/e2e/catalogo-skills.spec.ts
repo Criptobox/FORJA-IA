@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El catálogo de skills.
+/** Forja IA — El catálogo de skills.
  *
  * Instalar desde URL ya funcionaba, y con la puerta de permisos delante. Lo
  * que faltaba no era el mecanismo: era el índice, porque había que conocer la

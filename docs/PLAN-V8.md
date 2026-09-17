@@ -53,7 +53,7 @@ vuelva a decidir sobre ellos:
 
 ## Lo que NO se hace, y por qué
 
-- **Multi-Agent Orchestrator, Task DNA, Prism Lab, Prism OS**
+- **Multi-Agent Orchestrator, Task DNA, Forja Lab, Forja OS**
   (PLAN-EVOLUCION §5, §4, §6, §20). Es otra aplicación, no una evolución.
   Y el argumento en contra está en el propio análisis que lo propone: los
   modelos gratis fallan en cadenas largas. Un orquestador de cinco agentes

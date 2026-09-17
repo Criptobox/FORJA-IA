@@ -1,18 +1,17 @@
-/** Prism AI — Logo vectorial reutilizable.
+/** Forja IA — Logo vectorial reutilizable: el yunque naranja con la chispa.
  *
- * v3 (v3.34.3): rediseñado para verse nítido a cualquier tamaño.
- * - Triángulo con fill de degradado MÁS opaco (0.35 → antes 0.06)
- * - Trazos más gruesos (6 en vez de 4) y cortos para no perderse
- * - Rayos simplificados a 3 líneas rectas más visibles
- * - ViewBox compacto (menos espacio vacío alrededor)
- * - Brillo interior que da profundidad al prisma
+ * Mismo contrato de props que el logo anterior (size / className / glow)
+ * para que el cambio sea quirúrgico en los puntos donde se pinta: cabecera
+ * de la barra lateral (26px), bienvenida (56px con glow), trace del agente
+ * (18px), onboarding (64px con glow) y pantalla de generación (56px).
+ * El SparkleAvatar va aparte para las burbujas del chat.
  *
- * Se usa en: cabecera de la barra lateral (26px), bienvenida (56px con
- * glow), trace del agente (18px), onboarding. El SparkleAvatar va
- * aparte para las burbujas del chat. */
+ * Los degradados salen del logo maestro (motor-forja/marca/forja-logo.svg):
+ * metal que pasa por el fuego, del durazno al naranja profundo.
+ */
 import { useId } from "react";
 
-export function PrismLogo({
+export function ForjaLogo({
   size = 32,
   className,
   glow = false,
@@ -26,91 +25,68 @@ export function PrismLogo({
   //
   // Con `Math.random()` el id salía DISTINTO en el servidor y en el cliente:
   // React lo cantaba como fallo de hidratación, y en desarrollo eso levanta
-  // el overlay de error de Next, que tapa la pantalla entera —12 E2E caían
-  // por clics interceptados que no tenían nada que ver con lo que probaban.
-  // `useId` da un id estable entre servidor y cliente y distinto por
-  // instancia, que es exactamente lo que hacía falta.
+  // el overlay de error de Next, que tapa la pantalla entera. `useId` da un
+  // id estable entre servidor y cliente y distinto por instancia.
   const reactId = useId();
   const uid = `${size}-${glow ? "g" : "p"}-${reactId.replace(/:/g, "")}`;
-  const gradId = `pl-grad-${uid}`;
-  const beamId = `pl-beam-${uid}`;
-  const fillId = `pl-fill-${uid}`;
-  const shineId = `pl-shine-${uid}`;
+  const caraId = `fj-cara-${uid}`;
+  const cuerpoId = `fj-cuerpo-${uid}`;
+  const baseId = `fj-base-${uid}`;
+  const haloId = `fj-halo-${uid}`;
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="0 0 240 240"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Prism AI"
+      aria-label="Forja IA"
       role="img"
     >
       <defs>
-        {/* Degradado principal de marca: violeta → azul → cian */}
-        <linearGradient id={gradId} x1="0.15" y1="0.9" x2="0.85" y2="0.1">
-          <stop offset="0" stopColor="#8B5CF6" />
-          <stop offset="0.5" stopColor="#6D5EF0" />
-          <stop offset="1" stopColor="#22D3EE" />
+        {/* cara superior: durazno → naranja → naranja profundo */}
+        <linearGradient id={caraId} x1="28" y1="64" x2="212" y2="98" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#FFC48C" />
+          <stop offset="0.55" stopColor="#FB8A3C" />
+          <stop offset="1" stopColor="#F2600C" />
         </linearGradient>
-        {/* Haz de luz entrante: blanco translúcido → sólido */}
-        <linearGradient id={beamId} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.15" />
-          <stop offset="1" stopColor="#FFFFFF" stopOpacity="0.95" />
+        {/* cuello: el metal en plena forja */}
+        <linearGradient id={cuerpoId} x1="68" y1="98" x2="172" y2="186" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#FB923C" />
+          <stop offset="1" stopColor="#E4560A" />
         </linearGradient>
-        {/* Fill interior del prisma: degradado de marca translúcido */}
-        <linearGradient id={fillId} x1="0.2" y1="0.85" x2="0.8" y2="0.15">
-          <stop offset="0" stopColor="#8B5CF6" stopOpacity="0.32" />
-          <stop offset="1" stopColor="#22D3EE" stopOpacity="0.18" />
+        {/* base forjada */}
+        <linearGradient id={baseId} x1="68" y1="150" x2="172" y2="186" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#F97316" />
+          <stop offset="1" stopColor="#DD4F08" />
         </linearGradient>
-        {/* Brillo superior izquierdo del prisma (luz que entra) */}
-        <linearGradient id={shineId} x1="0.3" y1="0.2" x2="0.6" y2="0.6">
-          <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.35" />
-          <stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
-        </linearGradient>
+        {/* halo cálido cuando se pide glow (bienvenida / onboarding) */}
+        <radialGradient id={haloId}>
+          <stop offset="0" stopColor="#FB8A3C" stopOpacity="0.5" />
+          <stop offset="1" stopColor="#FB8A3C" stopOpacity="0" />
+        </radialGradient>
       </defs>
 
-      {/* halo cuando se pide glow (bienvenida) */}
-      {glow && (
-        <circle cx="50" cy="50" r="46" fill={`url(#${fillId})`} opacity="0.55" />
-      )}
+      {glow && <circle cx="120" cy="120" r="116" fill={`url(#${haloId})`} />}
 
-      {/* rayos a la derecha del prisma — 3 líneas rectas, gruesas y visibles */}
-      <g strokeLinecap="round" opacity="0.95">
-        <line x1="60" y1="46" x2="88" y2="32" stroke="#A78BFA" strokeWidth="4" />
-        <line x1="62" y1="50" x2="90" y2="50" stroke="#67E8F9" strokeWidth="4" />
-        <line x1="60" y1="54" x2="86" y2="68" stroke="#F9A8D4" strokeWidth="4" />
-      </g>
+      {/* cara superior del yunque */}
+      <rect x="30" y="66" width="180" height="34" rx="15" fill={`url(#${caraId})`} />
 
-      {/* prisma (triángulo) — fill sólido + borde grueso con degradado */}
+      {/* cuello: ensancha hacia abajo, como el yunque de verdad */}
+      <path d="M100 100 h40 l34 52 h-108 z" fill={`url(#${cuerpoId})`} />
+
+      {/* base forjada */}
+      <rect x="66" y="150" width="108" height="34" rx="13" fill={`url(#${baseId})`} />
+
+      {/* chispa del herrerío: estrella de 4 puntas */}
       <path
-        d="M 50 20 L 80 74 L 20 74 Z"
-        fill={`url(#${fillId})`}
-        stroke={`url(#${gradId})`}
-        strokeWidth="5.5"
-        strokeLinejoin="round"
+        d="M189 26 c3.2 11.5 7.5 15.8 19 19 c-11.5 3.2 -15.8 7.5 -19 19 c-3.2 -11.5 -7.5 -15.8 -19 -19 c11.5 -3.2 15.8 -7.5 19 -19 z"
+        fill="#FFF3E2"
       />
-
-      {/* brillo interior: triángulo más pequeño arriba-izq, da profundidad */}
-      <path
-        d="M 50 28 L 64 52 L 36 52 Z"
-        fill={`url(#${shineId})`}
-        opacity="0.6"
-      />
-
-      {/* haz de luz entrante (línea diagonal izquierda + punto de impacto) */}
-      <line
-        x1="8"
-        y1="56"
-        x2="34"
-        y2="52"
-        stroke={`url(#${beamId})`}
-        strokeWidth="3.5"
-        strokeLinecap="round"
-      />
-      <circle cx="34" cy="52" r="3" fill="#fff" opacity="0.95" />
+      {/* punto de metal incandescente */}
+      <circle cx="159" cy="33" r="6" fill="#F97316" />
     </svg>
   );
 }

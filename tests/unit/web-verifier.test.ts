@@ -24,7 +24,7 @@ describe("web-verifier", () => {
 
   it("approves only when runtime and visual evidence are clean", () => {
     const v = verifyWebProject({
-      "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prism</title></head><body><img alt="Logo" src="logo.svg"><button aria-label="Abrir">OK</button></body></html>',
+      "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title></head><body><img alt="Logo" src="logo.svg"><button aria-label="Abrir">OK</button></body></html>',
       "logo.svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>",
     }, { executed: true, errors: 0, qa: { ok: true, noRespondio: false, items: [] } });
     expect(v.passed).toBe(true);

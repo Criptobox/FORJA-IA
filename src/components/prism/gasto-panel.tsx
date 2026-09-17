@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Pestaña «Gasto» del Panel del sistema.
+/** Forja IA — Pestaña «Gasto» del Panel del sistema.
  *
  * Responde a una pregunta que el panel de Uso no respondía: **cuál de tus
  * modelos de PAGO se está llevando el trabajo, y en qué tipo de encargo**. Uso
@@ -374,7 +374,7 @@ export function GastoPanelBody() {
         <p className="flex items-start gap-1.5 rounded-lg border border-border/60 bg-card/40 px-3 py-2 text-[10.5px] leading-relaxed text-muted-foreground">
           <Info className="mt-0.5 size-3 shrink-0" />
           <span>
-            <strong>Esta sesión</strong> = desde que abriste Prism; es el contador que aplica el
+            <strong>Esta sesión</strong> = desde que abriste Forja; es el contador que aplica el
             techo y se reinicia al recargar. El histórico sí persiste. Los tokens son{" "}
             <strong>aproximados</strong> (caracteres ÷ 4): el contador exacto lo tiene tu
             proveedor. Los importes en dólares salen de los tokens que él reporta por el precio del

@@ -1,4 +1,4 @@
-/** Prism AI — «Copiar diagnóstico»: lo que hace falta para arreglar un fallo.
+/** Forja IA — «Copiar diagnóstico»: lo que hace falta para arreglar un fallo.
  *
  * Nace de una tarde entera detrás de un «Failed to fetch» a base de capturas de
  * pantalla. Lo que hacía falta —qué copia corría, qué proveedor, qué código
@@ -87,7 +87,7 @@ export function textoDiagnostico(e: EntradaDiagnostico): string {
   const ahora = e.ahora ?? Date.now();
   const L: string[] = [];
 
-  L.push("=== Diagnóstico de Prism AI ===");
+  L.push("=== Diagnóstico de Forja IA ===");
   L.push(`Copia: v${e.version}${e.commit ? ` · ${e.commit}` : ""}${e.built ? ` · compilada ${e.built}` : ""}`);
   L.push(`Navegador: ${e.userAgent}`);
   L.push(`Idioma: ${e.idioma} · Pantalla: ${e.pantalla} · Instalada: ${siNo(e.instalada)} · Conexión: ${e.online ? "sí" : "sin red"}`);

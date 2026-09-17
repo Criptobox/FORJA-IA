@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Cheat sheet de atajos de teclado (se abre con ?) */
+/** Forja IA — Cheat sheet de atajos de teclado (se abre con ?) */
 import { Keyboard } from "lucide-react";
 import {
   Dialog,

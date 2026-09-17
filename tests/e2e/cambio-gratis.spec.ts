@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Tarea 1 del plan V6: avisar cuando un modelo deja de ser gratis.
+/** Forja IA — Tarea 1 del plan V6: avisar cuando un modelo deja de ser gratis.
  *
  * `isFreeModel` es una heurística estática: nada vigilaba el cambio. Ahora el
  * radar guarda una FOTO de lo que era gratis la última vez que miraste y, al

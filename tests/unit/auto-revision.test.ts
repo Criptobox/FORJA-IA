@@ -1,9 +1,9 @@
-/** Prism AI — Que el agente pruebe su propio código.
+/** Forja IA — Que el agente pruebe su propio código.
  *
  * `PLAN-V4` §3 lo pedía y se hizo a medias: el agente ejecuta el proyecto
  * cuando el modelo soporta `tools`, pero **la mayoría de los gratis no las
  * soportan**. Esos van por el camino XML y entregaban código sin comprobarlo,
- * o sea que el arreglo llegaba justo a los modelos para los que Prism no
+ * o sea que el arreglo llegaba justo a los modelos para los que Forja no
  * existe.
  */
 import { describe, it, expect } from "vitest";
@@ -180,7 +180,7 @@ describe("el sandbox propio no se le factura al modelo", () => {
   /* La vista previa corre sin `allow-same-origin` para que el proyecto no
    * pueda tocar la app. El precio: el navegador prohíbe localStorage ahí
    * dentro. Y una página generada lo usa constantemente —una lista que se
-   * guarda, un contador que persiste—, así que sin este filtro Prism le diría
+   * guarda, un contador que persiste—, así que sin este filtro Forja le diría
    * al modelo «tu código lanza un error» y le haría arreglar código correcto. */
   const SANDBOX =
     "Uncaught SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.";

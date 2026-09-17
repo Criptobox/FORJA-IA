@@ -1,4 +1,4 @@
-/** Prism AI — Cuando el modelo pide una herramienta como TEXTO, no como
+/** Forja IA — Cuando el modelo pide una herramienta como TEXTO, no como
  * `tool_calls` estructurado.
  *
  * Reportado por un usuario dos veces seguidas en la misma conversación

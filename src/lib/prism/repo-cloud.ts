@@ -1,4 +1,4 @@
-/** Prism AI — Repo Studio modo DIRECTO (sin descargar).
+/** Forja IA — Repo Studio modo DIRECTO (sin descargar).
  * Trabaja contra la API de GitHub desde el navegador: árbol de archivos,
  * lectura puntual, edición y commit único con Git Database API.
  * Nada se clona ni se guarda en disco: el repo vive en GitHub y tú editas en vivo.

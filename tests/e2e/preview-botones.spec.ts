@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 import { writeZip } from "../../src/lib/prism/zip";
 
-/** Prism AI — Los botones de la vista previa tienen que RESPONDER.
+/** Forja IA — Los botones de la vista previa tienen que RESPONDER.
  *
  * Reportado con la app en la mano: «en los preview los botones se tocan pero
  * no ejecutan función; si necesito entrar a ajustes para ver cómo quedó el
@@ -9,7 +9,7 @@ import { writeZip } from "../../src/lib/prism/zip";
  *
  * La causa no está en los botones. El iframe corre SIN `allow-same-origin` —y
  * tiene que seguir así, porque con él la página generada sería del mismo
- * origen que Prism y podría leer tus claves del `localStorage`—. En ese modo,
+ * origen que Forja y podría leer tus claves del `localStorage`—. En ese modo,
  * **tocar `localStorage` lanza una excepción**. Y como media web generada
  * guarda ahí el tema o el estado, el script de la página revienta en su
  * primera línea… y los `addEventListener` que venían detrás nunca llegan a

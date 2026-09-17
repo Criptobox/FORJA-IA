@@ -1,4 +1,4 @@
-/** Prism AI — Escudo PII local (guardrail inspirado en el «PII Shield» de OrcaRouter).
+/** Forja IA — Escudo PII local (guardrail inspirado en el «PII Shield» de OrcaRouter).
  *
  * Detecta y enmascara parcialmente datos personales en lo que ENVÍAS al modelo:
  * correos, teléfonos (ES/internacionales), tarjetas (validadas con Luhn), IBAN

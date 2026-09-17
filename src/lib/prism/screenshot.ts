@@ -1,4 +1,4 @@
-/** Prism AI — Captura real de la vista previa, para el QA por visión.
+/** Forja IA — Captura real de la vista previa, para el QA por visión.
  *
  * `generico.ts` / `visual-qa.ts` MIDEN el DOM (números, no píxeles). Esto
  * SACA UNA FOTO de verdad: la única forma de que un modelo con visión vea

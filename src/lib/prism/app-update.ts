@@ -1,4 +1,4 @@
-/** Prism AI — Saber que el servidor ya tiene una copia más nueva que la tuya.
+/** Forja IA — Saber que el servidor ya tiene una copia más nueva que la tuya.
  *
  * El problema real: el service worker se actualiza solo en segundo plano, pero
  * la pestaña que ya tienes abierta sigue ejecutando el JavaScript viejo hasta

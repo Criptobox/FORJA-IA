@@ -1,4 +1,4 @@
-/** Prism AI — Cuando la conversación no cabe, recortarla en vez de morir.
+/** Forja IA — Cuando la conversación no cabe, recortarla en vez de morir.
  *
  * Hasta ahora, un «Request too large … Limit 7000, Requested 21138» tenía dos
  * finales: saltar a otro modelo, o —si no quedaba ninguno— dejar el error rojo

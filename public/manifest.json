@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Prism AI — Tu hub premium de modelos IA",
-  "short_name": "Prism AI",
+  "name": "Forja IA — Tu hub premium de modelos IA",
+  "short_name": "Forja IA",
   "description": "Chat con todos tus modelos de IA favoritos usando tus propias APIs. Sin límites, sin cuentas, sin restricciones. Tus claves se quedan en tu dispositivo.",
   "start_url": "/",
   "scope": "/",

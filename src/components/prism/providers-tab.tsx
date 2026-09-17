@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Ajustes → Proveedores: claves, endpoints y modelos.
+/** Forja IA — Ajustes → Proveedores: claves, endpoints y modelos.
  * Pensado para el móvil: búsqueda, atajos, campos a ancho completo y
  * botones de añadir/quitar siempre visibles. */
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -504,7 +504,7 @@ export function ProvidersTab({
   return (
     <div className="space-y-3">
       <p className="px-0.5 text-xs leading-relaxed text-muted-foreground">
-        Pega un snippet (Python, cURL o el cliente OpenAI) arriba: Prism saca la clave, la URL y el
+        Pega un snippet (Python, cURL o el cliente OpenAI) arriba: Forja saca la clave, la URL y el
         modelo.{" "}
         <span className="font-medium text-prism-violet">NVIDIA NIM</span>,{" "}
         <span className="font-medium text-prism-violet">Kimi</span> y{" "}
@@ -515,7 +515,7 @@ export function ProvidersTab({
         <p className="text-[11.5px] font-medium text-foreground">Pegar snippet</p>
         <p className="text-[11px] leading-relaxed text-muted-foreground">
           Copia el Python de NVIDIA Build, el cliente OpenAI de TokenRouter (`base_url` + `api_key` +
-          `model`) o un cURL con Bearer. Prism elige el proveedor por el host y deja ese modelo como
+          `model`) o un cURL con Bearer. Forja elige el proveedor por el host y deja ese modelo como
           predeterminado.
         </p>
         <textarea

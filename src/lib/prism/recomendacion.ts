@@ -1,6 +1,6 @@
-/** Prism AI — Inteligencia de recomendación (Pilar 4 del plan de escalado).
+/** Forja IA — Inteligencia de recomendación (Pilar 4 del plan de escalado).
  *
- * Hoy Prism YA clasifica la tarea (`task-router.ts`) y ordena candidatos,
+ * Hoy Forja YA clasifica la tarea (`task-router.ts`) y ordena candidatos,
  * pero solo lo dice en un toast. El plan pide decisión ACTIVA con el
  * porqué visible:
  *
@@ -44,7 +44,7 @@ const REINTENTOS_CASTIGO = 4;
 const PENA_REINTENTOS = 18;
 
 /** La matriz del plan (§4.2), traducida a pesos. Los proveedores GRATIS
- * mandan por defecto (filosofía Prism); la escalada a pago solo se
+ * mandan por defecto (filosofía Forja); la escalada a pago solo se
  * recomienda para refactor/arquitectura si hay algo conectado. */
 const AJUSTE_TIPO: Record<TipoTarea, Partial<Record<ProviderId, number>>> = {
   // UI desde cero: calidad de diseño = menos iteraciones = ahorro total
@@ -135,7 +135,7 @@ export function recomendarModelo(
       modelKey: null,
       modelo: "",
       proveedor: "",
-      razon: "No hay proveedores conectados: conecta uno en Ajustes para que Prism pueda recomendar.",
+      razon: "No hay proveedores conectados: conecta uno en Ajustes para que Forja pueda recomendar.",
     };
   }
 

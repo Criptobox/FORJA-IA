@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Empty state del chat: hero compacto, un CTA y atajos para construir. */
+/** Forja IA — Empty state del chat: hero compacto, un CTA y atajos para construir. */
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
@@ -19,7 +19,7 @@ import {
   Sparkles,
   Telescope,
 } from "lucide-react";
-import { PrismLogo } from "./logo";
+import { ForjaLogo } from "./logo";
 import { Button } from "@/components/ui/button";
 import { usePrism } from "@/lib/prism/store";
 import { PROVIDERS } from "@/lib/prism/providers";
@@ -142,7 +142,7 @@ export function Welcome({
         <div className="stagger-in mb-4 flex justify-center" style={{ "--stagger": 0 } as React.CSSProperties}>
           <div className="relative">
             <div className="absolute inset-[-18%] -z-10 rounded-full prism-gradient-bg opacity-20 blur-2xl" />
-            <PrismLogo size={56} glow />
+            <ForjaLogo size={56} glow />
           </div>
         </div>
 
@@ -150,7 +150,7 @@ export function Welcome({
           className="stagger-in text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground/80"
           style={{ "--stagger": 1 } as React.CSSProperties}
         >
-          Prism
+          Forja
         </p>
         <h2
           className="stagger-in mt-1 text-[1.85rem] font-semibold tracking-tight sm:text-[2.15rem]"
@@ -204,7 +204,7 @@ export function Welcome({
                   ))}
                 </div>
                 <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
-                  Pega el snippet de Build o el cliente OpenAI. Prism saca clave, URL y modelo.
+                  Pega el snippet de Build o el cliente OpenAI. Forja saca clave, URL y modelo.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button

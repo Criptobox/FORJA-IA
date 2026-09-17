@@ -1,4 +1,4 @@
-/** Prism AI — La frescura de lo que enseña el radar.
+/** Forja IA — La frescura de lo que enseña el radar.
  *
  * El radar es en su mayor parte un catálogo escrito a mano, y una oferta que
  * dice «Vigente» sin fecha sigue diciéndolo dos años después. Es la misma

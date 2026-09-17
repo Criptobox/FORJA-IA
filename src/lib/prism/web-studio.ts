@@ -1,4 +1,4 @@
-/** Prism AI — Web Studio: workflow especializado en construir y verificar interfaces web.
+/** Forja IA — Web Studio: workflow especializado en construir y verificar interfaces web.
  * No ejecuta nada por sí mismo: prepara un contrato de trabajo para el agente y mantiene
  * un estado explícito. Las mediciones reales siguen viniendo de Sandbox/Visual QA.
  */

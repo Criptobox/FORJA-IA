@@ -1,4 +1,4 @@
-/** Prism AI — Temas de acento personalizados.
+/** Forja IA — Temas de acento personalizados.
  * Cada tema cambia las variables --prism-violet / --prism-cyan / --prism-pink
  * y los tokens primarios (--primary, --ring, sidebar) definidos en globals.css
  * mediante el atributo data-accent en <html>. El tema «personalizado» calcula
@@ -21,7 +21,7 @@ export const ACCENTS: AccentPreset[] = [
 ];
 
 export const ACCENT_CUSTOM = "personalizado";
-export const ACCENT_DEFAULT = "violeta";
+export const ACCENT_DEFAULT = "naranja";
 
 export function isPresetAccent(id: string): boolean {
   return ACCENTS.some((a) => a.id === id);

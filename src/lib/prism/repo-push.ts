@@ -1,4 +1,4 @@
-/** Prism AI — Publicación de cambios de Repo Studio a GitHub.
+/** Forja IA — Publicación de cambios de Repo Studio a GitHub.
  * Dos vías:
  *  1. pushFilesToRepo   → commit directo en el repo original (si es tuyo) con la Contents API
  *  2. publishAsNewRepo  → publica los archivos editados como un repo nuevo de tu cuenta
@@ -77,7 +77,7 @@ export async function pushFilesToRepo(
     const putRes = await ghFetch(token, `/repos/${owner}/${repo}/contents/${encodePath(f.path)}`, {
       method: "PUT",
       body: JSON.stringify({
-        message: `Prism AI: actualizar ${f.path}`,
+        message: `Forja IA: actualizar ${f.path}`,
         content: toBase64(f.content),
         ...(sha ? { sha } : {}),
       }),

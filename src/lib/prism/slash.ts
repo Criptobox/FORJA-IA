@@ -1,4 +1,4 @@
-/** Prism AI — Comandos slash del compositor.
+/** Forja IA — Comandos slash del compositor.
  *
  * Escribes «/» al principio del mensaje y sale un menú que filtra en vivo.
  * La lógica vive aquí (sin React ni DOM) para poder probarla en Node: el

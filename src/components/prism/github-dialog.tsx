@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Subir una carpeta entera a GitHub (sin límite de 100 archivos).
+/** Forja IA — Subir una carpeta entera a GitHub (sin límite de 100 archivos).
  * Token guardado solo en tu dispositivo; subida por lotes con 1 commit por lote. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import {

@@ -4,7 +4,7 @@ import {
   separarEtiquetasPensamiento,
 } from "../../src/lib/prism/razonamiento";
 
-/** Prism AI — T4 del plan V6: los bloques de razonamiento, por protocolo.
+/** Forja IA — T4 del plan V6: los bloques de razonamiento, por protocolo.
  *
  * Los dos primeros casos existían dispersos (reasoning_content y etiquetas
  * \uD83E\uDDE2... hmm, no: etiquetas <think>); los dos últimos (Anthropic

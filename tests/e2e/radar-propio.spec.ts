@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El radar deja de poner siempre lo mismo, y te lleva a por la clave.
+/** Forja IA — El radar deja de poner siempre lo mismo, y te lleva a por la clave.
  *
  * Dos quejas del usuario, las dos ciertas:
  *

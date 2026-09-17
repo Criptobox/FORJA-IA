@@ -1,6 +1,6 @@
 import {  expect, test  } from "./fixtures";
 
-/** Prism AI — Las rutas de servidor, atacadas de verdad.
+/** Forja IA — Las rutas de servidor, atacadas de verdad.
  *
  * Estas comprobaciones no miran el camino feliz: repiten los dos ataques que
  * funcionaban antes de existir el escudo. Si alguien afloja el guardián, aquí

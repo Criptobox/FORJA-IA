@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Estado de instalación como app (PWA).
+/** Forja IA — Estado de instalación como app (PWA).
  *
  * Fuera del componente a propósito: el navegador dispara `beforeinstallprompt`
  * en cuanto la página cumple los requisitos, que suele ser ANTES de que React
@@ -119,7 +119,7 @@ export function instruccionesManuales(userAgent: string): string {
   if (/android/.test(ua)) {
     return "En Chrome para Android: menú (⋮) → «Añadir a pantalla de inicio» o «Instalar aplicación». Si no aparece, entra por Chrome y no desde el navegador de otra app.";
   }
-  return "En el navegador: busca el icono de instalar en la barra de direcciones, o menú (⋮) → «Instalar Prism AI».";
+  return "En el navegador: busca el icono de instalar en la barra de direcciones, o menú (⋮) → «Instalar Forja IA».";
 }
 
 /** Solo para las pruebas: devuelve el módulo a su estado inicial. */

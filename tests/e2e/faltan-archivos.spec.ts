@@ -1,14 +1,14 @@
 import { expect, test, type Page } from "./fixtures";
 import { readFileSync } from "node:fs";
 
-/** Prism AI — Cuando el HTML pide un archivo que no está, se dice y se arregla.
+/** Forja IA — Cuando el HTML pide un archivo que no está, se dice y se arregla.
  *
  * El ZIP de este test es EL DEL USUARIO, tal cual lo subió. Dentro hay
  * `index.html`, `css.css` y `javascript.js`; el HTML pide `styles.css` y
  * `script.js`. Los nombres no coinciden, así que la página se abre sin
  * estilos y sin scripts — y en cualquier navegador pasaría lo mismo.
  *
- * El fallo de Prism no era resolver mal la ruta (eso se arregló en la
+ * El fallo de Forja no era resolver mal la ruta (eso se arregló en la
  * v3.41.1): era decirlo en un aviso que se va a los tres segundos y que ni
  * siquiera mencionaba que en el proyecto SÍ hay un .css, con otro nombre.
  */
@@ -58,7 +58,7 @@ test("dice QUÉ falta, que hay un candidato y por qué la página se ve pelada",
   // y el candidato que SÍ está en el proyecto
   await expect(banda).toContainText("css.css");
   await expect(banda).toContainText("javascript.js");
-  // sin culpar a Prism de algo que haría igual cualquier navegador
+  // sin culpar a Forja de algo que haría igual cualquier navegador
   await expect(banda).toContainText("En un navegador normal pasaría lo mismo");
 });
 

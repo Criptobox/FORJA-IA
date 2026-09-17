@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Panel de uso (analytics local, inspirado en los Insights de OmniRoute/OrcaRouter).
+/** Forja IA — Panel de uso (analytics local, inspirado en los Insights de OmniRoute/OrcaRouter).
  * Todo se calcula en tu navegador: peticiones, OK/fallos, latencia media y p95,
  * volumen, ahorro de compresión por modelo, actividad de 7 días y registro de
  * peticiones con «Copiar como cURL» (claves siempre redactadas). */
@@ -134,7 +134,7 @@ export function UsagePanelBody() {
     return n;
   }, [days]);
 
-  /** Los modelos con algo que reprocharles, lo peor primero. Prism medía esto
+  /** Los modelos con algo que reprocharles, lo peor primero. Forja medía esto
    * desde hacía versiones y solo lo usaba para decidir por dentro: el usuario
    * no tenía forma de saber por qué su modelo «bueno» no funcionaba. */
   const conAvisos = useMemo(() => {

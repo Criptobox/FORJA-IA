@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El agente puede LEER una página, no buscar en la web.
+/** Forja IA — El agente puede LEER una página, no buscar en la web.
  *
  * `PLAN-V4` daba esto por imposible «sin servidor». Resulta que el servidor ya
  * estaba y ya estaba protegido: `/api/proxy` pide cualquier host público y

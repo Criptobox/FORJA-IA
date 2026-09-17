@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Barra de pestañas de conversación (idea D2 del PLAN-V7).
+/** Forja IA — Barra de pestañas de conversación (idea D2 del PLAN-V7).
  *
  * Como en un navegador: cada conversación abierta es una pestaña, cambias
  * de proyecto sin pasar por la barra lateral ni perder el hilo. Cerrar

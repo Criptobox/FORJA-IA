@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Bóveda cifrada opcional para las claves API (AES-GCM + PBKDF2).
+/** Forja IA — Bóveda cifrada opcional para las claves API (AES-GCM + PBKDF2).
  *
  * Al activar el PIN:
  *  - Las claves de proveedores y el token de GitHub se quitan del localStorage
@@ -9,7 +9,7 @@
  *    sessionStorage hasta que se cierre la pestaña/actualice con la sesión cerrada.
  *  - Sin el PIN, quien extraiga el localStorage solo ve claves vacías.
  *
- * Si el PIN está desactivado, Prism AI funciona exactamente como siempre.
+ * Si el PIN está desactivado, Forja IA funciona exactamente como siempre.
  */
 import { create } from "zustand";
 import { usePrism } from "./store";

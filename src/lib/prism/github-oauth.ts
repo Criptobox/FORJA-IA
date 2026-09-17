@@ -1,4 +1,4 @@
-/** Prism AI — Utilidades puras de OAuth de GitHub (sin I/O).
+/** Forja IA — Utilidades puras de OAuth de GitHub (sin I/O).
  * El intercambio de código y las cookies viven en el servidor;
  * aquí solo hay parsers y URLs, para poder probarlos. */
 
@@ -65,9 +65,9 @@ export function githubInstallUrl(slug: string): string {
 export function githubManifestPayload(origin: string): Record<string, unknown> {
   const o = origin.replace(/\/+$/, "");
   return {
-    name: "Prism AI",
+    name: "Forja IA",
     url: o,
-    description: "Edita repositorios y sube los cambios a main desde Prism.",
+    description: "Edita repositorios y sube los cambios a main desde Forja.",
     hook_attributes: { url: `${o}/api/github/webhook`, active: false },
     redirect_url: `${o}/api/github/manifest/callback`,
     callback_urls: [`${o}/api/github/oauth/callback`],

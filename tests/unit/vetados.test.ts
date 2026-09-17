@@ -1,4 +1,4 @@
-/** Prism AI — Proveedores a los que NO se manda nada.
+/** Forja IA — Proveedores a los que NO se manda nada.
  *
  * Tener una clave conectada y querer que un proveedor no vea tu código son
  * cosas compatibles. El veto es tajante: ni una petición, tampoco por los

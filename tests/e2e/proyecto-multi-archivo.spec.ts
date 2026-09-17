@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — «Proyecto para un repo» pide varios archivos, no un HTML solo.
+/** Forja IA — «Proyecto para un repo» pide varios archivos, no un HTML solo.
  *
  * Hallazgo de dogfooding: la skill «Desarrollador web experto» manda
  * SIEMPRE un único archivo HTML autónomo, sin excepción — ni cuando se pide

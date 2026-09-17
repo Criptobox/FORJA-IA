@@ -1,4 +1,4 @@
-/** Prism AI — Voz: dictado (SpeechRecognition) y lectura (speechSynthesis).
+/** Forja IA — Voz: dictado (SpeechRecognition) y lectura (speechSynthesis).
  * Ambas APIs son nativas del navegador, gratis y 100% locales.
  */
 

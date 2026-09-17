@@ -1,4 +1,4 @@
-/** Prism AI — OAuth de GitHub en el servidor (cookies, intercambio, HTML).
+/** Forja IA — OAuth de GitHub en el servidor (cookies, intercambio, HTML).
  * No importar desde componentes de cliente. */
 import { createHash, randomBytes } from "node:crypto";
 import {
@@ -98,7 +98,7 @@ export async function exchangeGithubCode(opts: {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "prism-ai",
+      "User-Agent": "forja-ia",
     },
     body,
     signal: AbortSignal.timeout(20000),
@@ -112,7 +112,7 @@ export async function githubUser(token: string): Promise<{ login: string; name: 
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${token}`,
-      "User-Agent": "prism-ai",
+      "User-Agent": "forja-ia",
       "X-GitHub-Api-Version": "2022-11-28",
     },
     signal: AbortSignal.timeout(15000),
@@ -140,7 +140,7 @@ export async function startDeviceFlow(creds: AppCreds): Promise<{
     headers: {
       Accept: "application/json",
       "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "prism-ai",
+      "User-Agent": "forja-ia",
     },
     body,
     signal: AbortSignal.timeout(15000),
@@ -192,7 +192,7 @@ export async function pollDeviceFlow(creds: AppCreds, deviceCode: string): Promi
     headers: {
       Accept: "application/json",
       "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "prism-ai",
+      "User-Agent": "forja-ia",
     },
     body,
     signal: AbortSignal.timeout(15000),
@@ -218,7 +218,7 @@ export function oauthResultHtml(
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>${ok ? "GitHub conectado" : "GitHub"} · Prism</title>
+  <title>${ok ? "GitHub conectado" : "GitHub"} · Forja</title>
   <style>
     :root { color-scheme: dark; }
     body { margin:0; min-height:100vh; display:grid; place-items:center;
@@ -229,7 +229,7 @@ export function oauthResultHtml(
 </head>
 <body>
   <div class="c">
-    <p>${ok ? "Cuenta conectada. Puedes cerrar esta ventana." : payload.error ? escapeHtml(payload.error) : "Volviendo a Prism…"}</p>
+    <p>${ok ? "Cuenta conectada. Puedes cerrar esta ventana." : payload.error ? escapeHtml(payload.error) : "Volviendo a Forja…"}</p>
   </div>
   <script>
   (function () {

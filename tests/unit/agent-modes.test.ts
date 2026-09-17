@@ -12,7 +12,7 @@ const TODOS = MODOS_AGENTE.map((m) => m.id);
 
 describe("los modos caben en un modelo gratis", () => {
   it.each(MODOS_AGENTE)("«$nombre» no se pasa de largo", (m) => {
-    // Prism apunta a modelos de ventana corta: un modo que engorda deja de ser
+    // Forja apunta a modelos de ventana corta: un modo que engorda deja de ser
     // útil justo donde se escribió para usarse.
     expect(m.texto.length, `${m.id} ocupa ${m.texto.length}`).toBeLessThanOrEqual(LIMITE_MODO);
   });

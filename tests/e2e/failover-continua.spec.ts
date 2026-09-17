@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — El failover CONTINÚA el trabajo, no lo reinicia.
+/** Forja IA — El failover CONTINÚA el trabajo, no lo reinicia.
  *
  * `attemptFailover` hacía `deleteMessage` y el modelo de repuesto empezaba de
  * cero: cambiaba de modelo, sí, pero los minutos que llevaba escritos el
@@ -24,7 +24,7 @@ async function seed(page: import("@playwright/test").Page) {
         radarSeenIds: [],
         settings: {
           defaultModelKey: "custom::mock-corta-y-cae",
-          systemPrompt: "Eres Prism AI (test).",
+          systemPrompt: "Eres Forja IA (test).",
           temperature: 0.7,
           maxTokens: null,
           stream: true,

@@ -1,4 +1,4 @@
-/** Prism AI — Mapa del proyecto: memoria compacta de lo que la IA va construyendo.
+/** Forja IA — Mapa del proyecto: memoria compacta de lo que la IA va construyendo.
  * Se deriva localmente del HTML generado (o lo actualiza el propio modelo vía
  * <project-map>) y se inyecta en el system prompt de los turnos siguientes para
  * que la IA "recuerde" el proyecto sin releer todo el código → menos tokens.
@@ -547,7 +547,7 @@ export function renderMapForPrompt(map: ProjectMap | null | undefined): string |
 export const MAX_RESULTADOS_MEMORIA = 5;
 
 /** De dónde salió cada respuesta, para que el modelo (y el usuario) sepan si
- * es una decisión del usuario o algo que Prism dedujo del código. */
+ * es una decisión del usuario o algo que Forja dedujo del código. */
 export type OrigenMemoria = "nota" | "archivo" | "funcionalidad" | "tecnologia" | "proyecto";
 
 export interface ResultadoMemoria {
@@ -644,7 +644,7 @@ export function buscarEnMapa(
   };
 
   // Las notas van con ventaja a propósito: son lo que el USUARIO decidió, y
-  // eso pesa más que algo que Prism dedujo leyendo el HTML.
+  // eso pesa más que algo que Forja dedujo leyendo el HTML.
   for (const n of map.notes ?? []) push("nota", "nota", n, 5);
   for (const f of map.files) {
     const extra = [

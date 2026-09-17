@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Biblioteca de snippets reutilizables (U2, PLAN-V7).
+/** Forja IA — Biblioteca de snippets reutilizables (U2, PLAN-V7).
  *
  * Un snippet es un trozo de texto —prompt parcial, plantilla de función,
  * configuración, cabecera de documento— que quieres reutilizar sin

@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Ajustes: proveedores, claves API, parámetros de chat y datos */
+/** Forja IA — Ajustes: proveedores, claves API, parámetros de chat y datos */
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
@@ -108,7 +108,7 @@ export function SettingsDialog({
     if (importData(text)) {
       toast.success("Datos importados correctamente");
     } else {
-      toast.error("Archivo no válido", { description: "Debe ser un backup de Prism AI." });
+      toast.error("Archivo no válido", { description: "Debe ser un backup de Forja IA." });
     }
   };
 
@@ -541,7 +541,7 @@ export function SettingsDialog({
                   <Volume2 className="size-3.5 text-prism-violet" /> Leer respuestas en voz alta
                 </Label>
                 <p className="text-[11px] leading-relaxed text-muted-foreground">
-                  Al terminar cada respuesta, Prism la lee automáticamente (español). También
+                  Al terminar cada respuesta, Forja la lee automáticamente (español). También
                   puedes leer cualquier mensaje con el botón de altavoz.
                 </p>
               </div>
@@ -737,7 +737,7 @@ export function SettingsDialog({
                 variant="destructive"
                 className="mt-3 h-8 text-xs"
                 onClick={() => {
-                  if (confirm("¿Borrar TODOS los datos de Prism AI en este dispositivo?")) {
+                  if (confirm("¿Borrar TODOS los datos de Forja IA en este dispositivo?")) {
                     resetAll();
                     toast.success("Todo restablecido");
                   }
@@ -750,7 +750,7 @@ export function SettingsDialog({
             {/* La versión sale de package.json, no escrita a mano: este texto
                 anunció «v3.1» durante cuatro versiones porque nadie lo tocó. */}
             <p className="text-center text-[11px] text-muted-foreground">
-              Prism AI · Sin cuentas, sin límites
+              Forja IA · Sin cuentas, sin límites
               <br />
               <span className="font-mono text-[10px] text-muted-foreground/70">
                 {buildLabel()}
@@ -823,7 +823,7 @@ function AppearanceCustom() {
         )}
       </div>
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        Elige cualquier color y Prism genera automáticamente dos tonos coordinados para los
+        Elige cualquier color y Forja genera automáticamente dos tonos coordinados para los
         degradados y detalles.
       </p>
     </div>

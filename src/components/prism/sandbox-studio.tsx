@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Sandbox: navega el proyecto, ejecútalo, revísalo y corrige antes de subirlo.
+/** Forja IA — Sandbox: navega el proyecto, ejecútalo, revísalo y corrige antes de subirlo.
  *
  * Paneles sobre el mismo proyecto (ZIP, repo local o semilla del chat):
  *   Editor   — árbol de carpetas + editor con números de línea
@@ -1110,7 +1110,7 @@ export function SandboxStudio({
     // la medida de QA que el medidor mande al cargar (regresión visible)
     // `built.htmlBytes`, no `servido.length`: el peso que se enseña es el del
     // PROYECTO. Con `servido` se le sumaban los kilobytes del puente de consola,
-    // del medidor de QA y del piloto que Prism inyecta y que nunca salen de
+    // del medidor de QA y del piloto que Forja inyecta y que nunca salen de
     // aquí — un peso que el usuario no tiene y no puede bajar.
     pendienteRef.current = { entry, htmlBytes: built.htmlBytes, startedAt: Date.now() };
     if (timerRef.current) clearTimeout(timerRef.current);

@@ -1,4 +1,4 @@
-/** Prism AI — Generación de imágenes gratis y sin clave con Pollinations.ai.
+/** Forja IA — Generación de imágenes gratis y sin clave con Pollinations.ai.
  * Endpoint público tipo GET: devuelve la imagen directamente, ideal para
  * <img> y para descargar con fetch. No requiere cuenta ni API key.
  */

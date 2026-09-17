@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — El código no se vuelca crudo en el chat.
+/** Forja IA — El código no se vuelca crudo en el chat.
  *
  * Hallazgo de dogfooding: pedías una web y el bloque ```html entero —a veces
  * varias pantallas— pasaba por delante del texto, y mientras se escribía se

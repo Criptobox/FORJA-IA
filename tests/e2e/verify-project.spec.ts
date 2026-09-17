@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — `verify_project` (v4.24.0): verificación INDEPENDIENTE del
+/** Forja IA — `verify_project` (v4.24.0): verificación INDEPENDIENTE del
  * proyecto. No acepta que el modelo se autodeclare aprobado: ejecuta el
  * proyecto de verdad (el mismo camino sandboxed del navegador que ya usa
  * `run_project`, nunca un runtime en el servidor) y combina esa evidencia

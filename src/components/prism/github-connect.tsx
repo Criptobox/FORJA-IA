@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Conectar la cuenta de GitHub (OAuth, un clic).
+/** Forja IA — Conectar la cuenta de GitHub (OAuth, un clic).
  * El token clásico queda como opción avanzada; lo normal es «Conectar». */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Github, Loader2, LogOut } from "lucide-react";
@@ -170,7 +170,7 @@ export function useGithubAccount(): {
           return;
         }
         if (!res.ok || !j.device_code) throw new Error(j.error || "No se pudo iniciar la conexión");
-        toast.message("Autoriza Prism en GitHub", {
+        toast.message("Autoriza Forja en GitHub", {
           description: j.user_code ? `Código: ${j.user_code}` : "Confirma el acceso en la pestaña que se acaba de abrir.",
         });
         window.open(j.verification_uri || "https://github.com/login/device", "_blank");

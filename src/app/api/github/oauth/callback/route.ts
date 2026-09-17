@@ -1,4 +1,4 @@
-/** Prism AI — GitHub redirige aquí con ?code= tras autorizar. */
+/** Forja IA — GitHub redirige aquí con ?code= tras autorizar. */
 import { NextResponse } from "next/server";
 import {
   GH_STATE_COOKIE,

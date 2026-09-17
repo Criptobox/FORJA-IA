@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — El prompt del sistema, montado igual para quien lo manda y para quien lo mide.
+/** Forja IA — El prompt del sistema, montado igual para quien lo manda y para quien lo mide.
  *
  * Segundo corte de `chat-app.tsx` (PLAN-V8 punto 1): `use-system-prompt`.
  *

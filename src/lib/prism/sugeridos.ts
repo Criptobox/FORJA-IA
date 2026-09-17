@@ -1,4 +1,4 @@
-/** Prism AI — Qué modelos proponer al conectar un proveedor.
+/** Forja IA — Qué modelos proponer al conectar un proveedor.
  *
  * Hasta aquí los «Sugeridos» salían SIEMPRE de `defaultModels`, una lista
  * escrita a mano en `providers.ts`. El problema no es que esté mal escrita:

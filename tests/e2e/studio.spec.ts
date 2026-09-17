@@ -1,6 +1,6 @@
 import {  expect, test, type Page  } from "./fixtures";
 
-/** Prism AI — E2E v3.0.0: Sandbox (ZIP → ejecutar) y Repo Studio directo (GitHub API). */
+/** Forja IA — E2E v3.0.0: Sandbox (ZIP → ejecutar) y Repo Studio directo (GitHub API). */
 
 async function seedApp(page: Page) {
   await page.addInitScript(() => {
@@ -13,7 +13,7 @@ async function seedApp(page: Page) {
         radarSeenIds: [],
         settings: {
           defaultModelKey: "custom::mock-mini-free",
-          systemPrompt: "Eres Prism AI (test).",
+          systemPrompt: "Eres Forja IA (test).",
           temperature: 0.7,
           maxTokens: null,
           stream: true,
@@ -52,7 +52,7 @@ async function seedApp(page: Page) {
   });
 }
 
-test.describe("Prism AI — Sandbox (navegar, ejecutar, revisar)", () => {
+test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
   test.beforeEach(async ({ page }) => {
     await seedApp(page);
   });
@@ -295,12 +295,12 @@ test.describe("Prism AI — Sandbox (navegar, ejecutar, revisar)", () => {
     await page.getByRole("button", { name: "Ejecutar" }).click();
     const frame = page.frameLocator('iframe[title="Vista previa del Sandbox"]');
     // el saludo viene de un módulo que a su vez importa una constante de otra carpeta
-    await expect(frame.locator("#titulo")).toContainText("Funcionan los módulos ES — Prism Sandbox", { timeout: 15_000 });
+    await expect(frame.locator("#titulo")).toContainText("Funcionan los módulos ES — Forja Sandbox", { timeout: 15_000 });
     // y la suma viene de mat/index.js → mat/ops.js
     await expect(frame.locator("#suma")).toContainText("2 + 3 = 5");
     await irAPestana(page, /Consola/);
     await expect(page.getByText("app.js con módulos ES cargado")).toBeVisible();
-    await expect(page.getByText("sumando en Prism Sandbox")).toBeVisible();
+    await expect(page.getByText("sumando en Forja Sandbox")).toBeVisible();
   });
 
   test("del Sandbox a GitHub: la revisión bloquea la subida de una credencial", async ({
@@ -382,7 +382,7 @@ test.describe("Prism AI — Sandbox (navegar, ejecutar, revisar)", () => {
     await expect(page.getByText(/1 archivo con cambios/)).toBeVisible();
     // la línea nueva sale como añadida y la vieja como quitada
     await expect(page.getByText("Titulo editado", { exact: false }).first()).toBeVisible();
-    await expect(page.getByText(/Demo Sandbox Prism/).first()).toBeVisible();
+    await expect(page.getByText(/Demo Sandbox Forja/).first()).toBeVisible();
 
     // un archivo nuevo aparece marcado como tal
     await page.getByRole("button", { name: "Archivo nuevo" }).click();
@@ -418,12 +418,12 @@ test.describe("Prism AI — Sandbox (navegar, ejecutar, revisar)", () => {
   });
 });
 
-test.describe("Prism AI — Repo Studio directo (GitHub API)", () => {
+test.describe("Forja IA — Repo Studio directo (GitHub API)", () => {
   const OWNER = "e2e-user";
   const REPO = "demo-repo";
   const BASE = `https://api.github.com/repos/${OWNER}/${REPO}`;
   const HTML_VIEJO = "<h1>Hola</h1>";
-  const HTML_NUEVO = "<h1>Hola editado desde Prism</h1>";
+  const HTML_NUEVO = "<h1>Hola editado desde Forja</h1>";
 
   let commitsPost: { message?: string }[] = [];
 
@@ -557,7 +557,7 @@ test.describe("Prism AI — Repo Studio directo (GitHub API)", () => {
     await page.getByRole("button", { name: "Guardar" }).click();
 
     // commit + push
-    await page.getByLabel("Mensaje del commit").fill("Cambio desde Prism E2E");
+    await page.getByLabel("Mensaje del commit").fill("Cambio desde Forja E2E");
     // el botón lleva la rama de destino: «Subir a main»
     await page.getByRole("button", { name: /Subir a main/ }).click();
 
@@ -566,6 +566,6 @@ test.describe("Prism AI — Repo Studio directo (GitHub API)", () => {
 
     // el POST de commit llevó el mensaje correcto y 1 solo commit
     expect(commitsPost).toHaveLength(1);
-    expect(commitsPost[0].message).toBe("Cambio desde Prism E2E");
+    expect(commitsPost[0].message).toBe("Cambio desde Forja E2E");
   });
 });

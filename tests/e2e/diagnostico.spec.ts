@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-/** Prism AI — el diagnóstico se puede pegar en cualquier sitio.
+/** Forja IA — el diagnóstico se puede pegar en cualquier sitio.
  *
  * El test unitario prueba que la función no deja salir una clave. Este prueba
  * lo otro: que la clave que el usuario tiene DE VERDAD guardada tampoco sale,
@@ -50,7 +50,7 @@ test("copia versión y proveedores, nunca la clave", async ({ page, context }) =
   await page.getByRole("tab", { name: /datos/i }).click();
 
   await page.getByRole("button", { name: "Ver qué se copia" }).click();
-  const informe = page.locator("pre").filter({ hasText: "Diagnóstico de Prism AI" });
+  const informe = page.locator("pre").filter({ hasText: "Diagnóstico de Forja IA" });
   await expect(informe).toBeVisible();
 
   const texto = (await informe.textContent()) ?? "";
@@ -67,5 +67,5 @@ test("copia versión y proveedores, nunca la clave", async ({ page, context }) =
   await page.getByRole("button", { name: "Copiar diagnóstico" }).click();
   const portapapeles = await page.evaluate(() => navigator.clipboard.readText());
   expect(portapapeles).not.toContain(CLAVE);
-  expect(portapapeles).toContain("Diagnóstico de Prism AI");
+  expect(portapapeles).toContain("Diagnóstico de Forja IA");
 });

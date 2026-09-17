@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — La skill que encaja se propone, y el clic la activa de verdad.
+/** Forja IA — La skill que encaja se propone, y el clic la activa de verdad.
  *
  * `classifyTask` ya clasificaba el encargo en seis tipos y solo se usaba para
  * elegir modelo: podías tener siete skills instaladas y ninguna pista de cuál

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Prism AI — Recorte PROACTIVO: no esperar a que el proveedor se queje.
+/** Forja IA — Recorte PROACTIVO: no esperar a que el proveedor se queje.
  *
  * `recorte-y-reintento.spec.ts` prueba el camino REACTIVO: un proveedor
  * contesta «no cabe» (413) y la app recorta y reintenta. Pero un contexto

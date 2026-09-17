@@ -286,7 +286,7 @@ describe("buildRunHtml — el peso que se enseña es el del proyecto", () => {
   const files = (o: Record<string, string>) =>
     new Map(Object.entries(o).map(([k, v]) => [k, new TextEncoder().encode(v)]));
 
-  it("htmlBytes NO cuenta el puente de consola que inyecta Prism", () => {
+  it("htmlBytes NO cuenta el puente de consola que inyecta Forja", () => {
     const html = "<!doctype html><html><head></head><body><h1>Hola</h1></body></html>";
     const r = buildRunHtml("index.html", files({ "index.html": html }));
     // el bundle servido lleva la instrumentación; el peso que se reporta, no

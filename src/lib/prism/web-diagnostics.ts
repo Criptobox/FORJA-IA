@@ -1,4 +1,4 @@
-/** Prism AI — Diagnóstico accionable de un proyecto web.
+/** Forja IA — Diagnóstico accionable de un proyecto web.
  *
  * Convierte los hallazgos de `web-verifier.ts` en tareas concretas que el
  * agente puede ejecutar: archivo candidato, causa, acción recomendada y

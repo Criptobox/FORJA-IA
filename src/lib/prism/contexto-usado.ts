@@ -1,4 +1,4 @@
-/** Prism AI — Qué contexto viajó de verdad con tu mensaje.
+/** Forja IA — Qué contexto viajó de verdad con tu mensaje.
  *
  * Cada turno se manda mucho más que lo que escribes: el mapa del proyecto, tus
  * notas, las reglas «no tocar», las skills activas, las reglas aprendidas de

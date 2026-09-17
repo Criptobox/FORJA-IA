@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Hilos: varios temas dentro de una misma conversación.
+/** Forja IA — Hilos: varios temas dentro de una misma conversación.
  *
  * Antes, para cambiar de tema había dos opciones malas: seguir en la misma
  * conversación —arrastrando un contexto que ya no viene a cuento y pagándolo en

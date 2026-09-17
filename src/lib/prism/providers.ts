@@ -1,4 +1,4 @@
-/** Prism AI — Registro de proveedores (BYOK: trae tu propia clave) */
+/** Forja IA — Registro de proveedores (BYOK: trae tu propia clave) */
 import type { ProviderDef, ProviderId } from "./types";
 
 export const PROVIDERS: ProviderDef[] = [

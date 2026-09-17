@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Suscripción a una media query desde React.
+/** Forja IA — Suscripción a una media query desde React.
  *
  * `useSyncExternalStore` en vez de `useState` + efecto: así el primer render ya
  * conoce la respuesta en el cliente y no hay parpadeo, y en el servidor se

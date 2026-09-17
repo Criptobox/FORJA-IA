@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Vista de cambios: qué has tocado antes de exportar o subir.
+/** Forja IA — Vista de cambios: qué has tocado antes de exportar o subir.
  *
  * Un contador de «3 archivos editados» no dice nada. Esto enseña el diff real,
  * archivo a archivo, con el contexto de siempre y los números de línea de los

@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
 
-  // Prism AI — qué archivos y dependencias no usa nadie.
+  // Forja IA — qué archivos y dependencias no usa nadie.
   //
   // Esto vino de limpiar a mano 30 componentes huérfanos y 39 dependencias que
   // arrastraba la plantilla original. knip hace esa búsqueda sola; lo que está

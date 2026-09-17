@@ -133,7 +133,7 @@ describe("modelosRotos", () => {
 describe("410: el proveedor retiró el modelo", () => {
   it("se trata como que no existe, no como caído", () => {
     // NVIDIA jubiló varios modelos el 26/08/2026 y devolvía 410 con la fecha
-    // dentro. Sin tratarlo caía en «caído», que es transitorio: Prism lo
+    // dentro. Sin tratarlo caía en «caído», que es transitorio: Forja lo
     // reintentaba una y otra vez contra algo que no va a volver nunca.
     expect(classifyProbe(410, '{"status":410,"detail":"The model \'meta/llama-3.3-70b-instruct\' has reached its end of life"}')).toBe(
       "no-existe"

@@ -1,6 +1,6 @@
 import {  expect, test  } from "./fixtures";
 
-/** El camino por defecto de Prism: el navegador NO habla con el proveedor, habla
+/** El camino por defecto de Forja: el navegador NO habla con el proveedor, habla
  * con /api/proxy y es el servidor quien sale a internet.
  *
  * Ese camino no lo cubría ningún E2E —todos siembran `useProxy: false` para
@@ -24,7 +24,7 @@ async function seedProxyProvider(page: import("@playwright/test").Page) {
         radarSeenIds: [],
         settings: {
           defaultModelKey: "custom::mock-mini-free",
-          systemPrompt: "Eres Prism AI (test).",
+          systemPrompt: "Eres Forja IA (test).",
           temperature: 0.7,
           maxTokens: null,
           stream: true,

@@ -1,7 +1,7 @@
-/** Prism AI — Detectar cuándo un modelo gratis deja de serlo.
+/** Forja IA — Detectar cuándo un modelo gratis deja de serlo.
  *
  * `isFreeModel` (free-models.ts) es una heurística ESTÁTICA: nada vigila el
- * cambio. Si mañana un proveedor retira la capa gratuita de un modelo, Prism
+ * cambio. Si mañana un proveedor retira la capa gratuita de un modelo, Forja
  * lo sigue tratando como gratis hasta que llega el 402. Esto compara *la foto
  * de la última vez que miraste* con *la de ahora* y saca las tres listas.
  *

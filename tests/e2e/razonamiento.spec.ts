@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-/** Prism AI — Tarea 4 del plan V6: el razonamiento de Gemini sale separado.
+/** Forja IA — Tarea 4 del plan V6: el razonamiento de Gemini sale separado.
  *
  * Las partes con `thought: true` de Gemini se pegaban al contenido: el
  * chain-of-thought aparecía MEZCLADO dentro de la respuesta. Ahora

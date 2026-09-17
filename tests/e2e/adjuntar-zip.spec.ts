@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 import { writeZip } from "../../src/lib/prism/zip";
 
-/** Prism AI — Subir un ZIP (o un archivo de código) al chat y que se lea.
+/** Forja IA — Subir un ZIP (o un archivo de código) al chat y que se lea.
  *
  * Hasta ahora el compositor aceptaba imágenes, PDF, txt/md y hojas de cálculo.
  * Un `.js` o un `.zip` no encajaban en ningún filtro y se ignoraban **en

@@ -1,5 +1,5 @@
 "use client";
-/** Prism AI — Procesado de imágenes adjuntas (redimensionado local, sin nube).
+/** Forja IA — Procesado de imágenes adjuntas (redimensionado local, sin nube).
  *
  * Desde la v3.14 el binario ya NO se guarda en el store de zustand: vive en
  * IndexedDB (`attachment-blob.ts`) y aquí solo queda la ficha con su `blobId`.

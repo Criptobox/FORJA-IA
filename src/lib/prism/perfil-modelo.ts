@@ -1,6 +1,6 @@
-/** Prism AI — La ficha de cada modelo: en qué es bueno y con qué se atraganta.
+/** Forja IA — La ficha de cada modelo: en qué es bueno y con qué se atraganta.
  *
- * Prism ya sabía cosas sueltas de cada modelo y las guardaba en tres sitios
+ * Forja ya sabía cosas sueltas de cada modelo y las guardaba en tres sitios
  * distintos: `modelos-rotos` (los que el proveedor no reconoce), `limites-
  * medidos` (lo que demostró que no le cabe) y `usage` (cuántas veces respondió,
  * cuánto tardó y en qué encargos). Cada uno servía para una decisión interna y

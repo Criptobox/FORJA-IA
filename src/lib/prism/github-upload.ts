@@ -1,4 +1,4 @@
-/** Prism AI — Subida directa a GitHub con la Git Data API.
+/** Forja IA — Subida directa a GitHub con la Git Data API.
  * Permite subir carpetas completas (más de 100 archivos) en lotes:
  *  - blobs base64 solo para binarios; el texto va embebido en el tree (menos peticiones)
  *  - 1 commit por lote (≈60 archivos o ≈12 MB) sobre la rama main
@@ -307,7 +307,7 @@ function toBase64(bytes: Uint8Array): string {
 
 /** Token clásico pre-rellenado con scope repo (para crear y subir) */
 export const GH_TOKEN_URL =
-  "https://github.com/settings/tokens/new?scopes=repo&description=Prism%20AI";
+  "https://github.com/settings/tokens/new?scopes=repo&description=Forja%20AI";
 
 // ——— flujo de subida ———
 
@@ -386,7 +386,7 @@ export async function ghEnsureRepo(
       name,
       private: isPrivate,
       auto_init: true,
-      description: "Prism AI — mi chat con modelos gratis (subido desde la app)",
+      description: "Forja IA — mi chat con modelos gratis (subido desde la app)",
       has_issues: true,
       has_projects: false,
       has_wiki: false,
@@ -639,8 +639,8 @@ export async function uploadToGithub(
     });
     const message =
       i === 0
-        ? `Prism AI: subida inicial (${items.length} archivos)`
-        : `Prism AI: lote ${i + 1}/${batches.length}`;
+        ? `Forja IA: subida inicial (${items.length} archivos)`
+        : `Forja IA: lote ${i + 1}/${batches.length}`;
     const newHead = await ghCommitBatch(
       token,
       repo.owner,

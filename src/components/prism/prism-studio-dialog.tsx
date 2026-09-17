@@ -93,7 +93,7 @@ export function PrismStudioDialog({
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20"><Sparkles className="size-5 text-primary" /></div>
             <div className="min-w-0 flex-1">
-              <DialogTitle>Prism Web Studio</DialogTitle>
+              <DialogTitle>Forja Web Studio</DialogTitle>
               <DialogDescription>Construye → ejecuta → mide → corrige → publica. Con evidencia cuando exista.</DialogDescription>
             </div>
             <div className="hidden items-center gap-2 sm:flex">
@@ -152,7 +152,7 @@ export function PrismStudioDialog({
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-card/50 p-4">
                   <div className="mb-3 flex items-center gap-2"><ScanSearch className="size-4 text-primary" /><h3 className="text-sm font-semibold">Visual QA</h3></div>
-                  <p className="text-xs text-muted-foreground">Mide el DOM real de la vista previa en los anchos que Prism ya utiliza.</p>
+                  <p className="text-xs text-muted-foreground">Mide el DOM real de la vista previa en los anchos que Forja ya utiliza.</p>
                   <Button variant="outline" disabled={!html || qaRunning} onClick={runQA} className="mt-4 w-full gap-2">{qaRunning ? <RefreshCw className="size-4 animate-spin" /> : <ScanSearch className="size-4" />}{qaRunning ? "Midiendo…" : "Ejecutar Visual QA"}</Button>
                   {!html && <p className="mt-2 text-[10px] text-muted-foreground">Abre una vista previa primero.</p>}
                 </div>
@@ -160,7 +160,7 @@ export function PrismStudioDialog({
               {qa && <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{qa.map(r => <div key={r.width} className="rounded-xl border border-border/60 p-3"><div className="flex justify-between text-xs"><b>{r.width}px</b>{r.noRespondio ? <span className="text-muted-foreground">sin dato</span> : r.ok ? <span className="text-emerald-500">PASS</span> : <span className="text-red-500">{r.items.length} hallazgo(s)</span>}</div>{r.items.slice(0,2).map((x,i)=><p key={i} className="mt-1 text-[10px] text-muted-foreground">{x.tipo}: {x.detalle}</p>)}</div>)}</div>}
               <iframe
                 ref={frame}
-                title="Prism QA"
+                title="Forja QA"
                 className="pointer-events-none absolute -left-[99999px] h-1 w-1 opacity-0"
                 srcDoc={html ? injectVisualQA(html) : ""}
                 sandbox="allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock"
