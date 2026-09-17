@@ -40,6 +40,7 @@ import { usePrism } from "@/lib/prism/store";
 import { GitHubConnect } from "./github-connect";
 import { ReviewGateCard, useReviewGate } from "./review-view";
 import type { PublishSeed } from "@/lib/prism/sandbox";
+import { readZip, type ZipEntry } from "@/lib/prism/zip";
 
 /** Fija en el código, no se construye a partir de nada dinámico. */
 const GH_INSTALLATIONS_URL = "https://github.com/settings/installations";
@@ -65,7 +66,7 @@ export function GitHubDialog({
   onInitialConsumed?: () => void;
 }) {
   const [token, setToken] = useState("");
-  const [repoName, setRepoName] = useState("prism-ai");
+  const [repoName, setRepoName] = useState("forja-ia");
   const [isPrivate, setIsPrivate] = useState(true);
   const [items, setItems] = useState<GhItem[]>([]);
   const [ignored, setIgnored] = useState(0);
@@ -152,9 +153,7 @@ export function GitHubDialog({
     );
   };
 
-  const pickFiles = async (list: FileList | null) => {
-    if (!list) return;
-    const files = Array.from(list);
+  const applyFiles = async (files: File[]) => {
     const { keep, ignored: ign, tooBig: big } = prepareFiles(files);
     setItems(keep);
     setIgnored(ign);
@@ -175,6 +174,52 @@ export function GitHubDialog({
         { description: "Míralos abajo antes de subir nada a GitHub." }
       );
     }
+  };
+
+  /** Un .zip suelto (sin carpeta detrás) se trata como el proyecto entero, no
+   * como un archivo cualquiera: si no, `shouldIgnore` lo descarta por ser
+   * `.zip` —esa regla existe para no volver a subir un ZIP que ya estaba
+   * DENTRO de una carpeta real— y la subida se queda en 0 archivos sin decir
+   * por qué. En móvil, además, es a menudo la única forma de "elegir una
+   * carpeta" que el selector del sistema deja usar. */
+  const pickZipFile = async (file: File) => {
+    let entries: ZipEntry[];
+    try {
+      entries = await readZip(await file.arrayBuffer());
+    } catch (e) {
+      toast.error("No se pudo leer el ZIP", {
+        description: e instanceof Error ? e.message : String(e),
+      });
+      return;
+    }
+    if (!entries.length) {
+      toast.error("El ZIP no tiene archivos");
+      return;
+    }
+    const zipRoot = file.name.replace(/\.zip$/i, "") || "proyecto";
+    const files = entries.map((e) => {
+      const f = new File([e.data as BlobPart], e.path.split("/").pop() || e.path);
+      // `prepareFiles` calcula la ruta relativa a partir de `webkitRelativePath`
+      // (quitando el primer segmento, que sería el nombre de la carpeta
+      // elegida) — con esto reutiliza exactamente la misma lógica de
+      // ignorados y límite de tamaño que una carpeta real, sin duplicarla.
+      Object.defineProperty(f, "webkitRelativePath", {
+        value: `${zipRoot}/${e.path}`,
+        configurable: true,
+      });
+      return f;
+    });
+    await applyFiles(files);
+  };
+
+  const pickFiles = async (list: FileList | null) => {
+    if (!list) return;
+    const files = Array.from(list);
+    if (files.length === 1 && /\.zip$/i.test(files[0].name)) {
+      await pickZipFile(files[0]);
+      return;
+    }
+    await applyFiles(files);
   };
 
   const upload = async () => {
@@ -198,7 +243,7 @@ export function GitHubDialog({
       });
       return;
     }
-    const name = repoName.trim() || "prism-ai";
+    const name = repoName.trim() || "forja-ia";
     ghSetToken(t);
     setUploading(true);
     setResultUrl(null);
@@ -268,7 +313,7 @@ export function GitHubDialog({
               <Input
                 value={repoName}
                 onChange={(e) => setRepoName(e.target.value)}
-                placeholder="prism-ai"
+                placeholder="forja-ia"
                 className="h-9 flex-1 text-xs"
               />
             </div>
@@ -296,10 +341,11 @@ export function GitHubDialog({
               className="flex w-full flex-col items-center gap-1.5 rounded-xl border border-dashed border-border/70 bg-muted/30 px-4 py-6 transition hover:border-prism-violet/50 hover:bg-prism-violet/[0.04]"
             >
               <FolderUp className="size-6 text-prism-violet" />
-              <span className="text-[13px] font-medium">Elige la carpeta del proyecto</span>
+              <span className="text-[13px] font-medium">Elige la carpeta del proyecto (o un .zip)</span>
               <span className="text-[10.5px] text-muted-foreground">
-                se ignoran node_modules, .next, .env, logs y zip (el .env.example sí se sube) ·
-                sin límite de cantidad
+                un .zip suelto se abre como el proyecto entero · dentro de una carpeta, se ignoran
+                node_modules, .next, .env, logs y zip (el .env.example sí se sube) · sin límite de
+                cantidad
               </span>
             </button>
 
