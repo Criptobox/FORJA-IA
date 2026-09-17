@@ -39,48 +39,19 @@ import { usePrism } from "@/lib/prism/store";
 import { GitHubConnect } from "./github-connect";
 import { ReviewGateCard, useReviewGate } from "./review-view";
 
-const URL_RE = /(https?:\/\/[^\s]+)/g;
+/** La URL de instalaciones de GitHub es SIEMPRE esta: fija en el código, no
+ * se construye a partir del mensaje de error. pistaDeGithub() la menciona
+ * como texto para quien lea el mensaje entero, pero el enlace pulsable de
+ * abajo usa esta constante directamente — así no hay ningún texto de
+ * GitHub (ni de una excepción) que llegue nunca a un `href`. */
+const GH_INSTALLATIONS_URL = "https://github.com/settings/installations";
 
-/** Solo http/https, y solo si `new URL` lo acepta entero. El texto de un
- * mensaje de error no es de fiar como href tal cual —aunque hoy solo lo
- * alimenten mensajes fijos de este archivo, mañana puede pasar por aquí
- * texto de GitHub— así que esto es la comprobación, no un adorno. */
-function esUrlSegura(candidata: string): boolean {
-  try {
-    const u = new URL(candidata);
-    return u.protocol === "https:" || u.protocol === "http:";
-  } catch {
-    return false;
-  }
-}
-
-/** El motivo de un 403/404 a veces trae un enlace a la pantalla exacta que
- * arregla el problema (p. ej. github.com/settings/installations). Como
- * texto plano no se puede pulsar; esto lo vuelve enlace sin tocar el resto
- * del mensaje. `split` con un grupo captor intercala los matches en las
- * posiciones impares — no hace falta (ni conviene, por el `lastIndex`
- * compartido de una regex global) volver a probar cada trozo. */
-function LinkifiedText({ text }: { text: string }) {
-  const parts = text.split(URL_RE);
-  return (
-    <>
-      {parts.map((part, i) =>
-        i % 2 === 1 && esUrlSegura(part) ? (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noreferrer"
-            className="text-prism-violet underline underline-offset-2"
-          >
-            {part}
-          </a>
-        ) : (
-          <span key={i}>{part}</span>
-        )
-      )}
-    </>
-  );
+/** ¿El motivo del fallo es «la app no tiene acceso a este repo»? Es la
+ * misma cadena fija que pone pistaDeGithub() en ese caso: comparar contra
+ * ella (no extraer nada del mensaje) es lo que decide si se muestra el
+ * botón de abajo. */
+function esFalloDeInstalacion(mensaje: string): boolean {
+  return mensaje.includes(GH_INSTALLATIONS_URL);
 }
 import type { PublishSeed } from "@/lib/prism/sandbox";
 
@@ -394,9 +365,17 @@ export function GitHubDialog({
               className="space-y-1 rounded-xl border border-destructive/40 bg-destructive/[0.06] px-3.5 py-3"
             >
               <p className="text-xs font-semibold text-destructive">No se subió nada</p>
-              <p className="break-words text-[11px] leading-relaxed text-muted-foreground">
-                <LinkifiedText text={fallo} />
-              </p>
+              <p className="break-words text-[11px] leading-relaxed text-muted-foreground">{fallo}</p>
+              {esFalloDeInstalacion(fallo) && (
+                <a
+                  href={GH_INSTALLATIONS_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] text-prism-violet underline underline-offset-2"
+                >
+                  Abrir instalaciones de GitHub <ExternalLink className="size-3" />
+                </a>
+              )}
             </section>
           )}
 
