@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import {
   ghGetToken,
   ghSetToken,
+  GithubUploadError,
   prepareFiles,
   toReviewFiles,
   uploadToGithub,
@@ -38,22 +39,10 @@ import { aArchivosPrism, leerMemoria } from "@/lib/prism/memoria-proyecto";
 import { usePrism } from "@/lib/prism/store";
 import { GitHubConnect } from "./github-connect";
 import { ReviewGateCard, useReviewGate } from "./review-view";
-
-/** La URL de instalaciones de GitHub es SIEMPRE esta: fija en el código, no
- * se construye a partir del mensaje de error. pistaDeGithub() la menciona
- * como texto para quien lea el mensaje entero, pero el enlace pulsable de
- * abajo usa esta constante directamente — así no hay ningún texto de
- * GitHub (ni de una excepción) que llegue nunca a un `href`. */
-const GH_INSTALLATIONS_URL = "https://github.com/settings/installations";
-
-/** ¿El motivo del fallo es «la app no tiene acceso a este repo»? Es la
- * misma cadena fija que pone pistaDeGithub() en ese caso: comparar contra
- * ella (no extraer nada del mensaje) es lo que decide si se muestra el
- * botón de abajo. */
-function esFalloDeInstalacion(mensaje: string): boolean {
-  return mensaje.includes(GH_INSTALLATIONS_URL);
-}
 import type { PublishSeed } from "@/lib/prism/sandbox";
+
+/** Fija en el código, no se construye a partir de nada dinámico. */
+const GH_INSTALLATIONS_URL = "https://github.com/settings/installations";
 
 function fmtBytes(n: number): string {
   if (n >= 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
@@ -86,6 +75,9 @@ export function GitHubDialog({
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   /** El último fallo de subida, tal cual lo dijo GitHub. Se queda a la vista. */
   const [fallo, setFallo] = useState<string | null>(null);
+  /** ¿Ese fallo se arregla instalando la GitHub App en el repo? Viene del
+   * propio error (GithubUploadError), no de re-analizar el texto. */
+  const [necesitaInstalacion, setNecesitaInstalacion] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const gate = useReviewGate();
 
@@ -211,6 +203,7 @@ export function GitHubDialog({
     setUploading(true);
     setResultUrl(null);
     setFallo(null);
+    setNecesitaInstalacion(false);
     setProgress(null);
     try {
       const r = await uploadToGithub(t, {
@@ -230,6 +223,7 @@ export function GitHubDialog({
       // El aviso flotante se va en seis segundos y con él el motivo. Un fallo
       // de subida se queda escrito hasta que se arregle.
       setFallo(msg);
+      setNecesitaInstalacion(e instanceof GithubUploadError && e.necesitaInstalacion);
       toast.error("La subida falló", { description: msg.slice(0, 220) });
     } finally {
       setUploading(false);
@@ -366,7 +360,7 @@ export function GitHubDialog({
             >
               <p className="text-xs font-semibold text-destructive">No se subió nada</p>
               <p className="break-words text-[11px] leading-relaxed text-muted-foreground">{fallo}</p>
-              {esFalloDeInstalacion(fallo) && (
+              {necesitaInstalacion && (
                 <a
                   href={GH_INSTALLATIONS_URL}
                   target="_blank"

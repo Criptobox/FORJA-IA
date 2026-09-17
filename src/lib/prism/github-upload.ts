@@ -277,6 +277,29 @@ export function pistaDeGithub(status: number, mensaje: string, token = ""): stri
   return "";
 }
 
+/** ¿Hace falta instalar/dar acceso a la GitHub App en este repo? Se decide
+ * SOLO con el status y el tipo de token — nunca leyendo el texto del
+ * mensaje ya compuesto — para que la UI no tenga que volver a analizar una
+ * cadena (y CodeQL no tenga un «substring de URL» que marcar como
+ * saneamiento incompleto). */
+export function necesitaInstalarApp(status: number, mensaje: string, token = ""): boolean {
+  if (status !== 403 && status !== 404) return false;
+  if (status === 403 && /rate limit/i.test(mensaje)) return false;
+  return tipoDeToken(token) === "app";
+}
+
+/** Error de subida con el dato que la UI necesita para decidir si mostrar
+ * el botón de «abrir instalaciones de GitHub» — calculado aquí, no
+ * adivinado después a partir del texto del error. */
+export class GithubUploadError extends Error {
+  readonly necesitaInstalacion: boolean;
+  constructor(message: string, necesitaInstalacion: boolean) {
+    super(message);
+    this.name = "GithubUploadError";
+    this.necesitaInstalacion = necesitaInstalacion;
+  }
+}
+
 async function ghJsonError(res: Response, fallback: string, token = ""): Promise<never> {
   let msg = fallback;
   try {
@@ -295,7 +318,10 @@ async function ghJsonError(res: Response, fallback: string, token = ""): Promise
     /* sin cuerpo JSON */
   }
   const pista = pistaDeGithub(res.status, msg, token);
-  throw new Error(`GitHub ${res.status}: ${msg}${pista ? ` — ${pista}` : ""}`);
+  throw new GithubUploadError(
+    `GitHub ${res.status}: ${msg}${pista ? ` — ${pista}` : ""}`,
+    necesitaInstalarApp(res.status, msg, token)
+  );
 }
 
 function isProbablyText(bytes: Uint8Array): boolean {
