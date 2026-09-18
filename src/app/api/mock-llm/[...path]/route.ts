@@ -1105,7 +1105,10 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
 
     const pagina = (rota: boolean) => rota
       ? '<!doctype html><html><body><img src="logo.png"><button></button></body></html>'
-      : '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title></head><body><button aria-label="Abrir">OK</button></body></html>';
+      // objetivo de toque real ≥24×24px (WCAG 2.5.8): el botón sin estilo
+      // del fixture anterior medía menos de 24px de alto y el nuevo chequeo
+      // en vivo lo cazaba — la página "arreglada" tiene que estarlo de verdad.
+      : '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title></head><body><button aria-label="Abrir" style="min-width:44px;min-height:44px;padding:10px 16px">OK</button></body></html>';
 
     const fn = (name: string, args: unknown) => ({
       id: `call_verifica_${name}_${rondas}`,

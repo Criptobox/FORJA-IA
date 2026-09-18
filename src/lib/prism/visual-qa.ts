@@ -7,6 +7,10 @@
  *   · elementos fuera del viewport (botón inalcanzable)
  *   · texto por debajo de 12 px
  *   · contraste insuficiente entre texto y fondo
+ *   · objetivo clicable sin nombre accesible (mismo criterio WCAG 4.1.2 que
+ *     el Inspector Visual audita sobre la propia interfaz de Forja)
+ *   · imagen sin atributo alt (WCAG 1.1.1)
+ *   · objetivo de toque menor de 24×24 px (WCAG 2.5.8)
  *
  * Detalle técnico que decide el diseño: el iframe corre con `sandbox` SIN
  * `allow-same-origin`, así que el padre NO puede leer su DOM (y bien que hace).
@@ -18,7 +22,14 @@
 import { FX_ASENTAR } from "./efectos";
 import { GENERICO_SCRIPT, type MedidasGenerico } from "./generico";
 
-export type QATipo = "scroll" | "fuera" | "texto" | "contraste";
+export type QATipo =
+  | "scroll"
+  | "fuera"
+  | "texto"
+  | "contraste"
+  | "sin-nombre"
+  | "sin-alt"
+  | "toque-pequeno";
 
 export interface QAItem {
   tipo: QATipo;
@@ -46,6 +57,9 @@ export const QA_LABEL: Record<QATipo, string> = {
   fuera: "Fuera de pantalla",
   texto: "Texto < 12 px",
   contraste: "Contraste",
+  "sin-nombre": "Sin nombre accesible",
+  "sin-alt": "Imagen sin alt",
+  "toque-pequeno": "Objetivo de toque pequeño",
 };
 
 /** Regla de memoria de fallos asociada a cada tipo de hallazgo */
@@ -59,6 +73,12 @@ export function reglaDeQA(tipo: QATipo): string {
       return "El cuerpo de texto debe medir al menos 12 px para que sea legible en móvil.";
     case "contraste":
       return "Mantén un contraste mínimo de 4.5:1 entre texto y fondo (3:1 en texto grande).";
+    case "sin-nombre":
+      return "Todo botón o enlace clicable necesita un nombre accesible (texto visible, aria-label o title): sin él, un lector de pantalla solo dice «botón» (WCAG 4.1.2).";
+    case "sin-alt":
+      return "Toda imagen necesita un atributo alt que la describa; si es puramente decorativa, usa alt=\"\" explícito (WCAG 1.1.1).";
+    case "toque-pequeno":
+      return "Los objetivos clicables deben medir al menos 24×24 px para poder tocarse con el dedo en móvil (WCAG 2.5.8).";
   }
 }
 
@@ -176,6 +196,34 @@ function medir(){
     contras.push(el3.tagName.toLowerCase() + " «" + recorta(txt3, 18) + "» " + ratio.toFixed(2) + ":1");
   }
   if (contras.length) issues.push({ tipo:"contraste", detalle:"Contraste insuficiente: " + contras.join("; ") + "." });
+  var etiquetasObjetivo = { BUTTON:1, A:1, SUMMARY:1, DETAILS:1 };
+  var rolesObjetivo = { button:1, link:1, tab:1, menuitem:1, checkbox:1, switch:1 };
+  function esObjetivo(el){
+    if (etiquetasObjetivo[el.tagName]) return true;
+    var rol = el.getAttribute("role");
+    return !!(rol && rolesObjetivo[rol]);
+  }
+  var sinNombre = [];
+  var sinAlt = [];
+  var chicos = [];
+  for (var m = 0; m < todos.length; m++){
+    var elm = todos[m];
+    if (!visible(elm)) continue;
+    if (elm.tagName === "IMG" && elm.getAttribute("alt") === null && sinAlt.length < 5) {
+      sinAlt.push("img" + (elm.getAttribute("src") ? " " + recorta(elm.getAttribute("src"), 30) : ""));
+    }
+    if (esObjetivo(elm)) {
+      var nombre = (elm.getAttribute("aria-label") || elm.getAttribute("title") || textoDe(elm)).trim();
+      if (!nombre && sinNombre.length < 5) sinNombre.push("<" + elm.tagName.toLowerCase() + ">");
+      var rObj = elm.getBoundingClientRect();
+      if (rObj.width > 0 && rObj.height > 0 && (rObj.width < 24 || rObj.height < 24) && chicos.length < 5) {
+        chicos.push("<" + elm.tagName.toLowerCase() + "> " + Math.round(rObj.width) + "x" + Math.round(rObj.height) + "px");
+      }
+    }
+  }
+  if (sinNombre.length) issues.push({ tipo:"sin-nombre", detalle:"Sin nombre accesible: " + sinNombre.join("; ") + "." });
+  if (sinAlt.length) issues.push({ tipo:"sin-alt", detalle:"Imagen sin alt: " + sinAlt.join("; ") + "." });
+  if (chicos.length) issues.push({ tipo:"toque-pequeno", detalle:"Objetivo de toque pequeño (<24×24px): " + chicos.join("; ") + "." });
   var generico = medirGenerico();
   desasentarFx(tocadosFx);
   return { width: vw, ok: issues.length === 0, items: issues, at: Date.now(), generico: generico };

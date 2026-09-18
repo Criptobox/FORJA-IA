@@ -49,5 +49,15 @@ describe("QA visual sobre la vista previa", () => {
     expect(reglaDeQA("fuera")).toMatch(/viewport/i);
     expect(reglaDeQA("texto")).toMatch(/12 px/);
     expect(reglaDeQA("contraste")).toMatch(/4\.5:1/);
+    expect(reglaDeQA("sin-nombre")).toMatch(/nombre accesible/i);
+    expect(reglaDeQA("sin-alt")).toMatch(/alt/i);
+    expect(reglaDeQA("toque-pequeno")).toMatch(/24×24/);
+  });
+
+  it("el medidor también audita nombre accesible, alt y objetivo de toque", () => {
+    // mismas tres reglas que el Inspector Visual mide sobre la propia app
+    expect(VISUAL_QA_SCRIPT).toContain('tipo:"sin-nombre"');
+    expect(VISUAL_QA_SCRIPT).toContain('tipo:"sin-alt"');
+    expect(VISUAL_QA_SCRIPT).toContain('tipo:"toque-pequeno"');
   });
 });

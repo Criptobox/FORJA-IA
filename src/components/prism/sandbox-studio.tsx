@@ -754,7 +754,9 @@ export function SandboxStudio({
           "sandbox",
           `QA del Sandbox a ${r.width}px: ${item.detalle.slice(0, 140)}`,
           reglaDeQA(item.tipo),
-          item.tipo === "scroll" || item.tipo === "fuera" ? "error" : "warn"
+          item.tipo === "scroll" || item.tipo === "fuera" || item.tipo === "sin-nombre" || item.tipo === "sin-alt"
+            ? "error"
+            : "warn"
         );
       }
     }

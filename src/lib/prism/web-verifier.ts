@@ -133,7 +133,13 @@ export function verifyWebProject(
     visualChecked = !runtime.qa.noRespondio;
     if (runtime.qa.noRespondio) add(findings, "visual-no-evidence", "warning", "visual", "El medidor visual no respondió; no se puede declarar aprobado.");
     else if (!runtime.qa.ok) {
-      for (const item of runtime.qa.items ?? []) add(findings, `visual-${item.tipo}`, "error", "visual", item.detalle);
+      for (const item of runtime.qa.items ?? []) {
+        // nombre accesible y alt ya los cubre el chequeo estático de arriba
+        // (img-alt, interactive-name): contarlos también aquí duplicaría el
+        // mismo hallazgo a dos severidades por el mismo motivo.
+        if (item.tipo === "sin-nombre" || item.tipo === "sin-alt") continue;
+        add(findings, `visual-${item.tipo}`, "error", "visual", item.detalle);
+      }
     }
   } else add(findings, "visual-missing", "warning", "visual", "No hay evidencia de QA visual.");
 

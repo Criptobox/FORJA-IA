@@ -30,4 +30,37 @@ describe("web-verifier", () => {
     expect(v.passed).toBe(true);
     expect(summarizeVerification(v)).toContain("PASS");
   });
+
+  it("no duplica a 'error' lo que el chequeo estático ya marcó como aviso (alt, nombre accesible)", () => {
+    const v = verifyWebProject({
+      "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title></head><body><img src="logo.svg"><button></button></body></html>',
+      "logo.svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>",
+    }, {
+      executed: true,
+      errors: 0,
+      qa: {
+        ok: false,
+        noRespondio: false,
+        items: [
+          { tipo: "sin-alt", detalle: "img sin alt" },
+          { tipo: "sin-nombre", detalle: "button sin nombre" },
+        ],
+      },
+    });
+    expect(v.findings.filter((x) => x.id === "img-alt")).toHaveLength(1);
+    expect(v.findings.some((x) => x.id === "visual-sin-alt")).toBe(false);
+    expect(v.findings.some((x) => x.id === "visual-sin-nombre")).toBe(false);
+  });
+
+  it("un objetivo de toque pequeño medido en vivo sí bloquea: no tiene chequeo estático equivalente", () => {
+    const v = verifyWebProject({
+      "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title></head><body><button aria-label="Abrir">OK</button></body></html>',
+    }, {
+      executed: true,
+      errors: 0,
+      qa: { ok: false, noRespondio: false, items: [{ tipo: "toque-pequeno", detalle: "<button> 16x16px" }] },
+    });
+    expect(v.findings.some((x) => x.id === "visual-toque-pequeno" && x.severity === "error")).toBe(true);
+    expect(v.passed).toBe(false);
+  });
 });

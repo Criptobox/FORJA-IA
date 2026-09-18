@@ -2,8 +2,9 @@
  * Cada componente solo suma si existe evidencia local. Un dato ausente no se convierte en 100%.
  */
 import type { ProjectMap } from "./types";
-import type { QAResult } from "./visual-qa";
+import type { QAResult, QATipo } from "./visual-qa";
 import type { FailureEntry } from "./failures";
+import { scanSecurity } from "./security-center";
 
 export interface HealthMetric {
   id: string;
@@ -35,16 +36,29 @@ export function calculateProjectHealth(input: {
     metrics.push({ id: "structure", label: "Estructura", score: null, detail: "Sin mapa de proyecto" });
   }
 
+  const TIPOS_ACCESIBILIDAD: readonly QATipo[] = ["sin-nombre", "sin-alt", "toque-pequeno"];
+  const esAccesibilidad = (tipo: QATipo) => (TIPOS_ACCESIBILIDAD as string[]).includes(tipo);
+
   const qa = input.qa?.filter(Boolean) ?? [];
   if (qa.length) {
     const measured = qa.filter((r) => !r.noRespondio);
     if (measured.length) {
-      const bad = measured.reduce((n, r) => n + r.items.length, 0);
-      const score = Math.max(0, Math.round(100 - Math.min(100, bad * 15)));
-      metrics.push({ id: "visual", label: "Visual QA", score, detail: bad ? `${bad} hallazgo(s) medido(s)` : "Sin hallazgos en las medidas disponibles" });
-      if (bad) blockers.push(`${bad} hallazgo(s) visual(es) requieren revisión`);
-    } else metrics.push({ id: "visual", label: "Visual QA", score: null, detail: "El medidor no respondió" });
-  } else metrics.push({ id: "visual", label: "Visual QA", score: null, detail: "Todavía no se ha medido" });
+      const visualBad = measured.reduce((n, r) => n + r.items.filter((it) => !esAccesibilidad(it.tipo)).length, 0);
+      const a11yBad = measured.reduce((n, r) => n + r.items.filter((it) => esAccesibilidad(it.tipo)).length, 0);
+      const visualScore = Math.max(0, Math.round(100 - Math.min(100, visualBad * 15)));
+      const a11yScore = Math.max(0, Math.round(100 - Math.min(100, a11yBad * 15)));
+      metrics.push({ id: "visual", label: "Visual QA", score: visualScore, detail: visualBad ? `${visualBad} hallazgo(s) medido(s)` : "Sin hallazgos en las medidas disponibles" });
+      metrics.push({ id: "accesibilidad", label: "Accesibilidad", score: a11yScore, detail: a11yBad ? `${a11yBad} hallazgo(s) medido(s)` : "Sin hallazgos de accesibilidad en las medidas disponibles" });
+      if (visualBad) blockers.push(`${visualBad} hallazgo(s) visual(es) requieren revisión`);
+      if (a11yBad) blockers.push(`${a11yBad} hallazgo(s) de accesibilidad requieren revisión`);
+    } else {
+      metrics.push({ id: "visual", label: "Visual QA", score: null, detail: "El medidor no respondió" });
+      metrics.push({ id: "accesibilidad", label: "Accesibilidad", score: null, detail: "El medidor no respondió" });
+    }
+  } else {
+    metrics.push({ id: "visual", label: "Visual QA", score: null, detail: "Todavía no se ha medido" });
+    metrics.push({ id: "accesibilidad", label: "Accesibilidad", score: null, detail: "Todavía no se ha medido" });
+  }
 
   const failures = input.failures ?? [];
   if (input.failures) {
@@ -56,11 +70,19 @@ export function calculateProjectHealth(input: {
 
   const html = input.html ?? "";
   if (html) {
-    const insecure = (html.match(/http:\/\//gi) ?? []).length;
-    const secrets = /(?:sk-[A-Za-z0-9]{16,}|AIza[A-Za-z0-9_-]{16,}|ghp_[A-Za-z0-9]{20,})/.test(html);
-    const score = Math.max(0, 100 - Math.min(100, insecure * 15 + (secrets ? 70 : 0)));
-    metrics.push({ id: "safety", label: "Seguridad básica", score, detail: secrets ? "Posible secreto embebido detectado" : insecure ? `${insecure} recurso(s) HTTP sin cifrar` : "No se detectaron patrones básicos de riesgo" });
-    if (secrets) blockers.push("Posible secreto/API key embebido en el HTML");
+    // mismo motor que Security Center: una sola fuente de verdad para lo que
+    // cuenta como riesgo, en vez de reinventar aquí una versión más pobre
+    const seguridad = scanSecurity(html);
+    const altos = seguridad.findings.filter((f) => f.severity === "high");
+    metrics.push({
+      id: "safety",
+      label: "Seguridad básica",
+      score: seguridad.score,
+      detail: seguridad.findings.length
+        ? `${seguridad.findings.length} hallazgo(s): ${[...new Set(seguridad.findings.map((f) => f.rule))].join(", ")}`
+        : "No se detectaron patrones básicos de riesgo",
+    });
+    if (altos.length) blockers.push(`Posible secreto/API key embebido en el código (${altos.length})`);
   } else metrics.push({ id: "safety", label: "Seguridad básica", score: null, detail: "Sin código para inspeccionar" });
 
   const available = metrics.filter((m) => m.score != null).map((m) => m.score as number);

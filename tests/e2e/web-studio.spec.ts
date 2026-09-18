@@ -104,9 +104,9 @@ test("se abre desde la barra lateral y sin datos enseña «—», no una puntuac
 
   await page.getByRole("tab", { name: "Health" }).click();
   // sin mapa de proyecto ni QA medido: se dice explícitamente, no se
-  // inventa un 0/100 ni un 100/100
+  // inventa un 0/100 ni un 100/100 (visual Y accesibilidad, cada una aparte)
   await expect(page.getByText("Sin mapa de proyecto")).toBeVisible();
-  await expect(page.getByText("Todavía no se ha medido")).toBeVisible();
+  await expect(page.getByText("Todavía no se ha medido")).toHaveCount(2);
 });
 
 test("el iframe oculto de medición va sandboxed, igual que el resto de vistas previas", async ({
