@@ -1,0 +1,83 @@
+{
+  "nombre": "FORJA-IA",
+  "descripcion": "Todos tus modelos, forjados en uno: chat PWA multi-proveedor con agente en sandbox, vista previa web en vivo y solo modelos gratis si quieres.",
+  "areas": [
+    {
+      "id": "chat",
+      "nombre": "Chat",
+      "icono": "MessageSquare",
+      "capacidades": [
+        { "id": "streaming", "nombre": "Respuesta en streaming", "descripcion": "El texto llega token a token con aborto manual; corte limpio con finish_reason visible." },
+        { "id": "adjuntos", "nombre": "Adjuntos e imágenes", "descripcion": "Adjunta imágenes, ZIP y texto; persistencia en IndexedDB con historial recuperable." },
+        { "id": "voz", "nombre": "Lectura en voz alta", "descripcion": "TTS opcional por respuesta con voz del navegador, sin servicio externo." },
+        { "id": "escudo-pii", "nombre": "Escudo de datos personales", "descripcion": "Detección de PII antes de enviar al proveedor, configurable por sesión." },
+        { "id": "estilos-salida", "nombre": "Estilos de salida", "descripcion": "Formato de respuesta seleccionable (normal, conciso, técnico) aplicado como system prompt." }
+      ]
+    },
+    {
+      "id": "modelos",
+      "nombre": "Modelos y proveedores",
+      "icono": "Cpu",
+      "capacidades": [
+        { "id": "multi-proveedor", "nombre": "Multi-proveedor con llaves propias", "descripcion": "Conecta tus APIs (OpenAI, Anthropic, Groq, custom) y cámbialas sin recargar." },
+        { "id": "auto-failover", "nombre": "Auto con failover medido", "descripcion": "Cadena de modelos que salta enfriamientos y cuotas; LKGP recuerda la última ruta buena." },
+        { "id": "salud-modelos", "nombre": "Circuit breaker por modelo", "descripcion": "Cooldown con backoff exponencial tras 429/5xx, a nivel de modelo y de proveedor." },
+        { "id": "radar-gratis", "nombre": "Radar de modelos gratis", "descripcion": "Descubre y marca modelos gratuitos del catálogo; filtro «solo gratis» de un toque." },
+        { "id": "arena", "nombre": "Arena de modelos", "descripcion": "Compara respuestas lado a lado y mide latencia real por modelo." }
+      ]
+    },
+    {
+      "id": "agente",
+      "nombre": "Agente en sandbox",
+      "icono": "Bot",
+      "capacidades": [
+        { "id": "bucle-agente", "nombre": "Bucle agente con tope de vueltas", "descripcion": "Planifica, ejecuta y corrige con límite configurable de iteraciones." },
+        { "id": "sandbox", "nombre": "Sandbox con revisión de seguridad", "descripcion": "El código que escribe el agente se revisa (secretos, comandos peligrosos) antes de correr." },
+        { "id": "permisos", "nombre": "Permisos por skill", "descripcion": "Cada habilidad declara qué necesita: red, FS o nada; se conceden explícitos." },
+        { "id": "traza", "nombre": "Traza del agente visible", "descripcion": "Cada paso del agente queda auditado en pantalla: herramienta, entrada y salida." }
+      ]
+    },
+    {
+      "id": "forja",
+      "nombre": "Forja (taller de proyectos)",
+      "icono": "Hammer",
+      "capacidades": [
+        { "id": "ficha", "nombre": "Ficha del proyecto", "descripcion": "Nombre, stack, decisiones y estado del forjado en una sola vista." },
+        { "id": "adn", "nombre": "ADN del proyecto", "descripcion": "Estilo, tono y restricciones que el motor respeta en cada generación." },
+        { "id": "motor", "nombre": "Motor de forjado", "descripcion": "Genera proyectos multi-archivo paso a paso con plan visible." },
+        { "id": "calidad", "nombre": "Panel de calidad", "descripcion": "Revisión automática del resultado: archivos faltantes, código cortado, coherencia." }
+      ]
+    },
+    {
+      "id": "preview",
+      "nombre": "Vista previa web",
+      "icono": "MonitorPlay",
+      "capacidades": [
+        { "id": "preview-viva", "nombre": "Preview en vivo", "descripcion": "El HTML/CSS/JS generado se monta en un iframe aislado, editable al instante." },
+        { "id": "snapshots", "nombre": "Snapshots", "descripcion": "Versiones guardadas del preview con restauración en un clic." },
+        { "id": "qr", "nombre": "Código QR", "descripcion": "Abre el preview en el móvil sin cables: QR local, sin subir nada a la red." }
+      ]
+    },
+    {
+      "id": "datos",
+      "nombre": "Datos y privacidad",
+      "icono": "Vault",
+      "capacidades": [
+        { "id": "boveda", "nombre": "Bóveda con candado", "descripcion": "Las llaves de API se guardan cifradas en el navegador; bloqueo manual y por inactividad." },
+        { "id": "memoria", "nombre": "Memoria", "descripcion": "Notas persistentes que la app recuerda entre sesiones, editables y borrables." },
+        { "id": "transfer", "nombre": "Exportar e importar", "descripcion": "Todo tu dato (sesiones, ajustes, llaves) viaja en un ZIP que tú controlas." },
+        { "id": "local-primero", "nombre": "Local primero", "descripcion": "Sin servidor de por medio: el historial vive en tu navegador, no en nuestra nube." }
+      ]
+    },
+    {
+      "id": "qa",
+      "nombre": "Calidad y auditoría",
+      "icono": "ShieldCheck",
+      "capacidades": [
+        { "id": "suite", "nombre": "Suite de pruebas", "descripcion": "Miles de tests unitarios y end-to-end con datos reales medidos, no estimados." },
+        { "id": "higiene", "nombre": "Higiene del repo", "descripcion": "Escáner propio contra patrones que los validadores confunden con credenciales." },
+        { "id": "inspector", "nombre": "Inspector Visual", "descripcion": "Auditoría en vivo de la interfaz: desbordes, nombres accesibles y contraste, medidos sobre el DOM." }
+      ]
+    }
+  ]
+}

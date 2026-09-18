@@ -13,7 +13,7 @@
  * estimación porque quede feo.
  */
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Activity, Coins, Gauge, LayoutDashboard, Snowflake, Swords, Zap } from "lucide-react";
+import { Activity, Coins, Gauge, LayoutDashboard, ScanSearch, Snowflake, Swords, Zap } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ import { UsagePanelBody } from "./usage-panel";
 import { QuotaPanelBody } from "./quota-panel";
 import { ModelArenaBody } from "./model-arena";
 import { GastoPanelBody } from "./gasto-panel";
+import { InspectorVisualBody } from "./inspector-visual";
 import { usePrism } from "@/lib/prism/store";
 import { cooldownRemaining, useHealth } from "@/lib/prism/health";
 import { getRecentRequests, subscribeRequests, type RequestLogEntry } from "@/lib/prism/request-log";
@@ -166,17 +167,17 @@ export function SystemPanel({ open, onOpenChange }: { open: boolean; onOpenChang
             <LayoutDashboard className="size-4 text-prism-cyan" /> Panel del sistema
           </DialogTitle>
           <DialogDescription className="text-xs">
-            En qué se te va el gasto, uso, cuota y salud de tus modelos. Los importes salen de los
-            tokens que reporta tu proveedor por un catálogo de precios con fecha: nunca de una
-            estimación nuestra.
+            En qué se te va el gasto, uso, cuota y salud de tus modelos, más un Inspector que
+            audita la interfaz sobre el DOM vivo. Los importes salen de los tokens que reporta tu
+            proveedor por un catálogo de precios con fecha: nunca de una estimación nuestra.
           </DialogDescription>
           <FilaCabecera />
         </DialogHeader>
 
         {/* «Gasto» abre por defecto: con una clave de pago conectada es la
-            primera pregunta, y las otras tres pestañas siguen a un toque. */}
+            primera pregunta, y las otras cuatro pestañas siguen a un toque. */}
         <Tabs defaultValue="gasto" className="flex min-h-0 flex-1 flex-col gap-0">
-          <TabsList className="mx-3 mt-2 grid h-auto w-[calc(100%-1.5rem)] grid-cols-4 gap-1 p-1">
+          <TabsList className="mx-3 mt-2 grid h-auto w-[calc(100%-1.5rem)] grid-cols-5 gap-1 p-1">
             <TabsTrigger value="gasto" className="flex-col gap-0.5 py-1.5 text-[11px] sm:flex-row sm:text-sm">
               <Coins className="size-3.5" /> Gasto
             </TabsTrigger>
@@ -188,6 +189,9 @@ export function SystemPanel({ open, onOpenChange }: { open: boolean; onOpenChang
             </TabsTrigger>
             <TabsTrigger value="arena" className="flex-col gap-0.5 py-1.5 text-[11px] sm:flex-row sm:text-sm">
               <Swords className="size-3.5" /> Arena
+            </TabsTrigger>
+            <TabsTrigger value="inspector" className="flex-col gap-0.5 py-1.5 text-[11px] sm:flex-row sm:text-sm">
+              <ScanSearch className="size-3.5" /> Inspector
             </TabsTrigger>
           </TabsList>
 
@@ -209,6 +213,9 @@ export function SystemPanel({ open, onOpenChange }: { open: boolean; onOpenChang
           </TabsContent>
           <TabsContent value="arena" className="min-h-0 flex-1">
             <ModelArenaBody />
+          </TabsContent>
+          <TabsContent value="inspector" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <InspectorVisualBody />
           </TabsContent>
         </Tabs>
       </DialogContent>
