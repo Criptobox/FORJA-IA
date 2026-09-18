@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FORJA IA — Logo maestro: el yunque naranja con la chispa.
+     Transparente, escalable. El degradado va del naranja claro al profundo,
+     como el metal que pasa por el fuego. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="FORJA IA">
+  <defs>
+    <linearGradient id="forja-cara" x1="28" y1="64" x2="212" y2="98" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFC48C"/>
+      <stop offset="0.55" stop-color="#FB8A3C"/>
+      <stop offset="1" stop-color="#F2600C"/>
+    </linearGradient>
+    <linearGradient id="forja-cuerpo" x1="68" y1="98" x2="172" y2="186" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FB923C"/>
+      <stop offset="1" stop-color="#E4560A"/>
+    </linearGradient>
+    <linearGradient id="forja-base" x1="68" y1="150" x2="172" y2="186" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F97316"/>
+      <stop offset="1" stop-color="#DD4F08"/>
+    </linearGradient>
+  </defs>
+
+  <!-- cara superior del yunque -->
+  <rect x="30" y="66" width="180" height="34" rx="15" fill="url(#forja-cara)"/>
+
+  <!-- cuello: ensancha hacia abajo, como el yunque de verdad -->
+  <path d="M100 100 h40 l34 52 h-108 z" fill="url(#forja-cuerpo)"/>
+
+  <!-- base forjada -->
+  <rect x="66" y="150" width="108" height="34" rx="13" fill="url(#forja-base)"/>
+
+  <!-- chispa del herrerío: estrella de 4 puntas -->
+  <path d="M189 26 c3.2 11.5 7.5 15.8 19 19 c-11.5 3.2 -15.8 7.5 -19 19 c-3.2 -11.5 -7.5 -15.8 -19 -19 c11.5 -3.2 15.8 -7.5 19 -19 z" fill="#FFF3E2"/>
+  <!-- punto de metal incandescente -->
+  <circle cx="159" cy="33" r="6" fill="#F97316"/>
+</svg>
