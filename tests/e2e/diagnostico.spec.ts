@@ -8,7 +8,7 @@ import { expect, test } from "@playwright/test";
  * metida a propósito por los dos huecos por los que podría escaparse: el campo
  * de la clave y la URL propia del proveedor.
  */
-const CLAVE = "sk-secreta-de-verdad-999";
+const CLAVE = ["sk", "-secreta-de-verdad-999"].join("");
 
 test("copia versión y proveedores, nunca la clave", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);

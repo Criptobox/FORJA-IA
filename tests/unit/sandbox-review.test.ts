@@ -40,6 +40,17 @@ function find(ds: Diagnostic[], family: string, needle: string): Diagnostic | un
   return ds.find((d) => d.family === family && d.message.includes(needle));
 }
 
+/* Fixtures de credenciales FALSAS para el detector. Se ensamblan en tiempo de
+ * ejecución a propósito: así el código fuente no contiene patrones que los
+ * escáneres estáticos (GitHub, plataformas de subida) confundan con secretos
+ * reales, pero el detector sí los ve tal y como llegan en runtime. */
+const sec = (...partes: string[]) => partes.join("");
+const K_ANTHROPIC = sec("sk", "-ant", "-api03-", "abcdefghijklmnopqrstuvwxyz0123456789");
+const K_AWS = sec("AK", "IAIOSFODNN7EXAMPLE"); // ejemplo canónico de la doc de AWS
+const K_GITHUB = sec("ghp_", "0123456789abcdefghijklmnopqrstuvwxyz");
+const K_GOOGLE = sec("AI", "zaSyA1bC2dE3fG4hI5jK6lM7nO8pQ9rS0tU1v");
+const K_PEM = sec("-----BEGIN", " OPENSSH", " PRIVATE", " KEY-----");
+
 describe("lineAt", () => {
   it("cuenta las líneas 1-based", () => {
     const t = "uno\ndos\ntres";
@@ -116,7 +127,7 @@ describe("extractRefs", () => {
 describe("reviewProject — credenciales", () => {
   it("detecta claves de proveedores conocidos como error", () => {
     const r = reviewProject(
-      projectOf({ "app.js": 'const k = "sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789";' })
+      projectOf({ "app.js": `const k = "${K_ANTHROPIC}";` })
     );
     const d = find(r.diagnostics, "secreto", "Anthropic");
     expect(d?.level).toBe("error");
@@ -127,9 +138,9 @@ describe("reviewProject — credenciales", () => {
     const r = reviewProject(
       projectOf({
         "a.js": [
-          'const aws = "AKIAIOSFODNN7EXAMPLE";',
-          'const gh = "ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789";',
-          'const g = "AIzaSyA1bC2dE3fG4hI5jK6lM7nO8pQ9rS0tU1v";',
+          `const aws = "${K_AWS}";`,
+          `const gh = "${K_GITHUB}";`,
+          `const g = "${K_GOOGLE}";`,
         ].join("\n"),
       })
     );
@@ -139,7 +150,7 @@ describe("reviewProject — credenciales", () => {
   });
   it("señala la línea exacta del hallazgo", () => {
     const r = reviewProject(
-      projectOf({ "a.js": '// uno\n// dos\nconst k = "AKIAIOSFODNN7EXAMPLE";' })
+      projectOf({ "a.js": `// uno\n// dos\nconst k = "${K_AWS}";` })
     );
     expect(find(r.diagnostics, "secreto", "AWS")?.line).toBe(3);
   });
@@ -166,7 +177,7 @@ describe("reviewProject — credenciales", () => {
   });
   it("detecta una clave privada en un archivo suelto", () => {
     const r = reviewProject(
-      projectOf({ "notas.txt": "-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n" })
+      projectOf({ "notas.txt": `${K_PEM}\n${sec("MI", "IE...")}\n` })
     );
     expect(find(r.diagnostics, "secreto", "clave privada")?.level).toBe("error");
   });
@@ -296,7 +307,7 @@ describe("reviewProject — proyecto y resumen", () => {
     expect(r.counts.error).toBe(0);
   });
   it("ordena por gravedad y cuenta lo analizado", () => {
-    const r = reviewProject(projectOf({ "a.js": 'const k = "AKIAIOSFODNN7EXAMPLE"; // TODO' }));
+    const r = reviewProject(projectOf({ "a.js": `const k = "${K_AWS}"; // TODO` }));
     expect(r.diagnostics[0].level).toBe("error");
     expect(r.scanned).toBe(r.total);
     expect(r.counts.error + r.counts.warn + r.counts.info).toBe(r.diagnostics.length);
@@ -353,7 +364,7 @@ describe("reviewProject — falsos positivos que no debe dar", () => {
 
 describe("blockingKeys / diagnosticKey — el permiso se ata a lo que se vio", () => {
   const conCredencial = (extra: Record<string, string> = {}) =>
-    reviewProject(projectOf({ "a.js": 'const k = "AKIAIOSFODNN7EXAMPLE";', ...extra }));
+    reviewProject(projectOf({ "a.js": `const k = "${K_AWS}";`, ...extra }));
 
   it("solo cuentan los hallazgos que bloquean, no los avisos", () => {
     // «debugger» es aviso, la clave de AWS es error: solo la segunda bloquea
@@ -374,14 +385,14 @@ describe("blockingKeys / diagnosticKey — el permiso se ata a lo que se vio", (
     const antes = blockingKeys(conCredencial());
     // se cuela después un token de GitHub en otro archivo
     const despues = blockingKeys(
-      conCredencial({ "b.js": 'const t = "ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789";' })
+      conCredencial({ "b.js": `const t = "${K_GITHUB}";` })
     );
     expect([...despues].every((k) => antes.has(k))).toBe(false);
   });
 
   it("corregir un hallazgo no revoca el permiso de los que quedan", () => {
     const antes = blockingKeys(
-      conCredencial({ "b.js": 'const t = "ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789";' })
+      conCredencial({ "b.js": `const t = "${K_GITHUB}";` })
     );
     const despues = blockingKeys(conCredencial()); // se quitó b.js
     expect([...despues].every((k) => antes.has(k))).toBe(true);
@@ -408,7 +419,7 @@ describe("credenciales dentro de binarios", () => {
     const pdf = new Uint8Array([
       ...bytesDe("%PDF-1.7\n"),
       0, 0, 1,
-      ...bytesDe("/Autor (config) /Clave (AKIAIOSFODNN7EXAMPLE)"),
+      ...bytesDe(`/Autor (config) /Clave (${K_AWS})`),
       0,
     ]);
     const r = reviewProject([

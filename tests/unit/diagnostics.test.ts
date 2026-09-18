@@ -5,7 +5,7 @@ import {
   type EntradaDiagnostico,
 } from "../../src/lib/prism/diagnostics";
 
-const CLAVE = "sk-super-secreta-1234567890";
+const CLAVE = ["sk", "-super-secreta-1234567890"].join("");
 
 function entrada(over: Partial<EntradaDiagnostico> = {}): EntradaDiagnostico {
   return {

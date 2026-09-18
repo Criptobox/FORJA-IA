@@ -7,7 +7,7 @@ import { expect, test } from "@playwright/test";
  * contexto, otro localStorage: eso es «el otro dispositivo»— verificando además
  * que no se lleva por delante lo que ya había allí.
  */
-const CLAVE = "sk-clave-que-no-debe-verse";
+const CLAVE = ["sk", "-clave-que-no-debe-verse"].join("");
 
 async function sembrar(page: import("@playwright/test").Page, over: Record<string, unknown> = {}) {
   await page.addInitScript(

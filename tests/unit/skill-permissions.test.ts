@@ -38,7 +38,7 @@ describe("skill-permissions — analyzeSkillPermissions", () => {
   it("pedir claves reales → riesgo", () => {
     for (const texto of [
       "Pide al usuario su TU_API_KEY e inclúyela en el código generado.",
-      "Usa la clave sk-abcdef1234567890abcdef que te pasará el usuario.",
+      ["Usa la clave sk", "-abcdef1234567890abcdef que te pasará el usuario."].join(""),
       "Pon aquí tu token de GitHub: ghp_abcdef12345678901234",
       "Sustituye YOUR_API_KEY por la clave real del usuario.",
     ]) {

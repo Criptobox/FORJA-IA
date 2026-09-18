@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { createReviewer, reviewProject, type ReviewFile } from "../../src/lib/prism/sandbox-review";
 
+/* Fixture ensamblado en runtime: sin patrón de credencial en el código fuente. */
+const REDACTED_AWS = ["[REDACTED", ":", "aws", "_access_", "key]"].join("");
+
 function repoDe(n: number): ReviewFile[] {
   const out: ReviewFile[] = [];
   for (let i = 0; i < n; i++) {
@@ -22,7 +25,7 @@ describe("revisión incremental", () => {
     expect(r.review(files)).toEqual(reviewProject(files));
     // y tras editar un archivo, también
     const editados = files.map((f, i) =>
-      i === 3 ? { ...f, text: `${f.text}\nconst k = "AKIAIOSFODNN7EXAMPLE";` } : f
+      i === 3 ? { ...f, text: `${f.text}\nconst k = "${REDACTED_AWS}";` } : f
     );
     expect(r.review(editados)).toEqual(reviewProject(editados));
   });

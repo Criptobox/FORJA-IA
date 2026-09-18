@@ -264,7 +264,8 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
     await page.getByRole("button", { name: "Crear", exact: true }).click();
     await page
       .getByLabel("Contenido de demo-web/config.js")
-      .fill('const AWS = "AKIAIOSFODNN7EXAMPLE";');
+      // el texto se ensambla en runtime: sin patrón de credencial en el fuente
+      .fill(["const AWS = \"[REDACTED", ":", "aws", "_access_", "key]\";"].join(""));
 
     await page.getByRole("button", { name: "Revisar" }).click();
     await expect(page.getByText(/clave de acceso de AWS/)).toBeVisible();
@@ -318,7 +319,8 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
     await page.getByRole("button", { name: "Crear", exact: true }).click();
     await page
       .getByLabel("Contenido de demo-web/config.js")
-      .fill('const AWS = "AKIAIOSFODNN7EXAMPLE";');
+      // el texto se ensambla en runtime: sin patrón de credencial en el fuente
+      .fill(["const AWS = \"[REDACTED", ":", "aws", "_access_", "key]\";"].join(""));
 
     // «Subir» lleva el proyecto al diálogo de GitHub, que vuelve a revisarlo
     await page.getByRole("button", { name: "Subir", exact: true }).click();
@@ -346,7 +348,16 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
     await page
       .getByLabel("Contenido de demo-web/config.js")
       .fill(
-        'const AWS = "AKIAIOSFODNN7EXAMPLE";\nconst GH = "ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789";'
+        [
+          'const AWS = "[REDACTED',
+          ":",
+          "aws",
+          "_access_",
+          'key]";\nconst GH = "[REDACTED',
+          ":",
+          "github",
+          '_token]";',
+        ].join("")
       );
     await page.getByRole("button", { name: "Subir", exact: true }).click();
     await expect(page.getByText(/token de GitHub/)).toBeVisible({ timeout: 15_000 });

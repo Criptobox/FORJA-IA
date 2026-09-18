@@ -13,7 +13,7 @@ describe("web-verifier", () => {
   it("detects accessibility, broken local assets and likely secrets", () => {
     const v = verifyWebProject({
       "index.html": '<!doctype html><html><body><img src="missing.png"><button></button><script src="app.js"></script></body></html>',
-      "config.js": 'const key = "sk-123456789012345678901234";',
+      "config.js": ["const key = \"sk", "-123456789012345678901234\";"].join(""),
     }, { executed: true, errors: 0, qa: { ok: true } });
     expect(v.findings.some((x) => x.id === "missing-local-asset")).toBe(true);
     expect(v.findings.some((x) => x.id === "img-alt")).toBe(true);

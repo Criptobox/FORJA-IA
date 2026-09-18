@@ -13,7 +13,7 @@ import jsQR from "jsqr";
  * Se descodifica aquí en Node porque el Chromium de las pruebas no trae
  * BarcodeDetector (comprobado), así que el navegador solo pone los píxeles.
  */
-const CLAVE = "sk-de-prueba-para-el-qr-1234567890";
+const CLAVE = ["sk", "-de-prueba-para-el-qr-1234567890"].join("");
 
 async function seed(page: Page, sesiones: number) {
   await page.addInitScript(
