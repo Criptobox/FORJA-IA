@@ -1,0 +1,762 @@
+"use client";
+/** Forja IA — Burbuja de mensaje (con soporte de modo agente, documentos e imágenes generadas) */
+import { memo, useEffect, useMemo, useState } from "react";
+import {
+  AlertCircle,
+  Brain,
+  Check,
+  ChevronLeft,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Download,
+  FileText,
+  GraduationCap,
+  Languages,
+  Pencil,
+  Play,
+  RefreshCw,
+  Trash2,
+  Undo2,
+  User,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
+import { Markdown } from "./markdown";
+import { SparkleAvatar } from "./sparkle-avatar";
+import { AgentAnswer, AgentTraceView } from "./agent-trace";
+import type { ChatMessage } from "@/lib/prism/types";
+import { MAX_RENDER_CHARS, splitModelKey, speechState } from "@/lib/prism/types";
+import { hayContexto, lineaContexto, detalleContexto } from "@/lib/prism/contexto-usado";
+import { hayFicha, lineasDeFicha, titularDeFicha } from "@/lib/prism/ficha-respuesta";
+import { agentStalled, parseAgentTrace } from "@/lib/prism/agent-loop";
+import { proyectoDeLaRespuesta } from "@/lib/prism/auto-revision";
+import { citasDe } from "@/lib/prism/evidencia";
+import { instructionLabel, TRANSLATE_LANGS, type TargetLang } from "@/lib/prism/recap";
+import { useAvailableModels } from "@/components/prism/model-picker";
+import { ModelLogo } from "@/components/prism/model-logo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { speak, stopSpeaking } from "@/lib/prism/speech";
+import { PROVIDER_MAP } from "@/lib/prism/providers";
+import { resolveAttachmentDataUrl } from "@/lib/prism/attachment-blob";
+import type { Attachment } from "@/lib/prism/types";
+import { extraerTarjetas } from "@/lib/prism/repaso";
+import { cn } from "@/lib/utils";
+
+/** Detecta bucles degenerados del modelo (mismo fragmento repetido sin fin) */
+function looksDegenerate(text: string): boolean {
+  if (text.length < 2000) return false;
+  const tail = text.slice(-800);
+  return /(.{2,40}?)\1{4,}$/.test(tail);
+}
+
+function modelLabel(modelKey?: string): string {
+  if (!modelKey) return "";
+  const split = splitModelKey(modelKey);
+  if (!split) return "";
+  const def = PROVIDER_MAP[split.providerId];
+  return `${def?.name ?? split.providerId} · ${split.modelId}`;
+}
+
+export const MessageItem = memo(function MessageItem({
+  msg,
+  streaming,
+  isLastAssistant,
+  onRegenerate,
+  onDelete,
+  onEdit,
+  onContinueAgent,
+  onTranslate,
+  onGuardarRepaso,
+  onDeshacer,
+  sandboxFiles,
+  branch,
+}: {
+  msg: ChatMessage;
+  streaming?: boolean;
+  isLastAssistant?: boolean;
+  onRegenerate?: (modelKey?: string) => void;
+  onDelete?: () => void;
+  onEdit?: (content: string) => void;
+  /** Retoma un trabajo del agente que se quedó a medias. */
+  onContinueAgent?: () => void;
+  /** Traduce esta respuesta: la traducción se pega debajo, el original se queda. */
+  onTranslate?: (lang: TargetLang) => void;
+  /** Guarda las tarjetas de estudio que trae esta respuesta (bloque
+   * prism-repaso). Solo llega si el contenido trae tarjetas. */
+  onGuardarRepaso?: () => void;
+  /** Deshace esta respuesta del agente: restaura el checkpoint automático
+   * que se guardó ANTES de que trabajara (Pilar 1.3). */
+  onDeshacer?: () => void;
+  /** Archivos reales del proyecto en el Sandbox: para que las citas de
+   * evidencia (archivo:línea) enseñen la línea citada al pasar el ratón. */
+  sandboxFiles?: Record<string, string>;
+  /** Versiones alternativas de esta respuesta, si se regeneró alguna vez. */
+  branch?: { index: number; total: number; onPrev: () => void; onNext: () => void };
+}) {
+  const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(msg.content);
+  const [expanded, setExpanded] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  /** El desglose del contexto empieza cerrado: la línea de resumen ya dice lo
+   * que hace falta para saber si conviene mirar. */
+  const [ctxAbierto, setCtxAbierto] = useState(false);
+  /** El expediente de la respuesta. También cerrado: se abre cuando algo no
+   * cuadra, que es justo cuando hace falta. */
+  const [fichaAbierta, setFichaAbierta] = useState(false);
+
+  const isUser = msg.role === "user";
+
+  // Modo agente: si la respuesta usa el bucle plan→ejecutar→revisar, se renderiza
+  // como línea de tiempo de iteraciones en vez de markdown crudo
+  const trace = useMemo(() => parseAgentTrace(msg.content), [msg.content]);
+  // `!streaming`: una etiqueta abierta con el stream ya cerrado no es que
+  // esté escribiendo, es que se cortó. Sin este dato el corte pasaba por
+  // respuesta buena y no salía ni el aviso ni «Continuar».
+  const stalled = useMemo(() => agentStalled(trace, !streaming), [trace, streaming]);
+
+  // ——— Evidence Mode: citas archivo:línea ———
+  // Se extraen de la respuesta y se renderizan como chips. Si el archivo
+  // citado existe en el proyecto, el chip muestra la línea citada al pasar
+  // el ratón: la afirmación se puede verificar SIN salir del chat.
+  const citas = useMemo(
+    () => (isUser || msg.error ? [] : citasDe(msg.content)),
+    [msg.content, isUser, msg.error]
+  );
+
+  // Protección frente a bucles degenerados: recorta lo que se renderiza
+  const tooLong = msg.content.length > MAX_RENDER_CHARS;
+  const degenerate = !streaming && looksDegenerate(msg.content);
+  const shown = tooLong && !expanded ? msg.content.slice(0, MAX_RENDER_CHARS) : msg.content;
+
+  // ——— El código no se vuelca crudo en el chat ———
+  //
+  // Antes: pedías una web y el bloque ```html entero —a veces varias
+  // pantallas— pasaba por delante del texto, y mientras se escribía se veía
+  // crecer la sopa de etiquetas token a token. `proyectoDeLaRespuesta` ya
+  // sabe reconocer un proyecto REAL (hace falta un HTML de entrada, no
+  // cualquier bloque de código) — y funciona igual con la cerca todavía sin
+  // cerrar, así que sirve también mientras se está escribiendo.
+  //
+  // Con un proyecto detectado: si SIGUE escribiendo, se enseña el texto que
+  // vino antes de la cerca (el «aquí tienes tu página») y un aviso de que
+  // está trabajando, nunca el código a medio escribir. Terminado, el texto
+  // se ve normal y el bloque de código nace colapsado con un botón «Ver
+  // código» — sigue estando, solo que no ocupa la pantalla por defecto.
+  const proyecto = useMemo(
+    () => (!isUser && !msg.error && !trace.active ? proyectoDeLaRespuesta(shown) : null),
+    [shown, isUser, msg.error, trace.active]
+  );
+  const cercaIdx = proyecto && streaming ? shown.indexOf("```") : -1;
+  const introMientrasEscribe = cercaIdx >= 0 ? shown.slice(0, cercaIdx).trim() : null;
+  const reasoningShown = msg.reasoning && msg.reasoning.length > 4000 && !expanded
+    ? msg.reasoning.slice(0, 4000) + "…"
+    : msg.reasoning;
+
+  // Tarjetas de estudio que trae la respuesta (Modo Repaso). Solo respuestas
+  // cerradas, sin error y fuera del modo agente: la traza del agente no es
+  // un examen, y una respuesta a medio escribir aún no sabe cuántas trae.
+  const numTarjetasRepaso = useMemo(
+    () =>
+      !isUser && !streaming && !msg.error && !trace.active
+        ? extraerTarjetas(msg.content).length
+        : 0,
+    [isUser, streaming, msg.error, msg.content, trace.active]
+  );
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(msg.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* noop */
+    }
+  };
+
+  /** Lee la respuesta en voz alta o detiene la lectura en curso */
+  const toggleSpeak = () => {
+    if (speaking) {
+      stopSpeaking();
+      if (speechState.msgId === msg.id) speechState.msgId = null;
+      setSpeaking(false);
+      return;
+    }
+    speechState.msgId = msg.id;
+    setSpeaking(true);
+    speak({
+      text: msg.content,
+      onEnd: () => {
+        if (speechState.msgId === msg.id) speechState.msgId = null;
+        setSpeaking(false);
+      },
+    });
+  };
+
+  // Lo que escribe la app (continuar un trabajo del agente) no debe parecer tuyo:
+  // se pinta como una nota discreta en el centro.
+  if (isUser && msg.instruction) {
+    return (
+      <div className="msg-in flex justify-center">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-[11px] text-muted-foreground"
+          title="Lo escribió la app, no tú. Viaja al modelo con todo el contexto."
+        >
+          <Play className="size-3" /> {instructionLabel(msg.content)}
+        </span>
+      </div>
+    );
+  }
+
+  if (isUser) {
+    return (
+      <div data-role="user" className="msg-in group flex flex-col items-end gap-1">
+        <div className="flex max-w-[85%] items-end gap-2 sm:max-w-[78%]">
+          {editing ? (
+            <div className="flex w-full min-w-0 flex-col gap-2 rounded-2xl border border-prism-violet/40 bg-card p-3">
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                rows={3}
+                className="w-full resize-none bg-transparent text-sm outline-none"
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  className="rounded-md px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted"
+                  onClick={() => {
+                    setEditing(false);
+                    setDraft(msg.content);
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="rounded-md bg-primary px-2.5 py-1 text-xs text-primary-foreground hover:opacity-90"
+                  onClick={() => {
+                    setEditing(false);
+                    if (draft.trim() && draft !== msg.content) onEdit?.(draft.trim());
+                  }}
+                >
+                  Guardar y reenviar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Documentos adjuntos (PDF/TXT) */}
+              {msg.docTexts && msg.docTexts.length > 0 && (
+                <div className="flex flex-wrap justify-end gap-1.5">
+                  {msg.docTexts.map((d) => (
+                    <span
+                      key={d.id}
+                      className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-card/60 px-2 py-1 text-[11px] text-muted-foreground"
+                      title={`${d.chars.toLocaleString("es")} caracteres enviados al modelo`}
+                    >
+                      <FileText className="size-3.5 text-prism-cyan" /> {d.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Miniaturas de imágenes adjuntas */}
+              {msg.attachments && msg.attachments.length > 0 && (
+                <div className="flex max-w-[85%] flex-wrap justify-end gap-1.5 sm:max-w-[78%]">
+                  {msg.attachments.map((a) => (
+                    <AttachmentThumb key={a.id} attachment={a} />
+                  ))}
+                </div>
+              )}
+              <div className="tint-user rounded-2xl rounded-br-md border border-prism-violet/20 px-4 py-2.5 text-sm leading-relaxed text-foreground shadow-md shadow-violet-500/10 backdrop-blur-[6px]">
+                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+              </div>
+              <div className="mb-1 flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                <User className="size-3.5" />
+              </div>
+            </>
+          )}
+        </div>
+        {!editing && (
+          <div className="touch-actions flex gap-0.5 pr-9 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+            <IconBtn label="Copiar" onClick={copy}>
+              {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+            </IconBtn>
+            <IconBtn label="Editar" onClick={() => setEditing(true)}>
+              <Pencil className="size-3.5" />
+            </IconBtn>
+            <IconBtn label="Eliminar" onClick={onDelete}>
+              <Trash2 className="size-3.5" />
+            </IconBtn>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div data-role="assistant" className="msg-in group flex gap-2.5">
+      <SparkleAvatar size={22} generating={streaming} className="mt-0.5" />
+      <div className="min-w-0 max-w-[88%] flex-1 sm:max-w-[82%]">
+        {msg.error ? (
+          <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+          </div>
+        ) : msg.generatedImage ? (
+          <div className="overflow-hidden rounded-2xl rounded-tl-md border border-border/50 bg-card/80 shadow-sm">
+            <ImgWithLoader url={msg.generatedImage.url} alt={msg.generatedImage.prompt} />
+            <div className="flex items-center gap-2 px-3.5 py-2">
+              <p className="min-w-0 flex-1 truncate text-[11.5px] text-muted-foreground">
+                {msg.generatedImage.prompt}
+              </p>
+              <a
+                href={msg.generatedImage.url}
+                target="_blank"
+                rel="noreferrer"
+                download
+                title="Abrir o descargar la imagen"
+                className="flex items-center gap-1 rounded-md border border-border/60 px-2 py-1 text-[10.5px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              >
+                <Download className="size-3" /> Abrir
+              </a>
+            </div>
+          </div>
+        ) : (
+          <>
+            {reasoningShown && (
+              <details className="mb-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+                <summary className="flex cursor-pointer select-none items-center gap-1.5 py-1">
+                  <Brain className="size-3.5" />
+                  Razonamiento del modelo
+                </summary>
+                <p className="max-h-64 overflow-y-auto whitespace-pre-wrap py-1.5 pl-5 leading-relaxed">
+                  {reasoningShown}
+                </p>
+              </details>
+            )}
+            {degenerate && (
+              <div className="mb-2 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11.5px] text-amber-600 dark:text-amber-400">
+                <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
+                <p>
+                  Esta respuesta entró en un bucle repetitivo del modelo. Pulsa «Regenerar» o cambia de
+                  modelo para obtener una mejor respuesta.
+                </p>
+              </div>
+            )}
+            <div
+              className={cn(
+                "glass-msg rounded-2xl rounded-tl-md border border-border/50 px-4 py-3 text-sm shadow-sm",
+                streaming && !msg.content && msg.reasoning && "text-muted-foreground"
+              )}
+            >
+              {msg.content ? (
+                trace.active ? (
+                  <div className={streaming ? "stream-cursor-wrap" : ""}>
+                    <AgentTraceView
+                      trace={trace}
+                      streaming={streaming}
+                      stalled={stalled}
+                      onContinue={onContinueAgent}
+                    />
+                    {(() => {
+                      const ans = trace.blocks.find((b) => b.kind === "answer");
+                      return ans && ans.kind === "answer" && ans.body ? (
+                        <AgentAnswer body={ans.body} />
+                      ) : null;
+                    })()}
+                  </div>
+                ) : proyecto && streaming ? (
+                  <div className="stream-cursor-wrap">
+                    {introMientrasEscribe && <Markdown content={introMientrasEscribe} />}
+                    <div
+                      className="mt-2 flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-[12.5px] text-muted-foreground"
+                      aria-live="polite"
+                    >
+                      <span className="flex gap-1" aria-hidden>
+                        <span className="skeleton-shimmer block size-1.5 rounded-full" />
+                        <span className="skeleton-shimmer block size-1.5 rounded-full" />
+                        <span className="skeleton-shimmer block size-1.5 rounded-full" />
+                      </span>
+                      Escribiendo tu página… se ve en vivo en la vista previa.
+                    </div>
+                  </div>
+                ) : (
+                <div className={streaming ? "stream-cursor-wrap" : ""}>
+                  <Markdown content={shown} colapsarCodigoGrande={!!proyecto} />
+                  {tooLong && (
+                    <button
+                      onClick={() => setExpanded((v) => !v)}
+                      className="mt-2 rounded-lg border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition hover:bg-muted"
+                    >
+                      {expanded
+                        ? "Mostrar menos"
+                        : `Mostrar todo (${msg.content.length.toLocaleString("es")} caracteres)`}
+                    </button>
+                  )}
+                </div>
+                )
+              ) : streaming ? (
+                <div aria-live="polite">
+                  <p className="text-muted-foreground italic">
+                    {msg.reasoning ? "Reflexionando…" : "Pensando…"}
+                  </p>
+                  {/* Barrido de esqueleto: se ve que hay algo en marcha
+                      mientras no llega el primer token. */}
+                  <div className="mt-2 space-y-1.5" aria-hidden>
+                    <span className="skeleton-shimmer block h-2 w-[85%]" />
+                    <span className="skeleton-shimmer block h-2 w-[65%]" />
+                    <span className="skeleton-shimmer block h-2 w-[45%]" />
+                  </div>
+                </div>
+              ) : null}
+              {/* ——— Evidence Mode: chips de cita archivo:línea ——— */}
+              {!streaming && citas.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-border/40 pt-2">
+                  <span className="text-[10px] font-medium text-muted-foreground/70">
+                    Evidencia:
+                  </span>
+                  {citas.map((c) => {
+                    const contenido = sandboxFiles?.[c.path];
+                    const lineas = contenido?.split("\n") ?? [];
+                    const rango =
+                      lineas.length >= c.linea
+                        ? lineas.slice(c.linea - 1, c.hasta).join("\n")
+                        : null;
+                    return (
+                      <span
+                        key={`${c.path}:${c.linea}`}
+                        className="inline-flex cursor-default items-center gap-0.5 rounded-full bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] text-cyan-700 dark:text-cyan-300"
+                        title={
+                          rango !== null
+                            ? `${c.path} líneas ${c.linea}${c.hasta !== c.linea ? `-${c.hasta}` : ""}:\n${rango}`
+                            : `${c.path}:${c.linea} — el archivo no está en el Sandbox: ábrelo para verificar`
+                        }
+                      >
+                        {c.path}:{c.linea}
+                        {c.hasta !== c.linea ? `-${c.hasta}` : ""}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+        {!streaming && ctxAbierto && msg.contexto && (
+          <ul className="mt-1 space-y-0.5 rounded-lg border border-amber-500/30 bg-amber-500/[0.06] px-2.5 py-1.5 text-[10.5px] leading-relaxed">
+            {detalleContexto(msg.contexto).map((l, i) => (
+              <li key={i} className="break-words text-muted-foreground">
+                {l}
+              </li>
+            ))}
+          </ul>
+        )}
+        {/* ——— Por qué te contestó esto ———
+         *
+         * Todo lo que pasó con ESTA respuesta, junto y en un sitio: qué modelos
+         * fallaron antes, qué contexto viajó, cuánto historial se apartó, qué
+         * tokens dijo el proveedor y cuánto costó con qué precios. Lo que no se
+         * sabe no sale, y el dinero solo aparece con sus dos mitades. */}
+        {!streaming && msg.ficha && fichaAbierta && (
+          <div className="mt-1 rounded-lg border border-sky-500/30 bg-sky-500/[0.06] px-2.5 py-1.5 text-[10.5px] leading-relaxed">
+            {titularDeFicha(msg.ficha) && (
+              <p className="mb-1 font-medium text-sky-700 dark:text-sky-300">
+                {titularDeFicha(msg.ficha)}
+              </p>
+            )}
+            <dl className="space-y-0.5">
+              {lineasDeFicha(msg.ficha).map((l) => (
+                <div key={l.etiqueta} className="flex flex-wrap gap-x-1.5">
+                  <dt className="shrink-0 text-muted-foreground/70">{l.etiqueta}:</dt>
+                  <dd className="min-w-0 break-words text-muted-foreground">{l.valor}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+        {/* La fila del pie ENVUELVE y cada trozo trunca.
+         *
+         * Antes era `flex h-6` sin envolver: en un móvil estrecho, con el
+         * nombre del proveedor y el chip de contexto a la vez, el navegador
+         * partía el texto letra a letra y lo pintaba ENCIMA de los botones.
+         * Alto mínimo en vez de fijo, envoltura, y nada que pueda encoger por
+         * debajo de lo legible. */}
+        <div className="mt-1 flex min-h-6 flex-wrap items-center gap-x-2 gap-y-1">
+          {msg.model && !streaming && (
+            <span className="max-w-[60%] truncate whitespace-nowrap font-mono text-[10.5px] text-muted-foreground/70">
+              {modelLabel(msg.model)}
+            </span>
+          )}
+          {msg.elapsedMs != null && !streaming && (
+            <span className="shrink-0 whitespace-nowrap text-[10.5px] text-muted-foreground/50">
+              {(msg.elapsedMs / 1000).toFixed(1)}s
+            </span>
+          )}
+          {!streaming && msg.ctxSaved != null && msg.ctxSaved > 0 && (
+            <span
+              className="shrink-0 whitespace-nowrap rounded-full bg-violet-500/10 px-1.5 text-[10px] font-medium text-violet-500"
+              title="Contexto comprimido al enviar el historial"
+            >
+              ctx −{msg.ctxSaved}%
+            </span>
+          )}
+          {/* Qué contexto viajó de verdad. Cada turno se manda mucho más que
+              lo que escribes —el mapa, tus notas, las reglas, las skills, N
+              mensajes— y nada de eso se veía: escribías una línea, recibías
+              una respuesta rara y no había forma de saber que el modelo estaba
+              leyendo doce archivos. */}
+          {!streaming && msg.contexto && hayContexto(msg.contexto) && (
+            <button
+              type="button"
+              onClick={() => setCtxAbierto((v) => !v)}
+              aria-expanded={ctxAbierto}
+              className="block max-w-full truncate whitespace-nowrap rounded-full bg-amber-500/10 px-1.5 text-[10px] font-medium text-amber-700 transition hover:bg-amber-500/20 dark:text-amber-400"
+              title="Qué contexto se envió con este mensaje"
+            >
+              ctx {lineaContexto(msg.contexto)}
+            </button>
+          )}
+          {/* Lo que costó dirigir al equipo. Se enseña SIEMPRE que hubo
+              orquesta: con dinero de por medio, saber cuántas llamadas se
+              hicieron no es un detalle, es la información. */}
+          {!streaming && msg.orquesta && (
+            <span
+              className="shrink-0 whitespace-nowrap rounded-full bg-prism-violet/12 px-1.5 text-[10px] font-medium text-prism-violet"
+              title={`El director repartió el trabajo entre ${msg.orquesta.ejecutores} modelos y revisó lo que volvió. ${msg.orquesta.llamadas} llamadas en total.`}
+            >
+              equipo {msg.orquesta.entregaron}/{msg.orquesta.ejecutores} · {msg.orquesta.llamadas} llamadas
+            </span>
+          )}
+          {!streaming && hayFicha(msg.ficha) && (
+            <button
+              type="button"
+              onClick={() => setFichaAbierta((v) => !v)}
+              aria-expanded={fichaAbierta}
+              className="shrink-0 whitespace-nowrap rounded-full bg-sky-500/10 px-1.5 text-[10px] font-medium text-sky-700 transition hover:bg-sky-500/20 dark:text-sky-400"
+              title="Qué pasó para que salga esta respuesta"
+            >
+              por qué
+            </button>
+          )}
+          {!streaming && msg.piiMasked != null && msg.piiMasked > 0 && (
+            <span
+              className="shrink-0 whitespace-nowrap rounded-full bg-cyan-500/10 px-1.5 text-[10px] font-medium text-cyan-600 dark:text-cyan-400"
+              title="Datos personales enmascarados antes de enviar (escudo PII)"
+            >
+              🛡 {msg.piiMasked}
+            </span>
+          )}
+          {!streaming && (msg.content || msg.generatedImage) && (
+            <div className="touch-actions ml-auto flex shrink-0 gap-0.5 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+              <IconBtn label={speaking ? "Detener lectura" : "Leer en voz alta"} onClick={toggleSpeak}>
+                {speaking ? (
+                  <VolumeX className="size-3.5 text-prism-violet" />
+                ) : (
+                  <Volume2 className="size-3.5" />
+                )}
+              </IconBtn>
+              <IconBtn label="Copiar respuesta" onClick={copy}>
+                {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+              </IconBtn>
+              {onGuardarRepaso && numTarjetasRepaso > 0 && (
+                <IconBtn label="Guardar repaso" onClick={onGuardarRepaso}>
+                  <GraduationCap className="size-3.5 text-prism-violet" />
+                </IconBtn>
+              )}
+              {onTranslate && msg.content && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      title="Traducir respuesta"
+                      aria-label="Traducir respuesta"
+                      className="rounded-md p-1.5 text-muted-foreground/70 transition hover:bg-muted hover:text-foreground"
+                    >
+                      <Languages className="size-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-44">
+                    <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground">
+                      La traducción se pega debajo
+                    </DropdownMenuLabel>
+                    {TRANSLATE_LANGS.map((l) => (
+                      <DropdownMenuItem key={l.code} onClick={() => onTranslate(l)}>
+                        <span aria-hidden>{l.flag}</span> {l.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {branch && branch.total > 1 && (
+                <span className="flex items-center gap-0.5 rounded-md bg-muted/60 px-1">
+                  <IconBtn label="Versión anterior" onClick={branch.onPrev}>
+                    <ChevronLeft className="size-3.5" />
+                  </IconBtn>
+                  <span
+                    className="select-none text-[10px] tabular-nums text-muted-foreground"
+                    title="Cada regeneración guarda la anterior: nada se pierde"
+                  >
+                    {branch.index + 1}/{branch.total}
+                  </span>
+                  <IconBtn label="Versión siguiente" onClick={branch.onNext}>
+                    <ChevronRight className="size-3.5" />
+                  </IconBtn>
+                </span>
+              )}
+              {isLastAssistant && onRegenerate && (
+                <span className="inline-flex items-center">
+                  <IconBtn label="Regenerar" onClick={() => onRegenerate()}>
+                    <RefreshCw className="size-3.5" />
+                  </IconBtn>
+                  {/* Nueve de cada diez veces, lo que quieres tras una mala
+                      respuesta no es la misma tirada otra vez: es esto mismo
+                      con OTRO modelo. Antes eran cuatro pasos por Ajustes. */}
+                  <MenuOtroModelo onElegir={(key) => onRegenerate(key)} />
+                </span>
+              )}
+              {onDeshacer && !streaming && (
+                <IconBtn
+                  label="Deshacer este cambio (vuelve al checkpoint anterior)"
+                  onClick={onDeshacer}
+                >
+                  <Undo2 className="size-3.5" />
+                </IconBtn>
+              )}
+              <IconBtn label="Eliminar" onClick={onDelete}>
+                <Trash2 className="size-3.5" />
+              </IconBtn>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+function IconBtn({
+  children,
+  label,
+  onClick,
+}: {
+  children: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="rounded-md p-1.5 text-muted-foreground/70 transition hover:bg-muted hover:text-foreground"
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Imagen con esqueleto de carga (para URLs remotas como Pollinations) */
+function ImgWithLoader({ url, alt }: { url: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="relative bg-muted/30">
+      {!loaded && (
+        <div className="flex aspect-square w-full max-w-[420px] animate-pulse items-center justify-center">
+          <span className="text-xs text-muted-foreground">Generando imagen…</span>
+        </div>
+      )}
+      <img
+        src={url}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        className={cn("w-full max-w-[420px] transition-opacity", loaded ? "opacity-100" : "absolute inset-0 opacity-0")}
+      />
+    </div>
+  );
+}
+
+/** Miniatura de un adjunto en el historial.
+ *
+ * Desde la v3.14 el `dataUrl` no vive en el store: está en IndexedDB y se
+ * carga aquí a demanda. Mientras llega, se muestra un esqueleto del
+ * mismo tamaño del marco final para que la conversación no «salte». Si
+ * el binario no se puede recuperar (entrada huérfana o IDB caído), se
+ * muestra una nota en su lugar — el mensaje de texto sigue siendo
+ * legible. */
+function AttachmentThumb({ attachment }: { attachment: Attachment }) {
+  const [src, setSrc] = useState<string | null>(attachment.dataUrl ?? null);
+  useEffect(() => {
+    if (src) return;
+    let cancelled = false;
+    resolveAttachmentDataUrl(attachment).then((url) => {
+      if (!cancelled && url) setSrc(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [attachment, src]);
+  if (!src) {
+    return (
+      <div
+        title={attachment.name}
+        aria-label={`Cargando ${attachment.name}`}
+        className="size-24 animate-pulse rounded-xl border border-border/60 bg-muted/60"
+      />
+    );
+  }
+  return (
+    <a href={src} target="_blank" rel="noreferrer" title={attachment.name}>
+      <img
+        src={src}
+        alt={attachment.name}
+        className="size-24 rounded-xl border border-border/60 object-cover shadow-sm"
+      />
+    </a>
+  );
+}
+
+/** Regenerar la última respuesta con OTRO modelo.
+ *
+ * `regenerate` rehacía siempre con el mismo, y cuando una respuesta sale mal
+ * lo que quieres casi siempre es esto mismo probado con otro. Antes había que
+ * ir a Ajustes, cambiar el modelo, volver y regenerar: cuatro pasos.
+ *
+ * La rama anterior no se pierde —el sistema de ramas ya la guardaba—, así que
+ * puedes comparar las dos con las flechas del mensaje. */
+function MenuOtroModelo({ onElegir }: { onElegir: (modelKey: string) => void }) {
+  const modelos = useAvailableModels();
+  if (!modelos.length) return null;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          title="Elegir otro modelo"
+          aria-label="Elegir otro modelo"
+          className="rounded-md p-1.5 text-muted-foreground/70 transition hover:bg-muted hover:text-foreground"
+        >
+          <ChevronDown className="size-3.5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="max-h-72 w-64 overflow-y-auto">
+        <DropdownMenuLabel className="text-[11px] font-normal text-muted-foreground">
+          Rehacer con otro modelo · la respuesta actual se guarda
+        </DropdownMenuLabel>
+        {modelos.slice(0, 30).map((m) => (
+          <DropdownMenuItem
+            key={m.key}
+            onSelect={() => onElegir(m.key)}
+            className="gap-2 text-xs"
+          >
+            <ModelLogo modelId={m.modelId} providerId={m.providerId} className="size-3.5 shrink-0" />
+            <span className="min-w-0 flex-1 truncate font-mono">{m.modelId}</span>
+            <span className="shrink-0 text-[10px] text-muted-foreground">{m.providerName}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
