@@ -1,0 +1,407 @@
+import { describe, it, expect } from "vitest";
+import {
+  ancestorDirs,
+  buildRunHtml,
+  buildTree,
+  injectConsoleBridge,
+  isTextPath,
+  localRef,
+  pareceProyectoConBuild,
+  pickEntryPath,
+  raizComun,
+  resolvePath,
+  SANDBOX_ORIGIN,
+} from "../../src/lib/prism/sandbox";
+
+function filesOf(spec: Record<string, string>): Map<string, Uint8Array> {
+  const m = new Map<string, Uint8Array>();
+  for (const [k, v] of Object.entries(spec)) m.set(k, new TextEncoder().encode(v));
+  return m;
+}
+
+describe("resolvePath", () => {
+  it("resuelve rutas relativas simples desde la raíz", () => {
+    expect(resolvePath("", "js/app.js")).toBe("js/app.js");
+    expect(resolvePath("", "./js/app.js")).toBe("js/app.js");
+  });
+  it("resuelve ../ respecto al directorio base", () => {
+    expect(resolvePath("css", "../img/a.png")).toBe("img/a.png");
+    expect(resolvePath("a/b", "../d.txt")).toBe("a/d.txt");
+    expect(resolvePath("a/b", "../../c.txt")).toBe("c.txt");
+  });
+  it("absolutas dentro del proyecto", () => {
+    expect(resolvePath("css", "/js/x.js")).toBe("js/x.js");
+  });
+});
+
+describe("localRef", () => {
+  it("rechaza recursos externos y especiales", () => {
+    expect(localRef("https://x.com/a.js")).toBeNull();
+    expect(localRef("//cdn.dev/a.js")).toBeNull();
+    expect(localRef("data:image/png;base64,xx")).toBeNull();
+    expect(localRef("#top")).toBeNull();
+    expect(localRef("mailto:a@b.c")).toBeNull();
+  });
+  it("limpia query/hash de rutas locales", () => {
+    expect(localRef("./a.js?v=2#fin")).toBe("a.js");
+    expect(localRef("img/a.png")).toBe("img/a.png");
+  });
+});
+
+describe("pickEntryPath", () => {
+  it("elige el preferido si es HTML", () => {
+    const paths = ["a.html", "index.html", "js/app.js"];
+    expect(pickEntryPath(paths, "a.html")).toBe("a.html");
+  });
+  it("sin preferido: index.html en la raíz", () => {
+    expect(pickEntryPath(["sub/pag.html", "index.html"])).toBe("index.html");
+  });
+  it("sin index: el HTML más superficial y alfabético", () => {
+    expect(pickEntryPath(["z/bien.html", "sub/otro.html", "a/primero.html"])).toBe("a/primero.html");
+    expect(pickEntryPath(["bien.html", "sub/otro.html"])).toBe("bien.html");
+    expect(pickEntryPath(["sub/otro.html", "sub/a.html"])).toBe("sub/a.html");
+  });
+  it("devuelve null sin HTML", () => {
+    expect(pickEntryPath(["js/app.js", "leeme.md"])).toBeNull();
+  });
+
+  /** Lo que rompía de verdad: el «Download ZIP» de GitHub —y cualquier
+   *  proyecto exportado— mete todo dentro de una carpeta, y ahí el
+   *  `index.html` dejaba de ganar y quedaba el desempate alfabético. */
+  it("el index.html gana aunque el ZIP lo envuelva en una carpeta", () => {
+    expect(pickEntryPath(["mi-web/about.html", "mi-web/index.html"])).toBe("mi-web/index.html");
+    expect(pickEntryPath(["proyecto/contacto.html", "proyecto/index.html"])).toBe(
+      "proyecto/index.html"
+    );
+    // y también con la extensión corta
+    expect(pickEntryPath(["sitio/aaa.html", "sitio/index.htm"])).toBe("sitio/index.htm");
+  });
+
+  it("el index.html gana aunque esté más hondo que otro HTML", () => {
+    // «busca el index» significa eso: no el primero que salga por orden
+    expect(pickEntryPath(["assets/plantilla.html", "web/index.html"])).toBe("web/index.html");
+    expect(pickEntryPath(["portada.html", "app/sub/index.html"])).toBe("app/sub/index.html");
+  });
+
+  it("entre varios index gana el menos hondo, y el desempate es estable", () => {
+    expect(pickEntryPath(["a/b/index.html", "a/index.html"])).toBe("a/index.html");
+    expect(pickEntryPath(["z/index.html", "a/index.html"])).toBe("a/index.html");
+  });
+
+  it("un preferido explícito sigue mandando sobre el index", () => {
+    // el usuario abrió otro archivo a mano: eso no se le discute
+    expect(pickEntryPath(["web/index.html", "web/otra.html"], "web/otra.html")).toBe(
+      "web/otra.html"
+    );
+  });
+});
+
+describe("pareceProyectoConBuild", () => {
+  it("un package.json en la raíz sin ningún HTML es un proyecto que necesita compilarse", () => {
+    expect(pareceProyectoConBuild(["package.json", "src/App.tsx", "vite.config.ts"])).toBe(true);
+  });
+
+  it("un package.json una carpeta adentro (ZIP con carpeta envolvente) también cuenta", () => {
+    expect(pareceProyectoConBuild(["mi-app/package.json", "mi-app/src/main.tsx"])).toBe(true);
+  });
+
+  it("con HTML de verdad, no hace falta build: no es este caso", () => {
+    expect(pareceProyectoConBuild(["package.json", "index.html"])).toBe(false);
+  });
+
+  it("sin package.json, es un proyecto roto de verdad, no uno que falte compilar", () => {
+    expect(pareceProyectoConBuild(["app.js", "estilo.css"])).toBe(false);
+  });
+
+  it("un package.json muy hondo (dentro de node_modules, p. ej.) no cuenta", () => {
+    expect(pareceProyectoConBuild(["a/b/c/package.json"])).toBe(false);
+  });
+});
+
+describe("isTextPath", () => {
+  it("clasifica texto y binario", () => {
+    expect(isTextPath("a/app.js")).toBe(true);
+    expect(isTextPath("a/estilo.CSS")).toBe(true);
+    expect(isTextPath("a/imagen.png")).toBe(false);
+  });
+});
+
+describe("buildRunHtml", () => {
+  const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47]); // cabecera PNG falsa
+  const files = new Map<string, Uint8Array>();
+  files.set("index.html", new TextEncoder().encode(`<!doctype html>
+<html><head>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.ejemplo.com/afuera.css">
+  <script src="js/app.js"></script>
+  <script src="falta.js"></script>
+</head>
+<body>
+  <img src="img/a.png">
+  <img src="https://remoto.ejemplo.com/x.png">
+  <img src="img/nope.png">
+</body></html>`));
+  files.set(
+    "css/style.css",
+    new TextEncoder().encode(`@import "extra.css";
+body { background: url(../img/a.png); }
+`)
+  );
+  files.set("css/extra.css", new TextEncoder().encode(".extra { color: violet }"));
+  files.set("js/app.js", new TextEncoder().encode("console.log('desde app.js');"));
+  files.set("img/a.png", PNG);
+
+  const res = buildRunHtml("index.html", files);
+
+  it("inlinea el CSS local con @import y url() reescritos", () => {
+    expect(res.html).toContain(".extra { color: violet }");
+    expect(res.html).toContain('data-prism-from="css/style.css"');
+    expect(res.html).toMatch(/url\("data:image\/png;base64,/);
+    expect(res.html).not.toMatch(/@import\s+(?:url\(|["'])/);
+  });
+
+  it("inlinea los script locales y deja los externos intactos", () => {
+    expect(res.html).toContain("console.log('desde app.js');");
+    expect(res.html).toContain('https://cdn.ejemplo.com/afuera.css');
+    expect(res.html).not.toMatch(/<script src="js\/app\.js"/);
+  });
+
+  it("convierte imágenes locales a data URL y no toca remotas", () => {
+    expect(res.html).toMatch(/src="data:image\/png;base64,/);
+    expect(res.html).toContain("https://remoto.ejemplo.com/x.png");
+  });
+
+  it("registra los recursos que faltan sin romper el HTML", () => {
+    expect(res.missing).toContain("falta.js");
+    expect(res.missing).toContain("img/nope.png");
+  });
+
+  it("inyecta el puente de consola exactamente una vez", () => {
+    const veces = res.html.split(SANDBOX_ORIGIN).length - 1;
+    expect(veces).toBeGreaterThanOrEqual(1);
+    expect(res.html.match(/prism-sandbox/g)?.length).toBe(1);
+  });
+
+  it("si falta la entrada devuelve un HTML de error controlado", () => {
+    const r = buildRunHtml("noexiste.html", files);
+    expect(r.html).toContain("No se encontró la entrada");
+  });
+});
+
+describe("buildRunHtml — correcciones", () => {
+  it("sustituye el elemento <script src> entero, sin dejar un cierre huérfano", () => {
+    const files = filesOf({
+      "index.html": '<html><body><script src="a.js"></script></body></html>',
+      "a.js": "var x = 1;",
+    });
+    const res = buildRunHtml("index.html", files);
+    // un solo par de etiquetas script para el archivo inlineado
+    expect(res.html.match(/<\/script>/g)?.length).toBe(2); // el inlineado + el puente de consola
+    expect(res.html).toContain("var x = 1;");
+  });
+
+  it("escapa </script> dentro del código inlineado", () => {
+    const files = filesOf({
+      "index.html": '<html><body><script src="a.js"></script></body></html>',
+      "a.js": 'document.write("</script>");',
+    });
+    const res = buildRunHtml("index.html", files);
+    expect(res.html).toContain('document.write("<\\/script>");');
+  });
+
+  it("no reescribe cadenas «src=» que viven dentro del JS inlineado", () => {
+    const files = filesOf({
+      "index.html": '<html><body><script src="a.js"></script></body></html>',
+      "a.js": 'el.setAttribute("src=foto.png", 1);',
+      "foto.png": "x",
+    });
+    const res = buildRunHtml("index.html", files);
+    expect(res.html).toContain('el.setAttribute("src=foto.png", 1);');
+  });
+
+  it("no repite en «missing» el mismo recurso referenciado dos veces", () => {
+    const files = filesOf({
+      "index.html": '<html><body><img src="no.png"><img src="no.png"></body></html>',
+    });
+    const res = buildRunHtml("index.html", files);
+    expect(res.missing.filter((m) => m === "no.png")).toHaveLength(1);
+  });
+
+  it("el puente de consola corre ANTES que cualquier script propio del <head>", () => {
+    // Patrón real y frecuente en páginas generadas: detectar el tema oscuro
+    // tocando localStorage antes del primer pintado. Si el puente se metiera
+    // al FINAL del <head> (como antes), este script correría primero, contra
+    // el localStorage real del iframe sandboxed, y reventaría con
+    // «lacks the allow-same-origin flag» antes de que el puente lo pudiera
+    // sustituir por el de mentira.
+    const marcaDelProyecto = "___script_del_proyecto___";
+    const files = filesOf({
+      "index.html": `<html><head><script>${marcaDelProyecto}</script></head><body></body></html>`,
+    });
+    const res = buildRunHtml("index.html", files);
+    const posPuente = res.html.indexOf(SANDBOX_ORIGIN);
+    const posProyecto = res.html.indexOf(marcaDelProyecto);
+    expect(posPuente).toBeGreaterThan(-1);
+    expect(posProyecto).toBeGreaterThan(-1);
+    expect(posPuente).toBeLessThan(posProyecto);
+  });
+});
+
+describe("injectConsoleBridge — orden de inserción", () => {
+  it("se mete al ABRIR <head>, no antes de cerrarlo", () => {
+    const html = "<html><head><title>x</title></head><body></body></html>";
+    const res = injectConsoleBridge(html);
+    expect(res.indexOf(SANDBOX_ORIGIN)).toBeLessThan(res.indexOf("<title>"));
+  });
+
+  it("sin <head>, se mete al abrir <html>", () => {
+    const html = "<html><body>hola</body></html>";
+    const res = injectConsoleBridge(html);
+    expect(res.indexOf(SANDBOX_ORIGIN)).toBeLessThan(res.indexOf("hola"));
+  });
+
+  it("sin <head> ni <html>, se mete al abrir <body>", () => {
+    const html = "<body>hola</body>";
+    const res = injectConsoleBridge(html);
+    expect(res.indexOf(SANDBOX_ORIGIN)).toBeLessThan(res.indexOf("hola"));
+  });
+
+  it("es idempotente: no se mete dos veces", () => {
+    const html = "<html><head></head><body></body></html>";
+    const una = injectConsoleBridge(html);
+    const dos = injectConsoleBridge(una);
+    expect(dos).toBe(una);
+  });
+});
+
+describe("buildTree", () => {
+  it("agrupa por carpetas, ordena y cuenta los archivos", () => {
+    const tree = buildTree(["index.html", "js/app.js", "css/a.css", "css/sub/b.css"]);
+    expect(tree.map((n) => n.name)).toEqual(["css", "js", "index.html"]);
+    const css = tree[0];
+    expect(css.dir).toBe(true);
+    expect(css.count).toBe(2); // a.css + sub/b.css
+    expect(css.children.map((n) => n.name)).toEqual(["sub", "a.css"]);
+    expect(tree[2].dir).toBe(false);
+  });
+
+  it("una lista vacía da un árbol vacío", () => {
+    expect(buildTree([])).toEqual([]);
+  });
+
+  it("mantiene la ruta completa en cada nodo", () => {
+    const tree = buildTree(["a/b/c.txt"]);
+    expect(tree[0].path).toBe("a");
+    expect(tree[0].children[0].path).toBe("a/b");
+    expect(tree[0].children[0].children[0].path).toBe("a/b/c.txt");
+  });
+});
+
+describe("ancestorDirs", () => {
+  it("devuelve todas las carpetas que contienen la ruta", () => {
+    expect(ancestorDirs("a/b/c.txt")).toEqual(["a", "a/b"]);
+    expect(ancestorDirs("raiz.txt")).toEqual([]);
+    expect(ancestorDirs("")).toEqual([]);
+  });
+});
+
+describe("buildRunHtml — el peso que se enseña es el del proyecto", () => {
+  const files = (o: Record<string, string>) =>
+    new Map(Object.entries(o).map(([k, v]) => [k, new TextEncoder().encode(v)]));
+
+  it("htmlBytes NO cuenta el puente de consola que inyecta Forja", () => {
+    const html = "<!doctype html><html><head></head><body><h1>Hola</h1></body></html>";
+    const r = buildRunHtml("index.html", files({ "index.html": html }));
+    // el bundle servido lleva la instrumentación; el peso que se reporta, no
+    expect(r.html.length).toBeGreaterThan(r.htmlBytes);
+    expect(r.htmlBytes).toBe(html.length);
+    expect(r.html).toContain("prism-sandbox");
+  });
+
+  it("sí cuenta lo que el proyecto se lleva empaquetado dentro", () => {
+    const r = buildRunHtml(
+      "index.html",
+      files({
+        "index.html": '<!doctype html><html><head><link rel="stylesheet" href="e.css"></head><body></body></html>',
+        "e.css": "body{color:rebeccapurple}",
+      })
+    );
+    // el CSS se inlinea: forma parte del peso del proyecto
+    expect(r.htmlBytes).toBeGreaterThan(100);
+    expect(r.html).toContain("rebeccapurple");
+  });
+});
+
+describe("un ZIP con carpeta y rutas absolutas SÍ carga sus estilos", () => {
+  const F = (o: Record<string, string>) =>
+    new Map(Object.entries(o).map(([k, v]) => [k, new TextEncoder().encode(v)]));
+  const CSS = "body{background:rebeccapurple}";
+  const JS = "console.log('vivo')";
+
+  it("raizComun encuentra la carpeta del ZIP", () => {
+    expect(raizComun(["mi-web/index.html", "mi-web/css/e.css"])).toBe("mi-web");
+    // sin carpeta común, no se inventa una
+    expect(raizComun(["index.html", "css/e.css"])).toBe("");
+    expect(raizComun(["a/index.html", "b/e.css"])).toBe("");
+    expect(raizComun([])).toBe("");
+  });
+
+  it("ignora los restos que mete macOS al comprimir", () => {
+    // si contaran, ningún ZIP hecho en un Mac tendría raíz común
+    expect(raizComun(["__MACOSX/._index.html", "mi-web/index.html", "mi-web/e.css"])).toBe("mi-web");
+    expect(raizComun(["mi-web/._e.css", "mi-web/index.html"])).toBe("mi-web");
+  });
+
+  it("«/css/estilos.css» resuelve dentro de la carpeta del ZIP", () => {
+    // Este es el fallo que se veía como «solo carga el HTML con texto»: el
+    // HTML se escribió para la raíz de un dominio y el ZIP lo trae dentro de
+    // su carpeta, así que /css/estilos.css apuntaba a un archivo inexistente.
+    const files = F({
+      "mi-web/index.html":
+        '<!doctype html><html><head><link rel="stylesheet" href="/css/estilos.css"></head>' +
+        '<body><h1>Hola</h1><script src="/js/app.js"></script></body></html>',
+      "mi-web/css/estilos.css": CSS,
+      "mi-web/js/app.js": JS,
+    });
+    const r = buildRunHtml("mi-web/index.html", files);
+    expect(r.html).toContain("rebeccapurple");
+    expect(r.html).toContain("vivo");
+    expect(r.missing).toEqual([]);
+  });
+
+  it("también con imágenes y con url() dentro del CSS", () => {
+    const files = F({
+      "mi-web/index.html":
+        '<!doctype html><html><head><link rel="stylesheet" href="/e.css"></head>' +
+        '<body><img src="/img/logo.svg"></body></html>',
+      "mi-web/e.css": 'body{background:url("/img/fondo.svg")}',
+      "mi-web/img/logo.svg": "<svg xmlns='http://www.w3.org/2000/svg'></svg>",
+      "mi-web/img/fondo.svg": "<svg xmlns='http://www.w3.org/2000/svg'></svg>",
+    });
+    const r = buildRunHtml("mi-web/index.html", files);
+    expect(r.missing).toEqual([]);
+    expect(r.html).toContain("data:image/svg+xml");
+  });
+
+  it("la ruta literal manda: no se busca por la carpeta si ya existe", () => {
+    // Con dos «e.css», el que gana es el que la ruta dice, no el otro.
+    const files = F({
+      "mi-web/index.html": '<!doctype html><html><head><link rel="stylesheet" href="css/e.css"></head><body></body></html>',
+      "mi-web/css/e.css": "body{color:red}",
+      "mi-web/mi-web/css/e.css": "body{color:blue}",
+    });
+    const r = buildRunHtml("mi-web/index.html", files);
+    expect(r.html).toContain("color:red");
+    expect(r.html).not.toContain("color:blue");
+  });
+
+  it("lo que de verdad no está se sigue reportando como ausente", () => {
+    // El respaldo no puede convertirse en «encuentra cualquier cosa»: si no
+    // está en ninguna de las dos rutas, se dice.
+    const files = F({
+      "mi-web/index.html": '<!doctype html><html><head><link rel="stylesheet" href="/no-existe.css"></head><body></body></html>',
+    });
+    const r = buildRunHtml("mi-web/index.html", files);
+    expect(r.missing).toContain("no-existe.css");
+  });
+});
