@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ghEnsureRepo, pistaDeGithub, uploadToGithub, type GhFetch, type GhItem } from "../../src/lib/prism/github-upload";
+import { ghEnsureRepo, pistaDeGithub, uploadToGithub, type GhFetch, type GhItem } from "../../src/lib/forja/github-upload";
 
 /** Forja IA — La subida a GitHub, con un GitHub de mentira delante.
  *

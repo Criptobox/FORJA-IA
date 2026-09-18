@@ -1,7 +1,7 @@
 /** Forja IA — Device flow de GitHub (si el navegador bloquea la ventana). */
 import { NextResponse } from "next/server";
-import { guardRequest, guardResponse } from "@/lib/prism/api-guard";
-import { credsFrom, githubUser, pollDeviceFlow, startDeviceFlow } from "@/lib/prism/github-oauth-server";
+import { guardRequest, guardResponse } from "@/lib/forja/api-guard";
+import { credsFrom, githubUser, pollDeviceFlow, startDeviceFlow } from "@/lib/forja/github-oauth-server";
 
 export const runtime = "nodejs";
 

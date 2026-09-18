@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { soloAdjuntosDelTurno, notaDeAdjuntos } from "../../src/lib/prism/adjuntos-historial";
-import type { Attachment } from "../../src/lib/prism/types";
+import { soloAdjuntosDelTurno, notaDeAdjuntos } from "../../src/lib/forja/adjuntos-historial";
+import type { Attachment } from "../../src/lib/forja/types";
 
 const img = (name: string): Attachment => ({
   id: name,

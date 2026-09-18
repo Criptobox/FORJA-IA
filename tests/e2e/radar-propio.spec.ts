@@ -15,9 +15,9 @@ import { expect, test } from "./fixtures";
 async function seed(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -74,9 +74,9 @@ test("el radar enseña lo gratis que TUS claves pueden usar y aún no tienes", a
 test("cuando falta la clave, el radar manda directo a donde se consigue", async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

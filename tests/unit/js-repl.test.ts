@@ -6,7 +6,7 @@
  * (que un `</script>` del usuario no parta el HTML).
  */
 import { describe, expect, it } from "vitest";
-import { buildSrcdoc, serializar } from "../../src/lib/prism/js-repl";
+import { buildSrcdoc, serializar } from "../../src/lib/forja/js-repl";
 
 describe("serializar", () => {
   it("primitivos tal cual (los strings con comillas)", () => {
@@ -71,7 +71,7 @@ describe("buildSrcdoc", () => {
     const apariciones = doc.match(/<\/script>/g) ?? [];
     // solo cierra el <script> del propio REPL (una vez), no el del ataque
     expect(apariciones.length).toBe(1);
-    expect(doc).toContain("prism-repl");
+    expect(doc).toContain("forja-repl");
   });
 
   it("contiene el contrato de la variable resultado", () => {

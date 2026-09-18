@@ -10,7 +10,7 @@ import {
   obtenerSnapshot,
   MAX_CHARS_SNAPSHOT,
   MAX_SNAPSHOTS,
-} from "../../src/lib/prism/snapshots";
+} from "../../src/lib/forja/snapshots";
 
 function files(n = 2): Record<string, string> {
   return Object.fromEntries(
@@ -84,7 +84,7 @@ describe("almacenamiento", () => {
   });
 
   it("JSON corrupto no rompe: lista vacía", () => {
-    st.setItem("prism-snapshots-v1", "{esto no es json");
+    st.setItem("forja-snapshots-v1", "{esto no es json");
     expect(listarSnapshots(st)).toEqual([]);
   });
 });

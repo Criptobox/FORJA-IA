@@ -111,7 +111,7 @@ test.describe("el uso legítimo sigue pasando", () => {
     });
     // Dos respuestas correctas, según contra qué servidor corra la suite:
     //   404 (desarrollo) → pasó el guardián y el repo sencillamente no está
-    //   503 (producción sin PRISM_ACCESS_CODE) → la ruta está apagada a propósito
+    //   503 (producción sin FORJA_ACCESS_CODE) → la ruta está apagada a propósito
     // Lo que NO puede pasar es un 403 de origen cruzado: la petición viene de la
     // propia app. Ni, por supuesto, una respuesta con contenido.
     expect([404, 503]).toContain(res.status());

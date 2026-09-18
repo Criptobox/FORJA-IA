@@ -6,8 +6,8 @@ import {
   isGithubAppClientId,
   parseAppCredsJson,
   parseOAuthTokenResponse,
-} from "../../src/lib/prism/github-oauth";
-import { ghGetAccount, ghGetToken, ghSetAccount, ghSetToken } from "../../src/lib/prism/github-upload";
+} from "../../src/lib/forja/github-oauth";
+import { ghGetAccount, ghGetToken, ghSetAccount, ghSetToken } from "../../src/lib/forja/github-upload";
 
 describe("parseOAuthTokenResponse", () => {
   it("lee JSON", () => {
@@ -66,12 +66,12 @@ describe("githubAuthorizeUrl", () => {
 
 describe("githubManifestPayload", () => {
   it("apunta al origen actual y pide escritura en contenidos", () => {
-    const m = githubManifestPayload("https://prism.example");
-    expect(m.redirect_url).toBe("https://prism.example/api/github/manifest/callback");
-    expect(m.callback_urls).toEqual(["https://prism.example/api/github/oauth/callback"]);
+    const m = githubManifestPayload("https://forja.example");
+    expect(m.redirect_url).toBe("https://forja.example/api/github/manifest/callback");
+    expect(m.callback_urls).toEqual(["https://forja.example/api/github/oauth/callback"]);
     expect(m.request_oauth_on_install).toBe(true);
     expect((m.default_permissions as { contents: string }).contents).toBe("write");
-    expect(githubInstallUrl("prism-ai")).toContain("/apps/prism-ai/installations/new");
+    expect(githubInstallUrl("forja-ai")).toContain("/apps/forja-ai/installations/new");
   });
 });
 
@@ -79,10 +79,10 @@ describe("parseAppCredsJson", () => {
   it("exige clientId y secret", () => {
     expect(parseAppCredsJson("{}")).toBeNull();
     expect(parseAppCredsJson("no-json")).toBeNull();
-    expect(parseAppCredsJson(JSON.stringify({ clientId: "Iv1.x", clientSecret: "s", slug: "prism" }))).toEqual({
+    expect(parseAppCredsJson(JSON.stringify({ clientId: "Iv1.x", clientSecret: "s", slug: "forja" }))).toEqual({
       clientId: "Iv1.x",
       clientSecret: "s",
-      slug: "prism",
+      slug: "forja",
     });
   });
 });

@@ -5,7 +5,7 @@ import {
   filterSnippets,
   findByShortcut,
   useSnippets,
-} from "../../src/lib/prism/snippets";
+} from "../../src/lib/forja/snippets";
 
 describe("filterSnippets", () => {
   it("sin query devuelve todo", () => {

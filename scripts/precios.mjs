@@ -85,7 +85,7 @@ async function main() {
   for (const k of claves) ordenada[k] = tabla[k];
 
   const hoy = new Date().toISOString().slice(0, 10);
-  const salida = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "lib", "prism", "precios-datos.ts");
+  const salida = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "lib", "forja", "precios-datos.ts");
   const cuerpo = `/** GENERADO POR \`npm run precios\` — NO EDITAR A MANO.
  *
  * Precios por token, en dólares, de ${claves.length} modelos.

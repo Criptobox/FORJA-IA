@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildWebStudioPrompt, WEB_STUDIO_STAGES } from "../../src/lib/prism/web-studio";
+import { buildWebStudioPrompt, WEB_STUDIO_STAGES } from "../../src/lib/forja/web-studio";
 
 describe("Web Studio", () => {
   it("mantiene el workflow completo", () => {

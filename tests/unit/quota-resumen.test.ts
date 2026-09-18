@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resumenCuota, tonoCuota, type ProviderQuota } from "../../src/lib/prism/quota";
+import { resumenCuota, tonoCuota, type ProviderQuota } from "../../src/lib/forja/quota";
 
 const w = (remaining: number, limit: number) => ({ remaining, limit, resetAt: 0 });
 

@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { writeZip } from "../../src/lib/prism/zip";
+import { writeZip } from "../../src/lib/forja/zip";
 
 /** Forja IA — Subir un ZIP (o un archivo de código) al chat y que se lea.
  *
@@ -31,7 +31,7 @@ async function abrir(page: import("@playwright/test").Page) {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

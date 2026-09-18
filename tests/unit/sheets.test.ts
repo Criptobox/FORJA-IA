@@ -8,7 +8,7 @@ import {
   rowsToMarkdown,
   sheetKind,
   sheetsToMarkdown,
-} from "../../src/lib/prism/sheets";
+} from "../../src/lib/forja/sheets";
 
 describe("sheetKind / isSheetFile", () => {
   it("reconoce las extensiones que sabemos abrir", () => {

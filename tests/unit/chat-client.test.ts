@@ -10,8 +10,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const settingsMock = { accessCode: "" as string | undefined };
-vi.mock("../../src/lib/prism/store", () => ({
-  usePrism: { getState: () => ({ settings: settingsMock }) },
+vi.mock("../../src/lib/forja/store", () => ({
+  useForja: { getState: () => ({ settings: settingsMock }) },
 }));
 
 import {
@@ -20,10 +20,10 @@ import {
   streamChat,
   fetchModels,
   INACTIVIDAD_STREAM_MS,
-} from "../../src/lib/prism/chat-client";
-import { getRecentRequests, clearRecentRequests } from "../../src/lib/prism/request-log";
-import type { ProviderConfig, ProviderId } from "../../src/lib/prism/types";
-import { DEFAULT_SETTINGS } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/chat-client";
+import { getRecentRequests, clearRecentRequests } from "../../src/lib/forja/request-log";
+import type { ProviderConfig, ProviderId } from "../../src/lib/forja/types";
+import { DEFAULT_SETTINGS } from "../../src/lib/forja/types";
 
 const cfg = (extra: Partial<ProviderConfig> = {}): ProviderConfig =>
   ({ apiKey: "sk-secreta", enabled: true, models: [], ...extra }) as ProviderConfig;
@@ -76,8 +76,8 @@ describe("buildRequest", () => {
       config: cfg(),
       providerId: "openai",
     });
-    expect(r.headers["x-prism-code"]).toBe("codigo");
-    expect(r.logHeaders["x-prism-code"]).toBeUndefined();
+    expect(r.headers["x-forja-code"]).toBe("codigo");
+    expect(r.logHeaders["x-forja-code"]).toBeUndefined();
     expect(r.logHeaders["x-target-url"]).toBeUndefined();
     // lo del proveedor sí se conserva: el cURL tiene que ser reproducible
     expect(r.logHeaders["Content-Type"]).toBe("application/json");

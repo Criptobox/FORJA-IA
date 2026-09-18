@@ -12,7 +12,7 @@ import {
   avisoIgnorados,
   MAX_DOCUMENTOS,
   MAX_IMAGENES,
-} from "../../src/lib/prism/reparto-adjuntos";
+} from "../../src/lib/forja/reparto-adjuntos";
 
 const f = (name: string, type = "") => ({ name, type });
 

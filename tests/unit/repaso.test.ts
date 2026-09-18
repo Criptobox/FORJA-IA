@@ -12,7 +12,7 @@ import {
   programar,
   PROMPT_REPASO,
   type TarjetaRepaso,
-} from "../../src/lib/prism/repaso";
+} from "../../src/lib/forja/repaso";
 
 function tarjeta(par: Partial<TarjetaRepaso> = {}): TarjetaRepaso {
   return {
@@ -108,8 +108,8 @@ describe("programar (SM-2)", () => {
 });
 
 describe("extraerTarjetas", () => {
-  it("lee un bloque prism-repaso bien formado", () => {
-    const txt = `Blabla previa.\n\`\`\`prism-repaso\n{ "tarjetas": [\n {"frente": "¿Qué es el SSRF?", "dorso": "Forjar peticiones hacia la red interna"},\n {"frente": "¿Quién valida Luhn?", "dorso": "El escudo PII"}\n]}\n\`\`\`\nY un saludo final.`;
+  it("lee un bloque forja-repaso bien formado", () => {
+    const txt = `Blabla previa.\n\`\`\`forja-repaso\n{ "tarjetas": [\n {"frente": "¿Qué es el SSRF?", "dorso": "Forjar peticiones hacia la red interna"},\n {"frente": "¿Quién valida Luhn?", "dorso": "El escudo PII"}\n]}\n\`\`\`\nY un saludo final.`;
     expect(extraerTarjetas(txt)).toEqual([
       { frente: "¿Qué es el SSRF?", dorso: "Forjar peticiones hacia la red interna" },
       { frente: "¿Quién valida Luhn?", dorso: "El escudo PII" },
@@ -129,7 +129,7 @@ describe("extraerTarjetas", () => {
   });
 
   it("se traga un JSON roto sin petar y sin botón fantasma", () => {
-    const txt = '```prism-repaso\n{ "tarjetas": [ {"frente": sin comillas ] }\n```';
+    const txt = '```forja-repaso\n{ "tarjetas": [ {"frente": sin comillas ] }\n```';
     expect(extraerTarjetas(txt)).toEqual([]);
   });
 
@@ -137,13 +137,13 @@ describe("extraerTarjetas", () => {
     // Variantes que solo cambian en mayúsculas, espacios de más y signos
     // duplicados: para el modelo son «la misma» pregunta.
     const txt =
-      '```prism-repaso\n{"tarjetas":[{"frente":"¿Qué es X?","dorso":"a"},{"frente":"  ¿QUÉ ES    X?  ","dorso":"b"}]}\n```\n```prism-repaso\n{"tarjetas":[{"frente":"¿qué es X?","dorso":"c"}]}\n```';
+      '```forja-repaso\n{"tarjetas":[{"frente":"¿Qué es X?","dorso":"a"},{"frente":"  ¿QUÉ ES    X?  ","dorso":"b"}]}\n```\n```forja-repaso\n{"tarjetas":[{"frente":"¿qué es X?","dorso":"c"}]}\n```';
     expect(extraerTarjetas(txt)).toHaveLength(1);
   });
 
   it("suelta tarjetas sin frente o sin dorso, y recorta las kilométricas", () => {
     const txt =
-      '```prism-repaso\n{"tarjetas":[{"frente":"","dorso":"x"},{"dorso":"x"},{"frente":"ok","dorso":""},{"frente":"kilo","dorso":"' +
+      '```forja-repaso\n{"tarjetas":[{"frente":"","dorso":"x"},{"dorso":"x"},{"frente":"ok","dorso":""},{"frente":"kilo","dorso":"' +
       "l".repeat(4000) +
       '"}]}\n```';
     const out = extraerTarjetas(txt);
@@ -179,7 +179,7 @@ describe("resumenRepaso y tarjetasVencidas", () => {
 
 describe("PROMPT_REPASO y CALIFICACIONES", () => {
   it("el prompt enseña el lenguaje de bloque que el lector espera", () => {
-    expect(PROMPT_REPASO).toContain("```prism-repaso");
+    expect(PROMPT_REPASO).toContain("```forja-repaso");
     expect(PROMPT_REPASO).toContain('"tarjetas"');
   });
 

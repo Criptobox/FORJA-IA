@@ -46,7 +46,7 @@ async function sembrar(page: import("@playwright/test").Page, over: Record<strin
         version: 1,
       };
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({ state: { ...base, ...over }, version: 0 })
       );
     },
@@ -80,7 +80,7 @@ test("las claves viajan cifradas a otro dispositivo", async ({ browser }) => {
   await expect(caja).toBeVisible();
   const codigo = await caja.inputValue();
 
-  expect(codigo.startsWith("PRISM1.")).toBe(true);
+  expect(codigo.startsWith("FORJA1.")).toBe(true);
   // lo que importa de todo esto: la clave no está a la vista
   expect(codigo).not.toContain(CLAVE);
   await ctx1.close();
@@ -114,7 +114,7 @@ test("las claves viajan cifradas a otro dispositivo", async ({ browser }) => {
   await expect(p2.getByText("Datos importados")).toBeVisible({ timeout: 15_000 });
 
   const estado = await p2.evaluate(() => {
-    const raw = JSON.parse(localStorage.getItem("prism-ai-v1") || "{}");
+    const raw = JSON.parse(localStorage.getItem("forja-ai-v1") || "{}");
     return {
       clave: raw.state?.providers?.custom?.apiKey ?? "",
       titulos: (raw.state?.sessions ?? []).map((s: { title: string }) => s.title),

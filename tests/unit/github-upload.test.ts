@@ -5,7 +5,7 @@ import {
   pistaDeGithub,
   shouldIgnore,
   type GhItem,
-} from "../../src/lib/prism/github-upload";
+} from "../../src/lib/forja/github-upload";
 
 describe("shouldIgnore", () => {
   it("deja fuera los .env con valores reales", () => {

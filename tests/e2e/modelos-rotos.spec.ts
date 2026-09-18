@@ -16,7 +16,7 @@ test("tras «Probar modelos», el que falla desaparece del selector del chat", a
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -49,7 +49,7 @@ test("tras «Probar modelos», el que falla desaparece del selector del chat", a
           version: 0,
         })
       );
-      localStorage.removeItem("prism-modelos-rotos-v1");
+      localStorage.removeItem("forja-modelos-rotos-v1");
     } catch {
       /* marco sin acceso a localStorage */
     }

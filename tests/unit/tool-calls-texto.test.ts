@@ -9,7 +9,7 @@ import {
   pareceLlamadaEnTexto,
   parseLlamadasEnTexto,
   quitarLlamadasEnTexto,
-} from "../../src/lib/prism/tool-calls-texto";
+} from "../../src/lib/forja/tool-calls-texto";
 
 const LLAMADA_REAL =
   '<function=write_file><parameter=path>index.html</parameter>' +

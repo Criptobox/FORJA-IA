@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { slidesFromHtml } from "../../src/lib/prism/slides";
+import { slidesFromHtml } from "../../src/lib/forja/slides";
 
 describe("slidesFromHtml", () => {
   it("devuelve [] si el HTML está vacío", () => {

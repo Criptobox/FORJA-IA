@@ -14,9 +14,9 @@ const MODEL_ID = "mock-efectos"; // entrega un <h1> simple, perfecto para tocarl
 async function seed(page: Page) {
   await page.addInitScript((model: string) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -110,9 +110,9 @@ test("un texto que aparece dos veces se rechaza con el motivo, no se adivina", a
   // aparece una vez ahí, así que se prueba con un modelo que sí repite texto.
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

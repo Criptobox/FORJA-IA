@@ -5,7 +5,7 @@ import {
   lastUserPrompt,
   pickTaskFailover,
   scoreModel,
-} from "../../src/lib/prism/task-router";
+} from "../../src/lib/forja/task-router";
 
 describe("classifyTask", () => {
   it("detecta una landing / página", () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { crc32, readZip, writeZip } from "../../src/lib/prism/zip";
+import { crc32, readZip, writeZip } from "../../src/lib/forja/zip";
 
 describe("crc32", () => {
   it("vector conocido «123456789» → 0xCBF43926", () => {

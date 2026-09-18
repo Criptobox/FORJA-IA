@@ -42,7 +42,7 @@ async function seed(page: Page) {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [sesion],
@@ -76,8 +76,8 @@ async function seed(page: Page) {
           version: 0,
         })
       );
-      localStorage.removeItem("prism-limites-v1");
-      localStorage.removeItem("prism-modelos-rotos-v1");
+      localStorage.removeItem("forja-limites-v1");
+      localStorage.removeItem("forja-modelos-rotos-v1");
     } catch {
       /* marco sin acceso */
     }

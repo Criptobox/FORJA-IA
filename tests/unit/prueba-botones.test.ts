@@ -16,7 +16,7 @@ import {
   reglaDeBotones,
   MAX_BOTONES,
   type InformeBotones,
-} from "../../src/lib/prism/prueba-botones";
+} from "../../src/lib/forja/prueba-botones";
 
 const inf = (o: Partial<InformeBotones> = {}): InformeBotones => ({
   hecho: true,

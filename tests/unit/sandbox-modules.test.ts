@@ -8,8 +8,8 @@ import {
   resolveModule,
   rewriteSpecifiers,
   toModuleDataUrl,
-} from "../../src/lib/prism/sandbox-modules";
-import { buildRunHtml } from "../../src/lib/prism/sandbox";
+} from "../../src/lib/forja/sandbox-modules";
+import { buildRunHtml } from "../../src/lib/forja/sandbox";
 
 function filesOf(spec: Record<string, string>): Map<string, Uint8Array> {
   const m = new Map<string, Uint8Array>();
@@ -73,8 +73,8 @@ describe("rewriteSpecifiers", () => {
     ].join("\n");
     const out = rewriteSpecifiers("js/app.js", code, has, noop, noop);
     expect(out).not.toMatch(/["']\.\//);
-    expect(out.match(/prism:js\/util\.js/g)).toHaveLength(4);
-    expect(out.match(/prism:js\/otro\.js/g)).toHaveLength(2);
+    expect(out.match(/forja:js\/util\.js/g)).toHaveLength(4);
+    expect(out.match(/forja:js\/otro\.js/g)).toHaveLength(2);
   });
 
   it("deja intactos los paquetes de npm y los avisa", () => {
@@ -121,11 +121,11 @@ describe("buildModuleGraph", () => {
     );
     expect(graph.count).toBe(2);
     expect(Object.keys(graph.imports).sort()).toEqual([
-      "prism:js/app.js",
-      "prism:js/util.js",
+      "forja:js/app.js",
+      "forja:js/util.js",
     ]);
-    const app = decodeDataUrl(graph.imports["prism:js/app.js"]);
-    expect(app).toContain('from "prism:js/util.js"');
+    const app = decodeDataUrl(graph.imports["forja:js/app.js"]);
+    expect(app).toContain('from "forja:js/util.js"');
   });
 
   it("resuelve importaciones anidadas a cualquier profundidad", () => {
@@ -136,8 +136,8 @@ describe("buildModuleGraph", () => {
         "lib/sub/c.js": "export const c = 1;",
       })
     );
-    expect(decodeDataUrl(graph.imports["prism:a.js"])).toContain("prism:lib/b.js");
-    expect(decodeDataUrl(graph.imports["prism:lib/b.js"])).toContain("prism:lib/sub/c.js");
+    expect(decodeDataUrl(graph.imports["forja:a.js"])).toContain("forja:lib/b.js");
+    expect(decodeDataUrl(graph.imports["forja:lib/b.js"])).toContain("forja:lib/sub/c.js");
   });
 
   it("aguanta los ciclos de importación", () => {
@@ -145,8 +145,8 @@ describe("buildModuleGraph", () => {
       filesOf({ "a.js": 'import "./b.js";', "b.js": 'import "./a.js";' })
     );
     expect(graph.count).toBe(2);
-    expect(decodeDataUrl(graph.imports["prism:a.js"])).toContain("prism:b.js");
-    expect(decodeDataUrl(graph.imports["prism:b.js"])).toContain("prism:a.js");
+    expect(decodeDataUrl(graph.imports["forja:a.js"])).toContain("forja:b.js");
+    expect(decodeDataUrl(graph.imports["forja:b.js"])).toContain("forja:a.js");
   });
 
   it("recoge los paquetes que no puede resolver", () => {
@@ -164,7 +164,7 @@ describe("buildModuleGraph", () => {
 describe("importMapTag", () => {
   it("escapa el cierre de etiqueta dentro del JSON", () => {
     const tag = importMapTag({
-      imports: { "prism:a.js": toModuleDataUrl("const x = '</script>';") },
+      imports: { "forja:a.js": toModuleDataUrl("const x = '</script>';") },
       missing: [],
       bare: [],
       count: 1,
@@ -185,7 +185,7 @@ describe("buildRunHtml con módulos ES", () => {
 
   it("emite el import map antes de cualquier módulo", () => {
     const map = res.html.indexOf('type="importmap"');
-    const mod = res.html.indexOf('type="module" data-prism-from');
+    const mod = res.html.indexOf('type="module" data-forja-from');
     expect(map).toBeGreaterThan(-1);
     expect(mod).toBeGreaterThan(map);
   });
@@ -210,7 +210,7 @@ describe("buildRunHtml con módulos ES", () => {
         "js/util.js": "export const saludo = () => {};",
       })
     );
-    expect(r.html).toContain('from "prism:js/util.js"');
+    expect(r.html).toContain('from "forja:js/util.js"');
   });
 
   it("un proyecto clásico sin módulos sigue inlineándose igual", () => {
@@ -225,6 +225,6 @@ describe("buildRunHtml con módulos ES", () => {
     // sin sintaxis ESM no hay mapa: nada se duplica en base64
     expect(r.modules).toBe(0);
     expect(r.html).not.toContain("importmap");
-    expect(r.html).not.toContain("prism:a.js");
+    expect(r.html).not.toContain("forja:a.js");
   });
 });

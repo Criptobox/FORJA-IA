@@ -6,7 +6,7 @@ import {
   costeDeModos,
   modoPorId,
   textoDeModos,
-} from "../../src/lib/prism/agent-modes";
+} from "../../src/lib/forja/agent-modes";
 
 const TODOS = MODOS_AGENTE.map((m) => m.id);
 

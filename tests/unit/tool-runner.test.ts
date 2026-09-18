@@ -1,8 +1,8 @@
 /** Tests del ejecutor de herramientas (tool-runner.ts).
  * No toca la red ni React: recibe un `ToolContext` en memoria. */
 import { describe, it, expect } from "vitest";
-import { runTool, runTools, type ToolContext } from "../../src/lib/prism/tool-runner";
-import type { ToolCall } from "../../src/lib/prism/tools-catalog";
+import { runTool, runTools, type ToolContext } from "../../src/lib/forja/tool-runner";
+import type { ToolCall } from "../../src/lib/forja/tools-catalog";
 
 const ctx = (over: Partial<ToolContext> = {}): ToolContext => ({
   projectFiles: {

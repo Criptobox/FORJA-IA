@@ -5,9 +5,9 @@ import {
   isQuotaError,
   pickFailoverCandidate,
   KEYLESS_PROVIDERS,
-} from "../../src/lib/prism/free-models";
-import type { ProviderId } from "../../src/lib/prism/types";
-import { PROVIDER_MAP } from "../../src/lib/prism/providers";
+} from "../../src/lib/forja/free-models";
+import type { ProviderId } from "../../src/lib/forja/types";
+import { PROVIDER_MAP } from "../../src/lib/forja/providers";
 
 describe("isFreeModel", () => {
   it("detecta sufijo -free de AiHubMix", () => {

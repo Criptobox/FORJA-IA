@@ -5,7 +5,7 @@
  * de html.duckduckgo.com (recortado, con las clases que usa de verdad).
  */
 import { describe, expect, it } from "vitest";
-import { parsearResultadosDdg, urlReal, urlBusquedaDdg } from "../../src/lib/prism/busqueda-web";
+import { parsearResultadosDdg, urlReal, urlBusquedaDdg } from "../../src/lib/forja/busqueda-web";
 
 const HTML_DDG = `
 <div class="result results_links results_links_deep web-result ">

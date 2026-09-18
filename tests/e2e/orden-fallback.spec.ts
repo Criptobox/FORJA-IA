@@ -13,13 +13,13 @@ import { expect, test } from "./fixtures";
 async function seed(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       // condicional a propósito: addInitScript corre en CADA navegación, y
       // tras page.reload() tiene que sobrevivir lo que la app guardó (el
       // orden movido), no volver a sembrarse el estado vacío
-      if (localStorage.getItem("prism-ai-v1")) return;
+      if (localStorage.getItem("forja-ai-v1")) return;
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -79,7 +79,7 @@ test("mover un proveedor en Ajustes sobrevive a recargar la página", async ({ p
   // y en el store persistido es una lista de ProviderId, no un objeto de pesos
   const guardado = await page.evaluate(() => {
     try {
-      const raw = localStorage.getItem("prism-ai-v1");
+      const raw = localStorage.getItem("forja-ai-v1");
       if (!raw) return null;
       return (JSON.parse(raw) as { state?: { fallbackOrder?: unknown } }).state?.fallbackOrder ?? null;
     } catch {
@@ -94,7 +94,7 @@ test("mover un proveedor en Ajustes sobrevive a recargar la página", async ({ p
   await page.getByRole("button", { name: "Restablecer" }).click();
   await expect(filas2.locator("li").first()).toContainText("Google Gemini");
   const trasReset = await page.evaluate(() => {
-    const raw = localStorage.getItem("prism-ai-v1")!;
+    const raw = localStorage.getItem("forja-ai-v1")!;
     return (JSON.parse(raw) as { state: { fallbackOrder: string[] } }).state.fallbackOrder;
   });
   expect(trasReset).toEqual([]);

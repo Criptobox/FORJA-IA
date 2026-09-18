@@ -6,9 +6,9 @@ import {
   estadoModelo,
   retiradoEl,
   type TablaRetirados,
-} from "../../src/lib/prism/modelos-viejos";
-import { RETIRADOS } from "../../src/lib/prism/modelos-datos";
-import { PROVIDERS } from "../../src/lib/prism/providers";
+} from "../../src/lib/forja/modelos-viejos";
+import { RETIRADOS } from "../../src/lib/forja/modelos-datos";
+import { PROVIDERS } from "../../src/lib/forja/providers";
 
 const TABLA: TablaRetirados = {
   xai: { "grok-3": "2026-05-15" },

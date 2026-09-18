@@ -6,7 +6,7 @@ import {
   getRecentRequests,
   redactHeaders,
   sanitizeBody,
-} from "../../src/lib/prism/request-log";
+} from "../../src/lib/forja/request-log";
 
 const base = {
   providerId: "aihubmix",

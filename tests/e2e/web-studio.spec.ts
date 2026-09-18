@@ -7,7 +7,7 @@ async function seedConPreview(page: Page) {
   await page.addInitScript(() => {
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [
@@ -64,9 +64,9 @@ async function seedConPreview(page: Page) {
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -173,7 +173,7 @@ test("Project Tasks: añadir, avanzar de pendiente a hecha y borrar, todo persis
   await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole("tab", { name: "Tasks" }).click();
-  const input = page.locator("#prism-task-input");
+  const input = page.locator("#forja-task-input");
   await input.fill("Revisar el hero en móvil");
   await input.press("Enter");
 
@@ -246,7 +246,7 @@ for (const w of [320, 390, 768]) {
 
     // Tasks: el campo de nueva tarea no debe quedar recortado a un ancho ilegible
     await page.getByRole("tab", { name: "Tasks" }).click();
-    const input = page.locator("#prism-task-input");
+    const input = page.locator("#forja-task-input");
     await expect(input).toBeVisible();
     const inputWidth = await input.evaluate((el) => el.getBoundingClientRect().width);
     expect(inputWidth, "ancho del campo de nueva tarea").toBeGreaterThan(100);

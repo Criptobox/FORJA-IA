@@ -10,7 +10,7 @@ import {
   consejoQr,
   estadoQr,
   matrizASvg,
-} from "../../src/lib/prism/qr";
+} from "../../src/lib/forja/qr";
 
 const texto = (n: number) => "P".repeat(n);
 

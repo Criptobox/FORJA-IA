@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GET } from "../../src/app/api/health/route";
-import { APP_VERSION } from "../../src/lib/prism/app-version";
+import { APP_VERSION } from "../../src/lib/forja/app-version";
 import { MANIFEST } from "../../src/lib/project-manifest";
 
 /* El health se prueba llamando al handler directamente: no hace falta un

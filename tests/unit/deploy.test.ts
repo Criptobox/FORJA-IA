@@ -6,7 +6,7 @@ import {
   urlPages,
   workflowPages,
   RUTA_WORKFLOW,
-} from "../../src/lib/prism/deploy";
+} from "../../src/lib/forja/deploy";
 
 describe("workflowPages", () => {
   it("es un workflow válido de Actions con Pages", () => {

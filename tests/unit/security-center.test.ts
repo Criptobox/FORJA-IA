@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scanSecurity } from "../../src/lib/prism/security-center";
+import { scanSecurity } from "../../src/lib/forja/security-center";
 
 describe("Security Center", () => {
   it("detecta patrones peligrosos sin afirmar una auditoría completa", () => {

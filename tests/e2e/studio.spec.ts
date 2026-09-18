@@ -45,7 +45,7 @@ async function seedApp(page: Page) {
     };
     if (window.top !== window.self) return; // no en el iframe aislado del Sandbox
     try {
-      localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+      localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
     } catch {
       /* frame sin acceso a localStorage */
     }

@@ -12,7 +12,7 @@ import {
   promptDeErroresVivos,
   MAX_ERRORES_VIVOS,
   type ErrorEnVivo,
-} from "../../src/lib/prism/errores-en-vivo";
+} from "../../src/lib/forja/errores-en-vivo";
 
 const SANDBOX =
   "Uncaught SecurityError: Failed to read the 'localStorage' property from 'Window': The document is sandboxed and lacks the 'allow-same-origin' flag.";

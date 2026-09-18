@@ -8,7 +8,7 @@
  * presupuesto de las skills por defecto (`presupuesto.test.ts`).
  */
 import { describe, expect, it } from "vitest";
-import { BUILTIN_SKILLS } from "../../src/lib/prism/skills-data";
+import { BUILTIN_SKILLS } from "../../src/lib/forja/skills-data";
 
 const skill = BUILTIN_SKILLS.find((s) => s.id === "skill-anti-slop");
 

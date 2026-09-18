@@ -1,4 +1,4 @@
-import { OFERTAS_BASE } from "../../src/lib/prism/ofertas";
+import { OFERTAS_BASE } from "../../src/lib/forja/ofertas";
 import { expect, test } from "./fixtures";
 
 /** Forja IA — Caza de ofertas IA: ofertas vigentes de los proveedores, con
@@ -11,7 +11,7 @@ import { expect, test } from "./fixtures";
  *    marca como vista.
  * 2. BUSCAR, FILTRAR, FAVORITA: el buscador quita tildes y mayúsculas, los
  *    chips filtran por tipo, la estrella guarda la favorita y sobrevive a un
- *    recargo (persistencia en `prism-ofertas-v1`).
+ *    recargo (persistencia en `forja-ofertas-v1`).
  * 3. FUENTE PROPIA Y AVISOS: una URL JSON propia (mockeada con page.route)
  *    se valida, se fusiona con el catálogo pisando por id, y el permiso de
  *    notificaciones se activa y dispara el aviso de prueba.
@@ -74,9 +74,9 @@ test("avisa de la novedad al cargar, abre con insignia y la marca como vista", a
   await page.addInitScript(
     ({ principal, ofertas }: { principal: string; ofertas: string }) => {
       try {
-        localStorage.setItem("prism-preview-demo", "1");
-        localStorage.setItem("prism-ai-v1", principal);
-        localStorage.setItem("prism-ofertas-v1", ofertas);
+        localStorage.setItem("forja-preview-demo", "1");
+        localStorage.setItem("forja-ai-v1", principal);
+        localStorage.setItem("forja-ofertas-v1", ofertas);
       } catch {
         /* frame sin acceso */
       }
@@ -104,7 +104,7 @@ test("avisa de la novedad al cargar, abre con insignia y la marca como vista", a
       () =>
         page.evaluate(() => {
           try {
-            return JSON.parse(localStorage.getItem("prism-ofertas-v1") ?? "{}").state?.conocidasIds ?? [];
+            return JSON.parse(localStorage.getItem("forja-ofertas-v1") ?? "{}").state?.conocidasIds ?? [];
           } catch {
             return [];
           }
@@ -134,9 +134,9 @@ test("busca sin tildes, filtra por tipo y la favorita sobrevive al recargo", asy
   await page.addInitScript(
     ({ principal, ofertas }: { principal: string; ofertas: string }) => {
       try {
-        localStorage.setItem("prism-preview-demo", "1");
-        localStorage.setItem("prism-ai-v1", principal);
-        localStorage.setItem("prism-ofertas-v1", ofertas);
+        localStorage.setItem("forja-preview-demo", "1");
+        localStorage.setItem("forja-ai-v1", principal);
+        localStorage.setItem("forja-ofertas-v1", ofertas);
       } catch {
         /* frame sin acceso */
       }
@@ -188,7 +188,7 @@ test("busca sin tildes, filtra por tipo y la favorita sobrevive al recargo", asy
     .poll(() =>
       page.evaluate(() => {
         try {
-          return JSON.parse(localStorage.getItem("prism-ofertas-v1") ?? "{}")?.state?.favoritas ?? [];
+          return JSON.parse(localStorage.getItem("forja-ofertas-v1") ?? "{}")?.state?.favoritas ?? [];
         } catch {
           return [];
         }
@@ -201,9 +201,9 @@ test("fuente propia mockeada se valida y fusiona, y los avisos se activan", asyn
   await page.addInitScript(
     ({ principal, ofertas }: { principal: string; ofertas: string }) => {
       try {
-        localStorage.setItem("prism-preview-demo", "1");
-        localStorage.setItem("prism-ai-v1", principal);
-        localStorage.setItem("prism-ofertas-v1", ofertas);
+        localStorage.setItem("forja-preview-demo", "1");
+        localStorage.setItem("forja-ai-v1", principal);
+        localStorage.setItem("forja-ofertas-v1", ofertas);
       } catch {
         /* frame sin acceso */
       }

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { evaluateGuard, type GuardInput } from "../../src/lib/prism/api-guard";
+import { evaluateGuard, type GuardInput } from "../../src/lib/forja/api-guard";
 
 const base: GuardInput = {
   origin: null,
-  host: "mi-prism.vercel.app",
+  host: "mi-forja.vercel.app",
   code: null,
   accessCode: null,
   isProduction: false,
@@ -14,7 +14,7 @@ const con = (extra: Partial<GuardInput>): GuardInput => ({ ...base, ...extra });
 describe("origen", () => {
   it("deja pasar una petición del mismo host", () => {
     expect(
-      evaluateGuard(con({ origin: "https://mi-prism.vercel.app" })).ok
+      evaluateGuard(con({ origin: "https://mi-forja.vercel.app" })).ok
     ).toBe(true);
   });
 
@@ -62,7 +62,7 @@ describe("rutas que tocan el disco del servidor", () => {
     const r = evaluateGuard(con({ touchesDisk: true, isProduction: true }));
     expect(r.ok).toBe(false);
     expect(!r.ok && r.status).toBe(503);
-    expect(!r.ok && r.hint).toContain("PRISM_ACCESS_CODE");
+    expect(!r.ok && r.hint).toContain("FORJA_ACCESS_CODE");
   });
 
   it("en producción CON código funcionan si lo traes", () => {
@@ -86,7 +86,7 @@ describe("el ataque concreto que motivó esto", () => {
     // el atacante no manda Origin (por eso el filtro viejo no le veía)
     const r = evaluateGuard({
       origin: null,
-      host: "mi-prism.vercel.app",
+      host: "mi-forja.vercel.app",
       code: null,
       accessCode: null,
       isProduction: true,
@@ -97,8 +97,8 @@ describe("el ataque concreto que motivó esto", () => {
 
   it("y el dueño, con su código puesto, sí trabaja", () => {
     const r = evaluateGuard({
-      origin: "https://mi-prism.vercel.app",
-      host: "mi-prism.vercel.app",
+      origin: "https://mi-forja.vercel.app",
+      host: "mi-forja.vercel.app",
       code: "s3creto",
       accessCode: "s3creto",
       isProduction: true,

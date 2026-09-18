@@ -3,7 +3,7 @@ import {
   compararProyectos,
   resumenProyectos,
   MAX_ARCHIVOS_RESUMEN,
-} from "../../src/lib/prism/diff-proyectos";
+} from "../../src/lib/forja/diff-proyectos";
 
 describe("compararProyectos", () => {
   it("no ve diferencias entre dos estados idénticos", () => {

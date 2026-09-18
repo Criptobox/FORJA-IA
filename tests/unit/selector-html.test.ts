@@ -3,7 +3,7 @@ import {
   extraerSeleccion,
   htmlATexto,
   SELECTORES_SOPORTADOS,
-} from "../../src/lib/prism/html-a-texto";
+} from "../../src/lib/forja/html-a-texto";
 
 const PAGINA = `<!doctype html><html><head><title>Precios</title></head><body>
 <nav class="menu"><a href="/">Inicio</a></nav>

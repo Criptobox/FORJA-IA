@@ -5,7 +5,7 @@ import {
   continuePrompt,
   parseAgentTrace,
   suggestAgentMode,
-} from "../../src/lib/prism/agent-loop";
+} from "../../src/lib/forja/agent-loop";
 
 describe("parseAgentTrace", () => {
   it("contenido sin etiquetas → active false (render markdown normal)", () => {

@@ -1,6 +1,6 @@
 /** Forja IA — Versión local y, si GitHub responde, si hay una más nueva. */
 import { NextResponse } from "next/server";
-import { APP_COMMIT, APP_REPO, APP_VERSION, versionCheck } from "@/lib/prism/app-version";
+import { APP_COMMIT, APP_REPO, APP_VERSION, versionCheck } from "@/lib/forja/app-version";
 
 export const runtime = "nodejs";
 

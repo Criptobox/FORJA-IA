@@ -17,7 +17,7 @@ async function seed(page: Page) {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -57,8 +57,8 @@ async function seed(page: Page) {
           version: 0,
         })
       );
-      localStorage.removeItem("prism-limites-v1");
-      localStorage.removeItem("prism-modelos-rotos-v1");
+      localStorage.removeItem("forja-limites-v1");
+      localStorage.removeItem("forja-modelos-rotos-v1");
     } catch {
       /* marco sin acceso */
     }
@@ -95,7 +95,7 @@ test("y recuerda que rechazó un mensaje de este tamaño, sin inventarse el tope
       () =>
         page.evaluate(() => {
           try {
-            const raw = localStorage.getItem("prism-limites-v1") ?? "{}";
+            const raw = localStorage.getItem("forja-limites-v1") ?? "{}";
             return JSON.parse(raw).state?.limites ?? {};
           } catch {
             return {};
@@ -106,7 +106,7 @@ test("y recuerda que rechazó un mensaje de este tamaño, sin inventarse el tope
     .toHaveProperty("custom::mock-413-sin-numeros")
     .then(() =>
       page.evaluate(() => {
-        const raw = localStorage.getItem("prism-limites-v1") ?? "{}";
+        const raw = localStorage.getItem("forja-limites-v1") ?? "{}";
         return JSON.parse(raw).state.limites["custom::mock-413-sin-numeros"];
       })
     );

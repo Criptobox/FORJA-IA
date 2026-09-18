@@ -12,8 +12,8 @@ import {
   motivoVetado,
   alternarVeto,
   quedaAlguno,
-} from "../../src/lib/prism/vetados";
-import type { ProviderId } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/vetados";
+import type { ProviderId } from "../../src/lib/forja/types";
 
 describe("permitido", () => {
   it("sin vetos, todo pasa", () => {

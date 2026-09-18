@@ -56,14 +56,14 @@ prompt
 server.log
 # Skills directory
 /skills/
-# Prism AI — artefactos locales
+# Forja IA — artefactos locales
 /download/
 /workspace/
 /upload/
 /tool-results/
 /.zscripts/
 /db/
-/prism-ai-v*.zip
+/forja-ia-v*.zip
 
 # ejemplo de entorno SÍ se versiona
 !.env.example

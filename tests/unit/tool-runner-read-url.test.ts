@@ -8,8 +8,8 @@
  * anti-SSRF de `net-guard.ts`. Un `fetch` directo se saltaría las dos cosas.
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { runTool } from "../../src/lib/prism/tool-runner";
-import type { ToolCall } from "../../src/lib/prism/tools-catalog";
+import { runTool } from "../../src/lib/forja/tool-runner";
+import type { ToolCall } from "../../src/lib/forja/tools-catalog";
 
 const ctx = { projectFiles: {} };
 const llamada = (args: Record<string, unknown>): ToolCall => ({

@@ -64,7 +64,7 @@ async function semillar(page: Page, chars: number) {
       },
       version: 0,
     };
-    localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+    localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
   }, chars);
 }
 
@@ -90,9 +90,9 @@ test.describe("HUD de contexto", () => {
 
   test("en una conversación vacía no se pinta (no hay nada que medir)", async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

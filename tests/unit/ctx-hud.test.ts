@@ -15,8 +15,8 @@ import {
   fmtTokens,
   nivelCtx,
   ventanaReferencia,
-} from "../../src/lib/prism/ctx-hud";
-import { VIGENCIA_MS, type Limites } from "../../src/lib/prism/limites-medidos";
+} from "../../src/lib/forja/ctx-hud";
+import { VIGENCIA_MS, type Limites } from "../../src/lib/forja/limites-medidos";
 
 describe("estimarTokensChars", () => {
   it("4 caracteres ≈ 1 token, redondeando hacia arriba", () => {

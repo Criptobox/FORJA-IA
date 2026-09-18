@@ -3,7 +3,7 @@ import {
   sinSecretos,
   textoDiagnostico,
   type EntradaDiagnostico,
-} from "../../src/lib/prism/diagnostics";
+} from "../../src/lib/forja/diagnostics";
 
 const CLAVE = ["sk", "-super-secreta-1234567890"].join("");
 

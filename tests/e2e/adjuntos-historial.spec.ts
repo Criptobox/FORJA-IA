@@ -19,7 +19,7 @@ test("tras mandar una imagen, el siguiente mensaje de texto viaja sin ella", asy
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             // conversación ya empezada: la primera pregunta llevaba imagen

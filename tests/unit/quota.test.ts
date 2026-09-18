@@ -5,7 +5,7 @@ import {
   parseOpenRouterKey,
   useQuota,
   type QuotaWindow,
-} from "../../src/lib/prism/quota";
+} from "../../src/lib/forja/quota";
 
 const reset = () => useQuota.setState({ byProvider: {} });
 

@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Activity, Database, HeartPulse, PiggyBank, Ruler, Scissors, Timer, Wand2, TrendingDown, Sparkles, ShieldAlert, Repeat, Layers, Box, Gauge, FileJson, Brain, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip, Salida } from "./ui-forja";
-import type { Motor } from "@/lib/prism/motor-client";
+import type { Motor } from "@/lib/forja/motor-client";
 
 const PAGINA_TRUNCADA =
   `<html lang="es"><head><style>body{margin:0;font-family:system-ui}h1{color:#F97316;padding:24px}\n/* el CSS sigue…`;

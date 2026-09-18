@@ -7,11 +7,11 @@ import { expect, test } from "./fixtures";
  * 1. ESTUDIAR: con tarjetas vencidas en la biblioteca, el diálogo muestra la
  *    cola, se voltea la tarjeta, se califica, y «otra vez» la devuelve al
  *    final de la cola en vez de dejarla fuera.
- * 2. GUARDAR: cuando una respuesta del modelo trae un bloque ```prism-repaso,
+ * 2. GUARDAR: cuando una respuesta del modelo trae un bloque ```forja-repaso,
  *    el mensaje ofrece «Guardar repaso», y las tarjetas entran sin pisar a
  *    las que ya existían (duplicados fuera).
  *
- * Se siembra el store propio (`prism-repaso-v1`) como se siembra el principal
+ * Se siembra el store propio (`forja-repaso-v1`) como se siembra el principal
  * en el resto de los specs: con las tarjetas ya dentro, nada depende de un
  * modelo en vivo.
  */
@@ -34,9 +34,9 @@ test("estudia lo vencido: voltea, califica, y «otra vez» vuelve a la cola", as
   await page.addInitScript(
     ({ hoy, ayer }: { hoy: string; ayer: string }) => {
       try {
-        localStorage.setItem("prism-preview-demo", "1");
+        localStorage.setItem("forja-preview-demo", "1");
         localStorage.setItem(
-          "prism-ai-v1",
+          "forja-ai-v1",
           JSON.stringify({
             state: {
               sessions: [],
@@ -54,7 +54,7 @@ test("estudia lo vencido: voltea, califica, y «otra vez» vuelve a la cola", as
         );
         // dos vencidas (una de ayer, otra de hoy) y una que aún no toca
         localStorage.setItem(
-          "prism-repaso-v1",
+          "forja-repaso-v1",
           JSON.stringify({
             state: {
               tarjetas: [
@@ -133,10 +133,10 @@ test("estudia lo vencido: voltea, califica, y «otra vez» vuelve a la cola", as
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
-test("guarda el bloque prism-repaso desde el mensaje, sin duplicar", async ({ page }) => {
+test("guarda el bloque forja-repaso desde el mensaje, sin duplicar", async ({ page }) => {
   const bloque = [
     "Te las resumo en tarjetas:",
-    "```prism-repaso",
+    "```forja-repaso",
     '{ "tarjetas": [',
     '  { "frente": "¿Qué hace proxy-budget?", "dorso": "Pone techo a las llamadas de relé del proxy" },',
     '  { "frente": "¿Capital de Perú?", "dorso": "Lima" }',
@@ -147,10 +147,10 @@ test("guarda el bloque prism-repaso desde el mensaje, sin duplicar", async ({ pa
   await page.addInitScript(
     (contenido: string) => {
       try {
-        localStorage.setItem("prism-preview-demo", "1");
+        localStorage.setItem("forja-preview-demo", "1");
         const ahora = Date.now();
         localStorage.setItem(
-          "prism-ai-v1",
+          "forja-ai-v1",
           JSON.stringify({
             state: {
               sessions: [
@@ -184,7 +184,7 @@ test("guarda el bloque prism-repaso desde el mensaje, sin duplicar", async ({ pa
         );
         // «¿Capital de Perú?» ya existe: es el duplicado que NO debe entrar
         localStorage.setItem(
-          "prism-repaso-v1",
+          "forja-repaso-v1",
           JSON.stringify({
             state: {
               tarjetas: [

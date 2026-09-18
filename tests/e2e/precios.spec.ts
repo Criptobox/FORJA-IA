@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "./fixtures";
-import { PRECIOS } from "../../src/lib/prism/precios-datos";
-import { costeDe, fmtDinero } from "../../src/lib/prism/precios";
+import { PRECIOS } from "../../src/lib/forja/precios-datos";
+import { costeDe, fmtDinero } from "../../src/lib/forja/precios";
 
 /** Forja IA — El dinero, y la regla que lo hace posible.
  *
@@ -19,7 +19,7 @@ async function seed(page: Page) {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -53,7 +53,7 @@ async function seed(page: Page) {
           version: 0,
         })
       );
-      localStorage.removeItem("prism-usage-v1");
+      localStorage.removeItem("forja-usage-v1");
     } catch {
       /* marco sin acceso */
     }

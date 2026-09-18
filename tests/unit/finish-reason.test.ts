@@ -12,7 +12,7 @@ import {
   motivoDeRespuesta,
   estaCortadaPorLongitud,
   mensajeParada,
-} from "../../src/lib/prism/finish-reason";
+} from "../../src/lib/forja/finish-reason";
 
 describe("motivoDeParada", () => {
   it("reconoce el corte por longitud de los tres protocolos", () => {

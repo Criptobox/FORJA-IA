@@ -5,7 +5,7 @@ import {
   resumenZip,
   MAX_CHARS_ARCHIVO,
   type EntradaZip,
-} from "../../src/lib/prism/zip-a-texto";
+} from "../../src/lib/forja/zip-a-texto";
 
 const txt = (path: string, text: string): EntradaZip => ({ path, size: text.length, text });
 const bin = (path: string, size = 1000): EntradaZip => ({ path, size, text: null });

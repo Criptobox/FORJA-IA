@@ -6,7 +6,7 @@
  * petición entera rechazada.
  */
 import { describe, it, expect } from "vitest";
-import { htmlATexto, tituloDeHtml, MAX_TEXTO_URL } from "../../src/lib/prism/html-a-texto";
+import { htmlATexto, tituloDeHtml, MAX_TEXTO_URL } from "../../src/lib/forja/html-a-texto";
 
 describe("htmlATexto", () => {
   it("tira el JavaScript CON su contenido, no solo las etiquetas", () => {

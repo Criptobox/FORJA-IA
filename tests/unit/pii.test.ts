@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectPII, maskPII, luhnValid } from "../../src/lib/prism/pii";
+import { detectPII, maskPII, luhnValid } from "../../src/lib/forja/pii";
 
 describe("escudo PII local", () => {
   it("luhnValid acepta tarjetas reales y rechaza números largos cualesquiera", () => {

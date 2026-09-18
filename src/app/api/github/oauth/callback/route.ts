@@ -9,7 +9,7 @@ import {
   oauthResultHtml,
   unpackState,
   readCookie,
-} from "@/lib/prism/github-oauth-server";
+} from "@/lib/forja/github-oauth-server";
 
 export const runtime = "nodejs";
 

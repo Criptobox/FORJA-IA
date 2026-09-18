@@ -18,9 +18,9 @@ import {
   promptEfectos,
   senasEfectosFueraDeDireccion,
   usaKit,
-} from "../../src/lib/prism/efectos";
-import { DIRECCIONES, aDesignMd, promptDireccion } from "../../src/lib/prism/design-directions";
-import { MEDIDAS_VACIAS, type MedidasGenerico } from "../../src/lib/prism/generico";
+} from "../../src/lib/forja/efectos";
+import { DIRECCIONES, aDesignMd, promptDireccion } from "../../src/lib/forja/design-directions";
+import { MEDIDAS_VACIAS, type MedidasGenerico } from "../../src/lib/forja/generico";
 
 const leer = (p: string) => readFileSync(new URL(`../../${p}`, import.meta.url), "utf8");
 
@@ -28,9 +28,9 @@ describe("kit de efectos", () => {
   it("lo empaquetado es exactamente lo que hay en assets/", () => {
     // Si alguien edita el CSS y no ejecuta `npm run efectos`, la app sigue
     // sirviendo el de antes. Esto es lo que lo caza.
-    expect(FX_CSS).toBe(leer("assets/prism-fx.css"));
-    expect(FX_JS).toBe(leer("assets/prism-fx.js"));
-    expect(FX3D_JS).toBe(leer("assets/prism-3d.js"));
+    expect(FX_CSS).toBe(leer("assets/forja-fx.css"));
+    expect(FX_JS).toBe(leer("assets/forja-fx.js"));
+    expect(FX3D_JS).toBe(leer("assets/forja-3d.js"));
   });
 
   it("no depende de ningún CDN ni pide red — tampoco el motor 3D", () => {
@@ -65,11 +65,11 @@ describe("kit de efectos", () => {
 
   it("el motor 3D se queda callado sin WebGL2: nunca finge que dibujó", () => {
     expect(FX3D_JS).toMatch(/getContext\(\s*["']webgl2["']/);
-    // `__prism3dActivo = true` solo se escribe DESPUÉS de comprobar el
+    // `__forja3dActivo = true` solo se escribe DESPUÉS de comprobar el
     // contexto y de que el shader compiló — nunca antes, o la señal
     // mentiría. Se busca la ASIGNACIÓN (no el nombre, que también sale en el
     // comentario de cabecera, antes que el propio código).
-    const asignacion = FX3D_JS.indexOf("__prism3dActivo = true");
+    const asignacion = FX3D_JS.indexOf("__forja3dActivo = true");
     const gl = FX3D_JS.indexOf('getContext("webgl2"');
     expect(gl).toBeGreaterThanOrEqual(0);
     expect(asignacion).toBeGreaterThan(gl);
@@ -252,7 +252,7 @@ describe("medir una página con efectos", () => {
 
   it("medir se deshace: el usuario tiene que ver SUS efectos, no los del medidor", () => {
     expect(FX_ASENTAR).toContain("function desasentarFx");
-    const qa = leer("src/lib/prism/visual-qa.ts");
+    const qa = leer("src/lib/forja/visual-qa.ts");
     expect(qa).toContain("desasentarFx(tocadosFx)");
     // y se deshace DESPUÉS de recoger los problemas, no antes
     expect(qa.indexOf("desasentarFx(tocadosFx)")).toBeGreaterThan(qa.indexOf("var tocadosFx"));
@@ -261,8 +261,8 @@ describe("medir una página con efectos", () => {
   it("el QA visual y el barrido de botones lo llaman antes de mirar", () => {
     // Sin esto medirían solo el primer pantallazo y dirían «sin problemas»
     // de lo que nunca miraron: parece una comprobación y no lo es.
-    const qa = leer("src/lib/prism/visual-qa.ts");
-    const pilot = leer("src/lib/prism/sandbox-pilot.ts");
+    const qa = leer("src/lib/forja/visual-qa.ts");
+    const pilot = leer("src/lib/forja/sandbox-pilot.ts");
     expect(qa).toContain("${FX_ASENTAR}");
     expect(qa).toMatch(/function medir\(\)\{[\s\S]{0,400}asentarFx\(\)/);
     expect(pilot).toContain("${FX_ASENTAR}");

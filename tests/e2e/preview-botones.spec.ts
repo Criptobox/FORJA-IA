@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { writeZip } from "../../src/lib/prism/zip";
+import { writeZip } from "../../src/lib/forja/zip";
 
 /** Forja IA — Los botones de la vista previa tienen que RESPONDER.
  *
@@ -46,7 +46,7 @@ test("un botón detrás de un localStorage sigue funcionando en la vista previa"
     if (window.top !== window.self) return; // no dentro del iframe del Sandbox
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

@@ -6,9 +6,9 @@
  * y el E2E) y sin red (fetch se simula).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { runTool, type ToolContext, type RunOutcome } from "../../src/lib/prism/tool-runner";
-import type { ToolCall, ToolResult } from "../../src/lib/prism/tools-catalog";
-import { memoriaComoStorage } from "../../src/lib/prism/snapshots";
+import { runTool, type ToolContext, type RunOutcome } from "../../src/lib/forja/tool-runner";
+import type { ToolCall, ToolResult } from "../../src/lib/forja/tools-catalog";
+import { memoriaComoStorage } from "../../src/lib/forja/snapshots";
 
 function llamar(name: string, args: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult> {
   const call: ToolCall = { id: "c1", name, args };
@@ -46,10 +46,10 @@ describe("edit_file", () => {
     const r = await llamar("edit_file", {
       path: "styles.css",
       find: "color: red;",
-      replace: "color: var(--prism-violet);",
+      replace: "color: var(--forja-violet);",
     }, ctx);
     expect(r.ok).toBe(true);
-    expect(ctx.projectFiles["styles.css"]).toBe(".hero { color: var(--prism-violet); }");
+    expect(ctx.projectFiles["styles.css"]).toBe(".hero { color: var(--forja-violet); }");
   });
 
   it("archivo que no existe: error con sugerencia", async () => {

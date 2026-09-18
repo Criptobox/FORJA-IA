@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { estaRoto, sinRotos, motivoRoto, type ModeloRoto } from "../../src/lib/prism/modelos-rotos";
-import { culpaConfirmadaDelModelo } from "../../src/lib/prism/model-probe";
+import { estaRoto, sinRotos, motivoRoto, type ModeloRoto } from "../../src/lib/forja/modelos-rotos";
+import { culpaConfirmadaDelModelo } from "../../src/lib/forja/model-probe";
 
 const roto = (status = 404): ModeloRoto => ({ status, at: Date.UTC(2026, 8, 2) });
 

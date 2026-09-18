@@ -14,9 +14,9 @@ import { expect, test } from "./fixtures";
 async function seed(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -74,9 +74,9 @@ test("elegir del catálogo enseña los permisos ANTES de instalar, y luego insta
 test("lo ya instalado no se ofrece dos veces", async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

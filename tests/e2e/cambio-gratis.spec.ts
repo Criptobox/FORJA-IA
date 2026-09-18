@@ -17,9 +17,9 @@ const HACE_UNA_SEMANA = Date.now() - 7 * 86_400_000;
 async function seedConFoto(page: import("@playwright/test").Page) {
   await page.addInitScript((fecha) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -59,9 +59,9 @@ async function seedConFoto(page: import("@playwright/test").Page) {
 async function seedSinFoto(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -148,7 +148,7 @@ test("la primera vez no hay aviso: se guarda la foto y ya", async ({ page }) => 
   // y la foto de hoy queda guardada para la próxima visita
   const guardada = await page.evaluate(() => {
     try {
-      const raw = localStorage.getItem("prism-ai-v1");
+      const raw = localStorage.getItem("forja-ai-v1");
       if (!raw) return null;
       return (JSON.parse(raw) as { state?: { fotoGratis?: unknown } }).state?.fotoGratis ?? null;
     } catch {

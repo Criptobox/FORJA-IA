@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { PRECIOS_FECHA, PRECIOS_FUENTE } from "../../src/lib/prism/precios-datos";
-import { MODELOS_FECHA, MODELOS_FUENTE } from "../../src/lib/prism/modelos-datos";
-import { OFERTAS_BASE } from "../../src/lib/prism/ofertas";
+import { PRECIOS_FECHA, PRECIOS_FUENTE } from "../../src/lib/forja/precios-datos";
+import { MODELOS_FECHA, MODELOS_FUENTE } from "../../src/lib/forja/modelos-datos";
+import { OFERTAS_BASE } from "../../src/lib/forja/ofertas";
 
 /** La regla de la casa, comprobada: `docs/DATOS-QUE-ENVEJECEN.md`.
  *

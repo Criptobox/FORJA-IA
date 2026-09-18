@@ -10,8 +10,8 @@ import {
   novedadesGratis,
   resumenNovedades,
   MAX_NOVEDADES,
-} from "../../src/lib/prism/radar-propio";
-import type { ProviderConfig, ProviderId } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/radar-propio";
+import type { ProviderConfig, ProviderId } from "../../src/lib/forja/types";
 
 const cfg = (o: Partial<ProviderConfig> = {}): ProviderConfig => ({
   apiKey: "k",

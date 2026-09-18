@@ -3,8 +3,8 @@ import {
   buildPassport,
   passportSumario,
   renderPassportForPrompt,
-} from "../../src/lib/prism/passport";
-import type { ProjectMap } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/passport";
+import type { ProjectMap } from "../../src/lib/forja/types";
 
 function mapa(overrides: Partial<ProjectMap> = {}): ProjectMap {
   return {

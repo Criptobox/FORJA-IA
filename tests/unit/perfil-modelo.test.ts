@@ -7,9 +7,9 @@ import {
   mejorTareaDe,
   perfilDe,
   perfiles,
-} from "../../src/lib/prism/perfil-modelo";
-import { VIGENCIA_MS } from "../../src/lib/prism/limites-medidos";
-import type { ModelUsage } from "../../src/lib/prism/usage";
+} from "../../src/lib/forja/perfil-modelo";
+import { VIGENCIA_MS } from "../../src/lib/forja/limites-medidos";
+import type { ModelUsage } from "../../src/lib/forja/usage";
 
 const AHORA = Date.parse("2026-09-07T12:00:00Z");
 

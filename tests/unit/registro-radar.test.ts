@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { RADAR_SOURCES, REGISTRO_LABEL, type Registro } from "../../src/lib/prism/free-radar";
-import { PROVIDERS } from "../../src/lib/prism/providers";
+import { RADAR_SOURCES, REGISTRO_LABEL, type Registro } from "../../src/lib/forja/free-radar";
+import { PROVIDERS } from "../../src/lib/forja/providers";
 
 const VALIDOS: Registro[] = ["ninguno", "email", "telefono", "tarjeta"];
 

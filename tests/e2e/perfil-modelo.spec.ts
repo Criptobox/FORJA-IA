@@ -14,7 +14,7 @@ async function seed(page: Page, limites: Record<string, unknown>) {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -48,7 +48,7 @@ async function seed(page: Page, limites: Record<string, unknown>) {
         })
       );
       localStorage.setItem(
-        "prism-limites-v1",
+        "forja-limites-v1",
         JSON.stringify({ state: { limites }, version: 0 })
       );
     } catch {

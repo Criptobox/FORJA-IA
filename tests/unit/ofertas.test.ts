@@ -13,8 +13,8 @@ import {
   validarOfertas,
   verificacionVieja,
   type Oferta,
-} from "../../src/lib/prism/ofertas";
-import { sumarDias } from "../../src/lib/prism/repaso";
+} from "../../src/lib/forja/ofertas";
+import { sumarDias } from "../../src/lib/forja/repaso";
 
 function oferta(par: Partial<Oferta> = {}): Oferta {
   return {

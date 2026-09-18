@@ -10,10 +10,10 @@ import {
   skillsSugeridas,
   textoSugerencia,
   MAX_SUGERENCIAS,
-} from "../../src/lib/prism/skills-sugeridas";
-import { BUILTIN_SKILLS } from "../../src/lib/prism/skills-data";
-import { classifyTask } from "../../src/lib/prism/task-router";
-import type { SkillItem } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/skills-sugeridas";
+import { BUILTIN_SKILLS } from "../../src/lib/forja/skills-data";
+import { classifyTask } from "../../src/lib/forja/task-router";
+import type { SkillItem } from "../../src/lib/forja/types";
 
 const skill = (over: Partial<SkillItem>): SkillItem => ({
   id: "s",

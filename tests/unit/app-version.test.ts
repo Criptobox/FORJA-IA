@@ -5,8 +5,8 @@ import {
   buildLabel,
   compareSemver,
   versionCheck,
-} from "../../src/lib/prism/app-version";
-import { pickManualModel, AUTO_MODEL_KEY } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/app-version";
+import { pickManualModel, AUTO_MODEL_KEY } from "../../src/lib/forja/types";
 
 describe("APP_VERSION", () => {
   it("coincide con package.json", () => {

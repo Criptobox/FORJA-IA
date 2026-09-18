@@ -127,15 +127,15 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 | 📝 **Lo que se recorta viaja como resumen** | Cuando el historial no cabe y hay que apartar mensajes viejos, el tramo se resume con el mismo modelo y entra marcado como resumen, en vez de perderse. No se resume lo que no llega a 1 200 caracteres, ni se resume un resumen; si la llamada falla, el recorte a secas sigue funcionando. |
 | 🧪 **Un medidor de «esto lo ha hecho una IA»** | La checklist anti-genérico se la autoevaluaba el modelo, así que la nota siempre era buena. Ahora se **mide en la página ya pintada**: texto de relleno (citado tal cual), imágenes de placehold.co, menos de cuatro tamaños de letra, titular y cuerpo con la misma fuente, filas de tarjetas clonadas, catorce elementos con el mismo redondeo, titulares con emoji. Los hallazgos vuelven al modelo por el mismo camino que los errores de consola, con qué hacer en cada caso — y le dejan defender una decisión de la dirección en vez de obedecer a ciegas. Una página corta no se juzga, y una que ya está bien no gasta ni una vuelta. |
 | ✍️ **Reglas de contenido, no solo de estilo** | Una página genérica se reconoce antes por lo que dice que por cómo se ve, y eso no lo arregla ninguna paleta: cero relleno, un h1 que afirma en vez de saludar, escala tipográfica de cuatro escalones con el titular al doble del cuerpo, pareja tipográfica real, nada de imágenes prestadas y una composición con un protagonista. Van en el prompt encabezadas por lo que las hace distintas: **esto se mide después**. |
-| 🎬 **Kit de efectos propio (`prism-fx`)** | Veintitrés efectos —entradas al hacer scroll, scroll anclado con pasos narrativos, carril horizontal, titulares partidos en palabras o revelados con caracteres al azar, cursor propio, inclinación 3D, botón imán, foco que sigue al cursor, contadores, parallax, marquesina, grano, mesh, retícula, subrayado que se dibuja, destello, flotar, blob— en archivos que **viajan dentro del proyecto**. Nada de CDN: la página acaba en un iframe sin `allow-same-origin`, en tu ZIP y en tu GitHub Pages, y en los tres una dependencia de terceros se rompe en silencio el día que no responde. El modelo solo los enlaza; Forja añade los archivos. |
+| 🎬 **Kit de efectos propio (`forja-fx`)** | Veintitrés efectos —entradas al hacer scroll, scroll anclado con pasos narrativos, carril horizontal, titulares partidos en palabras o revelados con caracteres al azar, cursor propio, inclinación 3D, botón imán, foco que sigue al cursor, contadores, parallax, marquesina, grano, mesh, retícula, subrayado que se dibuja, destello, flotar, blob— en archivos que **viajan dentro del proyecto**. Nada de CDN: la página acaba en un iframe sin `allow-same-origin`, en tu ZIP y en tu GitHub Pages, y en los tres una dependencia de terceros se rompe en silencio el día que no responde. El modelo solo los enlaza; Forja añade los archivos. |
 | 🎭 **Los efectos son de la dirección, no del catálogo** | Cada una de las seis direcciones visuales declara **los suyos y los que tiene prohibidos**: el neobrutalismo entra a corte seco y con marquesina, el editorial con subrayados que se dibujan, y ninguno puede usar los del otro. Sin esa lista negra, un catálogo de efectos es AI-slop con brillo — todas las páginas con el mismo desvanecido. Un unitario impide que dos direcciones acaben con la misma receta. |
-| 🧊 **Motor 3D propio (`prism-3d.js`)** | WebGL2 crudo, sin librería —no es Three.js recortado—: cámara en perspectiva, campo de partículas que sigue el cursor, un globo de líneas que gira, un shader de fondo con un blob fluido. Tres frenos en orden: sin `prefers-reduced-motion` no dibuja, sin WebGL2 se queda vacío (se ve el fondo de respaldo), y en un equipo de gama baja (`deviceMemory`/`hardwareConcurrency`) tampoco — una escena que hace ir un móvil a 12 fps no es «más pro». Solo la dirección **Estudio experimental** tiene permiso de usarlo. |
+| 🧊 **Motor 3D propio (`forja-3d.js`)** | WebGL2 crudo, sin librería —no es Three.js recortado—: cámara en perspectiva, campo de partículas que sigue el cursor, un globo de líneas que gira, un shader de fondo con un blob fluido. Tres frenos en orden: sin `prefers-reduced-motion` no dibuja, sin WebGL2 se queda vacío (se ve el fondo de respaldo), y en un equipo de gama baja (`deviceMemory`/`hardwareConcurrency`) tampoco — una escena que hace ir un móvil a 12 fps no es «más pro». Solo la dirección **Estudio experimental** tiene permiso de usarlo. |
 | ✍️ **Editar tocando la vista previa** | Un botón activa el modo edición: el texto que pasas por encima se marca, lo tocas, escribes y Enter confirma. El cambio se localiza en el CÓDIGO de la respuesta —no en el DOM del iframe, que se pierde al repintar— y se persiste ahí, así que sigue estando en el ZIP y en GitHub. Solo se editan hojas del árbol (nunca un contenedor, para no borrar lo que hay dentro), y si el texto aparece más de una vez se rechaza con el motivo en vez de adivinar cuál. |
 | ♿ **Todo se ve sin JavaScript** | La regla de oro del kit: los efectos **quitan** un estado, no lo ponen. Sin JS, sin `IntersectionObserver` o con `prefers-reduced-motion`, no se esconde nada. Y si el observer no llega a disparar, a los 1,2 s se revela todo igual: un efecto perdido es una molestia, contenido invisible es un fallo. |
 | 🪟 **Aurora glass** | El `.glass` gana volumen y las burbujas estrenan cristal: la del asistente es translúcida y la tuya, un lavado violeta-cian de marca. Todo por CSS, el layout intacto. |
 | ✂️ **Parches SEARCH/REPLACE (`apply_patch`)** | El agente edita con bloques `<<<<<<< SEARCH / ======= / REPLACE` que Forja aplica LOCALMENTE: menos tokens, menos fallos, y si un bloque no casa se le dice cuál y cómo reintentarlo — nunca reescribir el archivo. Tolerante a sangría distinta y a rutas en la primera línea del bloque. |
 | 🕰 **Checkpoints automáticos + Deshacer de un clic** | Antes de cada tarea del agente se guarda un punto de restauración (por conversación). Cada respuesta del agente trae botón «Deshacer» que devuelve el proyecto al estado anterior — y deshacer es reversible. Panel «Puntos de restauración» en la cabecera con diff antes/después. |
-| 🧠 **Memoria del proyecto (`.prism/`)** | Decisiones, errores con su solución, tareas (Task DNA), direcciones de diseño y reglas, en datos estructurados por proyecto. Se exporta a `decisions.json`, `errors.json`, `tasks.json`, `design-tokens.json` y `negative-rules.json` y viaja **dentro del repo** al subirlo a GitHub: si clonas en otra máquina, la memoria vuelve con él. |
+| 🧠 **Memoria del proyecto (`.forja/`)** | Decisiones, errores con su solución, tareas (Task DNA), direcciones de diseño y reglas, en datos estructurados por proyecto. Se exporta a `decisions.json`, `errors.json`, `tasks.json`, `design-tokens.json` y `negative-rules.json` y viaja **dentro del repo** al subirlo a GitHub: si clonas en otra máquina, la memoria vuelve con él. |
 | 🎨 **Dirección de diseño obligatoria** | 6 direcciones curadas (editorial, minimal, tech, neobrutalismo, cálido orgánico, **estudio experimental**) con paleta OKLCH, pareja tipográfica y composición. Si tu encargo trae estilo se respeta; si no, Forja elige **rotando para no repetirse** entre tus proyectos y lo anuncia. Auto-crítica anti-slop de 5 dimensiones antes de entregar. |
 | 🔎 **Evidence Mode** | Cuando el agente afirma algo de tu código cita `archivo:línea`; Forja lo renderiza como chips y, si el archivo está en el Sandbox, el tooltip muestra la línea citada. Sin evidencia, lo dice — prohibido inventar. |
 | 🧭 **Auto Context pre-envío** | Antes de enviar ves qué va a usarse: «3 archivo(s) · 2 decisión(es) · 1 error(es) previo(s) · 1 regla(s)». Las decisiones y errores pertinentes viajan al modelo sin que tengas que pegar nada. |
@@ -155,10 +155,10 @@ Al desplegarlo en Vercel o un VPS quedan expuestas, así que:
   credenciales de la instancia) están bloqueados, y las redirecciones se
   revalidan salto a salto.
 - **`/api/repos`** clona, lee y **escribe** en el disco del servidor. En
-  producción queda **desactivada** salvo que definas `PRISM_ACCESS_CODE`.
+  producción queda **desactivada** salvo que definas `FORJA_ACCESS_CODE`.
 - Ninguna ruta acepta peticiones desde otra web.
 
-Define `PRISM_ACCESS_CODE` en tu proveedor y cópialo en **Ajustes → Chat**.
+Define `FORJA_ACCESS_CODE` en tu proveedor y cópialo en **Ajustes → Chat**.
 Mira [`.env.example`](.env.example) para el detalle.
 
 ## 🚀 Instalación en 3 pasos
@@ -244,9 +244,9 @@ forja-ia/
 │   │   ├── api/free-radar/     # lista EN VIVA de modelos :free (OpenRouter)
 │   │   ├── api/repos/          # Repo Studio: abrir/clonar/listar/leer/guardar
 │   │   └── api/mock-llm/       # mock para pruebas E2E
-│   ├── components/prism/       # UI: chat, radar, onboarding, repos, ajustes, agente…
-│   └── lib/prism/              # motor: store, proveedores, gratis, agente, voz, temas…
-├── assets/                     # fuente del kit de efectos (prism-fx.css/.js)
+│   ├── components/forja/       # UI: chat, radar, onboarding, repos, ajustes, agente…
+│   └── lib/forja/              # motor: store, proveedores, gratis, agente, voz, temas…
+├── assets/                     # fuente del kit de efectos (forja-fx.css/.js)
 ├── docs/                       # planes por versión y las reglas de la casa
 │   └── DATOS-QUE-ENVEJECEN.md  # fecha + fuente + `npm run` para todo dato que caduca
 ├── .github/workflows/          # CI (lint, knip, build, unitarios y E2E)
@@ -266,7 +266,7 @@ forja-ia/
 | `npm run lint` | revisión de código con ESLint |
 | `npm run precios` | regenera el catálogo de tarifas (fuente pública, con su fecha) |
 | `npm run modelos` | audita las listas contra las retiradas publicadas |
-| `npm run efectos` | reempaqueta el kit `prism-fx` desde `assets/` |
+| `npm run efectos` | reempaqueta el kit `forja-fx` desde `assets/` |
 
 ## ❗ Problemas frecuentes
 
@@ -308,7 +308,7 @@ auditoría:
   pide un CSV, en vez de leerlo por el camino inseguro «por comodidad».
 
 Si prefieres no tener la dependencia, quita `xlsx` de `package.json` y borra
-la rama `excel` de `src/lib/prism/sheets.ts`: CSV y TSV seguirán funcionando.
+la rama `excel` de `src/lib/forja/sheets.ts`: CSV y TSV seguirán funcionando.
 
 ## 📄 Licencia
 
@@ -317,7 +317,7 @@ la rama `excel` de `src/lib/prism/sheets.ts`: CSV y TSV seguirán funcionando.
 ## 🙌 Créditos
 
 - **v3.52 — Caza de ofertas IA**: un apartado que junta las ofertas vigentes de los proveedores (niveles gratuitos, créditos de bienvenida, programas de estudiante) con fecha de verificación a la vista, buscador sin tildes, chips por tipo y favoritas; una comprobación diaria avisa de lo nuevo y de lo que está a punto de caducar (insignia ámbar, toast y, con permiso, notificación del navegador), y una fuente JSON propia permite añadir promos relámpago pisando el catálogo por id. Todo se calcula en el navegador — sin servidor, sin rastreo.
-- **v3.51 — Modo Repaso**: tus conversaciones se convierten en tarjetas de estudio con repetición espaciada (SM-2, el algoritmo de Anki, con techo de facilidad y «otra vez» que vuelve el mismo día). Pides el examen con `/repaso`, el modelo responde con un bloque `prism-repaso`, el mensaje ofrece «Guardar repaso» y la biblioteca te trae cada tarjeta el día que toca — con insignia de vencidas en la barra lateral. Todo en tu navegador: las tarjetas viven en su propia clave de localStorage y el calendario se calcula aquí.
+- **v3.51 — Modo Repaso**: tus conversaciones se convierten en tarjetas de estudio con repetición espaciada (SM-2, el algoritmo de Anki, con techo de facilidad y «otra vez» que vuelve el mismo día). Pides el examen con `/repaso`, el modelo responde con un bloque `forja-repaso`, el mensaje ofrece «Guardar repaso» y la biblioteca te trae cada tarjeta el día que toca — con insignia de vencidas en la barra lateral. Todo en tu navegador: las tarjetas viven en su propia clave de localStorage y el calendario se calcula aquí.
 - **v3.12 — El piloto del Sandbox**: la mitad del «browser agent» que de verdad se puede construir desde una pestaña: el agente opera DENTRO de la vista previa que Forja sirve — pulsar por selector o por texto visible, escribir en campos (con las mayúsculas y acentos intactos), cambiar el ancho del viewport, leer la página (botones, enlaces, campos) y la consola paso a paso. Los pasos se escriben en un mini-lenguaje de una línea (`pulsa "Añadir"`, `escribe "Hola" en #nombre`, `ve a 320px`, `lee`, `qa`); cada uno deja un resultado honesto —ok, fallido y qué errores nuevos soltó— y el informe final se copia para pegárselo al agente del chat, que corrige y la prueba se vuelve a pasar. Runtime inyectado por `postMessage`, sin `eval`: tres operaciones fijas que no pueden hacer más que lo que haría un usuario.
 - **v3.11 — Medir, declarar y recordar**: la ficha del proyecto (Project Passport) presenta la memoria como una tarjeta y el agente la lee antes de trabajar; las skills declaran permisos y la instalación de riesgo exige aceptación expresa (un permiso que nadie hace cumplir es una etiqueta, no una barrera); y el Sandbox compara ejecuciones: qué rompió o arregló tu último cambio, medido. Las tres ideas salieron del análisis del plan de evolución: presentación sobre datos que ya existían, una puerta donde antes había un campo de texto, y comparar lo que ya se medía.
 - **v3.4 — Nada se pierde**: regenerar y editar pasan a bifurcar en vez de borrar, llegan los hilos dentro de una conversación, «Nueva conversación» deja de crear sesiones vacías y el agente ofrece continuar cuando se queda a medias. Ideas tomadas del diseño de [Chatbox](https://github.com/chatboxai/chatbox) (GPLv3) y **reimplementadas desde cero**: aquí no hay código suyo, solo lo aprendido de sus documentos técnicos.

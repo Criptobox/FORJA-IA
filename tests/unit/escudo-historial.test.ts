@@ -6,7 +6,7 @@
  * dentro del HTML que había subido.
  */
 import { describe, expect, it } from "vitest";
-import { escudoHistorial, maskPII, type TurnoEscudo } from "../../src/lib/prism/pii";
+import { escudoHistorial, maskPII, type TurnoEscudo } from "../../src/lib/forja/pii";
 
 const t = (role: string, content: string): TurnoEscudo => ({ role, content });
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { computeWrapped, ahorroPct, modelLabel, wrappedToHtml, type WrappedStats } from "../../src/lib/prism/wrapped";
-import type { ModelUsage } from "../../src/lib/prism/usage";
+import { computeWrapped, ahorroPct, modelLabel, wrappedToHtml, type WrappedStats } from "../../src/lib/forja/wrapped";
+import type { ModelUsage } from "../../src/lib/forja/usage";
 
 function mkUsage(over: Partial<ModelUsage> = {}): ModelUsage {
   return {

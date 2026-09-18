@@ -6,7 +6,7 @@ import {
   renderReglasPrompt,
   useFailures,
   type FailureEntry,
-} from "../../src/lib/prism/failures";
+} from "../../src/lib/forja/failures";
 
 const DAY = 86_400_000;
 

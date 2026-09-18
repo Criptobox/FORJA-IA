@@ -16,7 +16,7 @@ import {
   crearRegla,
   MAX_REGLAS,
   type ReglaNo,
-} from "../../src/lib/prism/reglas-no";
+} from "../../src/lib/forja/reglas-no";
 
 const R = (patron: string, motivo = "porque sí"): ReglaNo =>
   crearRegla(patron, motivo, 1_000);

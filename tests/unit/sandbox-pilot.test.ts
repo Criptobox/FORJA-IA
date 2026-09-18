@@ -7,8 +7,8 @@ import {
   injectPilot,
   parsePasos,
   type PilotPasoResultado,
-} from "../../src/lib/prism/sandbox-pilot";
-import { injectVisualQA } from "../../src/lib/prism/visual-qa";
+} from "../../src/lib/forja/sandbox-pilot";
+import { injectVisualQA } from "../../src/lib/forja/visual-qa";
 
 describe("parsePasos", () => {
   it("reconoce los seis verbos", () => {
@@ -97,15 +97,15 @@ describe("injectPilot", () => {
   it("inyecta el runtime antes de </body> una sola vez", () => {
     const html = "<!doctype html><html><body><h1>x</h1></body></html>";
     const una = injectPilot(html);
-    expect(una).toContain("prism-pilot-cmd");
-    expect((una.match(/prism-pilot-cmd/g) ?? []).length).toBe(1);
+    expect(una).toContain("forja-pilot-cmd");
+    expect((una.match(/forja-pilot-cmd/g) ?? []).length).toBe(1);
     expect(injectPilot(una)).toBe(una);
   });
 
   it("convive con el medidor de QA sin pisarse", () => {
     const html = injectPilot(injectVisualQA("<body></body>"));
-    expect(html).toContain("prism-qa-run");
-    expect(html).toContain("prism-pilot-cmd");
+    expect(html).toContain("forja-qa-run");
+    expect(html).toContain("forja-pilot-cmd");
   });
 
   it("HTML sin body también recibe el runtime", () => {

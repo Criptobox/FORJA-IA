@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { injectScreenshot, promptCritica, SCREENSHOT_SCRIPT } from "../../src/lib/prism/screenshot";
+import { injectScreenshot, promptCritica, SCREENSHOT_SCRIPT } from "../../src/lib/forja/screenshot";
 
 describe("captura real de la vista previa (para el QA por visión)", () => {
   it("injectScreenshot añade el capturador antes de </body>", () => {
     const html = "<!doctype html><html><body><h1>Hola</h1></body></html>";
     const out = injectScreenshot(html);
-    expect(out).toContain("prism-shot-result");
+    expect(out).toContain("forja-shot-result");
     expect(out.indexOf("<script>")).toBeGreaterThan(0);
     expect(out.indexOf("<script>")).toBeLessThan(out.indexOf("</body>"));
   });
@@ -15,7 +15,7 @@ describe("captura real de la vista previa (para el QA por visión)", () => {
     const una = injectScreenshot(html);
     const dos = injectScreenshot(una);
     expect(dos).toBe(una);
-    // "prism-shot-result" sale varias veces DENTRO del propio script (una
+    // "forja-shot-result" sale varias veces DENTRO del propio script (una
     // por cada postMessage: éxito, fallo al dibujar, fallo al cargar la
     // imagen, fallo general) — no sirve para contar inyecciones. Lo que sí
     // cuenta las veces que se inyectó es la propia etiqueta <script>.
@@ -23,7 +23,7 @@ describe("captura real de la vista previa (para el QA por visión)", () => {
   });
 
   it("HTML sin body/html también recibe el capturador; el vacío queda vacío", () => {
-    expect(injectScreenshot("<p>sueltos</p>")).toContain("prism-shot-result");
+    expect(injectScreenshot("<p>sueltos</p>")).toContain("forja-shot-result");
     expect(injectScreenshot("")).toBe("");
   });
 
@@ -35,7 +35,7 @@ describe("captura real de la vista previa (para el QA por visión)", () => {
     // A diferencia del QA visual (que se puede pedir a varios anchos), aquí
     // solo hace falta una captura por ejecución: se dispara sola.
     expect(SCREENSHOT_SCRIPT).toContain("setTimeout(capturar, 400)");
-    expect(SCREENSHOT_SCRIPT).toContain("type: 'prism-shot-result'");
+    expect(SCREENSHOT_SCRIPT).toContain("type: 'forja-shot-result'");
     expect(SCREENSHOT_SCRIPT).toContain("parent.postMessage");
   });
 

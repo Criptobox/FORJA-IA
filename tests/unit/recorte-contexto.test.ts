@@ -5,7 +5,7 @@ import {
   avisoRecorte,
   recortar,
   tokensDe,
-} from "../../src/lib/prism/recorte-contexto";
+} from "../../src/lib/forja/recorte-contexto";
 
 const m = (role: string, chars: number, marca = "x") => ({ role, content: marca.repeat(chars) });
 

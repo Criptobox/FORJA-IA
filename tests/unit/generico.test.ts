@@ -9,8 +9,8 @@ import {
   resumenGenerico,
   senasGenericas,
   type MedidasGenerico,
-} from "../../src/lib/prism/generico";
-import { REGLAS_DE_CONTENIDO, promptDireccion, DIRECCIONES } from "../../src/lib/prism/design-directions";
+} from "../../src/lib/forja/generico";
+import { REGLAS_DE_CONTENIDO, promptDireccion, DIRECCIONES } from "../../src/lib/forja/design-directions";
 
 /** Una página decente de base: bastantes elementos, escala tipográfica real,
  * pareja de fuentes, nada centrado de más. Cada prueba rompe UNA cosa. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { citasDe, tieneEvidencia } from "../../src/lib/prism/evidencia";
+import { citasDe, tieneEvidencia } from "../../src/lib/forja/evidencia";
 
 describe("citasDe", () => {
   it("extrae una cita simple archivo:línea", () => {

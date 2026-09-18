@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { guardRequest, guardResponse } from "@/lib/prism/api-guard";
-import { PRECIOS, PRECIOS_FECHA, PRECIOS_FUENTE } from "@/lib/prism/precios-datos";
+import { guardRequest, guardResponse } from "@/lib/forja/api-guard";
+import { PRECIOS, PRECIOS_FECHA, PRECIOS_FUENTE } from "@/lib/forja/precios-datos";
 
 export const dynamic = "force-dynamic";
 

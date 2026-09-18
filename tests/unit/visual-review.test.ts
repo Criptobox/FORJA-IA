@@ -8,9 +8,9 @@
  * en el mensaje del error en vez de reinventar esa detección.
  */
 import { describe, expect, it } from "vitest";
-import { buildToolContext } from "../../src/lib/prism/use-agent-tools";
-import type { StreamOptions } from "../../src/lib/prism/chat-client";
-import type { AppSettings } from "../../src/lib/prism/types";
+import { buildToolContext } from "../../src/lib/forja/use-agent-tools";
+import type { StreamOptions } from "../../src/lib/forja/chat-client";
+import type { AppSettings } from "../../src/lib/forja/types";
 
 const visionDeps = (stream: (opts: StreamOptions) => Promise<string>) => ({
   providerId: "custom" as const,

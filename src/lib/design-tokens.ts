@@ -1,7 +1,7 @@
 /** Forja IA — Tokens de diseño: la fuente única de verdad del lenguaje visual.
  *
  * Los colores viven aquí como valores concretos y las paletas de acento se
- * reexportan de `lib/prism/accent.ts` (que ya existía y mueve el CSS real).
+ * reexportan de `lib/forja/accent.ts` (que ya existía y mueve el CSS real).
  * La razón de este módulo no es estética sino medida: un token que no se puede
  * comparar numéricamente no se puede auditar. Por eso aquí viven también las
  * funciones de contraste WCAG — la QA de accesibilidad (unit + Inspector
@@ -13,7 +13,7 @@
  *  - Todo lo que exige WCAG está nombrado con su número, para que un fallo de
  *    test apunte al criterio exacto y no a un número mágico suelto.
  */
-import { ACCENTS, ACCENT_DEFAULT, type AccentPreset } from "@/lib/prism/accent";
+import { ACCENTS, ACCENT_DEFAULT, type AccentPreset } from "@/lib/forja/accent";
 
 export { ACCENTS, ACCENT_DEFAULT };
 export type { AccentPreset };

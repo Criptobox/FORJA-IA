@@ -1,4 +1,4 @@
-import { ChatApp } from "@/components/prism/chat-app";
+import { ChatApp } from "@/components/forja/chat-app";
 
 /** Forja IA — Página principal.
  *

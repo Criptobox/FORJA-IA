@@ -8,7 +8,7 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Chip, CodeBlock, descargar } from "./ui-forja";
-import type { Motor } from "@/lib/prism/motor-client";
+import type { Motor } from "@/lib/forja/motor-client";
 
 export function AdnTab({ motor }: { motor: Motor }) {
   const [mensaje, setMensaje] = useState("Editorial técnica para desarrolladores: silenciosa, precisa, oscura");

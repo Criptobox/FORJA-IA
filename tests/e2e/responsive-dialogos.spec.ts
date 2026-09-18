@@ -11,7 +11,7 @@ async function seed(page: Page) {
   await page.addInitScript(() => {
     if (window.top !== window.self) return;
     const s = { state: { sessions: [], activeSessionId: null, onboardingDone: true, favorites: [], radarSeenIds: [], settings: { defaultModelKey: "custom::mock-mini-free", systemPrompt: "x", temperature: 0.7, maxTokens: null, stream: true, contextWindow: 10, sendKeyOnProxy: true, onlyFree: false, agentMode: false, agentMaxLoops: 3, accent: "violeta", accentCustom: "#8b5cf6", autoSpeak: false, accessCode: "", compression: "off", outputStyle: "normal", piiShield: true }, providers: { custom: { apiKey: "k", baseUrl: "/api/mock-llm", enabled: true, models: ["mock-mini-free"], useProxy: false } }, version: 1 }, version: 0 };
-    try { localStorage.setItem("prism-ai-v1", JSON.stringify(s)); } catch {}
+    try { localStorage.setItem("forja-ai-v1", JSON.stringify(s)); } catch {}
   });
 }
 

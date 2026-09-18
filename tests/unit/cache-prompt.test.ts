@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PROVIDER_MAP } from "../../src/lib/prism/providers";
+import { PROVIDER_MAP } from "../../src/lib/forja/providers";
 import {
   MARCA_CACHE,
   MAX_CORTES,
@@ -15,7 +15,7 @@ import {
   sistemaCacheable,
   sumarUso,
   type UsoProveedor,
-} from "../../src/lib/prism/cache-prompt";
+} from "../../src/lib/forja/cache-prompt";
 
 describe("dónde se marcan los cortes", () => {
   it("solo Anthropic: marcar donde no toca sería mandar campos que no entienden", () => {

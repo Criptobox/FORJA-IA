@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { writeZip } from "../../src/lib/prism/zip";
+import { writeZip } from "../../src/lib/forja/zip";
 
 /** Forja IA — Al cargar un ZIP, el Sandbox abre el `index.html`.
  *
@@ -38,7 +38,7 @@ test("un ZIP con carpeta abre su index.html, no el HTML que va antes alfabética
     if (window.top !== window.self) return; // no dentro del iframe del Sandbox
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   decryptPayload,
   encryptPayload,
-} from "../../src/lib/prism/crypto";
+} from "../../src/lib/forja/crypto";
 
 describe("cifrado de la bóveda (AES-GCM + PBKDF2)", () => {
   const payload = {

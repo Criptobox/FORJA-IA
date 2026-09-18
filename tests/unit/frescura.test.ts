@@ -12,7 +12,7 @@ import {
   pideRevision,
   DIAS_PARA_CADUCAR,
   DIAS_PARA_VIEJA,
-} from "../../src/lib/prism/frescura";
+} from "../../src/lib/forja/frescura";
 
 const AHORA = Date.parse("2026-08-31T12:00:00Z");
 const haceDias = (d: number) => new Date(AHORA - d * 86_400_000).toISOString();

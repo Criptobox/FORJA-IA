@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   razonamientoDeTrozo,
   separarEtiquetasPensamiento,
-} from "../../src/lib/prism/razonamiento";
+} from "../../src/lib/forja/razonamiento";
 
 /** Forja IA — T4 del plan V6: los bloques de razonamiento, por protocolo.
  *

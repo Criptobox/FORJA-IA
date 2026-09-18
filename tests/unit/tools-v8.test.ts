@@ -6,13 +6,13 @@
  * un cero que parece un aprobado.
  */
 import { describe, it, expect, vi } from "vitest";
-import { runTool, type ToolContext, type RunOutcome } from "../../src/lib/prism/tool-runner";
-import type { ToolCall } from "../../src/lib/prism/tools-catalog";
-import { memoriaComoStorage, guardarSnapshot, crearSnapshot } from "../../src/lib/prism/snapshots";
-import type { ProjectMap } from "../../src/lib/prism/types";
-import type { QAResult } from "../../src/lib/prism/visual-qa";
-import type { PermisosConcedidos } from "../../src/lib/prism/tool-permissions";
-import { crearRegla } from "../../src/lib/prism/reglas-no";
+import { runTool, type ToolContext, type RunOutcome } from "../../src/lib/forja/tool-runner";
+import type { ToolCall } from "../../src/lib/forja/tools-catalog";
+import { memoriaComoStorage, guardarSnapshot, crearSnapshot } from "../../src/lib/forja/snapshots";
+import type { ProjectMap } from "../../src/lib/forja/types";
+import type { QAResult } from "../../src/lib/forja/visual-qa";
+import type { PermisosConcedidos } from "../../src/lib/forja/tool-permissions";
+import { crearRegla } from "../../src/lib/forja/reglas-no";
 
 const call = (name: string, args: Record<string, unknown> = {}): ToolCall => ({
   id: `c_${name}`,

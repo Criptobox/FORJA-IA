@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decideDemo, type DemoContext } from "../../src/lib/prism/preview-demo";
+import { decideDemo, type DemoContext } from "../../src/lib/forja/preview-demo";
 
 /** El demo se auto-metía en la app de cualquiera que no tuviera todavía la
  * marca de «ya vista»: aparecía una conversación que nadie pidió, con el panel

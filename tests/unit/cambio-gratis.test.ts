@@ -5,7 +5,7 @@ import {
   nuevaFoto,
   resumenCambio,
   type FotoGratis,
-} from "../../src/lib/prism/cambio-gratis";
+} from "../../src/lib/forja/cambio-gratis";
 
 /** Foto con fecha fija para que los tests no dependan del reloj. */
 const foto = (gratisPorProveedor: FotoGratis["gratisPorProveedor"], fecha = 1_000): FotoGratis => ({

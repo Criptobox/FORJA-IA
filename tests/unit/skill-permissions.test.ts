@@ -3,7 +3,7 @@ import {
   analyzeSkillPermissions,
   permisosLegibles,
   renderPermisosPrompt,
-} from "../../src/lib/prism/skill-permissions";
+} from "../../src/lib/forja/skill-permissions";
 
 describe("skill-permissions — analyzeSkillPermissions", () => {
   it("una skill de instrucciones puras queda en ok", () => {

@@ -14,9 +14,9 @@ import { expect, test } from "./fixtures";
 async function seed(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -34,7 +34,7 @@ async function seed(page: import("@playwright/test").Page) {
       );
       // historial medido: uno con muestras de sobra, otro con dos
       localStorage.setItem(
-        "prism-usage-v1",
+        "forja-usage-v1",
         JSON.stringify({
           state: {
             byModel: {

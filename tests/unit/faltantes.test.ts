@@ -12,8 +12,8 @@ import {
   resumenFaltantes,
   MAX_CANDIDATOS,
   aplicarArreglo,
-} from "../../src/lib/prism/faltantes";
-import { resolvePath } from "../../src/lib/prism/sandbox";
+} from "../../src/lib/forja/faltantes";
+import { resolvePath } from "../../src/lib/forja/sandbox";
 
 const PROYECTO_REAL = [
   "web ambueguesa/index.html",

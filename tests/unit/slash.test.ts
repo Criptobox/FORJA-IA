@@ -8,7 +8,7 @@ import {
   normalizeSlash,
   slashOpen,
   slashQuery,
-} from "../../src/lib/prism/slash";
+} from "../../src/lib/forja/slash";
 
 describe("slashQuery / slashOpen", () => {
   it("abre el menú con la barra sola y devuelve consulta vacía", () => {

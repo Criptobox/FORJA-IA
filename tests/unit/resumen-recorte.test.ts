@@ -9,7 +9,7 @@ import {
   promptDeResumen,
   resumenUtil,
   textoDelTramo,
-} from "../../src/lib/prism/resumen-recorte";
+} from "../../src/lib/forja/resumen-recorte";
 
 const msg = (role: string, n: number, c = "x") => ({ role, content: c.repeat(n) });
 

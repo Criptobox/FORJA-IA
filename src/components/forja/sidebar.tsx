@@ -1,0 +1,586 @@
+"use client";
+/** Forja IA — Barra lateral de conversaciones */
+import { useEffect, useMemo, useState } from "react";
+import {
+  Activity,
+  Sparkles,
+  BookOpen,
+  Box,
+  BrainCircuit,
+  Check,
+  FlaskConical,
+  FolderGit2,
+  Github,
+  GraduationCap,
+  Hammer,
+  LayoutDashboard,
+  MessageSquarePlus,
+  Monitor,
+  Moon,
+  MoreHorizontal,
+  Pencil,
+  Pin,
+  PinOff,
+  Puzzle,
+  Radar,
+  Brain,
+  Search,
+  Settings,
+  Sun,
+  Swords,
+  Ticket,
+  Trash2,
+  X,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
+import { ForjaLogo } from "./logo";
+import { InstallButton } from "./pwa";
+import { sortSessions, useForja } from "@/lib/forja/store";
+import { tiempoRelativo, tituloVisible, vistaPrevia } from "@/lib/forja/session-list";
+import { unseenRadarCount } from "@/lib/forja/free-radar";
+import {
+  APP_BUILT,
+  APP_COMMIT,
+  APP_VERSION,
+  buildLabel,
+  type VersionStatus,
+} from "@/lib/forja/app-version";
+import { cn } from "@/lib/utils";
+
+export function Sidebar({
+  onOpenSettings,
+  onOpenLibrary,
+  onOpenSkills,
+  onOpenRadar,
+  onOpenGithub,
+  onOpenArena,
+  onOpenPanel,
+  onOpenGuide,
+  onOpenRepos,
+  onOpenSandbox,
+  onOpenStudio,
+  onOpenUsage,
+  onOpenFailures,
+  onOpenRepaso,
+  repasoVencidas,
+  onOpenOfertas,
+  ofertasNuevas,
+  onClose,
+}: {
+  onOpenSettings: () => void;
+  onOpenLibrary?: () => void;
+  onOpenSkills?: () => void;
+  onOpenRadar?: () => void;
+  onOpenGithub?: () => void;
+  onOpenArena?: () => void;
+  onOpenPanel?: () => void;
+  onOpenGuide?: () => void;
+  onOpenRepos?: () => void;
+  onOpenSandbox?: () => void;
+  onOpenStudio?: () => void;
+  onOpenUsage?: () => void;
+  onOpenFailures?: () => void;
+  onOpenRepaso?: () => void;
+  /** tarjetas de repaso vencidas hoy: lleva la insignia, como el Radar */
+  repasoVencidas?: number;
+  onOpenOfertas?: () => void;
+  /** novedades sin ver de la Caza de ofertas: insignia ámbar, como el Repaso */
+  ofertasNuevas?: number;
+  onClose?: () => void;
+}) {
+  const router = useRouter();
+  const sessions = useForja((s) => s.sessions);
+  const radarSeenIds = useForja((s) => s.radarSeenIds);
+  const activeId = useForja((s) => s.activeSessionId);
+  const setActive = useForja((s) => s.setActiveSession);
+  const createSession = useForja((s) => s.createSession);
+  const deleteSession = useForja((s) => s.deleteSession);
+  const renameSession = useForja((s) => s.renameSession);
+  const togglePin = useForja((s) => s.togglePin);
+
+  const [query, setQuery] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+
+  const sorted = useMemo(() => sortSessions(sessions), [sessions]);
+  const radarUnseen = useMemo(() => unseenRadarCount(radarSeenIds), [radarSeenIds]);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return sorted;
+    return sorted.filter(
+      (s) =>
+        s.title.toLowerCase().includes(q) ||
+        s.messages.some((m) => m.content.toLowerCase().includes(q))
+    );
+  }, [sorted, query]);
+
+  const newChat = () => {
+    createSession();
+    onClose?.();
+  };
+
+  /** Los tres grupos del pie. Se calcula aquí dentro porque cada entrada
+   *  depende de las props y del contador del radar. */
+  interface EntradaPie {
+    label: string;
+    icon: React.ReactNode;
+    onClick?: () => void;
+    title: string;
+    className?: string;
+    badge?: React.ReactNode;
+  }
+  const GRUPOS: { titulo: string; items: EntradaPie[] }[] = [
+    {
+      titulo: "Proyectos",
+      items: [
+        { label: "Sandbox", icon: <Box className="size-4" />, onClick: onOpenSandbox, title: "Sandbox: carga un ZIP y ejecuta el software (proyectos web), como Spck" },
+        { label: "Web Studio", icon: <Sparkles className="size-4" />, onClick: onOpenStudio, title: "Web Studio: flujo especializado para construir, medir y corregir interfaces web" },
+        { label: "Repos", icon: <FolderGit2 className="size-4" />, onClick: onOpenRepos, title: "Repo Studio: conecta un repo de GitHub (directo sin descargar), edítalo y haz push" },
+        { label: "GitHub", icon: <Github className="size-4" />, onClick: onOpenGithub, title: "Subir carpeta a GitHub sin límite de 100 archivos" },
+      ],
+    },
+    {
+      // Forja Lab: el motor de generación determinista (coste cero, corre
+      // en el navegador) que compone el módulo "forja-ia" — su propio taller,
+      // con el mismo tema y la misma barra, sin salir de la app.
+      titulo: "Forja Lab",
+      items: [
+        {
+          label: "Estudio",
+          icon: <Hammer className="size-4" />,
+          onClick: () => router.push("/forja"),
+          title: "Forja Lab: laboratorio de generación de páginas determinista (ficha → maqueta, ADN, jueces, anti-genérico), sin coste de API",
+        },
+        {
+          label: "Ficha → Maqueta",
+          icon: <FlaskConical className="size-4" />,
+          onClick: () => router.push("/forja?tab=ficha"),
+          title: "Va directo a la pestaña Ficha → Maqueta del Estudio",
+        },
+      ],
+    },
+    {
+      titulo: "Modelos",
+      items: [
+        {
+          label: "Panel",
+          icon: <LayoutDashboard className="size-4" />,
+          onClick: onOpenPanel,
+          title: "Panel del sistema: gasto por modelo y encargo, uso, cuota y enfriamientos en un solo sitio",
+        },
+        {
+          label: "Radar",
+          icon: <Radar className="size-4" />,
+          onClick: onOpenRadar,
+          title: "Radar de modelos gratis",
+          className: radarUnseen > 0 ? "text-emerald-600 dark:text-emerald-400" : undefined,
+          badge:
+            radarUnseen > 0 ? (
+              <span className="absolute -right-2 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-emerald-500 px-0.5 text-[8px] font-bold text-white">
+                {radarUnseen}
+              </span>
+            ) : null,
+        },
+        // «Cuota» no tiene icono propio: vive dentro del Panel, y dos puertas
+        // a la misma pantalla obligan a recordar cuál lleva a qué.
+        { label: "Arena", icon: <Swords className="size-4" />, onClick: onOpenArena, title: "Arena: compara 2-3 modelos gratis con el mismo prompt" },
+      ],
+    },
+    {
+      // «Sistema» no, que ya es el nombre del tema que sigue al dispositivo
+      // dos filas más arriba: dos cosas con el mismo nombre en la misma barra.
+      titulo: "Herramientas",
+      items: [
+        { label: "Biblioteca", icon: <BookOpen className="size-4" />, onClick: onOpenLibrary, title: "Biblioteca de prompts" },
+        { label: "Skills", icon: <Puzzle className="size-4" />, onClick: onOpenSkills, title: "Skills: instrucciones que se suman al prompt de sistema" },
+        { label: "Memoria", icon: <BrainCircuit className="size-4" />, onClick: onOpenFailures, title: "Memoria de fallos: reglas aprendidas de errores reales que el agente consulta antes de actuar" },
+        { label: "Uso", icon: <Activity className="size-4" />, onClick: onOpenUsage, title: "Uso: peticiones, latencia y ahorro de contexto por modelo (todo local)" },
+        {
+          label: "Repaso",
+          icon: <Brain className="size-4" />,
+          onClick: onOpenRepaso,
+          title: "Modo repaso: convierte la conversación en tarjetas de estudio y repásalas con repetición espaciada (todo local)",
+          className: (repasoVencidas ?? 0) > 0 ? "text-emerald-600 dark:text-emerald-400" : undefined,
+          badge:
+            (repasoVencidas ?? 0) > 0 ? (
+              <span className="absolute -right-2 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-emerald-500 px-0.5 text-[8px] font-bold text-white">
+                {repasoVencidas}
+              </span>
+            ) : null,
+        },
+        {
+          label: "Ofertas",
+          icon: <Ticket className="size-4" />,
+          onClick: onOpenOfertas,
+          title: "Caza de ofertas IA: días gratis, descuentos y créditos vigentes, con avisos de novedades y expiración (todo local)",
+          className: (ofertasNuevas ?? 0) > 0 ? "text-amber-600 dark:text-amber-400" : undefined,
+          badge:
+            (ofertasNuevas ?? 0) > 0 ? (
+              <span className="absolute -right-2 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-amber-500 px-0.5 text-[8px] font-bold text-white">
+                {ofertasNuevas}
+              </span>
+            ) : null,
+        },
+        { label: "Guía", icon: <GraduationCap className="size-4" />, onClick: onOpenGuide, title: "Guía de primeros pasos" },
+      ],
+    },
+  ];
+
+  return (
+    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+      {/* Cabecera */}
+      <div className="flex items-center gap-2 px-4 pb-2 pt-4">
+        <ForjaLogo size={26} />
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[15px] font-semibold tracking-tight">
+            Forja <span className="forja-gradient-text">IA</span>
+          </h1>
+        </div>
+        {onClose && (
+          <Button variant="ghost" size="icon" className="size-8 lg:hidden" onClick={onClose}>
+            <X className="size-4" />
+          </Button>
+        )}
+      </div>
+
+      {/* Nueva conversación */}
+      <div className="px-3 pt-2">
+        <Button
+          onClick={newChat}
+          className="forja-gradient-bg w-full justify-start gap-2 rounded-xl border-0 text-white shadow-md shadow-violet-500/15 hover:opacity-90"
+        >
+          <MessageSquarePlus className="size-4" />
+          Nueva conversación
+        </Button>
+      </div>
+
+      {/* Buscador */}
+      <div className="px-3 pb-1 pt-3">
+        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/50 px-2.5">
+          <Search className="size-3.5 shrink-0 text-muted-foreground/70" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar conversaciones…"
+            className="h-8 w-full bg-transparent text-[13px] outline-none placeholder:text-muted-foreground/60"
+          />
+          {query && (
+            <button onClick={() => setQuery("")} aria-label="Limpiar búsqueda">
+              <X className="size-3.5 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Lista de sesiones */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+        {filtered.length === 0 ? (
+          <p className="px-3 py-8 text-center text-xs text-muted-foreground">
+            {query ? "Sin resultados" : "Aún no hay conversaciones"}
+          </p>
+        ) : (
+          <ul className="space-y-0.5">
+            {filtered.map((s) => (
+              <li key={s.id}>
+                <div
+                  className={cn(
+                    "group flex items-start gap-1.5 rounded-lg px-2.5 py-1.5 transition",
+                    activeId === s.id
+                      ? "bg-primary/10 text-foreground ring-1 ring-inset ring-primary/25"
+                      : "hover:bg-accent/60"
+                  )}
+                >
+                  {s.pinned && <Pin className="mt-1 size-3 shrink-0 text-forja-cyan" />}
+                  {editingId === s.id ? (
+                    <div className="flex min-w-0 flex-1 items-center gap-1">
+                      <Input
+                        value={draft}
+                        autoFocus
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && draft.trim()) {
+                            renameSession(s.id, draft.trim());
+                            setEditingId(null);
+                          }
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                        className="h-7 text-[13px]"
+                      />
+                      <button
+                        aria-label="Guardar nombre"
+                        onClick={() => {
+                          if (draft.trim()) renameSession(s.id, draft.trim());
+                          setEditingId(null);
+                        }}
+                      >
+                        <Check className="size-4 text-emerald-500" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setActive(s.id);
+                        onClose?.();
+                      }}
+                      className="min-w-0 flex-1 text-left"
+                      title={s.title}
+                    >
+                      <span className="flex items-baseline gap-2">
+                        <span className="min-w-0 flex-1 truncate text-[13px]">
+                          {tituloVisible(s)}
+                        </span>
+                        <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground/70">
+                          {tiempoRelativo(s.updatedAt)}
+                        </span>
+                      </span>
+                      {/* Lo último que se dijo: con varias conversaciones que
+                          empiezan igual, el título solo no distingue ninguna. */}
+                      {vistaPrevia(s) && (
+                        <span className="mt-0.5 block truncate text-[11px] leading-snug text-muted-foreground/70">
+                          {vistaPrevia(s)}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        aria-label="Opciones de conversación"
+                        className="touch-actions mt-0.5 rounded p-1 opacity-100 transition hover:bg-muted md:opacity-0 md:focus:opacity-100 md:group-hover:opacity-100"
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDraft(s.title);
+                          setEditingId(s.id);
+                        }}
+                      >
+                        <Pencil className="size-3.5" /> Renombrar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => togglePin(s.id)}>
+                        {s.pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
+                        {s.pinned ? "Desfijar" : "Fijar arriba"}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => deleteSession(s.id)}
+                      >
+                        <Trash2 className="size-3.5" /> Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Pie: tira de ajustes + 4 atajos densos + Más. Evita la cuadrícula
+          3×3 (9 celdas) que se veía rala y con GitHub colgando. */}
+      <div className="safe-bottom border-t border-border/60 px-2 py-2">
+        <div className="flex items-center gap-0.5 rounded-lg bg-muted/40 p-0.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 min-w-0 flex-1 justify-start gap-2 px-2 text-xs"
+            onClick={onOpenSettings}
+          >
+            <Settings className="size-3.5 shrink-0" />
+            <span className="truncate">Ajustes</span>
+          </Button>
+          <InstallButton compact />
+        </div>
+        {/* Tema en tres opciones, visible sin abrir menús. Por defecto
+            «Sistema»: la app sigue al dispositivo.
+            Aquí estaba también <ThemeToggle/>, el icono que rota entre temas:
+            justo encima de esta tira y haciendo lo mismo. Se queda esta, que
+            dice cuál está puesto y llega a cualquiera de los tres de un clic. */}
+        <ThemeSegmented />
+
+        {/* Navegación por grupos.
+         *
+         * Antes: una rejilla de iconos sin etiquetar y un menú «Más» que se
+         * había convertido en cajón de sastre —«Uso» acabó ahí dentro y hubo
+         * que rescatarlo, y la rejilla llegó a tener cinco botones en tres
+         * columnas—. Con grupos, cada cosa tiene un sitio evidente y no hace
+         * falta el cajón.
+         *
+         * Se mantiene la rejilla de tres en vez de filas a lo ancho como el
+         * prototipo: aquí arriba va la lista de conversaciones, y doce filas
+         * se la comerían. Los grupos son lo que aporta; la fila ancha era
+         * sitio que no tenemos. */}
+        {GRUPOS.map((g) => {
+          const items = g.items.filter((i) => i.onClick);
+          if (!items.length) return null;
+          return (
+            <div key={g.titulo} className="mt-2">
+              <p className="px-1 pb-1 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+                {g.titulo}
+              </p>
+              <div className="grid grid-cols-3 gap-0.5">
+                {items.map((i) => (
+                  <PieBtn
+                    key={i.label}
+                    icon={i.icon}
+                    onClick={i.onClick}
+                    title={i.title}
+                    className={i.className}
+                    badge={i.badge}
+                  >
+                    {i.label}
+                  </PieBtn>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        <p className="mt-1.5 text-center text-[10px] leading-none text-muted-foreground/55">
+          Sin cuentas · solo en tu dispositivo
+        </p>
+        <VersionLine />
+      </div>
+    </div>
+  );
+}
+
+/** Claro / Oscuro / Sistema como tira de tres, para verlo de un vistazo. */
+function ThemeSegmented() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const current = theme ?? "system";
+
+  const OPTS = [
+    { value: "light", label: "Claro", icon: Sun },
+    { value: "dark", label: "Oscuro", icon: Moon },
+    { value: "system", label: "Sistema", icon: Monitor },
+  ] as const;
+
+  return (
+    <div
+      className="mt-1.5 flex items-center gap-0.5 rounded-lg bg-muted/40 p-0.5"
+      role="radiogroup"
+      aria-label="Tema de la aplicación"
+    >
+      {OPTS.map((o) => {
+        const active = mounted && current === o.value;
+        return (
+          <button
+            key={o.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => setTheme(o.value)}
+            title={
+              o.value === "system"
+                ? "Sigue el tema de tu dispositivo"
+                : `Siempre en ${o.label.toLowerCase()}`
+            }
+            className={cn(
+              "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md px-1.5 py-1.5 text-[11px] font-medium transition",
+              active
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <o.icon className="size-3.5 shrink-0" />
+            <span className="truncate">{o.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function VersionLine() {
+  const [info, setInfo] = useState<{
+    version: string;
+    latest: string | null;
+    status: VersionStatus;
+  } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/version")
+      .then((r) => r.json())
+      .then((j: { version?: string; latest?: string | null; status?: VersionStatus }) => {
+        if (cancelled || !j?.version) return;
+        setInfo({
+          version: j.version,
+          latest: j.latest ?? null,
+          status: j.status ?? "unknown",
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const v = info?.version ?? APP_VERSION;
+  const nueva = info?.status === "outdated" && info.latest ? info.latest : null;
+  return (
+    <p
+      className="mt-1 text-center text-[10px] leading-tight text-muted-foreground/55"
+      title={
+        (nueva ? `Esta copia es v${v}; en GitHub está v${nueva}. ` : "") +
+        buildLabel() +
+        (APP_BUILT ? ` · compilada ${new Date(APP_BUILT).toLocaleString()}` : "")
+      }
+    >
+      {/* El número de versión no se mueve entre arreglos: el commit sí, y es lo
+          que de verdad contesta «¿estoy viendo mis cambios o una copia vieja?». */}
+      v{v}
+      {APP_COMMIT ? ` · ${APP_COMMIT}` : ""}
+      {nueva ? <span className="text-amber-500"> · hay v{nueva}</span> : ""}
+    </p>
+  );
+}
+
+function PieBtn({
+  children,
+  icon,
+  onClick,
+  title,
+  className,
+  badge,
+}: {
+  children: React.ReactNode;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  title?: string;
+  className?: string;
+  badge?: React.ReactNode;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      title={title}
+      onClick={onClick}
+      className={cn(
+        "!h-auto min-w-0 w-full flex-col !gap-1 rounded-lg px-1 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground",
+        className
+      )}
+    >
+      <span className="relative inline-flex">
+        {icon}
+        {badge}
+      </span>
+      <span className="w-full truncate text-center leading-none">{children}</span>
+    </Button>
+  );
+}

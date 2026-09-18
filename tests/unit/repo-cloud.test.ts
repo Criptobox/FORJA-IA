@@ -5,8 +5,8 @@ import {
   isMostlyRepoLink,
   parseRepoInput,
   type CloudFile,
-} from "../../src/lib/prism/repo-cloud";
-import { fetchTree, readCloudFile } from "../../src/lib/prism/repo-cloud";
+} from "../../src/lib/forja/repo-cloud";
+import { fetchTree, readCloudFile } from "../../src/lib/forja/repo-cloud";
 
 const GH = "https://api.github.com";
 

@@ -19,9 +19,9 @@ const MODEL_ID = "mock-texto-mixto";
 async function seed(page: Page) {
   await page.addInitScript((model: string) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -94,7 +94,7 @@ test("el texto suelto junto a un <em> se marca al pasar por encima y se edita si
   // tocar «despacio.» sin ninguna pista de que «El café,» también se podía
   // (ahora) o no se podía (antes) editar.
   await page.mouse.move(xSuelto, ySuelto);
-  await expect(marco.locator(".prism-texto-hover-caja")).toBeAttached({ timeout: 5000 });
+  await expect(marco.locator(".forja-texto-hover-caja")).toBeAttached({ timeout: 5000 });
 
   await page.mouse.click(xSuelto, ySuelto);
   // se editó envolviendo el nodo de texto en un <span> de usar y tirar —

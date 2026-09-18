@@ -8,7 +8,7 @@ import {
   _clearToolsCacheForTests,
   getCachedToolsProbe,
   type ToolsSupport,
-} from "../../src/lib/prism/tools-probe";
+} from "../../src/lib/forja/tools-probe";
 
 beforeEach(() => {
   _clearToolsCacheForTests();

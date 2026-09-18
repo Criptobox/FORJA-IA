@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { tiempoRelativo, tituloVisible, vistaPrevia } from "../../src/lib/prism/session-list";
-import type { ChatMessage, Session } from "../../src/lib/prism/types";
+import { tiempoRelativo, tituloVisible, vistaPrevia } from "../../src/lib/forja/session-list";
+import type { ChatMessage, Session } from "../../src/lib/forja/types";
 
 const AHORA = new Date("2026-08-29T12:00:00Z").getTime();
 const min = (n: number) => AHORA - n * 60_000;

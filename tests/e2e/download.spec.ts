@@ -30,7 +30,7 @@ const RESPUESTA = [
 async function seed(page: import("@playwright/test").Page) {
   await page.addInitScript((respuesta) => {
     localStorage.setItem(
-      "prism-ai-v1",
+      "forja-ai-v1",
       JSON.stringify({
         state: {
           sessions: [

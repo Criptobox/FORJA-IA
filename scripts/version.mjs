@@ -20,7 +20,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 
 const PKG = new URL("../package.json", import.meta.url);
-const SRC = new URL("../src/lib/prism/app-version.ts", import.meta.url);
+const SRC = new URL("../src/lib/forja/app-version.ts", import.meta.url);
 
 const arg = process.argv[2] ?? "patch";
 const pkg = JSON.parse(readFileSync(PKG, "utf8"));

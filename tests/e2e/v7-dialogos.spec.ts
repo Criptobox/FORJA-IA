@@ -13,9 +13,9 @@ import { expect, test, type Page } from "./fixtures";
 async function seed(page: Page, extra: Record<string, unknown> = {}) {
   await page.addInitScript((ex) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -111,7 +111,7 @@ test("«/wrapped» resume lo medido, y dice «peor p95» porque es lo que sabe",
     const hoy = new Date().toISOString().slice(0, 10);
     try {
       localStorage.setItem(
-        "prism-usage-v1",
+        "forja-usage-v1",
         JSON.stringify({
           state: {
             byModel: {

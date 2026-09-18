@@ -9,7 +9,7 @@
  * enseñaría una mentira cómoda.
  */
 import { NextResponse } from "next/server";
-import { APP_VERSION } from "@/lib/prism/app-version";
+import { APP_VERSION } from "@/lib/forja/app-version";
 import { resumenManifest } from "@/lib/project-manifest";
 
 export const runtime = "nodejs";

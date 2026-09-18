@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CADA_MS, copiaServida, hayCopiaNueva, tocaComprobar } from "../../src/lib/prism/app-update";
+import { CADA_MS, copiaServida, hayCopiaNueva, tocaComprobar } from "../../src/lib/forja/app-update";
 
 describe("hayCopiaNueva", () => {
   it("el commit distinto basta, aunque la versión no se mueva", () => {

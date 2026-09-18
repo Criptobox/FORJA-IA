@@ -1,6 +1,6 @@
 /** Tests de la lógica de pestañas de conversación (D2, PLAN-V7). */
 import { describe, expect, it } from "vitest";
-import { MAX_TABS, abrirTab, cerrarTab } from "../../src/lib/prism/tabs";
+import { MAX_TABS, abrirTab, cerrarTab } from "../../src/lib/forja/tabs";
 
 describe("abrirTab", () => {
   it("añade al final si no está", () => {

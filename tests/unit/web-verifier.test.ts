@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { verifyWebProject, summarizeVerification } from "../../src/lib/prism/web-verifier";
+import { verifyWebProject, summarizeVerification } from "../../src/lib/forja/web-verifier";
 
 describe("web-verifier", () => {
   it("does not approve without runtime and visual evidence", () => {

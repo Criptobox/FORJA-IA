@@ -16,9 +16,9 @@ import { expect, test, type Page } from "./fixtures";
 async function seed(page: Page) {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -79,7 +79,7 @@ test("la plantilla de function-calling en texto se ejecuta, no se enseña litera
   // Y queda anotado para este modelo (llamadas-texto-medidas.ts, v4.18.0):
   // el probe por sí solo dijo "soporta tools" (200 OK) — esto es lo que
   // el probe NUNCA podría haber sabido, solo una generación real lo prueba.
-  const guardado = await page.evaluate(() => localStorage.getItem("prism-llamadas-texto-v1"));
+  const guardado = await page.evaluate(() => localStorage.getItem("forja-llamadas-texto-v1"));
   const medidas = JSON.parse(guardado ?? "{}").state?.medidas ?? {};
   expect(medidas["custom::mock-llamada-en-texto"]?.veces).toBeGreaterThan(0);
 });

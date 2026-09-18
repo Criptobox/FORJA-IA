@@ -8,9 +8,9 @@ import {
   pickSintetizador,
   synthesisPrompt,
   type Panelista,
-} from "../../src/lib/prism/consensus";
-import type { ProviderConfig, ProviderId } from "../../src/lib/prism/types";
-import { makeModelKey } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/consensus";
+import type { ProviderConfig, ProviderId } from "../../src/lib/forja/types";
+import { makeModelKey } from "../../src/lib/forja/types";
 
 const cfg = (models: string[], apiKey = "k", enabled = true): ProviderConfig =>
   ({ apiKey, baseUrl: "", enabled, models }) as ProviderConfig;

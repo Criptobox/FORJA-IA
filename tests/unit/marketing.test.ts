@@ -6,8 +6,8 @@ import {
   promptEmail,
   promptPoster,
   resolverPlantillaMarketing,
-} from "../../src/lib/prism/marketing";
-import { DIRECCIONES, direccionPorId } from "../../src/lib/prism/design-directions";
+} from "../../src/lib/forja/marketing";
+import { DIRECCIONES, direccionPorId } from "../../src/lib/forja/design-directions";
 
 describe("modos", () => {
   it("son los tres del plan", () => {

@@ -12,7 +12,7 @@ import {
   reviewProject,
   type Diagnostic,
   type ReviewFile,
-} from "../../src/lib/prism/sandbox-review";
+} from "../../src/lib/forja/sandbox-review";
 
 /** Proyecto mínimo y correcto sobre el que añadir el caso de cada prueba. */
 function projectOf(extra: Record<string, string>, base = true): ReviewFile[] {

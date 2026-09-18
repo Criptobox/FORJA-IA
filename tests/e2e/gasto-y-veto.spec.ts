@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "./fixtures";
-import { TOPE_MINIMO } from "../../src/lib/prism/gasto";
+import { TOPE_MINIMO } from "../../src/lib/forja/gasto";
 
 /** Forja IA — El techo de gasto y el veto de proveedores.
  *
@@ -17,7 +17,7 @@ async function seed(page: Page, over: Record<string, unknown> = {}) {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -136,7 +136,7 @@ test("un modelo GRATIS no se ve frenado por el techo", async ({ page }) => {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

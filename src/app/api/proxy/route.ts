@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { lookup } from "node:dns/promises";
-import { guardRequest, guardResponse } from "@/lib/prism/api-guard";
-import { checkTarget, mensajeDe, type AllowedTarget } from "@/lib/prism/net-guard";
+import { guardRequest, guardResponse } from "@/lib/forja/api-guard";
+import { checkTarget, mensajeDe, type AllowedTarget } from "@/lib/forja/net-guard";
 import {
   contar,
   limpiar,
@@ -9,7 +9,7 @@ import {
   MAX_POR_VENTANA,
   MAX_BODY_BYTES,
   type Contadores,
-} from "@/lib/prism/proxy-budget";
+} from "@/lib/forja/proxy-budget";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +24,7 @@ const FORWARDED_HEADERS = [
   "accept",
   "http-referer",
   "x-title",
-  "x-prism-code",
+  "x-forja-code",
 ];
 
 /** Máximo de saltos que se siguen a mano, revalidando cada uno. */
@@ -73,7 +73,7 @@ function forwardHeaders(req: NextRequest): Record<string, string> {
     const v = req.headers.get(h);
     if (v) headers[h] = v;
   }
-  delete headers["x-prism-code"]; // interna, no se reenvía al proveedor
+  delete headers["x-forja-code"]; // interna, no se reenvía al proveedor
   return headers;
 }
 

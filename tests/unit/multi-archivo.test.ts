@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { INSTRUCCION_VARIOS_ARCHIVOS, pideVariosArchivos } from "../../src/lib/prism/multi-archivo";
+import { INSTRUCCION_VARIOS_ARCHIVOS, pideVariosArchivos } from "../../src/lib/forja/multi-archivo";
 
 describe("pideVariosArchivos", () => {
   it("detecta cuando se pide explícitamente un proyecto para un repo", () => {

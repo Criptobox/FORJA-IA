@@ -20,7 +20,7 @@ import {
   esDemasiadoGrande,
   esPeticionInvalida,
   limiteDelMensaje,
-} from "../../src/lib/prism/decisiones";
+} from "../../src/lib/forja/decisiones";
 
 const CADENA = [
   { providerId: "groq", modelId: "a" },

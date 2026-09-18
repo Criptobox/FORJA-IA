@@ -82,7 +82,7 @@ async function main() {
   }
 
   // ——— El informe ———
-  const { PROVIDERS } = await import("../src/lib/prism/providers.ts");
+  const { PROVIDERS } = await import("../src/lib/forja/providers.ts");
   let problemas = 0;
   for (const prov of PROVIDERS) {
     const cat = conocidos[prov.id];
@@ -115,7 +115,7 @@ async function main() {
     "..",
     "src",
     "lib",
-    "prism",
+    "forja",
     "modelos-datos.ts"
   );
   const total = Object.values(retirados).reduce((a, o) => a + Object.keys(o).length, 0);

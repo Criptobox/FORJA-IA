@@ -4,7 +4,7 @@ import {
   cavemanEs,
   liteCompress,
   savingsPercent,
-} from "../../src/lib/prism/compress";
+} from "../../src/lib/forja/compress";
 
 describe("compresión de contexto (RTK/Caveman adaptado)", () => {
   it("lite colapsa espacios y saltos sin tocar palabras", () => {

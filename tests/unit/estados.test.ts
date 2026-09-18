@@ -3,7 +3,7 @@ import {
   accesibilidadEstado,
   tituloPorDefecto,
   admiteAccion,
-} from "../../src/lib/prism/estados";
+} from "../../src/lib/forja/estados";
 
 /* La config de estados es el contrato a11y de TODOS los paneles: si un día
  * alguien cambia «error» a aria-live="off" «para que no moleste», este test es

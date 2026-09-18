@@ -18,8 +18,8 @@ import {
   avisoIntentosAgotados,
   quedanIntentos,
   MAX_REVISIONES,
-} from "../../src/lib/prism/auto-revision";
-import type { RunOutcome } from "../../src/lib/prism/tool-runner";
+} from "../../src/lib/forja/auto-revision";
+import type { RunOutcome } from "../../src/lib/forja/tool-runner";
 
 const F = "```";
 const salida = (o: Partial<RunOutcome> = {}): RunOutcome => ({

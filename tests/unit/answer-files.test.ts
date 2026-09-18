@@ -4,7 +4,7 @@ import {
   esRutaPlausible,
   filesFromAnswer,
   nombreDescarga,
-} from "../../src/lib/prism/answer-files";
+} from "../../src/lib/forja/answer-files";
 
 const rutas = (c: string) => filesFromAnswer(c).map((f) => f.path);
 
@@ -122,8 +122,8 @@ describe("nombreDescarga", () => {
     );
   });
   it("sin título usa un respaldo", () => {
-    expect(nombreDescarga("", "html")).toMatch(/^prism-\d{4}-\d{2}-\d{2}\.html$/);
-    expect(nombreDescarga(null, "html")).toMatch(/^prism-/);
+    expect(nombreDescarga("", "html")).toMatch(/^forja-\d{4}-\d{2}-\d{2}\.html$/);
+    expect(nombreDescarga(null, "html")).toMatch(/^forja-/);
   });
   it("recorta los títulos largos", () => {
     expect(nombreDescarga("palabra ".repeat(30), "zip").length).toBeLessThan(60);

@@ -1,6 +1,6 @@
 /** Forja IA — Arranca el login de GitHub (popup o pestaña). */
 import { NextResponse } from "next/server";
-import { githubManifestPayload } from "@/lib/prism/github-oauth";
+import { githubManifestPayload } from "@/lib/forja/github-oauth";
 import {
   GH_STATE_COOKIE,
   appOrigin,
@@ -9,7 +9,7 @@ import {
   credsFrom,
   newPkce,
   packState,
-} from "@/lib/prism/github-oauth-server";
+} from "@/lib/forja/github-oauth-server";
 
 export const runtime = "nodejs";
 

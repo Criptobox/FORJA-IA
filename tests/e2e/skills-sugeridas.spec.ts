@@ -18,7 +18,7 @@ async function seed(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -46,14 +46,14 @@ async function seed(page: import("@playwright/test").Page) {
           version: 0,
         })
       );
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
     } catch {
       /* frame sin acceso */
     }
   });
   // las integradas arrancan apagadas para que haya algo que proponer
   await page.addInitScript(() => {
-    const clave = "prism-ai-v1";
+    const clave = "forja-ai-v1";
     try {
       const raw = localStorage.getItem(clave);
       if (!raw) return;

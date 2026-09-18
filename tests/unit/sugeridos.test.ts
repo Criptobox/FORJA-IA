@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sugerirModelos, MAX_SUGERIDOS } from "../../src/lib/prism/sugeridos";
+import { sugerirModelos, MAX_SUGERIDOS } from "../../src/lib/forja/sugeridos";
 
 const DEFAULTS = [
   "deepseek/deepseek-chat-v3-0324:free",

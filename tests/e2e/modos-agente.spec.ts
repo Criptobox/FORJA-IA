@@ -10,9 +10,9 @@ async function seed(page: Page) {
   await page.addInitScript(() => {
     if (window.top !== window.self) return;
     try {
-      if (localStorage.getItem("prism-ai-v1")) return;
+      if (localStorage.getItem("forja-ai-v1")) return;
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -29,7 +29,7 @@ async function seed(page: Page) {
           version: 0,
         })
       );
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
     } catch {}
   });
 }

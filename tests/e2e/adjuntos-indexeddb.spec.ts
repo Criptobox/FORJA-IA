@@ -8,7 +8,7 @@ import { expect, test } from "./fixtures";
  * podía escribir, **no se guardaba nada** — ni conversaciones, ni claves,
  * ni ajustes — y fallaba en silencio.
  *
- * Desde la v3.14, los binarios viven en IndexedDB (`prism-attachments`) y
+ * Desde la v3.14, los binarios viven en IndexedDB (`forja-attachments`) y
  * el store solo guarda la ficha con `blobId`. Esta prueba siembra una
  * sesión con un adjunto en el formato viejo (`dataUrl` dentro del store,
  * como venía siendo antes de la v3.14), recarga la página y verifica que:
@@ -100,10 +100,10 @@ async function seedLegacyAttachment(page: import("@playwright/test").Page) {
       };
       try {
         localStorage.setItem(
-          "prism-ai-v1",
+          "forja-ai-v1",
           JSON.stringify({ state, version: 0 })
         );
-        localStorage.setItem("prism-preview-demo", "1");
+        localStorage.setItem("forja-preview-demo", "1");
       } catch {
         /* frame sin acceso */
       }
@@ -147,7 +147,7 @@ test.describe("Adjuntos migrados a IndexedDB (v3.14)", () => {
     await page.waitForFunction(
       () => {
         try {
-          const raw = localStorage.getItem("prism-ai-v1");
+          const raw = localStorage.getItem("forja-ai-v1");
           if (!raw) return false;
           const parsed = JSON.parse(raw);
           const sessions = parsed?.state?.sessions ?? [];
@@ -167,7 +167,7 @@ test.describe("Adjuntos migrados a IndexedDB (v3.14)", () => {
       ({ id }) =>
         new Promise<boolean>((resolve) => {
           try {
-            const req = indexedDB.open("prism-attachments", 1);
+            const req = indexedDB.open("forja-attachments", 1);
             req.onupgradeneeded = () => {
               const db = req.result;
               if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs");

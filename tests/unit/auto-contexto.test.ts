@@ -5,8 +5,8 @@ import {
   hayContextoTurno,
   renderContextoParaPrompt,
   resumenContextoTurno,
-} from "../../src/lib/prism/auto-contexto";
-import { MEMORIA_VACIA, addDecision, addError } from "../../src/lib/prism/memoria-proyecto";
+} from "../../src/lib/forja/auto-contexto";
+import { MEMORIA_VACIA, addDecision, addError } from "../../src/lib/forja/memoria-proyecto";
 
 describe("extraerKeywords", () => {
   it("prioriza rutas y nombres de archivo", () => {

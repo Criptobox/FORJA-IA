@@ -3,7 +3,7 @@ import {
   EDIT_PILOT_SCRIPT,
   aplicarEdicionTexto,
   injectEditPilot,
-} from "../../src/lib/prism/editar-preview";
+} from "../../src/lib/forja/editar-preview";
 
 describe("localizar y aplicar la edición en el código fuente", () => {
   it("sustituye el texto cuando aparece una sola vez", () => {
@@ -72,7 +72,7 @@ describe("el piloto de edición inyectado en la vista previa", () => {
   });
 
   it("es idempotente y solo edita hojas del árbol (nunca estructura)", () => {
-    expect(EDIT_PILOT_SCRIPT).toContain("__prismEdit");
+    expect(EDIT_PILOT_SCRIPT).toContain("__forjaEdit");
     expect(EDIT_PILOT_SCRIPT).toMatch(/children.*length > 0.*return false/);
   });
 
@@ -85,14 +85,14 @@ describe("el piloto de edición inyectado en la vista previa", () => {
   it("se inyecta una sola vez", () => {
     const html = "<html><body><h1>x</h1></body></html>";
     const una = injectEditPilot(html);
-    expect(una).toContain("__prismEdit");
+    expect(una).toContain("__forjaEdit");
     const dos = injectEditPilot(una);
     expect(dos).toBe(una);
   });
 
   it("cabe en un documento sin </body>", () => {
     const html = "<h1>x</h1>";
-    expect(injectEditPilot(html)).toContain("__prismEdit");
+    expect(injectEditPilot(html)).toContain("__forjaEdit");
   });
 
   it("nunca vuelve editable un CONTENEDOR: el texto suelto se envuelve, el <em> vecino no se toca", () => {

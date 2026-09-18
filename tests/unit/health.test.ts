@@ -5,7 +5,7 @@ import {
   isBlockedProviderAware,
   statusFromError,
   retryAfterFromError,
-} from "../../src/lib/prism/health";
+} from "../../src/lib/forja/health";
 
 const reset = () => useHealth.setState({ entries: {}, lastGood: null });
 

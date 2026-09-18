@@ -8,20 +8,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const settingsMock = { accessCode: "" as string | undefined };
-vi.mock("../../src/lib/prism/store", () => ({
-  usePrism: { getState: () => ({ settings: settingsMock }) },
+vi.mock("../../src/lib/forja/store", () => ({
+  useForja: { getState: () => ({ settings: settingsMock }) },
 }));
 
 // Mock del módulo `attachment-blob`: capturamos las llamadas para
 // inspeccionarlas y devolvemos el `dataUrl` que diga cada test.
 const resolver = vi.fn<(a: { id: string; dataUrl?: string; blobId?: string }) => Promise<string | null>>();
-vi.mock("../../src/lib/prism/attachment-blob", () => ({
+vi.mock("../../src/lib/forja/attachment-blob", () => ({
   resolveAttachmentDataUrl: (a: { id: string; dataUrl?: string; blobId?: string }) => resolver(a),
 }));
 
-import { streamChat, buildRequest } from "../../src/lib/prism/chat-client";
-import type { ProviderConfig, ProviderId, Attachment } from "../../src/lib/prism/types";
-import { DEFAULT_SETTINGS } from "../../src/lib/prism/types";
+import { streamChat, buildRequest } from "../../src/lib/forja/chat-client";
+import type { ProviderConfig, ProviderId, Attachment } from "../../src/lib/forja/types";
+import { DEFAULT_SETTINGS } from "../../src/lib/forja/types";
 
 const cfg = (extra: Partial<ProviderConfig> = {}): ProviderConfig =>
   ({ apiKey: "sk-secreta", enabled: true, models: [], ...extra }) as ProviderConfig;

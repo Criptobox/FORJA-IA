@@ -16,9 +16,9 @@ import {
   MIN_MUESTRAS,
   PESO_EXPERIENCIA,
   MS_LENTO,
-} from "../../src/lib/prism/experiencia";
-import { buildTaskChain } from "../../src/lib/prism/task-router";
-import { makeModelKey } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/experiencia";
+import { buildTaskChain } from "../../src/lib/forja/task-router";
+import { makeModelKey } from "../../src/lib/forja/types";
 
 const uso = (requests: number, ok: number, totalMs = 0) => ({
   requests,

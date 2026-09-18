@@ -12,7 +12,7 @@ import {
   mensajeLlamadaComoTexto,
   pideComoTexto,
   type LlamadasTexto,
-} from "../../src/lib/prism/llamadas-texto-medidas";
+} from "../../src/lib/forja/llamadas-texto-medidas";
 
 describe("pideComoTexto", () => {
   const ahora = 1_700_000_000_000;

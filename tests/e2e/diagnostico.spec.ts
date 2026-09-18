@@ -16,7 +16,7 @@ test("copia versión y proveedores, nunca la clave", async ({ page, context }) =
     ({ clave }) => {
       if (window.top !== window.self) return;
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -39,7 +39,7 @@ test("copia versión y proveedores, nunca la clave", async ({ page, context }) =
           version: 0,
         })
       );
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
     },
     { clave: CLAVE }
   );

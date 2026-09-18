@@ -3,9 +3,9 @@ import {
   FAILOVER_ORDER,
   pickFailoverCandidate,
   sanearOrdenFallback,
-} from "../../src/lib/prism/free-models";
-import type { ProviderId } from "../../src/lib/prism/types";
-import { PROVIDERS } from "../../src/lib/prism/providers";
+} from "../../src/lib/forja/free-models";
+import type { ProviderId } from "../../src/lib/forja/types";
+import { PROVIDERS } from "../../src/lib/forja/providers";
 
 const cfg = (apiKey: string, enabled = true, models: string[] = ["x-free"]) => ({
   apiKey,

@@ -14,8 +14,8 @@ import {
   switchBranch,
   switchThread,
   threadNameFrom,
-} from "../../src/lib/prism/branches";
-import type { ChatMessage, Session } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/branches";
+import type { ChatMessage, Session } from "../../src/lib/forja/types";
 
 let reloj = 1000;
 const ahora = () => ++reloj;

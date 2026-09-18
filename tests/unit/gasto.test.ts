@@ -16,7 +16,7 @@ import {
   TOPE_MINIMO,
   TOPE_MAXIMO,
   type Contador,
-} from "../../src/lib/prism/gasto";
+} from "../../src/lib/forja/gasto";
 
 const nuevo = (): Contador => ({ ...CONTADOR_VACIO });
 const T = new Date("2026-09-04T10:00:00").getTime();

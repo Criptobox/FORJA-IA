@@ -45,7 +45,7 @@ async function seed(page: Page, extra: Record<string, unknown> = {}) {
       },
       version: 0,
     };
-    localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+    localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
   }, extra);
 }
 

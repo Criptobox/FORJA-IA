@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { guardRequest, guardResponse } from "@/lib/prism/api-guard";
-import { RADAR_OPENROUTER_FALLBACK, type LiveModel } from "@/lib/prism/free-radar";
+import { guardRequest, guardResponse } from "@/lib/forja/api-guard";
+import { RADAR_OPENROUTER_FALLBACK, type LiveModel } from "@/lib/forja/free-radar";
 
 export const dynamic = "force-dynamic";
 

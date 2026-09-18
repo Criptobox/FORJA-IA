@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createReviewer, reviewProject, type ReviewFile } from "../../src/lib/prism/sandbox-review";
+import { createReviewer, reviewProject, type ReviewFile } from "../../src/lib/forja/sandbox-review";
 
 /* Fixture ensamblado en runtime: sin patrón de credencial en el código fuente. */
 const REDACTED_AWS = ["[REDACTED", ":", "aws", "_access_", "key]"].join("");

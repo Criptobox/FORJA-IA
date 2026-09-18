@@ -9,8 +9,8 @@ import {
   soloDePago,
   tokensAprox,
   totalDe,
-} from "../../src/lib/prism/gasto-modelos";
-import type { ModelUsage } from "../../src/lib/prism/usage";
+} from "../../src/lib/forja/gasto-modelos";
+import type { ModelUsage } from "../../src/lib/forja/usage";
 
 const nombre = (id: string) => ({ gemini: "Google Gemini", openai: "OpenAI" })[id] ?? id;
 

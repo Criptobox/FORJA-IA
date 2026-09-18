@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { Eye, Gavel, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip, CodeBlock, Salida } from "./ui-forja";
-import type { Motor } from "@/lib/prism/motor-client";
+import type { Motor } from "@/lib/forja/motor-client";
 
 const HTML_MUESTRA = `<!doctype html><html lang="es"><head><title>Servicios</title></head>
 <body style="font-family:Arial"><div style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">

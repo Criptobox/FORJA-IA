@@ -2,7 +2,7 @@ import { test as base, expect } from "@playwright/test";
 
 /** Forja IA — base común de los E2E.
  *
- * La demo de vista previa (src/lib/prism/preview-demo.ts) se escribe SOLA en la
+ * La demo de vista previa (src/lib/forja/preview-demo.ts) se escribe SOLA en la
  * primera visita: teclea una landing entera, abre el split y encoge el
  * compositor. En un navegador de verdad es la bienvenida; dentro de los tests
  * es un tercero escribiendo encima, y tumba desde las medidas de ancho hasta
@@ -15,7 +15,7 @@ export const test = base.extend({
   page: async ({ page }, use) => {
     await page.addInitScript(() => {
       try {
-        localStorage.setItem("prism-preview-demo", "1");
+        localStorage.setItem("forja-preview-demo", "1");
       } catch {
         /* frame sin acceso a storage */
       }

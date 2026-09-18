@@ -1,6 +1,6 @@
 /** Forja IA — Manifiesto del proyecto: qué es esta app y qué sabe hacer.
  *
- * El dato vive en `.prism/project.json` (el mismo directorio que el tooling
+ * El dato vive en `.forja/project.json` (el mismo directorio que el tooling
  * propio de FORJA lee) y aquí está su contrato tipado. La versión NO va en el
  * manifiesto: vive solo en package.json — tenerla escrita en dos sitios ya
  * hizo que divergieran una vez (Ajustes anunció «v3.1» durante cuatro
@@ -10,7 +10,7 @@
  * (pinta las áreas auditadas). Si mañana una capacidad cambia de sitio, se
  * edita el JSON y nada de código: para eso es un manifiesto.
  */
-import manifiesto from "../../.prism/project.json";
+import manifiesto from "../../.forja/project.json";
 
 export interface CapacidadManifest {
   readonly id: string;

@@ -12,9 +12,9 @@ import {
   type EstadoLocal,
   type TransferBundle,
   unpackTransfer,
-} from "../../src/lib/prism/transfer";
-import type { ProviderConfig, Session } from "../../src/lib/prism/types";
-import { DEFAULT_SETTINGS } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/transfer";
+import type { ProviderConfig, Session } from "../../src/lib/forja/types";
+import { DEFAULT_SETTINGS } from "../../src/lib/forja/types";
 
 const FRASE = "cafe-con-leche";
 

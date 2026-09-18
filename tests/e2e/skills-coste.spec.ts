@@ -11,9 +11,9 @@ import { expect, test } from "./fixtures";
 test("cada skill enseña lo que añade, y el total de las activas", async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

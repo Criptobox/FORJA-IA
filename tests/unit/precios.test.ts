@@ -13,10 +13,10 @@ import {
   preciosViejos,
   sumaCostes,
   type TablaPrecios,
-} from "../../src/lib/prism/precios";
-import { PRECIOS, PRECIOS_FECHA } from "../../src/lib/prism/precios-datos";
-import { PROVIDERS } from "../../src/lib/prism/providers";
-import { isFreeModel } from "../../src/lib/prism/free-models";
+} from "../../src/lib/forja/precios";
+import { PRECIOS, PRECIOS_FECHA } from "../../src/lib/forja/precios-datos";
+import { PROVIDERS } from "../../src/lib/forja/providers";
+import { isFreeModel } from "../../src/lib/forja/free-models";
 
 const TABLA: TablaPrecios = {
   "claude-opus-5": { in: 5e-6, out: 2.5e-5, cr: 5e-7, cw: 6.25e-6, p: "anthropic" },

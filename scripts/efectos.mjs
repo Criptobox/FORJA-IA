@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /** Forja IA — Empaquetar el kit de efectos dentro del bundle.
  *
- * El kit vive en `assets/prism-fx.css` y `assets/prism-fx.js` como archivos de
+ * El kit vive en `assets/forja-fx.css` y `assets/forja-fx.js` como archivos de
  * verdad: se editan con resaltado, se pueden abrir en un navegador y no hay
  * que pelearse con las comillas de una plantilla. Este script los mete en un
  * módulo TypeScript para que viajen con la app.
  *
- *   npm run efectos     → regenera src/lib/prism/efectos-datos.ts
+ *   npm run efectos     → regenera src/lib/forja/efectos-datos.ts
  *
  * ——— Por qué no un CDN ———
  *
@@ -24,15 +24,15 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..");
-const css = readFileSync(join(raiz, "assets/prism-fx.css"), "utf8");
-const js = readFileSync(join(raiz, "assets/prism-fx.js"), "utf8");
+const css = readFileSync(join(raiz, "assets/forja-fx.css"), "utf8");
+const js = readFileSync(join(raiz, "assets/forja-fx.js"), "utf8");
 // El motor 3D es un archivo aparte: no toda dirección visual lo necesita, y
 // separarlo evita que una landing tranquila cargue 6 KB de WebGL que nunca usa.
-const js3d = readFileSync(join(raiz, "assets/prism-3d.js"), "utf8");
+const js3d = readFileSync(join(raiz, "assets/forja-3d.js"), "utf8");
 
 const salida = `/* GENERADO por \`npm run efectos\` — no editar a mano.
- * La fuente son \`assets/prism-fx.css\`, \`assets/prism-fx.js\` y
- * \`assets/prism-3d.js\`: edita ahí y vuelve a ejecutar el comando. Un unitario
+ * La fuente son \`assets/forja-fx.css\`, \`assets/forja-fx.js\` y
+ * \`assets/forja-3d.js\`: edita ahí y vuelve a ejecutar el comando. Un unitario
  * comprueba que no se han separado.
  */
 
@@ -47,7 +47,7 @@ export const FX_JS = ${JSON.stringify(js)};
 export const FX3D_JS = ${JSON.stringify(js3d)};
 `;
 
-writeFileSync(join(raiz, "src/lib/prism/efectos-datos.ts"), salida);
+writeFileSync(join(raiz, "src/lib/forja/efectos-datos.ts"), salida);
 console.log(
-  `prism-fx empaquetado: ${css.length} car. de CSS + ${js.length} car. de JS + ${js3d.length} car. de 3D`
+  `forja-fx empaquetado: ${css.length} car. de CSS + ${js.length} car. de JS + ${js3d.length} car. de 3D`
 );

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { recomendarModelo } from "../../src/lib/prism/recomendacion";
-import { MEMORIA_VACIA, addTarea } from "../../src/lib/prism/memoria-proyecto";
+import { recomendarModelo } from "../../src/lib/forja/recomendacion";
+import { MEMORIA_VACIA, addTarea } from "../../src/lib/forja/memoria-proyecto";
 
 const PROVIDERS = {
   groq: { enabled: true, apiKey: "k", models: ["llama-3.3-70b"] },

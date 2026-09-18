@@ -16,9 +16,9 @@ const MODEL_ID = "mock-generica";
 async function seed(page: Page) {
   await page.addInitScript((model: string) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -98,9 +98,9 @@ test("si se acaban los intentos y SIGUE genérica, se dice en vez de callarse", 
   // dijera. `mock-generica-terca` nunca mejora, así que agota el tope.
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -168,9 +168,9 @@ test("una página que ya está bien no se toca", async ({ page }) => {
   // pequeña y sin señas: no puede disparar la corrección.
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

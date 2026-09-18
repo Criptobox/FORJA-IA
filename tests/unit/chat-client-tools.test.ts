@@ -4,19 +4,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const settingsMock = { accessCode: "" };
-vi.mock("../../src/lib/prism/store", () => ({
-  usePrism: { getState: () => ({ settings: settingsMock }) },
+vi.mock("../../src/lib/forja/store", () => ({
+  useForja: { getState: () => ({ settings: settingsMock }) },
 }));
 
 // No necesitamos resolver adjuntos en este test.
-vi.mock("../../src/lib/prism/attachment-blob", () => ({
+vi.mock("../../src/lib/forja/attachment-blob", () => ({
   resolveAttachmentDataUrl: async (a: { dataUrl?: string; blobId?: string }) => a.dataUrl ?? null,
 }));
 
-import { streamChat } from "../../src/lib/prism/chat-client";
-import type { ProviderConfig } from "../../src/lib/prism/types";
-import { DEFAULT_SETTINGS } from "../../src/lib/prism/types";
-import { TOOL_CATALOG } from "../../src/lib/prism/tools-catalog";
+import { streamChat } from "../../src/lib/forja/chat-client";
+import type { ProviderConfig } from "../../src/lib/forja/types";
+import { DEFAULT_SETTINGS } from "../../src/lib/forja/types";
+import { TOOL_CATALOG } from "../../src/lib/forja/tools-catalog";
 
 const cfg = (extra: Partial<ProviderConfig> = {}): ProviderConfig =>
   ({ apiKey: "sk-x", enabled: true, models: [], ...extra }) as ProviderConfig;

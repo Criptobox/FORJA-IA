@@ -20,7 +20,7 @@ import {
   MAX_CHARS_RESULTADO,
   type Resultado,
   type SubEncargo,
-} from "../../src/lib/prism/orquesta";
+} from "../../src/lib/forja/orquesta";
 
 const sub = (titulo: string, instruccion = "haz algo concreto"): SubEncargo => ({
   titulo,

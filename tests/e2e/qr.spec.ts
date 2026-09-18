@@ -32,7 +32,7 @@ async function seed(page: Page, sesiones: number) {
         })),
       }));
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions,
@@ -49,7 +49,7 @@ async function seed(page: Page, sesiones: number) {
           version: 0,
         })
       );
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
     },
     { clave: CLAVE, n: sesiones }
   );
@@ -106,7 +106,7 @@ test("el QR contiene exactamente el código de traspaso", async ({ page }) => {
   await panel.getByRole("button", { name: "Generar código" }).click();
 
   const codigo = await panel.getByLabel("Código de transferencia").inputValue();
-  expect(codigo.startsWith("PRISM1.")).toBe(true);
+  expect(codigo.startsWith("FORJA1.")).toBe(true);
 
   const px = await pixelesDelQr(page);
   expect(px, "el QR tiene que estar pintado").not.toBeNull();

@@ -9,7 +9,7 @@ import {
   respuestaCortada,
   continuarCodigoPrompt,
   unirContinuacion,
-} from "../../src/lib/prism/continuar";
+} from "../../src/lib/forja/continuar";
 
 const F = "```";
 

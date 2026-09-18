@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { useUsage, avgMs, p95Ms } from "../../src/lib/prism/usage";
+import { useUsage, avgMs, p95Ms } from "../../src/lib/forja/usage";
 
 const reset = () => useUsage.setState({ byModel: {}, days: {} });
 

@@ -19,9 +19,9 @@ const MODEL_ID = "mock-2d-mal-puesto";
 async function seed(page: Page, model: string) {
   await page.addInitScript((m: string) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

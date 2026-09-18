@@ -120,7 +120,7 @@ afterEach(() => {
 
 describe("putBlob/getBlob/deleteBlob/clearAllBlobs", () => {
   it("pone y recupera un dataUrl por su id", async () => {
-    const { putBlob, getBlob } = await import("../../src/lib/prism/attachment-blob");
+    const { putBlob, getBlob } = await import("../../src/lib/forja/attachment-blob");
     const ok = await putBlob("att-1", "data:image/png;base64,AAAA");
     expect(ok).toBe(true);
     const v = await getBlob("att-1");
@@ -128,19 +128,19 @@ describe("putBlob/getBlob/deleteBlob/clearAllBlobs", () => {
   });
 
   it("getBlob devuelve null si la entrada no existe", async () => {
-    const { getBlob } = await import("../../src/lib/prism/attachment-blob");
+    const { getBlob } = await import("../../src/lib/forja/attachment-blob");
     expect(await getBlob("inexistente")).toBe(null);
   });
 
   it("deleteBlob borra la entrada", async () => {
-    const { putBlob, getBlob, deleteBlob } = await import("../../src/lib/prism/attachment-blob");
+    const { putBlob, getBlob, deleteBlob } = await import("../../src/lib/forja/attachment-blob");
     await putBlob("att-2", "data:image/png;base64,BBBB");
     await deleteBlob("att-2");
     expect(await getBlob("att-2")).toBe(null);
   });
 
   it("clearAllBlobs vacía el almacén", async () => {
-    const { putBlob, getBlob, clearAllBlobs } = await import("../../src/lib/prism/attachment-blob");
+    const { putBlob, getBlob, clearAllBlobs } = await import("../../src/lib/forja/attachment-blob");
     await putBlob("a", "data:1");
     await putBlob("b", "data:2");
     await clearAllBlobs();
@@ -151,7 +151,7 @@ describe("putBlob/getBlob/deleteBlob/clearAllBlobs", () => {
   it("putBlob no lanza si indexedDB.open falla: devuelve false", async () => {
     // IDB caído: simulamos que open lanza.
     globalThis.indexedDB = { open: () => { throw new Error("IDB no disponible"); } } as unknown as typeof indexedDB;
-    const { putBlob } = await import("../../src/lib/prism/attachment-blob");
+    const { putBlob } = await import("../../src/lib/forja/attachment-blob");
     const ok = await putBlob("x", "data:y");
     expect(ok).toBe(false);
   });
@@ -159,7 +159,7 @@ describe("putBlob/getBlob/deleteBlob/clearAllBlobs", () => {
 
 describe("resolveAttachmentDataUrl", () => {
   it("devuelve dataUrl del propio attachment si está presente", async () => {
-    const { resolveAttachmentDataUrl } = await import("../../src/lib/prism/attachment-blob");
+    const { resolveAttachmentDataUrl } = await import("../../src/lib/forja/attachment-blob");
     const v = await resolveAttachmentDataUrl({
       id: "x",
       dataUrl: "data:image/png;base64,AAAA",
@@ -168,20 +168,20 @@ describe("resolveAttachmentDataUrl", () => {
   });
 
   it("cae a IndexedDB por blobId cuando dataUrl no está", async () => {
-    const { putBlob, resolveAttachmentDataUrl } = await import("../../src/lib/prism/attachment-blob");
+    const { putBlob, resolveAttachmentDataUrl } = await import("../../src/lib/forja/attachment-blob");
     await putBlob("att-3", "data:image/jpeg;base64,CCCC");
     const v = await resolveAttachmentDataUrl({ id: "att-3", blobId: "att-3" });
     expect(v).toBe("data:image/jpeg;base64,CCCC");
   });
 
   it("devuelve null si no hay ni dataUrl ni blobId", async () => {
-    const { resolveAttachmentDataUrl } = await import("../../src/lib/prism/attachment-blob");
+    const { resolveAttachmentDataUrl } = await import("../../src/lib/forja/attachment-blob");
     const v = await resolveAttachmentDataUrl({ id: "huerfano" });
     expect(v).toBe(null);
   });
 
   it("devuelve null si blobId apunta a una entrada borrada", async () => {
-    const { resolveAttachmentDataUrl, putBlob, deleteBlob } = await import("../../src/lib/prism/attachment-blob");
+    const { resolveAttachmentDataUrl, putBlob, deleteBlob } = await import("../../src/lib/forja/attachment-blob");
     await putBlob("att-4", "data:1");
     await deleteBlob("att-4");
     const v = await resolveAttachmentDataUrl({ id: "att-4", blobId: "att-4" });
@@ -220,8 +220,8 @@ describe("migrateLegacyAttachments", () => {
       },
     ];
     const setState = vi.fn();
-    vi.doMock("../../src/lib/prism/store", () => ({ usePrism: { getState: () => ({ sessions }), setState } }));
-    const { migrateLegacyAttachments, getBlob } = await import("../../src/lib/prism/attachment-blob");
+    vi.doMock("../../src/lib/forja/store", () => ({ useForja: { getState: () => ({ sessions }), setState } }));
+    const { migrateLegacyAttachments, getBlob } = await import("../../src/lib/forja/attachment-blob");
     const n = await migrateLegacyAttachments();
     expect(n).toBe(1);
     // La entrada IDB existe
@@ -263,8 +263,8 @@ describe("migrateLegacyAttachments", () => {
       },
     ];
     const setState = vi.fn();
-    vi.doMock("../../src/lib/prism/store", () => ({ usePrism: { getState: () => ({ sessions }), setState } }));
-    const { migrateLegacyAttachments } = await import("../../src/lib/prism/attachment-blob");
+    vi.doMock("../../src/lib/forja/store", () => ({ useForja: { getState: () => ({ sessions }), setState } }));
+    const { migrateLegacyAttachments } = await import("../../src/lib/forja/attachment-blob");
     const n = await migrateLegacyAttachments();
     expect(n).toBe(0);
     expect(setState).not.toHaveBeenCalled();
@@ -301,8 +301,8 @@ describe("migrateLegacyAttachments", () => {
     // IDB caído: indexedDB.open lanza.
     globalThis.indexedDB = { open: () => { throw new Error("IDB no disponible"); } } as unknown as typeof indexedDB;
     const setState = vi.fn();
-    vi.doMock("../../src/lib/prism/store", () => ({ usePrism: { getState: () => ({ sessions }), setState } }));
-    const { migrateLegacyAttachments } = await import("../../src/lib/prism/attachment-blob");
+    vi.doMock("../../src/lib/forja/store", () => ({ useForja: { getState: () => ({ sessions }), setState } }));
+    const { migrateLegacyAttachments } = await import("../../src/lib/forja/attachment-blob");
     const n = await migrateLegacyAttachments();
     expect(n).toBe(0);
     expect(setState).not.toHaveBeenCalled();

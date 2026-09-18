@@ -16,9 +16,9 @@ import { expect, test } from "./fixtures";
 async function seed(page: import("@playwright/test").Page) {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -57,7 +57,7 @@ async function seed(page: import("@playwright/test").Page) {
       // un 429 de verdad deja esto en health.ts: cooldown un minuto. El chip de
       // enfriamientos es EL dato que no se veía en ningún sitio
       localStorage.setItem(
-        "prism-health-v1",
+        "forja-health-v1",
         JSON.stringify({
           state: {
             entries: {

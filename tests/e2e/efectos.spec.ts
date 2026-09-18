@@ -19,9 +19,9 @@ const MODEL_ID = "mock-efectos";
 async function seed(page: Page) {
   await page.addInitScript((model: string) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -72,7 +72,7 @@ test("el modelo solo enlaza el kit y Forja lo añade al proyecto", async ({ page
   await page.setViewportSize({ width: 1440, height: 900 });
   await pedirLaPagina(page);
 
-  // Ojo con lo que se mide: el nombre `prism-fx.css` sale igualmente en el
+  // Ojo con lo que se mide: el nombre `forja-fx.css` sale igualmente en el
   // chat porque el HTML del modelo lo ENLAZA. Eso no prueba nada. Lo que
   // prueba que Forja añadió los archivos es el menú de descarga, que cuenta
   // los archivos REALES del proyecto: uno solo ni siquiera abre menú.
@@ -81,8 +81,8 @@ test("el modelo solo enlaza el kit y Forja lo añade al proyecto", async ({ page
   await descargar.click();
   const menu = page.getByRole("menu");
   await expect(menu).toContainText("Esta respuesta creó 3 archivos");
-  await expect(menu).toContainText("prism-fx.css");
-  await expect(menu).toContainText("prism-fx.js");
+  await expect(menu).toContainText("forja-fx.css");
+  await expect(menu).toContainText("forja-fx.js");
   await page.keyboard.press("Escape");
 
   // y no los escribió el modelo: su respuesta solo los enlaza

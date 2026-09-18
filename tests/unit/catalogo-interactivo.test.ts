@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   esEncargoDeTiendaOCatalogo,
   INSTRUCCION_TIENDA_INTERACTIVA,
-} from "../../src/lib/prism/catalogo-interactivo";
+} from "../../src/lib/forja/catalogo-interactivo";
 
 describe("esEncargoDeTiendaOCatalogo", () => {
   it("detecta tiendas, restaurantes y catálogos", () => {

@@ -8,7 +8,7 @@ import {
   esEncargoUINueva,
   idPorNombre,
   promptDireccion,
-} from "../../src/lib/prism/design-directions";
+} from "../../src/lib/forja/design-directions";
 
 describe("direcciones curadas", () => {
   it("tienen ids únicos, uno por cada una", () => {
@@ -89,10 +89,10 @@ describe("elegirDireccion", () => {
 });
 
 describe("DESIGN.md y prompt", () => {
-  it("el DESIGN.md solo menciona prism-3d.js cuando la dirección puede usarlo", () => {
-    expect(aDesignMd(direccionPorId("experimental")!)).toContain("prism-3d.js");
-    expect(aDesignMd(direccionPorId("tech")!)).toContain("prism-3d.js"); // usa 3d-particulas
-    expect(aDesignMd(direccionPorId("calido")!)).not.toContain("prism-3d.js");
+  it("el DESIGN.md solo menciona forja-3d.js cuando la dirección puede usarlo", () => {
+    expect(aDesignMd(direccionPorId("experimental")!)).toContain("forja-3d.js");
+    expect(aDesignMd(direccionPorId("tech")!)).toContain("forja-3d.js"); // usa 3d-particulas
+    expect(aDesignMd(direccionPorId("calido")!)).not.toContain("forja-3d.js");
   });
 
   it("aDesignMd produce un documento completo", () => {

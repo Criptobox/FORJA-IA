@@ -1,7 +1,7 @@
 "use client";
 /** Forja IA — EstadoPanel: el estado de un panel, dibujado igual en todos lados.
  *
- * Componente hermano de la config pura `lib/prism/estados.ts` (allí viven los
+ * Componente hermano de la config pura `lib/forja/estados.ts` (allí viven los
  * roles ARIA y los títulos por defecto, probados; aquí solo el dibujo). Un
  * panel que carga, falla o queda vacío YA NO puede inventarse su propio
  * spinner: manda esta pieza, y el lector de pantalla se entera igual que tú.
@@ -18,7 +18,7 @@ import {
   admiteAccion,
   tituloPorDefecto,
   type EstadoVariante,
-} from "@/lib/prism/estados";
+} from "@/lib/forja/estados";
 
 export interface AccionPanel {
   etiqueta: string;

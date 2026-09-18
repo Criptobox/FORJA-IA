@@ -4,7 +4,7 @@
  * verificar el camino de error: archivos vacíos, sin entry HTML,
  * error de construcción. Estos cubren el «no lances» del runner. */
 import { describe, it, expect } from "vitest";
-import { runProjectInMemory } from "../../src/lib/prism/sandbox-runner";
+import { runProjectInMemory } from "../../src/lib/forja/sandbox-runner";
 
 describe("runProjectInMemory — camino de errores", () => {
   it("sin archivos: ok=false con reason", async () => {

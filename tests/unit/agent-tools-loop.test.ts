@@ -16,10 +16,10 @@ import {
   ejecutarConTools,
   CIERRE_TOOLS,
   type DepsTools,
-} from "../../src/lib/prism/use-agent-tools";
-import type { StreamMessage, StreamOptions } from "../../src/lib/prism/chat-client";
-import type { AppSettings } from "../../src/lib/prism/types";
-import { useLlamadasTexto } from "../../src/lib/prism/llamadas-texto-medidas";
+} from "../../src/lib/forja/use-agent-tools";
+import type { StreamMessage, StreamOptions } from "../../src/lib/forja/chat-client";
+import type { AppSettings } from "../../src/lib/forja/types";
+import { useLlamadasTexto } from "../../src/lib/forja/llamadas-texto-medidas";
 
 /** Opciones mínimas: solo lo que el bucle mira. */
 function opciones(overrides: Partial<StreamOptions> = {}): Omit<StreamOptions, "tools"> {

@@ -4,7 +4,7 @@
 Nota: los PNG actuales de public/icons/ vienen ya generados del kit de marca
 (motor-forja/marca/) — este script queda para cuando haga falta regenerarlos
 desde el SVG maestro; su plantilla MASKABLE_SVG estaba ajustada al viewBox
-del icono anterior (prism-icon.svg, 100x100) y puede necesitar retocarse
+del icono anterior (forja-icon.svg, 100x100) y puede necesitar retocarse
 para el viewBox del yunque (240x240)."""
 import os
 

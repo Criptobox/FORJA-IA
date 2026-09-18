@@ -3,8 +3,8 @@ import {
   compareRuns,
   comparables,
   type RunSnapshot,
-} from "../../src/lib/prism/regression";
-import type { QAResult } from "../../src/lib/prism/visual-qa";
+} from "../../src/lib/forja/regression";
+import type { QAResult } from "../../src/lib/forja/visual-qa";
 
 function snap(overrides: Partial<RunSnapshot> = {}): RunSnapshot {
   return {

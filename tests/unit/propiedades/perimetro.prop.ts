@@ -18,41 +18,41 @@ import {
   VENTANA_MS,
   MAX_POR_VENTANA,
   type Contadores,
-} from "../../../src/lib/prism/proxy-budget";
-import { TOOL_CATALOG } from "../../../src/lib/prism/tools-catalog";
+} from "../../../src/lib/forja/proxy-budget";
+import { TOOL_CATALOG } from "../../../src/lib/forja/tools-catalog";
 import {
   EFECTOS,
   filtrarCatalogo,
   toolPermitida,
   efectosDe,
   type PermisosConcedidos,
-} from "../../../src/lib/prism/tool-permissions";
-import { escudoHistorial } from "../../../src/lib/prism/pii";
-import { buildRunHtml, raizComun, resolvePath } from "../../../src/lib/prism/sandbox";
-import { diagnosticar, arregloDeUnClic } from "../../../src/lib/prism/faltantes";
+} from "../../../src/lib/forja/tool-permissions";
+import { escudoHistorial } from "../../../src/lib/forja/pii";
+import { buildRunHtml, raizComun, resolvePath } from "../../../src/lib/forja/sandbox";
+import { diagnosticar, arregloDeUnClic } from "../../../src/lib/forja/faltantes";
 import {
   contarLlamada,
   normalizarTope,
   TOPE_MINIMO,
   TOPE_MAXIMO,
   type Contador,
-} from "../../../src/lib/prism/gasto";
-import { sinVetados, alternarVeto } from "../../../src/lib/prism/vetados";
+} from "../../../src/lib/forja/gasto";
+import { sinVetados, alternarVeto } from "../../../src/lib/forja/vetados";
 import {
   filasDeGasto,
   parteDe,
   tareasConModelos,
   soloDePago,
   totalDe,
-} from "../../../src/lib/prism/gasto-modelos";
-import type { ModelUsage } from "../../../src/lib/prism/usage";
+} from "../../../src/lib/forja/gasto-modelos";
+import type { ModelUsage } from "../../../src/lib/forja/usage";
 import {
   MAX_CORTES,
   cortesDeHistorial,
   sumarUso,
   aciertoDeCache,
-} from "../../../src/lib/prism/cache-prompt";
-import type { ProviderId } from "../../../src/lib/prism/types";
+} from "../../../src/lib/forja/cache-prompt";
+import type { ProviderId } from "../../../src/lib/forja/types";
 
 /* ------------------------------------------------------------------ */
 /* Presupuesto del proxy                                               */

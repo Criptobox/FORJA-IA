@@ -14,9 +14,9 @@ const MODEL_ID = "mock-scroll";
 async function seed(page: Page) {
   await page.addInitScript((model: string) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { prepareFiles } from "../../src/lib/prism/github-upload";
-import { readZip, writeZip } from "../../src/lib/prism/zip";
+import { prepareFiles } from "../../src/lib/forja/github-upload";
+import { readZip, writeZip } from "../../src/lib/forja/zip";
 
 /** Reproduce exactamente lo que hace `pickZipFile` en github-dialog.tsx: un
  * .zip suelto se lee con readZip() y cada entrada se envuelve en un File con

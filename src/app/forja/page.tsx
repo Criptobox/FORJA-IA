@@ -28,8 +28,8 @@ import { FichaTab } from "@/components/forja/ficha-tab";
 import { AdnTab } from "@/components/forja/adn-tab";
 import { JuecesTab, AntigenericoTab } from "@/components/forja/calidad-tabs";
 import { MotorTab } from "@/components/forja/motor-tab";
-import { cargarMotor, type Motor } from "@/lib/prism/motor-client";
-import { usePrism } from "@/lib/prism/store";
+import { cargarMotor, type Motor } from "@/lib/forja/motor-client";
+import { useForja } from "@/lib/forja/store";
 
 const VERSION_FORJA = "4.3.1";
 const NOMBRE_VERSION = "El Taller a Medida";
@@ -41,7 +41,7 @@ const PESTANAS_VALIDAS = ["inicio", "ficha", "adn", "jueces", "antigenerico", "m
 export default function ForjaEstudio() {
   const [motor, setMotor] = useState<Motor | null>(null);
   const [error, setError] = useState("");
-  const settings = usePrism((s) => s.settings);
+  const settings = useForja((s) => s.settings);
   // Se inicia en "inicio" y se corrige tras montar (evita desajuste de
   // hidratación si la URL trae ?tab=…).
   const [tab, setTab] = useState("inicio");
@@ -66,7 +66,7 @@ export default function ForjaEstudio() {
             <Hammer className="size-7 text-orange-500" />
             <div>
               <h1 className="text-base font-semibold tracking-tight sm:text-lg">
-                FORJA IA · <span className="prism-gradient-text">Estudio</span>
+                FORJA IA · <span className="forja-gradient-text">Estudio</span>
               </h1>
               <p className="text-[12px] text-muted-foreground">
                 El taller completo del módulo, con el tema de tu app — sin

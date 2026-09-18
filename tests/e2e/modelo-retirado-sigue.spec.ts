@@ -14,7 +14,7 @@ async function seed(page: Page) {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -57,7 +57,7 @@ async function seed(page: Page) {
           version: 0,
         })
       );
-      localStorage.removeItem("prism-modelos-rotos-v1");
+      localStorage.removeItem("forja-modelos-rotos-v1");
     } catch {
       /* marco sin acceso */
     }
@@ -98,7 +98,7 @@ test("el modelo retirado queda marcado para que Auto deje de elegirlo", async ({
       () =>
         page.evaluate(() => {
           try {
-            const raw = localStorage.getItem("prism-modelos-rotos-v1") ?? "{}";
+            const raw = localStorage.getItem("forja-modelos-rotos-v1") ?? "{}";
             return Object.keys(JSON.parse(raw).state?.rotos ?? {});
           } catch {
             return [];

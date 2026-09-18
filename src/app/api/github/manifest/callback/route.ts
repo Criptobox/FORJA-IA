@@ -1,6 +1,6 @@
 /** Forja IA — GitHub devuelve el code del manifiesto; lo convertimos en client_id/secret. */
 import { NextResponse } from "next/server";
-import { GH_APP_COOKIE } from "@/lib/prism/github-oauth";
+import { GH_APP_COOKIE } from "@/lib/forja/github-oauth";
 import {
   GH_STATE_COOKIE,
   appOrigin,
@@ -10,8 +10,8 @@ import {
   packState,
   readCookie,
   unpackState,
-} from "@/lib/prism/github-oauth-server";
-import { githubInstallUrl } from "@/lib/prism/github-oauth";
+} from "@/lib/forja/github-oauth-server";
+import { githubInstallUrl } from "@/lib/forja/github-oauth";
 
 export const runtime = "nodejs";
 

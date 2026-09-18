@@ -44,7 +44,7 @@ async function seedMockProvider(page: import("@playwright/test").Page) {
       },
       version: 0,
     };
-    localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+    localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
   });
 }
 
@@ -83,7 +83,7 @@ test.describe("Forja IA — router (Auto, salud, uso)", () => {
         },
         version: 0,
       };
-      localStorage.setItem("prism-health-v1", JSON.stringify(health));
+      localStorage.setItem("forja-health-v1", JSON.stringify(health));
     });
     await page.goto("/");
     const input = page.getByRole("textbox").first();
@@ -116,7 +116,7 @@ test.describe("Forja IA — router (Auto, salud, uso)", () => {
         },
         version: 0,
       };
-      localStorage.setItem("prism-usage-v1", JSON.stringify(usage));
+      localStorage.setItem("forja-usage-v1", JSON.stringify(usage));
     });
     await page.goto("/");
     const input = page.getByRole("textbox").first();
@@ -131,7 +131,7 @@ test.describe("Forja IA — router (Auto, salud, uso)", () => {
 
   test("la compresión estándar marca el ahorro (chip ctx −%) en la respuesta", async ({ page }) => {
     await page.addInitScript(() => {
-      const seed = JSON.parse(localStorage.getItem("prism-ai-v1")!);
+      const seed = JSON.parse(localStorage.getItem("forja-ai-v1")!);
       seed.state.settings.compression = "standard";
       const largo = Array.from({ length: 14 }, () =>
         "Por supuesto, básicamente la   función   anterior   recibe   los   parámetros   y   devuelve   el   resultado   esperado   por   el   usuario   final   de   la   aplicación."
@@ -150,7 +150,7 @@ test.describe("Forja IA — router (Auto, salud, uso)", () => {
       };
       seed.state.sessions = [s];
       seed.state.activeSessionId = "s-comp";
-      localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+      localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
     });
     await page.goto("/");
     const input = page.getByPlaceholder("Escribe tu mensaje…");

@@ -9,8 +9,8 @@ import {
   type OpenAITool,
   type AnthropicTool,
   type GeminiTool,
-} from "../../src/lib/prism/tools-translate";
-import { TOOL_CATALOG } from "../../src/lib/prism/tools-catalog";
+} from "../../src/lib/forja/tools-translate";
+import { TOOL_CATALOG } from "../../src/lib/forja/tools-catalog";
 
 describe("translateTools", () => {
   it("devuelve null si el catálogo está vacío", () => {

@@ -5,17 +5,17 @@ import {
   addDiseno,
   addError,
   addTarea,
-  aArchivosPrism,
-  deArchivosPrism,
-  hayPrismEn,
+  aArchivosForja,
+  deArchivosForja,
+  hayForjaEn,
   leerMemoria,
   guardarMemoria,
   ultimoDiseno,
   reintentosDeModelo,
   reglasAMemoria,
   renderMemoriaParaPrompt,
-} from "../../src/lib/prism/memoria-proyecto";
-import { memoriaComoStorage } from "../../src/lib/prism/snapshots";
+} from "../../src/lib/forja/memoria-proyecto";
+import { memoriaComoStorage } from "../../src/lib/forja/snapshots";
 
 describe("operaciones de memoria", () => {
   it("addDecision añade al principio y recorta", () => {
@@ -80,11 +80,11 @@ describe("operaciones de memoria", () => {
   });
 });
 
-describe("export/import .prism/", () => {
-  it("aArchivosPrism solo incluye secciones con contenido", () => {
+describe("export/import .forja/", () => {
+  it("aArchivosForja solo incluye secciones con contenido", () => {
     const m = addDecision(addTarea(MEMORIA_VACIA, "t"), "d", "usuario");
-    const files = aArchivosPrism(m);
-    expect(Object.keys(files).sort()).toEqual([".prism/decisions.json", ".prism/tasks.json"]);
+    const files = aArchivosForja(m);
+    expect(Object.keys(files).sort()).toEqual([".forja/decisions.json", ".forja/tasks.json"]);
   });
 
   it("ida y vuelta: lo que se exporta se recupera", () => {
@@ -100,8 +100,8 @@ describe("export/import .prism/", () => {
       "usuario",
       "global"
     );
-    const files = aArchivosPrism(m);
-    const deVuelta = deArchivosPrism(files);
+    const files = aArchivosForja(m);
+    const deVuelta = deArchivosForja(files);
     expect(deVuelta.decisiones[0].contenido).toBe("la paleta es cálida");
     expect(deVuelta.errores[0].solucion).toBe("solución X");
     expect(deVuelta.tareas[0].objetivo).toBe("mejora el hero");
@@ -109,26 +109,26 @@ describe("export/import .prism/", () => {
   });
 
   it("tolera JSON corrupto y archivos ausentes", () => {
-    const m = deArchivosPrism({
-      ".prism/decisions.json": "{{{basura",
+    const m = deArchivosForja({
+      ".forja/decisions.json": "{{{basura",
       "index.html": "<html></html>",
     });
     expect(m.decisiones).toEqual([]);
     expect(m.errores).toEqual([]);
   });
 
-  it("deArchivosPrism tolera rutas con carpeta raíz (zip)", () => {
-    const m = deArchivosPrism({
-      "repo-main/.prism/tasks.json": JSON.stringify([
+  it("deArchivosForja tolera rutas con carpeta raíz (zip)", () => {
+    const m = deArchivosForja({
+      "repo-main/.forja/tasks.json": JSON.stringify([
         { objetivo: "t", estado: "done", creadoEl: 1 },
       ]),
     });
     expect(m.tareas).toHaveLength(1);
   });
 
-  it("hayPrismEn detecta la carpeta", () => {
-    expect(hayPrismEn({ ".prism/tasks.json": "[]" })).toBe(true);
-    expect(hayPrismEn({ "index.html": "" })).toBe(false);
+  it("hayForjaEn detecta la carpeta", () => {
+    expect(hayForjaEn({ ".forja/tasks.json": "[]" })).toBe(true);
+    expect(hayForjaEn({ "index.html": "" })).toBe(false);
   });
 });
 

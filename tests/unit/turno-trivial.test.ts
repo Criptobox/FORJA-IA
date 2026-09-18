@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { esTurnoTrivial } from "../../src/lib/prism/turno-trivial";
+import { esTurnoTrivial } from "../../src/lib/forja/turno-trivial";
 
 describe("esTurnoTrivial — un saludo no arranca el bucle del agente", () => {
   it("los saludos y cortesías lo son", () => {

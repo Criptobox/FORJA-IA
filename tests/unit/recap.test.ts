@@ -6,7 +6,7 @@ import {
   instructionLabel,
   recapPrompt,
   translatePrompt,
-} from "../../src/lib/prism/recap";
+} from "../../src/lib/forja/recap";
 
 describe("idiomas de traducción", () => {
   it("ofrece los seis idiomas pedidos", () => {

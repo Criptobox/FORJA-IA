@@ -6,7 +6,7 @@ import {
   parseModelPaste,
   parseNimSnippet,
   parseProviderSnippet,
-} from "../../src/lib/prism/model-paste";
+} from "../../src/lib/forja/model-paste";
 
 const NVIDIA = `
 import requests

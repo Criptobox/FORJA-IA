@@ -4,7 +4,7 @@ import {
   colorOpaco,
   reglasInspector,
   type ElementoInspeccionable,
-} from "../../src/lib/prism/inspector-checks";
+} from "../../src/lib/forja/inspector-checks";
 
 /* Las reglas del Inspector se prueban con elementos falsos: si una regla
  * cambia de criterio (el umbral, la severidad, quién la dispara), este test

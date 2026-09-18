@@ -19,9 +19,9 @@ async function seed(page: Page, conRegla: boolean) {
     ({ model, conRegla }: { model: string; conRegla: boolean }) => {
       if (window.top !== window.self) return;
       try {
-        localStorage.setItem("prism-preview-demo", "1");
+        localStorage.setItem("forja-preview-demo", "1");
         localStorage.setItem(
-          "prism-ai-v1",
+          "forja-ai-v1",
           JSON.stringify({
             state: {
               sessions: [

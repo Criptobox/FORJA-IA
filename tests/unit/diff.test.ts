@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { diffLines, fileDiff, toHunks, wholeFileDiff } from "../../src/lib/prism/diff";
+import { diffLines, fileDiff, toHunks, wholeFileDiff } from "../../src/lib/forja/diff";
 
 const texto = (...l: string[]) => l.join("\n") + "\n";
 

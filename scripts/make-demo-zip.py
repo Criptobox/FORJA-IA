@@ -18,7 +18,7 @@ INDEX = """<!doctype html>
 </head>
 <body>
   <main class="card">
-    <img src="assets/prisma.svg" alt="Prisma" width="72" height="72">
+    <img src="assets/logo.svg" alt="Logo" width="72" height="72">
     <h1>Funciona <span>de verdad</span></h1>
     <p>Este proyecto vino de un ZIP y ahora corre en el Sandbox de Forja IA.</p>
     <button id="btn">Pulsado 0 veces</button>
@@ -95,7 +95,7 @@ Proyecto web estático de ejemplo para probar Forja IA Sandbox.
 - `index.html` — entrada
 - `css/style.css` — estilos (inlineado automático)
 - `js/app.js` — lógica (inlineado automático)
-- `assets/prisma.svg` — imagen local (data URL automática)
+- `assets/logo.svg` — imagen local (data URL automática)
 
 Edítalo, pulsa **Ejecutar** para verlo correr y **Revisar** para que el
 Sandbox te diga qué habría que arreglar antes de subirlo a GitHub.
@@ -107,6 +107,6 @@ with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as z:
     z.writestr("demo-web/index.html", INDEX)
     z.writestr("demo-web/css/style.css", CSS)
     z.writestr("demo-web/js/app.js", JS)
-    z.writestr("demo-web/assets/prisma.svg", SVG)
+    z.writestr("demo-web/assets/logo.svg", SVG)
 
 print("OK", target, os.path.getsize(target), "bytes")

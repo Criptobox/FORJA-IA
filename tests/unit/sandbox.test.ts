@@ -11,7 +11,7 @@ import {
   raizComun,
   resolvePath,
   SANDBOX_ORIGIN,
-} from "../../src/lib/prism/sandbox";
+} from "../../src/lib/forja/sandbox";
 
 function filesOf(spec: Record<string, string>): Map<string, Uint8Array> {
   const m = new Map<string, Uint8Array>();
@@ -155,7 +155,7 @@ body { background: url(../img/a.png); }
 
   it("inlinea el CSS local con @import y url() reescritos", () => {
     expect(res.html).toContain(".extra { color: violet }");
-    expect(res.html).toContain('data-prism-from="css/style.css"');
+    expect(res.html).toContain('data-forja-from="css/style.css"');
     expect(res.html).toMatch(/url\("data:image\/png;base64,/);
     expect(res.html).not.toMatch(/@import\s+(?:url\(|["'])/);
   });
@@ -179,7 +179,7 @@ body { background: url(../img/a.png); }
   it("inyecta el puente de consola exactamente una vez", () => {
     const veces = res.html.split(SANDBOX_ORIGIN).length - 1;
     expect(veces).toBeGreaterThanOrEqual(1);
-    expect(res.html.match(/prism-sandbox/g)?.length).toBe(1);
+    expect(res.html.match(/forja-sandbox/g)?.length).toBe(1);
   });
 
   it("si falta la entrada devuelve un HTML de error controlado", () => {
@@ -315,7 +315,7 @@ describe("buildRunHtml — el peso que se enseña es el del proyecto", () => {
     // el bundle servido lleva la instrumentación; el peso que se reporta, no
     expect(r.html.length).toBeGreaterThan(r.htmlBytes);
     expect(r.htmlBytes).toBe(html.length);
-    expect(r.html).toContain("prism-sandbox");
+    expect(r.html).toContain("forja-sandbox");
   });
 
   it("sí cuenta lo que el proyecto se lleva empaquetado dentro", () => {

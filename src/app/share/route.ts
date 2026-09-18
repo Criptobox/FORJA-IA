@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     const res = NextResponse.redirect(new URL("/?shared=1", req.url));
-    res.cookies.set("prism-share", contenido, {
+    res.cookies.set("forja-share", contenido, {
       path: "/",
       sameSite: "lax",
       maxAge: 60,

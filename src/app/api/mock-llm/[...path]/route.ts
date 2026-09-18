@@ -258,7 +258,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
 
   // `mock-efectos`: una página que ENLAZA el kit de efectos sin escribirlo,
   // que es exactamente lo que se le pide al modelo real. Sirve para comprobar
-  // dos cosas: que Forja añade `prism-fx.css`/`prism-fx.js` al proyecto por su
+  // dos cosas: que Forja añade `forja-fx.css`/`forja-fx.js` al proyecto por su
   // cuenta, y que el contenido dentro de un `data-fx="reveal"` se ve — con o
   // sin JavaScript.
   if (modelo === "mock-efectos") {
@@ -270,7 +270,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<html lang="es"><head><meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
       "<title>Con efectos</title>",
-      '<link rel="stylesheet" href="prism-fx.css">',
+      '<link rel="stylesheet" href="forja-fx.css">',
       "</head>",
       '<body style="font-family:system-ui;margin:0;padding:24px">',
       '<section data-fx="reveal"><h1>Titular que entra al hacer scroll</h1></section>',
@@ -279,7 +279,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<button id="b" onclick="document.getElementById(\'n\').textContent=\'pulsado\'">Púlsame</button>',
       '<span id="n">sin pulsar</span>',
       "</section>",
-      '<script src="prism-fx.js" defer></script>',
+      '<script src="forja-fx.js" defer></script>',
       "</body></html>",
       "```",
     ].join("\n");
@@ -412,14 +412,14 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
     );
     const escena = leCorrigieron
       ? ""
-      : '<canvas data-fx3d="3d-malla" class="fx-mesh" style="width:100%;height:300px;display:block"></canvas>\n<script src="prism-3d.js" defer></script>\n';
+      : '<canvas data-fx3d="3d-malla" class="fx-mesh" style="width:100%;height:300px;display:block"></canvas>\n<script src="forja-3d.js" defer></script>\n';
     return [
       leCorrigieron ? "Quitado el motor 3D." : "Aquí tienes la página.",
       "",
       "```html",
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8"><title>Tienda</title>',
-      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<link rel="stylesheet" href="forja-fx.css"></head>',
       '<body style="margin:0;font-family:system-ui">',
       "<h1>Bienvenido a la tienda</h1>",
       escena,
@@ -453,7 +453,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "```html",
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8"><title>Revista</title>',
-      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<link rel="stylesheet" href="forja-fx.css"></head>',
       '<body style="margin:0;font-family:system-ui">',
       "<h1>Editorial de revista</h1>",
       marquee,
@@ -473,7 +473,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8">',
       "<title>Con marquee</title>",
-      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<link rel="stylesheet" href="forja-fx.css"></head>',
       '<body style="margin:0">',
       '<div class="fx-marquee" style="white-space:nowrap;overflow:hidden">Últimas noticias · Últimas noticias ·</div>',
       "</body></html>",
@@ -511,7 +511,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
 
   // `mock-3d`: enlaza el motor 3D (canvas con globo de líneas) sin
   // escribirlo — igual que `mock-efectos` para el kit normal, pero para
-  // comprobar que Forja también añade `prism-3d.js` cuando hace falta.
+  // comprobar que Forja también añade `forja-3d.js` cuando hace falta.
   if (modelo === "mock-3d") {
     return [
       "Aquí tienes la escena.",
@@ -520,10 +520,10 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8">',
       "<title>Con 3D</title>",
-      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<link rel="stylesheet" href="forja-fx.css"></head>',
       '<body style="margin:0;color:oklch(0.7 0.2 280)">',
       '<canvas data-fx3d="3d-malla" class="fx-mesh" style="width:100%;height:400px;display:block"></canvas>',
-      '<script src="prism-3d.js" defer></script>',
+      '<script src="forja-3d.js" defer></script>',
       "</body></html>",
       "```",
     ].join("\n");
@@ -580,7 +580,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8">',
       "<title>Scroll narrativo</title>",
-      '<link rel="stylesheet" href="prism-fx.css"></head>',
+      '<link rel="stylesheet" href="forja-fx.css"></head>',
       '<body style="margin:0;font-family:system-ui">',
       '<section data-fx="pin" style="height:300vh">',
       '<div data-fx="pin-inner" style="display:flex;align-items:center;justify-content:center">',
@@ -590,7 +590,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<div data-fx="horizontal-track">',
       '<div style="width:100vw;flex:none">Panel A</div><div style="width:100vw;flex:none">Panel B</div><div style="width:100vw;flex:none">Panel C</div>',
       "</div></section>",
-      '<script src="prism-fx.js" defer></script>',
+      '<script src="forja-fx.js" defer></script>',
       "</body></html>",
       "```",
     ].join("\n");

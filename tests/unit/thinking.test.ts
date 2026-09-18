@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitThinkTags } from "../../src/lib/prism/thinking";
+import { splitThinkTags } from "../../src/lib/forja/thinking";
 
 describe("splitThinkTags", () => {
   it("devuelve el contenido intacto si no hay <think>", () => {

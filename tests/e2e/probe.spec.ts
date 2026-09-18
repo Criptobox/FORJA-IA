@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { RADAR_NOVEDAD_IDS } from "../../src/lib/prism/free-radar";
+import { RADAR_NOVEDAD_IDS } from "../../src/lib/forja/free-radar";
 
 /** Comprobar modelos antes de fiarse de ellos.
  *
@@ -22,7 +22,7 @@ test.beforeEach(async ({ page }) => {
   // Darlo por visto lo quita de en medio: este escenario no va del radar.
   await page.addInitScript(({ prov, vistos }) => {
     localStorage.setItem(
-      "prism-ai-v1",
+      "forja-ai-v1",
       JSON.stringify({
         state: {
           sessions: [],
@@ -52,7 +52,7 @@ test.beforeEach(async ({ page }) => {
         version: 0,
       })
     );
-    localStorage.setItem("prism-preview-demo", "1");
+    localStorage.setItem("forja-preview-demo", "1");
   }, { prov: PROV(["mock-mini-free", "mock-pro-free", "modelo-fantasma"]), vistos: RADAR_NOVEDAD_IDS });
 });
 
@@ -99,9 +99,9 @@ test("marca el modelo que el proveedor no reconoce y lo quita de un clic", async
 
 test("cuando todos responden no propone quitar nada", async ({ page }) => {
   await page.addInitScript((prov) => {
-    const raw = JSON.parse(localStorage.getItem("prism-ai-v1") || "{}");
+    const raw = JSON.parse(localStorage.getItem("forja-ai-v1") || "{}");
     raw.state.providers.custom = prov;
-    localStorage.setItem("prism-ai-v1", JSON.stringify(raw));
+    localStorage.setItem("forja-ai-v1", JSON.stringify(raw));
   }, PROV(["mock-mini-free", "mock-pro-free"]));
 
   await page.goto("/");

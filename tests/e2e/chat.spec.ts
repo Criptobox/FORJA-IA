@@ -40,7 +40,7 @@ async function seedMockProvider(page: import("@playwright/test").Page) {
       },
       version: 0,
     };
-    localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+    localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
   });
 }
 

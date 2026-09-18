@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { TEMPLATES, filterTemplates } from "../../src/lib/prism/templates";
-import { readZip } from "../../src/lib/prism/zip";
+import { TEMPLATES, filterTemplates } from "../../src/lib/forja/templates";
+import { readZip } from "../../src/lib/forja/zip";
 
 describe("filterTemplates", () => {
   it("sin query devuelve todo el catálogo", () => {

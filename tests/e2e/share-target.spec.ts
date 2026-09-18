@@ -7,7 +7,7 @@ import { expect, test } from "./fixtures";
  * Aquí se prueba el handler directamente: se hace POST con
  * `multipart/form-data` (como haría el navegador) y se verifica que
  * la respuesta es una redirección a `/?shared=1` con la cookie
- * `prism-share` puesta.
+ * `forja-share` puesta.
  *
  * No se puede probar el flujo completo (compartir desde otra app) en
  * Playwright porque el navegador no expone esa UI. Pero el handler es
@@ -15,9 +15,9 @@ import { expect, test } from "./fixtures";
  */
 
 test.describe("Share Target (PLAN-V4 punto 4)", () => {
-  test("POST con texto plano redirige y pone la cookie prism-share", async ({ request }) => {
+  test("POST con texto plano redirige y pone la cookie forja-share", async ({ request }) => {
     // Construye el body multipart/form-data a mano (sin dependencias).
-    const boundary = "----prism-test-boundary";
+    const boundary = "----forja-test-boundary";
     const body =
       `--${boundary}\r\n` +
       `Content-Disposition: form-data; name="text"\r\n\r\n` +
@@ -39,14 +39,14 @@ test.describe("Share Target (PLAN-V4 punto 4)", () => {
     const location = res.headers()["location"];
     expect(location).toContain("/?shared=1");
 
-    // La cookie prism-share se setea en la respuesta de redirección.
+    // La cookie forja-share se setea en la respuesta de redirección.
     const setCookie = res.headers()["set-cookie"] ?? "";
-    expect(setCookie).toContain("prism-share=");
+    expect(setCookie).toContain("forja-share=");
     expect(setCookie).toContain(encodeURIComponent("Nota compartida"));
   });
 
   test("POST sin campos redirige sin cookie", async ({ request }) => {
-    const boundary = "----prism-test-boundary";
+    const boundary = "----forja-test-boundary";
     const body = `--${boundary}--\r\n`;
     const res = await request.post("http://localhost:3000/share", {
       headers: { "Content-Type": `multipart/form-data; boundary=${boundary}` },
@@ -55,9 +55,9 @@ test.describe("Share Target (PLAN-V4 punto 4)", () => {
     });
     expect(res.status()).toBeGreaterThanOrEqual(300);
     expect(res.status()).toBeLessThan(400);
-    // Sin cookie prism-share.
+    // Sin cookie forja-share.
     const setCookie = res.headers()["set-cookie"] ?? "";
-    expect(setCookie).not.toContain("prism-share=");
+    expect(setCookie).not.toContain("forja-share=");
   });
 
   test("GET / sigue funcionando (no se rompe con el handler POST)", async ({ request }) => {

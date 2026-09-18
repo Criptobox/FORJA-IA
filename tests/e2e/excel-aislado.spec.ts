@@ -28,9 +28,9 @@ function libroDePrueba(): Buffer {
 test("un .xlsx adjunto se lee en el worker y sus celdas viajan al modelo", async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

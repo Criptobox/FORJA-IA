@@ -7,7 +7,7 @@ import {
   TOOL_BY_NAME,
   isKnownTool,
   type ToolDef,
-} from "../../src/lib/prism/tools-catalog";
+} from "../../src/lib/forja/tools-catalog";
 
 describe("TOOL_CATALOG", () => {
   it("cada herramienta tiene nombre, descripción y parámetros con tipo", () => {

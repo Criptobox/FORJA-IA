@@ -15,10 +15,10 @@ import {
   AVISO_ALTO,
   AVISO_CRITICO,
   CHARS_POR_TOKEN,
-} from "../../src/lib/prism/presupuesto";
-import { BUILTIN_SKILLS } from "../../src/lib/prism/skills-data";
-import { DEFAULT_SETTINGS } from "../../src/lib/prism/types";
-import { agentPrompt } from "../../src/lib/prism/agent-loop";
+} from "../../src/lib/forja/presupuesto";
+import { BUILTIN_SKILLS } from "../../src/lib/forja/skills-data";
+import { DEFAULT_SETTINGS } from "../../src/lib/forja/types";
+import { agentPrompt } from "../../src/lib/forja/agent-loop";
 
 const base = { sistema: "Eres Forja IA." };
 

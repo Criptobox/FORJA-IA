@@ -10,8 +10,8 @@ import {
   removeNote,
   renderMapForPrompt,
   withHistory,
-} from "../../src/lib/prism/project-map";
-import type { ProjectMap } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/project-map";
+import type { ProjectMap } from "../../src/lib/forja/types";
 
 const INDEX_HTML = `<!doctype html><html><head><title>Panel CRM</title>
 <link rel="stylesheet" href="./styles.css"><script src="js/app.js?v=2"></script></head>

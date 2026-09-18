@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diagnoseFindings, summarizeDiagnosis } from "../../src/lib/prism/web-diagnostics";
+import { diagnoseFindings, summarizeDiagnosis } from "../../src/lib/forja/web-diagnostics";
 
 describe("diagnoseFindings — evidencia del verificador convertida en acción", () => {
   it("un error de runtime se marca bloqueante y apunta al código de la app", () => {

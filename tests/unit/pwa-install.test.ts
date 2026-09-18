@@ -14,7 +14,7 @@ import {
   leerEstado,
   suscribirse,
   enModoApp,
-} from "../../src/lib/prism/pwa-install";
+} from "../../src/lib/forja/pwa-install";
 
 type Oyente = (e: unknown) => void;
 

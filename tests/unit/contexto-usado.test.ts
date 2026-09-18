@@ -14,7 +14,7 @@ import {
   lineaContexto,
   detalleContexto,
   type ContextoUsado,
-} from "../../src/lib/prism/contexto-usado";
+} from "../../src/lib/forja/contexto-usado";
 
 const ctx = (over: Partial<ContextoUsado> = {}): ContextoUsado => ({ ...CONTEXTO_VACIO, ...over });
 

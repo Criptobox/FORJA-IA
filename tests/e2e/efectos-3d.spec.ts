@@ -3,10 +3,10 @@ import { expect, test, type Page } from "./fixtures";
 /** Forja IA — El motor 3D: se añade al proyecto, arranca cuando puede y se
  * calla cuando no debería.
  *
- * `mock-3d` enlaza `prism-3d.js` sin escribirlo (igual que `mock-efectos`
+ * `mock-3d` enlaza `forja-3d.js` sin escribirlo (igual que `mock-efectos`
  * hace con el kit normal): comprueba que Forja lo añade al proyecto y que la
  * escena arranca de verdad — y, en un equipo simulado de gama baja, que NO
- * arranca. `window.__prism3dActivo` es la única señal que expone el motor
+ * arranca. `window.__forja3dActivo` es la única señal que expone el motor
  * para esto: no cambia el render, solo dice si decidió dibujar.
  */
 
@@ -15,9 +15,9 @@ const MODEL_ID = "mock-3d";
 async function seed(page: Page) {
   await page.addInitScript((model: string) => {
     try {
-      localStorage.setItem("prism-preview-demo", "1");
+      localStorage.setItem("forja-preview-demo", "1");
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],
@@ -62,7 +62,7 @@ async function pedirLaEscena(page: Page) {
   await page.keyboard.press("Enter");
 }
 
-test("Forja añade prism-3d.js al proyecto: el modelo solo lo enlaza", async ({ page }) => {
+test("Forja añade forja-3d.js al proyecto: el modelo solo lo enlaza", async ({ page }) => {
   test.setTimeout(180_000);
   await seed(page);
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -72,8 +72,8 @@ test("Forja añade prism-3d.js al proyecto: el modelo solo lo enlaza", async ({ 
   await expect(descargar).toBeVisible({ timeout: 90_000 });
   await descargar.click();
   const menu = page.getByRole("menu");
-  await expect(menu).toContainText("prism-3d.js");
-  await expect(menu).toContainText("prism-fx.css");
+  await expect(menu).toContainText("forja-3d.js");
+  await expect(menu).toContainText("forja-fx.css");
   await page.keyboard.press("Escape");
 });
 
@@ -93,14 +93,14 @@ test.describe("con animaciones permitidas", () => {
         () =>
           marco
             .locator("canvas[data-fx3d]")
-            .evaluate(() => (window as unknown as Record<string, unknown>).__prism3dActivo ?? null),
+            .evaluate(() => (window as unknown as Record<string, unknown>).__forja3dActivo ?? null),
         { timeout: 20_000 }
       )
       .toBe(true);
   });
 
   // La detección de gama baja (`hardwareConcurrency`/`deviceMemory` en
-  // `prism-3d.js`) se comprueba en `tests/unit/efectos.test.ts` — ahí es
+  // `forja-3d.js`) se comprueba en `tests/unit/efectos.test.ts` — ahí es
   // determinista: se lee el texto del script y se confirma que la condición
   // existe y se evalúa ANTES de activar la escena.
   //
@@ -129,6 +129,6 @@ test("sin animaciones, la escena tampoco arranca (mismo criterio que el resto de
   await page.waitForTimeout(1500);
   const activo = await marco
     .locator("canvas[data-fx3d]")
-    .evaluate(() => (window as unknown as Record<string, unknown>).__prism3dActivo ?? null);
+    .evaluate(() => (window as unknown as Record<string, unknown>).__forja3dActivo ?? null);
   expect(activo).not.toBe(true);
 });

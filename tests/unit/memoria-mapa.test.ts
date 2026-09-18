@@ -3,8 +3,8 @@ import {
   buscarEnMapa,
   resumenMemoria,
   MAX_RESULTADOS_MEMORIA,
-} from "../../src/lib/prism/project-map";
-import type { ProjectMap } from "../../src/lib/prism/types";
+} from "../../src/lib/forja/project-map";
+import type { ProjectMap } from "../../src/lib/forja/types";
 
 function mapa(over: Partial<ProjectMap> = {}): ProjectMap {
   return {

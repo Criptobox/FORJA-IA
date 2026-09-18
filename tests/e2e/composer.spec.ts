@@ -46,7 +46,7 @@ async function seed(page: import("@playwright/test").Page) {
       version: 0,
     };
     try {
-      localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+      localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
     } catch {
       /* frame sin acceso */
     }

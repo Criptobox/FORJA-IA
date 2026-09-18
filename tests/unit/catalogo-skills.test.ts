@@ -11,7 +11,7 @@ import {
   yaInstalada,
   URL_CATALOGO,
   type EntradaCatalogo,
-} from "../../src/lib/prism/catalogo-skills";
+} from "../../src/lib/forja/catalogo-skills";
 import { readFileSync } from "node:fs";
 
 describe("parseCatalogo — no fiarse del índice", () => {

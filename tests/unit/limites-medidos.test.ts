@@ -5,7 +5,7 @@ import {
   cabe,
   motivoNoCabe,
   type Limites,
-} from "../../src/lib/prism/limites-medidos";
+} from "../../src/lib/forja/limites-medidos";
 
 const AHORA = Date.parse("2026-09-06T12:00:00Z");
 const K = "groq::qwen/qwen3.8-27b";

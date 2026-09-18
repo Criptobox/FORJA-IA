@@ -8,7 +8,7 @@
  *
  * Los repos viven en <proyecto>/workspace/repos/<owner>---<repo> (carpeta ignorada por git).
  */
-import { guardRequest, guardResponse } from "@/lib/prism/api-guard";
+import { guardRequest, guardResponse } from "@/lib/forja/api-guard";
 import { NextResponse } from "next/server";
 import { spawnSync } from "node:child_process";
 import {
@@ -100,7 +100,7 @@ async function cloneViaTarball(owner: string, repo: string, target: string, toke
   }
   const buf = Buffer.from(await res.arrayBuffer());
   if (buf.length < 100) throw new Error("La descarga del repo llegó vacía.");
-  const tmp = join(tmpdir(), `prism-repo-${Date.now()}`);
+  const tmp = join(tmpdir(), `forja-repo-${Date.now()}`);
   mkdirSync(tmp, { recursive: true });
   const tgz = join(tmp, "repo.tar.gz");
   writeFileSync(tgz, buf);

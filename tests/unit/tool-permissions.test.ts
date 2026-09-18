@@ -18,8 +18,8 @@ import {
   filtrarCatalogo,
   toolsDelEfecto,
   type PermisosConcedidos,
-} from "../../src/lib/prism/tool-permissions";
-import { TOOL_CATALOG } from "../../src/lib/prism/tools-catalog";
+} from "../../src/lib/forja/tool-permissions";
+import { TOOL_CATALOG } from "../../src/lib/forja/tools-catalog";
 
 const todo = (v: boolean): PermisosConcedidos => ({
   lee_proyecto: v,

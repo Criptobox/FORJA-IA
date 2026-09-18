@@ -98,7 +98,7 @@ async function seedApp(page: Page) {
       },
       version: 0,
     };
-    localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+    localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
   }, MAP);
 }
 

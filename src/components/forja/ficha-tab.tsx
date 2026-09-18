@@ -8,8 +8,8 @@ import { useMemo, useRef, useState } from "react";
 import { BadgeCheck, Flame, RefreshCw, ScrollText, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip, CodeBlock, Salida } from "./ui-forja";
-import type { Motor } from "@/lib/prism/motor-client";
-import { paginaCompletaDesdeMensaje } from "@/lib/prism/forja-pagina-demo";
+import type { Motor } from "@/lib/forja/motor-client";
+import { paginaCompletaDesdeMensaje } from "@/lib/forja/forja-pagina-demo";
 
 /* el caché vive a nivel de módulo: sobrevive a cambios de pestaña */
 let cacheGlobal: any = null;

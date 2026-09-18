@@ -66,8 +66,8 @@ async function seedConversaciones(page: import("@playwright/test").Page) {
     };
     // solo la primera vez: `addInitScript` corre también al recargar, y volver a
     // sembrar resucitaría lo borrado y haría pasar el test por el motivo malo
-    if (!localStorage.getItem("prism-ai-v1")) {
-      localStorage.setItem("prism-ai-v1", JSON.stringify(seed));
+    if (!localStorage.getItem("forja-ai-v1")) {
+      localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
     }
   }, CONV);
 }

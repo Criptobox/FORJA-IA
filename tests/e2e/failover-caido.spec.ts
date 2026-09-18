@@ -17,7 +17,7 @@ test("un 503 salta al siguiente proveedor y el aviso NO habla de cuota", async (
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
-        "prism-ai-v1",
+        "forja-ai-v1",
         JSON.stringify({
           state: {
             sessions: [],

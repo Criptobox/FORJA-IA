@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateProjectHealth } from "../../src/lib/prism/project-health";
+import { calculateProjectHealth } from "../../src/lib/forja/project-health";
 
 describe("Project Health", () => {
   it("no inventa un score cuando no hay evidencia", () => {

@@ -18,7 +18,7 @@ async function seed(page: Page, modelo: string, extra: Record<string, unknown> =
       if (window.top !== window.self) return;
       try {
         localStorage.setItem(
-          "prism-ai-v1",
+          "forja-ai-v1",
           JSON.stringify({
             state: {
               sessions: [],
@@ -54,7 +54,7 @@ async function seed(page: Page, modelo: string, extra: Record<string, unknown> =
         );
         // el histórico de uso vive en su propio almacén: se limpia para que
         // una ejecución anterior no cuente como gasto de esta
-        localStorage.removeItem("prism-usage-v1");
+        localStorage.removeItem("forja-usage-v1");
       } catch {
         /* marco sin acceso */
       }

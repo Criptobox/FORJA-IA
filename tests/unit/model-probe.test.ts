@@ -10,7 +10,7 @@ import {
   esFalloDeImagen,
   probeAll,
   type ProbeResult,
-} from "../../src/lib/prism/model-probe";
+} from "../../src/lib/forja/model-probe";
 
 const r = (verdict: ProbeResult["verdict"]): ProbeResult => ({ verdict, status: 0, ms: 1, at: 1 });
 

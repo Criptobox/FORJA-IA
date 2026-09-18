@@ -4,7 +4,7 @@ import {
   lineasDeFicha,
   titularDeFicha,
   type FichaRespuesta,
-} from "../../src/lib/prism/ficha-respuesta";
+} from "../../src/lib/forja/ficha-respuesta";
 
 describe("ficha de respuesta", () => {
   it("una ficha vacía no tiene nada que enseñar", () => {

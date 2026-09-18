@@ -7,7 +7,7 @@ import {
   isPrivateIpv4,
   isPrivateIpv6,
   type Resolver,
-} from "../../src/lib/prism/net-guard";
+} from "../../src/lib/forja/net-guard";
 
 describe("isPrivateIpv4", () => {
   it("bloquea el rango de metadatos de la nube", () => {

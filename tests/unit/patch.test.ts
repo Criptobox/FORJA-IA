@@ -5,7 +5,7 @@ import {
   mensajeResultado,
   parsearParches,
   pareceParche,
-} from "../../src/lib/prism/patch";
+} from "../../src/lib/forja/patch";
 
 describe("pareceParche", () => {
   it("reconoce texto con bloques", () => {

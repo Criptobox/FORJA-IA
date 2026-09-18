@@ -16,7 +16,7 @@ async function seed(page: import("@playwright/test").Page) {
       useProxy: false,
     });
     localStorage.setItem(
-      "prism-ai-v1",
+      "forja-ai-v1",
       JSON.stringify({
         state: {
           sessions: [],
@@ -92,7 +92,7 @@ test("pregunta a los dos a la vez y combina en UNA sola pasada", async ({ page }
 test("con un solo proveedor avisa y responde de la forma normal", async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem(
-      "prism-ai-v1",
+      "forja-ai-v1",
       JSON.stringify({
         state: {
           sessions: [],
