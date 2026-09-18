@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#111827"/>
+  <g transform="translate(11.5 11.5) scale(0.64)">
+    <rect x="-1" y="-1" width="66" height="66" rx="13" fill="#111827"/>
+    <g>
+      <linearGradient id="m-cara" x1="8" y1="16" x2="56" y2="26" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#FFC48C"/><stop offset="0.55" stop-color="#FB8A3C"/><stop offset="1" stop-color="#F2600C"/>
+      </linearGradient>
+      <linearGradient id="m-cuerpo" x1="18" y1="26" x2="46" y2="50" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#FB923C"/><stop offset="1" stop-color="#E4560A"/>
+      </linearGradient>
+      <rect x="9" y="17" width="46" height="9.5" rx="4.2" fill="url(#m-cara)"/>
+      <path d="M26.5 26.5 h11 l9 13.5 h-29 z" fill="url(#m-cuerpo)"/>
+      <rect x="17" y="39.5" width="30" height="9.5" rx="3.6" fill="url(#m-cuerpo)"/>
+      <path d="M49.5 7.5 c0.9 3.1 2.1 4.3 5.2 5.2 c-3.1 0.9 -4.3 2.1 -5.2 5.2 c-0.9 -3.1 -2.1 -4.3 -5.2 -5.2 c3.1 -0.9 4.3 -2.1 5.2 -5.2 z" fill="#FFF3E2"/>
+    </g>
+  </g>
+</svg>
