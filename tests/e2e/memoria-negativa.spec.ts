@@ -176,3 +176,18 @@ test("se puede crear una regla desde el mapa, y avisa a qué afecta", async ({ p
 
   await expect(page.getByText("lo aprobó el cliente")).toBeVisible();
 });
+
+test("con una regla puesta, viaja como .forja/negative-rules.json en la descarga", async ({ page }) => {
+  // así quien abra el proyecto en otra máquina —o por GitHub— ve qué está
+  // protegido y por qué, no solo quien tenía esta sesión de chat abierta
+  await seed(page, true);
+  await page.goto("/");
+  await expect(page.locator("textarea").first()).toBeVisible({ timeout: 30_000 });
+
+  const descargar = page.getByRole("button", { name: "Descargar lo creado" });
+  await expect(descargar).toBeVisible({ timeout: 20_000 });
+  await descargar.click();
+
+  await expect(page.getByText("Esta respuesta creó 2 archivos")).toBeVisible();
+  await expect(page.getByText(".forja/negative-rules.json")).toBeVisible();
+});

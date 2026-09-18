@@ -51,6 +51,7 @@ import {
   type ErrorEnVivo,
 } from "@/lib/forja/errores-en-vivo";
 import type { ProjectMap } from "@/lib/forja/types";
+import { RUTA_REGLAS_PROYECTO, serializarReglas } from "@/lib/forja/reglas-no";
 
 export interface PreviewPanelProps {
   code: string | null;
@@ -122,8 +123,21 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
     return () => clearTimeout(t);
   }, [code, streaming]);
 
-  /** Todo lo que la respuesta creó, no solo lo que se pinta. */
-  const archivos = useMemo(() => filesFromAnswer(source), [source]);
+  /** Todo lo que la respuesta creó, no solo lo que se pinta. Si hay reglas de
+   *  memoria negativa, viajan como archivo real del proyecto: quien lo abra
+   *  en otra máquina —o lo reciba por GitHub— ve qué está protegido y por
+   *  qué, no solo quien tenía esta sesión de chat abierta. */
+  const archivosRespuesta = useMemo(() => filesFromAnswer(source), [source]);
+  const archivos = useMemo(
+    () =>
+      reglas?.length
+        ? [
+            ...archivosRespuesta,
+            { path: RUTA_REGLAS_PROYECTO, text: serializarReglas(reglas), inferido: true },
+          ]
+        : archivosRespuesta,
+    [archivosRespuesta, reglas]
+  );
 
   /** Con el CSS y el JS hermanos ya metidos dentro: si no, la página se pinta
    *  a medias porque esos archivos no existen dentro del iframe. */

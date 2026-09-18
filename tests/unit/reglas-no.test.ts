@@ -14,6 +14,9 @@ import {
   validarPatron,
   afectados,
   crearRegla,
+  serializarReglas,
+  leerReglasDeArchivo,
+  RUTA_REGLAS_PROYECTO,
   MAX_REGLAS,
   type ReglaNo,
 } from "../../src/lib/forja/reglas-no";
@@ -179,5 +182,39 @@ describe("crearRegla", () => {
   it("los ids no chocan", () => {
     const ids = new Set(Array.from({ length: 200 }, () => crearRegla("a.ts", "m", 1).id));
     expect(ids.size).toBeGreaterThan(190);
+  });
+});
+
+describe("serializarReglas / leerReglasDeArchivo — las reglas viajan CON el proyecto", () => {
+  it("serializa solo patrón y motivo: id y fecha son de esta sesión, no del proyecto", () => {
+    const r = crearRegla("Header.tsx", "no lo toques", 5);
+    const json = serializarReglas([r]);
+    expect(JSON.parse(json)).toEqual([{ patron: "Header.tsx", motivo: "no lo toques" }]);
+  });
+
+  it("ida y vuelta: lo que se serializa se vuelve a leer con el mismo patrón y motivo", () => {
+    const original = [crearRegla("Header.tsx", "no lo toques", 1), crearRegla("src/api/*", "backend estable", 2)];
+    const leidas = leerReglasDeArchivo(serializarReglas(original));
+    expect(leidas.map((r) => [r.patron, r.motivo])).toEqual([
+      ["Header.tsx", "no lo toques"],
+      ["src/api/*", "backend estable"],
+    ]);
+  });
+
+  it("un archivo ajeno, corrupto o con forma inesperada da [] — nunca revienta ni inventa una regla", () => {
+    expect(leerReglasDeArchivo("esto no es json")).toEqual([]);
+    expect(leerReglasDeArchivo("{}")).toEqual([]);
+    expect(leerReglasDeArchivo("[1, 2, 3]")).toEqual([]);
+    expect(leerReglasDeArchivo('[{"motivo": "sin patrón"}]')).toEqual([]);
+    expect(leerReglasDeArchivo('[{"patron": "a<b", "motivo": "patrón inválido"}]')).toEqual([]);
+  });
+
+  it("respeta el tope MAX_REGLAS al leer un archivo con más entradas", () => {
+    const muchas = Array.from({ length: MAX_REGLAS + 10 }, (_, i) => ({ patron: `a${i}.ts`, motivo: "m" }));
+    expect(leerReglasDeArchivo(JSON.stringify(muchas))).toHaveLength(MAX_REGLAS);
+  });
+
+  it("la ruta del archivo vive dentro de .forja/, junto al resto del manifiesto del proyecto", () => {
+    expect(RUTA_REGLAS_PROYECTO).toBe(".forja/negative-rules.json");
   });
 });
