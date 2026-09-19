@@ -104,23 +104,41 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
 ## 9. Fases de implementación
 1. **Drive (§2bis) — hecho.** Conectar cuentas, ver almacenamiento y
    archivos recientes.
-2. **Knowledge Base Manager — primera parte hecha.** Nuevo apartado
-   "Conocimiento" en la barra lateral (`src/components/forja/kb-dialog.tsx`,
-   índice en `src/lib/forja/kb-index.ts`): cada recurso guarda
-   id/nombre/tipo/tamaño/cuenta/enlace/categoría/etiquetas/tecnología/
-   licencia/estado/fecha — el equivalente a `INDEX.json`, pero en
-   localStorage (solo metadata; los archivos siguen en Drive, así la
-   biblioteca puede crecer sin pesar nada aquí). Dos formas de añadir un
-   recurso: "Elegir en Drive" (el Picker visual) o "+ Añadir" en la lista
-   de archivos recientes del panel Drive. Categoría, etiquetas, tecnología
-   y licencia se ponen A MANO por ahora — el análisis automático es la
-   fase 3, y fingirlo antes de tenerlo sería justo lo que "se mide, no se
-   mira" prohíbe. Lo que falta de esta fase: elegir CARPETAS enteras (hoy
-   es archivo por archivo) y subir desde el dispositivo.
+2. **Knowledge Base Manager — hecho, con clasificación real incluida.**
+   Nuevo apartado "Conocimiento" en la barra lateral
+   (`src/components/forja/kb-dialog.tsx`, índice en
+   `src/lib/forja/kb-index.ts`): cada recurso guarda id/nombre/tipo/
+   tamaño/cuenta/enlace/categoría/etiquetas/tecnología/licencia/estado/
+   fecha — el equivalente a `INDEX.json`, pero en localStorage (solo
+   metadata; los archivos siguen en Drive, así la biblioteca puede crecer
+   sin pesar nada aquí). Tres formas de añadir un recurso:
+   - **"Importar recursos"** (`kb-import.tsx`, dentro del propio diálogo
+     "Conocimiento"): sube un archivo del dispositivo y Forja decide todo
+     sola — calcula su hash y avisa si ya existe (`gdrive-upload.ts` +
+     `kb-index.ts`), lo clasifica con el MISMO modelo activo de la
+     conversación (`kb-classify.ts`, igual patrón que `visual_review`:
+     una llamada de un solo turno, sin modelo aparte), elige la cuenta de
+     Drive conectada con más espacio libre, crea (o reutiliza) una
+     carpeta con el nombre de la categoría en esa cuenta, y sube el
+     archivo ahí. Si no hay modelo configurado o la clasificación falla,
+     el recurso queda "pendiente" sin categoría — nunca se inventa una.
+   - "Elegir en Drive" (el Picker visual, sobre archivos que ya existían).
+   - "+ Añadir" en la lista de archivos recientes del panel Drive.
+
+   Lo que falta de esta fase: elegir CARPETAS enteras de una vez (hoy es
+   archivo por archivo), e importar ZIP/repositorios/enlaces — el propio
+   panel lo dice ("carpetas, ZIP y repositorios llegan después").
+   También falta afinar a qué CUENTA va cada categoría cuando ya existe
+   una carpeta con ese nombre en otra cuenta que no es la de más espacio
+   libre (hoy ese criterio de "más espacio libre" gana siempre).
 3. **Análisis visual.** Composición, tipografía, color, agrupación de
-   capturas desktop/tablet/mobile, metadata automática.
-4. **Duplicados.** Comparación lado a lado, decisión manual, sincronización
-   del índice al eliminar.
+   capturas desktop/tablet/mobile — la clasificación de texto/nombre ya
+   existe (punto 2); esto es clasificar por lo que se VE en una imagen,
+   con una llamada de visión igual que `visual_review`.
+4. **Duplicados.** Hoy solo hay aviso de "mismo contenido exacto" por
+   hash antes de subir. Falta la comparación visual lado a lado para
+   duplicados NO idénticos (mismo diseño, export distinto) y la decisión
+   manual + sincronización del índice al eliminar.
 5. **Research Agent.** Busca primero en la base, fuentes externas solo si
    falta algo, verifica origen/licencia, deja en INBOX lo que no sabe
    clasificar.

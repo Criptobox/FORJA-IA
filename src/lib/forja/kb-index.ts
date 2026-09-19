@@ -7,10 +7,13 @@
  * almacenamiento. Por eso la biblioteca puede crecer a varios GB sin que
  * esto pese nada.
  *
- * Todavía no hay análisis automático (Fase 3) ni deduplicación (Fase 4):
- * categoría y etiquetas se ponen a mano. Fingir una clasificación
- * automática que no existe sería justo lo que "se mide, no se mira"
- * prohíbe.
+ * "Importar recursos" (`kb-import.tsx`) sí clasifica con el modelo activo
+ * de la conversación (`kb-classify.ts`) al subir un archivo nuevo — pero
+ * si esa llamada falla o no hay modelo configurado, el recurso queda
+ * "pendiente" con categoría vacía en vez de fingir una clasificación que
+ * no ocurrió. La deduplicación real (Fase 4, comparación visual lado a
+ * lado) sigue sin existir; lo único que hay aquí es un aviso de "archivo
+ * idéntico" por hash de contenido antes de subir dos veces lo mismo.
  */
 
 export type KBResourceStatus = "nuevo" | "clasificado" | "pendiente";
@@ -31,6 +34,10 @@ export interface KBResource {
   status: KBResourceStatus;
   /** ISO: cuándo se añadió al índice (no cuándo se creó el archivo). */
   indexedAt: string;
+  /** SHA-256 del contenido, hexadecimal. Vacío para recursos añadidos antes
+   * de que existiera el hash (elegidos desde Drive, sin subir bytes) — no
+   * se puede calcular sin tener el archivo en el navegador. */
+  contentHash?: string;
 }
 
 const INDEX_KEY = "forja-kb-index";
@@ -102,4 +109,27 @@ export function kbStats(resources: KBResource[]): KBStats {
  * añadir el mismo recurso dos veces sin querer al elegirlo otra vez. */
 export function kbHasResource(id: string): boolean {
   return kbGetResources().some((r) => r.id === id);
+}
+
+/** El recurso con ESE contenido exacto, si ya está indexado — para avisar
+ * antes de subir dos veces el mismo archivo (con otro nombre incluso). */
+export function kbFindByHash(hash: string): KBResource | undefined {
+  return kbGetResources().find((r) => r.contentHash === hash);
+}
+
+/** SHA-256 del contenido de un archivo, en hexadecimal. `crypto.subtle` es
+ * nativo del navegador: no hace falta ninguna librería para esto. */
+export async function kbHashFile(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/** Categorías que ya existen en el índice, sin repetir — para que la
+ * clasificación automática reutilice una en vez de inventar una parecida
+ * (p.ej. "componentes" y "componentes-ui" como si fueran distintas). */
+export function kbExistingCategories(resources: KBResource[]): string[] {
+  return Array.from(new Set(resources.map((r) => r.category).filter(Boolean)));
 }

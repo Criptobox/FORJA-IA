@@ -1,10 +1,14 @@
 "use client";
 /** Forja IA — Knowledge Base Manager (Fase 2 del plan, §9.2).
  *
- * Ver y gestionar lo que se ha elegido con "Elegir en Drive" (panel
- * Drive): categoría, etiquetas, tecnología y licencia se ponen a mano —
- * el análisis automático (Fase 3) y la deduplicación (Fase 4) llegan
- * después. Nada de fingir aquí una clasificación que todavía no existe.
+ * Dos formas de llenar el índice: "Elegir en Drive" (panel Drive, sobre
+ * archivos que ya existían) donde categoría/etiquetas se ponen a mano, e
+ * "Importar recursos" aquí mismo — subir un archivo del dispositivo, que
+ * `kb-import.tsx` clasifica con el modelo activo y sube a la cuenta/
+ * carpeta de Drive que decide, sin fingir el resultado si el modelo no
+ * está disponible. La deduplicación (Fase 4, comparación visual lado a
+ * lado) sigue sin existir: lo que hay es un aviso de "mismo contenido"
+ * por hash antes de subir dos veces el mismo archivo.
  */
 import { useState } from "react";
 import { Database, ExternalLink, FileText, Trash2 } from "lucide-react";
@@ -19,8 +23,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatBytes } from "@/lib/forja/gdrive-oauth";
+import { gdGetCreds } from "@/lib/forja/gdrive";
 import type { KBResource, KBResourceStatus } from "@/lib/forja/kb-index";
 import { useKbIndex } from "./kb-connect";
+import { useGdriveAccounts } from "./gdrive-connect";
+import { KBImport } from "./kb-import";
 import { cn } from "@/lib/utils";
 
 const STATUS_LABEL: Record<KBResourceStatus, string> = {
@@ -177,6 +184,8 @@ function ResourceRow({
 
 export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { resources, stats, remove, update } = useKbIndex();
+  const { accounts } = useGdriveAccounts();
+  const creds = gdGetCreds();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -186,7 +195,7 @@ export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
             <Database className="size-4" /> Knowledge Base
           </DialogTitle>
           <DialogDescription className="text-[12px]">
-            Recursos elegidos desde Drive: categoría y etiquetas se ponen a mano por ahora.
+            Sube o elige recursos desde Drive: Forja los clasifica y decide dónde van.
           </DialogDescription>
           {resources.length > 0 && (
             <div className="mt-2 grid grid-cols-4 gap-1.5">
@@ -199,10 +208,12 @@ export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-4 py-3">
+          <KBImport accounts={accounts} creds={creds} />
+
           {resources.length === 0 ? (
             <p className="text-[12px] text-muted-foreground">
-              Todavía no hay ningún recurso en el índice. Abre <strong>Drive</strong> en la barra lateral →
-              «Elegir en Drive» en una cuenta conectada para añadir el primero.
+              Todavía no hay ningún recurso en el índice. Sube uno arriba, o abre <strong>Drive</strong> en la
+              barra lateral → «Elegir en Drive» en una cuenta conectada.
             </p>
           ) : (
             resources.map((r) => (

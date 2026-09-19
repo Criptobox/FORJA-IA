@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
+  kbExistingCategories,
+  kbFindByHash,
   kbGetResources,
+  kbHashFile,
   kbHasResource,
   kbRemoveResource,
   kbStats,
@@ -87,6 +90,37 @@ describe("índice de la Knowledge Base (localStorage)", () => {
     kbUpsertResource(resource);
     kbUpdateResource("no-existe", { category: "x" });
     expect(kbGetResources()).toEqual([resource]);
+  });
+});
+
+describe("kbFindByHash / kbExistingCategories", () => {
+  beforeEach(() => stubLocalStorage());
+
+  it("encuentra el recurso con ese hash exacto, si existe", () => {
+    kbUpsertResource({ ...resource, contentHash: "abc123" });
+    expect(kbFindByHash("abc123")?.id).toBe("file-1");
+    expect(kbFindByHash("otro-hash")).toBeUndefined();
+  });
+
+  it("lista categorías existentes sin repetir ni vacíos", () => {
+    const resources: KBResource[] = [
+      { ...resource, id: "1", category: "visual" },
+      { ...resource, id: "2", category: "visual" },
+      { ...resource, id: "3", category: "componentes" },
+      { ...resource, id: "4", category: "" },
+    ];
+    expect(kbExistingCategories(resources)).toEqual(["visual", "componentes"]);
+  });
+});
+
+describe("kbHashFile", () => {
+  it("el mismo contenido da el mismo hash; contenido distinto, hash distinto", async () => {
+    const a1 = await kbHashFile(new File(["hola mundo"], "a.txt"));
+    const a2 = await kbHashFile(new File(["hola mundo"], "otro-nombre.txt"));
+    const b = await kbHashFile(new File(["otro contenido"], "a.txt"));
+    expect(a1).toBe(a2);
+    expect(a1).not.toBe(b);
+    expect(a1).toMatch(/^[0-9a-f]{64}$/);
   });
 });
 
