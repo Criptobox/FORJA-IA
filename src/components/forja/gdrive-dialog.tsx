@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatBytes, quotaPercent } from "@/lib/forja/gdrive-oauth";
 import { gdGetCreds, gdListRecentFiles, type GDriveAccount, type GDriveCreds, type GDriveFile } from "@/lib/forja/gdrive";
+import { kbHasResource, kbUpsertResource } from "@/lib/forja/kb-index";
 import { useGdriveAccounts, useGdriveCredsStatus, type GdriveCredsStatus } from "./gdrive-connect";
 import { GDrivePickerButton } from "./gdrive-picker-button";
 import { cn } from "@/lib/utils";
@@ -221,6 +222,7 @@ function AccountFiles({ account, creds }: { account: GDriveAccount; creds: GDriv
   const [files, setFiles] = useState<GDriveFile[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
   const load = () => {
     if (!creds) {
@@ -273,6 +275,32 @@ function AccountFiles({ account, creds }: { account: GDriveAccount; creds: GDriv
                 {f.name}
               </a>
               <span className="shrink-0 text-[10.5px] text-muted-foreground">{formatBytes(f.size)}</span>
+              <button
+                type="button"
+                disabled={addedIds.has(f.id) || kbHasResource(f.id)}
+                onClick={() => {
+                  kbUpsertResource({
+                    id: f.id,
+                    name: f.name,
+                    mimeType: f.mimeType,
+                    sizeBytes: f.size,
+                    accountEmail: account.email,
+                    webViewLink: f.webViewLink,
+                    category: "",
+                    tags: [],
+                    technology: "",
+                    license: "",
+                    status: "nuevo",
+                    indexedAt: new Date().toISOString(),
+                  });
+                  setAddedIds((prev) => new Set(prev).add(f.id));
+                  toast.success("Añadido a la Knowledge Base");
+                }}
+                className="shrink-0 text-[10.5px] text-forja-violet underline underline-offset-2 disabled:text-muted-foreground disabled:no-underline"
+                title={addedIds.has(f.id) || kbHasResource(f.id) ? "Ya está en la Knowledge Base" : "Añadir a la Knowledge Base"}
+              >
+                {addedIds.has(f.id) || kbHasResource(f.id) ? "Ya añadido" : "+ Añadir"}
+              </button>
             </li>
           ))}
         </ul>
@@ -339,12 +367,33 @@ function AccountRow({
             accessToken={account.accessToken}
             onPicked={(files) => {
               if (files.length === 0) return;
-              toast.message(
-                files.length === 1 ? `Elegido: ${files[0]!.name}` : `Elegidos ${files.length} elementos`,
-                {
-                  description:
-                    "Todavía no se guardan en la Knowledge Base — eso llega con el Knowledge Base Manager (Fase 2).",
-                }
+              const now = new Date().toISOString();
+              let nuevos = 0;
+              for (const f of files) {
+                if (kbHasResource(f.id)) continue;
+                kbUpsertResource({
+                  id: f.id,
+                  name: f.name,
+                  mimeType: f.mimeType,
+                  sizeBytes: f.sizeBytes ?? 0,
+                  accountEmail: account.email,
+                  webViewLink: f.url ?? "",
+                  category: "",
+                  tags: [],
+                  technology: "",
+                  license: "",
+                  status: "nuevo",
+                  indexedAt: now,
+                });
+                nuevos++;
+              }
+              toast.success(
+                nuevos === 0
+                  ? "Ya estaban en la Knowledge Base"
+                  : nuevos === 1
+                    ? "Añadido a la Knowledge Base"
+                    : `${nuevos} recursos añadidos a la Knowledge Base`,
+                { description: nuevos > 0 ? "Ábrela desde la barra lateral para ponerles categoría y etiquetas." : undefined }
               );
             }}
           />

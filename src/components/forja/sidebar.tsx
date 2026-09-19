@@ -8,6 +8,7 @@ import {
   Box,
   BrainCircuit,
   Check,
+  Database,
   FlaskConical,
   FolderGit2,
   Github,
@@ -65,6 +66,7 @@ export function Sidebar({
   onOpenRadar,
   onOpenGithub,
   onOpenDrive,
+  onOpenKnowledgeBase,
   onOpenArena,
   onOpenPanel,
   onOpenGuide,
@@ -85,6 +87,7 @@ export function Sidebar({
   onOpenRadar?: () => void;
   onOpenGithub?: () => void;
   onOpenDrive?: () => void;
+  onOpenKnowledgeBase?: () => void;
   onOpenArena?: () => void;
   onOpenPanel?: () => void;
   onOpenGuide?: () => void;
@@ -206,6 +209,7 @@ export function Sidebar({
       titulo: "Herramientas",
       items: [
         { label: "Biblioteca", icon: <BookOpen className="size-4" />, onClick: onOpenLibrary, title: "Biblioteca de prompts" },
+        { label: "Conocimiento", icon: <Database className="size-4" />, onClick: onOpenKnowledgeBase, title: "Knowledge Base: recursos elegidos desde Drive, con categoría y etiquetas" },
         { label: "Skills", icon: <Puzzle className="size-4" />, onClick: onOpenSkills, title: "Skills: instrucciones que se suman al prompt de sistema" },
         { label: "Memoria", icon: <BrainCircuit className="size-4" />, onClick: onOpenFailures, title: "Memoria de fallos: reglas aprendidas de errores reales que el agente consulta antes de actuar" },
         { label: "Uso", icon: <Activity className="size-4" />, onClick: onOpenUsage, title: "Uso: peticiones, latencia y ahorro de contexto por modelo (todo local)" },

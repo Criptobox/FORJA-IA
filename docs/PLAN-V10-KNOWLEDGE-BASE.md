@@ -104,9 +104,19 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
 ## 9. Fases de implementación
 1. **Drive (§2bis) — hecho.** Conectar cuentas, ver almacenamiento y
    archivos recientes.
-2. **Knowledge Base Manager.** Elegir carpetas de cada cuenta a indexar,
-   subir recursos desde el dispositivo o desde Drive, `INDEX.json` con
-   id/categoría/etiquetas/tecnología/fuente/licencia/ruta/hash/estado/fecha.
+2. **Knowledge Base Manager — primera parte hecha.** Nuevo apartado
+   "Conocimiento" en la barra lateral (`src/components/forja/kb-dialog.tsx`,
+   índice en `src/lib/forja/kb-index.ts`): cada recurso guarda
+   id/nombre/tipo/tamaño/cuenta/enlace/categoría/etiquetas/tecnología/
+   licencia/estado/fecha — el equivalente a `INDEX.json`, pero en
+   localStorage (solo metadata; los archivos siguen en Drive, así la
+   biblioteca puede crecer sin pesar nada aquí). Dos formas de añadir un
+   recurso: "Elegir en Drive" (el Picker visual) o "+ Añadir" en la lista
+   de archivos recientes del panel Drive. Categoría, etiquetas, tecnología
+   y licencia se ponen A MANO por ahora — el análisis automático es la
+   fase 3, y fingirlo antes de tenerlo sería justo lo que "se mide, no se
+   mira" prohíbe. Lo que falta de esta fase: elegir CARPETAS enteras (hoy
+   es archivo por archivo) y subir desde el dispositivo.
 3. **Análisis visual.** Composición, tipografía, color, agrupación de
    capturas desktop/tablet/mobile, metadata automática.
 4. **Duplicados.** Comparación lado a lado, decisión manual, sincronización
