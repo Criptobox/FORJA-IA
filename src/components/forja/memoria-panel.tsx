@@ -41,8 +41,10 @@ import {
   borrarMemoria,
   guardarMemoria,
   leerMemoria,
+  reglasAMemoria,
   type MemoriaProyecto,
 } from "@/lib/forja/memoria-proyecto";
+import type { ReglaNo } from "@/lib/forja/reglas-no";
 import { toast } from "sonner";
 
 function fecha(ms: number): string {
@@ -67,6 +69,7 @@ export function MemoriaPanel({
   onOpenChange,
   sessionId,
   sesionTitulo,
+  reglasNo,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -74,12 +77,19 @@ export function MemoriaPanel({
   sesionTitulo?: string;
   /** los archivos actuales del Sandbox se pasan para los commits .forja/ */
   sandboxFiles?: Record<string, string>;
+  /** reglas "no tocar" de la sesión activa (reglas-no.ts, las hace cumplir
+   *  tool-runner.ts). Sin esto la pestaña "Reglas" y el export .forja/
+   *  siempre saldrían vacíos: `MemoriaProyecto.reglas` es solo su reflejo. */
+  reglasNo?: readonly ReglaNo[];
 }) {
   const [tab, setTab] = useState<string>("decisiones");
   // se lee en cada render mientras está abierto: la memoria cambia en vivo
   const memoria: MemoriaProyecto = useMemo(
-    () => (open && sessionId ? leerMemoria(sessionId) : { decisiones: [], errores: [], tareas: [], disenos: [], reglas: [] }),
-    [open, sessionId]
+    () =>
+      open && sessionId
+        ? reglasAMemoria(leerMemoria(sessionId), reglasNo ?? [])
+        : { decisiones: [], errores: [], tareas: [], disenos: [], reglas: [] },
+    [open, sessionId, reglasNo]
   );
 
   const exportar = () => {

@@ -35,7 +35,7 @@ import {
   type GhItem,
   type GhProgress,
 } from "@/lib/forja/github-upload";
-import { aArchivosForja, leerMemoria } from "@/lib/forja/memoria-proyecto";
+import { aArchivosForja, leerMemoria, reglasAMemoria } from "@/lib/forja/memoria-proyecto";
 import { useForja } from "@/lib/forja/store";
 import { GitHubConnect } from "./github-connect";
 import { ReviewGateCard, useReviewGate } from "./review-view";
@@ -101,7 +101,13 @@ export function GitHubDialog({
       const st = useForja.getState();
       const sid = st.activeSessionId;
       if (sid) {
-        const forjaFiles = aArchivosForja(leerMemoria(sid));
+        // Las reglas "no tocar" viven de verdad en `session.reglasNo` (las
+        // hace cumplir tool-runner.ts); `MemoriaProyecto.reglas` es solo su
+        // reflejo para exportar. Sin este paso, `reglasAMemoria` nunca se
+        // llamaba y el commit siempre subía `.forja/` sin ellas.
+        const reglasNo = st.sessions.find((s) => s.id === sid)?.reglasNo ?? [];
+        const memoria = reglasAMemoria(leerMemoria(sid), reglasNo);
+        const forjaFiles = aArchivosForja(memoria);
         for (const [path, content] of Object.entries(forjaFiles)) {
           list.push({
             path,

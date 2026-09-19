@@ -128,7 +128,7 @@ import {
   obtenerSnapshot,
   archivosDeSnapshot,
 } from "@/lib/forja/snapshots";
-import { leerMemoria } from "@/lib/forja/memoria-proyecto";
+import { deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } from "@/lib/forja/memoria-proyecto";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
 import {
   buscarContexto as buscarContextoTurno,
@@ -1983,6 +1983,28 @@ export function ChatApp() {
           setReposOpen(false);
           setSandboxInitial(seed);
           setSandboxOpen(true);
+          // La memoria `.forja/` viaja DENTRO del repo (Pilar 3.1): si el
+          // proyecto que se acaba de abrir la trae, se recupera aquí — antes
+          // `deArchivosForja` no se llamaba nunca y clonar en otra máquina no
+          // devolvía nada de lo que ya se sabía de este proyecto.
+          if (activeSession) {
+            const archivos = Object.fromEntries(seed.files.map((f) => [f.path, f.content]));
+            if (hayForjaEn(archivos)) {
+              const memoria = deArchivosForja(archivos);
+              // Las reglas "no tocar" se restauran donde de verdad se hacen
+              // cumplir (tool-runner.ts lee `session.reglasNo`, no la copia de
+              // `MemoriaProyecto`) — `addReglaNo` ya deduplica por patrón, así
+              // que reabrir el mismo repo no las duplica.
+              for (const r of memoria.reglas) addReglaNo(activeSession.id, r.patron, r.motivo);
+              guardarMemoria(activeSession.id, { ...memoria, reglas: [] });
+              const total = memoria.decisiones.length + memoria.errores.length + memoria.tareas.length + memoria.disenos.length + memoria.reglas.length;
+              if (total) {
+                toast.info("Memoria del proyecto recuperada", {
+                  description: `${total} dato(s) de .forja/: decisiones, errores, tareas, dirección de diseño y reglas de este repo.`,
+                });
+              }
+            }
+          }
         }}
       />
       <SandboxStudio
@@ -2025,6 +2047,7 @@ export function ChatApp() {
         sessionId={activeId}
         sesionTitulo={activeSession?.title}
         sandboxFiles={Object.fromEntries((sandboxInitial?.files ?? []).map((f) => [f.path, f.content]))}
+        reglasNo={activeSession?.reglasNo}
       />
       <RepasoDialog open={repasoOpen} onOpenChange={setRepasoOpen} onPreparar={prepararRepaso} />
       <OfertasDialog open={ofertasOpen} onOpenChange={setOfertasOpen} />

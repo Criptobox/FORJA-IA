@@ -1,4 +1,6 @@
 import {  expect, test, type Page  } from "./fixtures";
+import { writeZip } from "../../src/lib/forja/zip";
+import { encodeText } from "../../src/lib/forja/sandbox";
 
 /** Forja IA — E2E v3.0.0: Sandbox (ZIP → ejecutar) y Repo Studio directo (GitHub API). */
 
@@ -577,5 +579,69 @@ test.describe("Forja IA — Repo Studio directo (GitHub API)", () => {
     // el POST de commit llevó el mensaje correcto y 1 solo commit
     expect(commitsPost).toHaveLength(1);
     expect(commitsPost[0].message).toBe("Cambio desde Forja E2E");
+  });
+
+  test("al abrir el repo entero en el Sandbox, se recupera la memoria .forja/ si la trae", async ({
+    page,
+  }) => {
+    // una sesión activa (aunque sin mensajes): las reglas restauradas viven
+    // en `session.reglasNo`, no hay dónde ponerlas sin una sesión
+    await page.addInitScript(() => {
+      if (window.top !== window.self) return;
+      try {
+        const raw = localStorage.getItem("forja-ai-v1");
+        const data = raw ? JSON.parse(raw) : { state: {}, version: 0 };
+        data.state.sessions = [
+          {
+            id: "s1",
+            title: "Proyecto",
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            // el botón "Memoria del proyecto" solo aparece con `hasMessages`
+            messages: [{ id: "m1", role: "user", content: "hola", createdAt: Date.now() }],
+            reglasNo: [],
+          },
+        ];
+        data.state.activeSessionId = "s1";
+        localStorage.setItem("forja-ai-v1", JSON.stringify(data));
+      } catch {
+        /* frame sin acceso a localStorage */
+      }
+    });
+
+    // GitHub sirve el zipball con una carpeta raíz «owner-repo-sha/» delante
+    const zip = Buffer.from(
+      writeZip([
+        { path: "demo-repo-abc123/index.html", data: encodeText(HTML_VIEJO) },
+        {
+          path: "demo-repo-abc123/.forja/negative-rules.json",
+          data: encodeText(JSON.stringify([{ patron: "index.html", motivo: "aprobado por el cliente" }])),
+        },
+      ])
+    );
+    await page.route(`**/api.github.com/repos/${OWNER}/${REPO}/zipball/main`, (route) =>
+      route.fulfill({ status: 200, contentType: "application/zip", body: zip })
+    );
+
+    await page.goto("/");
+    await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
+
+    await page.getByRole("button", { name: "Repos", exact: false }).first().click();
+    await page.getByText("Usar un token personal").click();
+    await page.getByLabel("Token personal de GitHub").fill("e2e-token-falso");
+    await page.getByRole("button", { name: "Guardar" }).click();
+    await page.getByLabel("URL del repositorio de GitHub").fill(`${OWNER}/${REPO}`);
+    await page.getByRole("button", { name: "Abrir repo" }).click();
+    await expect(page.getByText("push permitido")).toBeVisible({ timeout: 15_000 });
+
+    await page.getByRole("button", { name: "Todo el repo al Sandbox" }).click();
+    await expect(page.getByText("Repositorio abierto en el Sandbox")).toBeVisible({ timeout: 15_000 });
+    // la regla restaurada ya protege de verdad (vive en session.reglasNo, no
+    // solo en un JSON de adorno). El zip solo trae esa única regla — el
+    // contador del toast confirma que se leyó justo ese dato, no que se
+    // disparó vacío (deArchivosForja + addReglaNo realmente corrieron).
+    await expect(
+      page.getByText("1 dato(s) de .forja/: decisiones, errores, tareas, dirección de diseño y reglas de este repo.")
+    ).toBeVisible({ timeout: 15_000 });
   });
 });
