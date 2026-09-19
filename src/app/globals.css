@@ -930,15 +930,29 @@ html[data-accent="naranja"] {
  * el mockup, no una lista apretada. */
 .fj-timeline-card {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  gap: 4px;
   background: color-mix(in oklab, var(--muted) 40%, transparent);
   border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 16px 14px 6px;
 }
-.fj-timeline-hero {
-  margin-left: 2px;
+.fj-timeline-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 14px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.fj-timeline-state-label {
+  font-size: 10.5px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--fj-halo);
+  font-weight: 600;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
 }
 .fj-timeline {
   display: flex;
