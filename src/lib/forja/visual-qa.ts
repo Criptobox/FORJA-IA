@@ -2,7 +2,7 @@
  *
  * El mismo método que mide la app en los tests E2E (`tests/e2e/responsive.spec.ts`)
  * aplicado al iframe de la vista previa, a los anchos donde de verdad se mira:
- * 320 y 390 px. Detecta, midiendo el DOM real:
+ * móvil, tablet, portátil y escritorio grande. Detecta, midiendo el DOM real:
  *   · scroll horizontal (se sale por la derecha)
  *   · elementos fuera del viewport (botón inalcanzable)
  *   · texto por debajo de 12 px
@@ -49,8 +49,13 @@ export interface QAResult {
   generico?: MedidasGenerico | null;
 }
 
-/** Anchos de la misma batería móvil que los tests E2E (320 = iPhone SE) */
-export const QA_WIDTHS = [320, 390] as const;
+/** Anchos donde de verdad se mira un proyecto: móvil pequeño (320 = iPhone SE),
+ * móvil grande (390), tablet (768, mismo `md` que `design-tokens.ts`),
+ * portátil (1280, mismo `xl`) y escritorio grande (1920). Cinco medidas, no
+ * las siete del catálogo completo de breakpoints: cada ancho añadido es un
+ * resize + postMessage más por proyecto medido, y quien necesita más
+ * precisión que esto ya tiene los tests E2E de `responsive.spec.ts`. */
+export const QA_WIDTHS = [320, 390, 768, 1280, 1920] as const;
 
 export const QA_LABEL: Record<QATipo, string> = {
   scroll: "Scroll horizontal",

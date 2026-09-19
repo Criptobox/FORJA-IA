@@ -136,10 +136,15 @@ test("Visual QA mide la vista previa en vivo cuando está abierta", async ({ pag
   await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole("button", { name: "Ejecutar Visual QA" }).click();
-  // QA_WIDTHS = [320, 390]: con la vista previa real montada debe volver
-  // con evidencia real para los dos anchos, no quedarse vacío.
-  await expect(page.getByText("320px")).toBeVisible({ timeout: 10_000 });
+  // QA_WIDTHS = [320, 390, 768, 1280, 1920]: con la vista previa real montada
+  // debe volver con evidencia real para los cinco anchos, no quedarse vacío.
+  // Los cinco se miden en serie (resize + postMessage cada uno) y el estado
+  // se actualiza de una vez al terminar el último, no ancho a ancho.
+  await expect(page.getByText("320px")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("390px")).toBeVisible();
+  await expect(page.getByText("768px")).toBeVisible();
+  await expect(page.getByText("1280px")).toBeVisible();
+  await expect(page.getByText("1920px")).toBeVisible();
 });
 
 test("Visual QA sigue funcionando por el iframe propio si la vista previa está cerrada", async ({
@@ -152,8 +157,12 @@ test("Visual QA sigue funcionando por el iframe propio si la vista previa está 
   await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
 
   await page.getByRole("button", { name: "Ejecutar Visual QA" }).click();
-  await expect(page.getByText("320px")).toBeVisible({ timeout: 10_000 });
+  // los cinco anchos se miden en serie: el resultado llega de una vez al final
+  await expect(page.getByText("320px")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText("390px")).toBeVisible();
+  await expect(page.getByText("768px")).toBeVisible();
+  await expect(page.getByText("1280px")).toBeVisible();
+  await expect(page.getByText("1920px")).toBeVisible();
 });
 
 test("Security Center analiza y nunca afirma que el código está limpio", async ({ page }) => {

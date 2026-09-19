@@ -7,8 +7,8 @@ import {
 } from "../../src/lib/forja/visual-qa";
 
 describe("QA visual sobre la vista previa", () => {
-  it("la batería mide a los anchos móviles de los tests E2E (320/390)", () => {
-    expect([...QA_WIDTHS]).toEqual([320, 390]);
+  it("la batería mide móvil, tablet, portátil y escritorio grande", () => {
+    expect([...QA_WIDTHS]).toEqual([320, 390, 768, 1280, 1920]);
   });
 
   it("injectVisualQA añade el medidor antes de </body>", () => {
