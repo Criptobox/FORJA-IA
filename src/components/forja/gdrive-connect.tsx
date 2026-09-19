@@ -1,13 +1,31 @@
 "use client";
-/** Forja IA — Conectar cuentas de Google Drive (OAuth, un clic por cuenta).
- * A diferencia de GitHub, Google no registra una app automáticamente: hace
- * falta un Client ID / Secret creado por la propia persona en su Google
- * Cloud (gratis) — ver `GDriveCredsForm` más abajo. */
-import { useCallback, useEffect, useRef, useState } from "react";
+/** Forja IA — Conectar cuentas de Google Drive con Google Identity Services.
+ *
+ * Nada de ventana emergente propia ni de escuchar `postMessage`: GIS abre
+ * y cierra su propio popup, y la promesa de `requestGoogleToken` se
+ * resuelve o rechaza cuando termina. Eso también quita de en medio el
+ * "redirect_uri_mismatch" que sufrió un usuario real con el flujo de
+ * servidor anterior — GIS valida contra el origen (un dominio entero), no
+ * contra una ruta que tenga que coincidir carácter por carácter.
+ */
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { accessCodeHeaders } from "@/lib/forja/chat-client";
-import { GD_OAUTH_MSG } from "@/lib/forja/gdrive-oauth";
-import { GD_ACCOUNTS_EVENT, gdGetAccounts, gdRemoveAccount, gdUpsertAccount, type GDriveAccount } from "@/lib/forja/gdrive";
+import { GDRIVE_SCOPE } from "@/lib/forja/gdrive-oauth";
+import { requestGoogleToken } from "@/lib/forja/gdrive-gis";
+import {
+  GD_ACCOUNTS_EVENT,
+  gdCredsSource,
+  gdClearCreds,
+  gdFetchAbout,
+  gdGetAccounts,
+  gdGetCreds,
+  gdRemoveAccount,
+  gdSetCreds,
+  gdUpsertAccount,
+  type GDriveAccount,
+  type GDriveCreds,
+  type GDriveCredsSource,
+} from "@/lib/forja/gdrive";
 
 export function useGdriveAccounts(): {
   accounts: GDriveAccount[];
@@ -18,8 +36,6 @@ export function useGdriveAccounts(): {
 } {
   const [accounts, setAccounts] = useState<GDriveAccount[]>([]);
   const [busy, setBusy] = useState(false);
-  const pollRef = useRef<number | null>(null);
-  const gotMessageRef = useRef(false);
 
   const refresh = useCallback(() => {
     setAccounts(gdGetAccounts());
@@ -27,52 +43,11 @@ export function useGdriveAccounts(): {
 
   useEffect(() => {
     refresh();
-    const onMsg = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin) return;
-      const d = e.data as {
-        type?: string;
-        accessToken?: string;
-        refreshToken?: string;
-        expiresIn?: number;
-        email?: string;
-        name?: string;
-        avatar?: string;
-        quota?: GDriveAccount["quota"];
-        error?: string;
-      };
-      if (!d || d.type !== GD_OAUTH_MSG) return;
-      gotMessageRef.current = true;
-      setBusy(false);
-      if (d.error) {
-        const hint = /redirect_uri/i.test(d.error)
-          ? ` Revisa que el URI de redirección en Google Cloud sea EXACTO: ${window.location.origin}/api/gdrive/oauth/callback`
-          : "";
-        toast.error("No se pudo conectar Google Drive", { description: d.error + hint, duration: 12000 });
-        return;
-      }
-      if (!d.accessToken || !d.email) return;
-      const account: GDriveAccount = {
-        email: d.email,
-        name: d.name || d.email,
-        avatar: d.avatar || "",
-        accessToken: d.accessToken,
-        refreshToken: d.refreshToken || "",
-        expiresAt: Date.now() + (d.expiresIn ?? 3600) * 1000,
-        quota: d.quota ?? { limit: null, usage: 0, usageInDrive: 0 },
-      };
-      gdUpsertAccount(account);
-      refresh();
-      toast.success(`Conectado: ${account.email}`);
-    };
-    const onEv = () => refresh();
-    window.addEventListener("message", onMsg);
-    window.addEventListener(GD_ACCOUNTS_EVENT, onEv);
-    window.addEventListener("storage", onEv);
+    window.addEventListener(GD_ACCOUNTS_EVENT, refresh);
+    window.addEventListener("storage", refresh);
     return () => {
-      window.removeEventListener("message", onMsg);
-      window.removeEventListener(GD_ACCOUNTS_EVENT, onEv);
-      window.removeEventListener("storage", onEv);
-      if (pollRef.current) window.clearInterval(pollRef.current);
+      window.removeEventListener(GD_ACCOUNTS_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
     };
   }, [refresh]);
 
@@ -86,64 +61,88 @@ export function useGdriveAccounts(): {
   );
 
   const connect = useCallback(() => {
-    setBusy(true);
-    gotMessageRef.current = false;
-    const url = "/api/gdrive/oauth/start";
-    const w = window.open(url, "forja-gdrive", "popup=yes,width=620,height=740") || window.open(url, "_blank");
-    if (!w) {
-      setBusy(false);
-      toast.error("Permite ventanas emergentes para conectar Google Drive");
+    const creds = gdGetCreds();
+    if (!creds) {
+      toast.error("Faltan las credenciales de Google", { description: "Pega tu Client ID y API Key primero." });
       return;
     }
-    if (pollRef.current) window.clearInterval(pollRef.current);
-    pollRef.current = window.setInterval(() => {
-      if (w.closed) {
-        if (pollRef.current) window.clearInterval(pollRef.current);
-        pollRef.current = null;
+    setBusy(true);
+    void (async () => {
+      try {
+        // select_account: deja elegir (o añadir) cuenta, para poder
+        // conectar varias en vez de reusar siempre la misma sesión.
+        const { accessToken, expiresIn } = await requestGoogleToken({
+          clientId: creds.clientId,
+          scope: GDRIVE_SCOPE,
+          interactive: true,
+        });
+        const about = await gdFetchAbout(accessToken);
+        const account: GDriveAccount = {
+          email: about.email,
+          name: about.name || about.email,
+          avatar: about.avatar,
+          accessToken,
+          expiresAt: Date.now() + expiresIn * 1000,
+          quota: about.quota,
+        };
+        gdUpsertAccount(account);
+        refresh();
+        toast.success(`Conectado: ${account.email}`);
+      } catch (e) {
+        toast.error("No se pudo conectar Google Drive", {
+          description: e instanceof Error ? e.message : String(e),
+        });
+      } finally {
         setBusy(false);
-        // Si la ventana se cerró sin que llegara ni éxito ni error, lo más
-        // probable es que Google haya cortado el flujo ANTES de volver a
-        // Forja (por ejemplo "redirect_uri_mismatch": el URI que registraste
-        // en Google Cloud no es carácter por carácter igual al de aquí).
-        if (!gotMessageRef.current) {
-          const uri = `${window.location.origin}/api/gdrive/oauth/callback`;
-          toast.error("La ventana se cerró sin conectar", {
-            description: `Revisa que el URI de redirección en Google Cloud sea EXACTO: ${uri}`,
-            duration: 12000,
-          });
-        }
       }
-    }, 500);
-  }, []);
+    })();
+  }, [refresh]);
 
   return { accounts, busy, connect, disconnect, refresh };
 }
 
 export interface GdriveCredsStatus {
   configured: boolean;
-  source: "env" | "cookie" | null;
+  source: GDriveCredsSource;
 }
 
-/** Consulta si ya hay Client ID/Secret guardados (env del despliegue o
- * cookie pegada a mano) sin exponer el secret al cliente. */
+/** Lee las credenciales guardadas (localStorage o variables de entorno del
+ * despliegue) — sin servidor de por medio, porque ninguna de las dos es
+ * secreta. */
 export function useGdriveCredsStatus(): {
-  status: GdriveCredsStatus | null;
-  reload: () => void;
-  forget: () => Promise<void>;
+  status: GdriveCredsStatus;
+  save: (creds: GDriveCreds) => void;
+  forget: () => void;
 } {
-  const [status, setStatus] = useState<GdriveCredsStatus | null>(null);
-  const reload = useCallback(() => {
-    void fetch("/api/gdrive/oauth/creds", { headers: accessCodeHeaders() })
-      .then((r) => r.json())
-      .then((j: GdriveCredsStatus) => setStatus(j))
-      .catch(() => setStatus({ configured: false, source: null }));
-  }, []);
-  useEffect(() => reload(), [reload]);
+  const [status, setStatus] = useState<GdriveCredsStatus>({ configured: false, source: null });
 
-  const forget = useCallback(async () => {
-    await fetch("/api/gdrive/oauth/creds", { method: "DELETE", headers: accessCodeHeaders() });
+  const reload = useCallback(() => {
+    const source = gdCredsSource();
+    setStatus({ configured: source !== null, source });
+  }, []);
+
+  useEffect(() => {
+    reload();
+    window.addEventListener(GD_ACCOUNTS_EVENT, reload);
+    window.addEventListener("storage", reload);
+    return () => {
+      window.removeEventListener(GD_ACCOUNTS_EVENT, reload);
+      window.removeEventListener("storage", reload);
+    };
+  }, [reload]);
+
+  const save = useCallback(
+    (creds: GDriveCreds) => {
+      gdSetCreds(creds);
+      reload();
+    },
+    [reload]
+  );
+
+  const forget = useCallback(() => {
+    gdClearCreds();
     reload();
   }, [reload]);
 
-  return { status, reload, forget };
+  return { status, save, forget };
 }

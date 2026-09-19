@@ -17,30 +17,50 @@ donde se ve todo lo relacionado con las cuentas de Google Drive conectadas:
 
 - **Conectar varias cuentas.** Cada persona crea su propio cliente OAuth en
   su Google Cloud (Google no tiene un registro automático como el
-  manifiesto de GitHub Apps) y lo pega una vez en el panel. A partir de ahí,
-  "Conectar cuenta de Google" es un clic por cuenta — se pueden tener
-  varias conectadas a la vez, como pide el plan.
-- **Almacenamiento por cuenta.** Cada tarjeta de cuenta muestra avatar,
-  nombre, email, y una barra con lo usado / el total (o "sin límite" en
-  cuentas Workspace ilimitadas), en verde/ámbar/rojo según lo llena que
-  esté.
-- **Datos subidos / disponibles.** Debajo de cada cuenta, "Ver archivos de
-  esta cuenta" trae los archivos más recientes de ESA cuenta (nombre, icono,
-  tamaño, enlace directo a Drive) — la primera vista de "qué hay ahí" antes
-  de que exista el índice de la Knowledge Base.
+  manifiesto de GitHub Apps) y pega Client ID + API Key una vez en el panel
+  — **sin Client Secret**. A partir de ahí, "Conectar cuenta" es un clic por
+  cuenta — se pueden tener varias conectadas a la vez, como pide el plan.
+- **Almacenamiento por cuenta.** Cada fila de cuenta muestra avatar, nombre,
+  email, y una barra con lo usado / el total (o "sin límite" en cuentas
+  Workspace ilimitadas), en verde/ámbar/rojo según lo llena que esté.
+- **Datos subidos / disponibles.** "Ver archivos" trae los archivos más
+  recientes de esa cuenta (nombre, icono, tamaño, enlace directo a Drive).
+  "Elegir en Drive" abre el selector visual oficial de Google
+  (`@googleworkspace/drive-picker-element`) para navegar y escoger carpetas
+  o archivos concretos con la UI real de Drive, reusando el token ya
+  concedido — sin pedir permiso otra vez.
 - **Desconectar.** Por cuenta, sin tocar las demás.
 
-Piezas: `src/lib/forja/gdrive-oauth.ts` (URLs y parseo, sin red),
-`src/lib/forja/gdrive-oauth-server.ts` (intercambio de código, refresco,
-cookies — reutiliza las utilidades genéricas de `github-oauth-server.ts`
-en vez de duplicarlas), `src/lib/forja/gdrive.ts` (cuentas guardadas en el
-dispositivo + llamadas a la API de Drive), rutas en
-`src/app/api/gdrive/oauth/*` y el diálogo `src/components/forja/gdrive-dialog.tsx`.
+**Historial de la conexión (por qué es así ahora):** la v4.38.0 usaba un
+intercambio OAuth de servidor clásico (código + Client Secret +
+`redirect_uri` exacto). Un usuario real probó a conectar su cuenta y le
+salió "Error 400: redirect_uri_mismatch" de Google, sin ninguna pista
+dentro de Forja de qué había fallado. La v4.40.0 sustituyó ese flujo
+entero por **Google Identity Services** (GIS): el navegador pide el
+token directamente a Google (sin servidor, sin secret) y Google valida
+contra el ORIGEN completo ("Authorized JavaScript origins"), no contra una
+ruta exacta — el error concreto que sufrió el usuario deja de ser posible
+por diseño. La contrapartida es que GIS no entrega `refresh_token` (eso
+solo lo da el flujo de código, que si necesita secret): la renovación es
+silenciosa, pidiendo un token nuevo mientras la sesión de Google del
+navegador siga viva.
 
-Lo que este panel NO hace todavía (fases siguientes, ver §9): elegir
-carpetas para indexar, subir/clasificar recursos, generar metadata,
-detectar duplicados o alimentar al research agent. Es la base sobre la que
-se construye todo eso — sin ella no hay ninguna cuenta que consultar.
+Piezas: `src/lib/forja/gdrive-gis.ts` (Google Identity Services: pedir
+token, sin servidor), `src/lib/forja/gdrive-oauth.ts` (utilidades puras:
+alcance, formato de bytes), `src/lib/forja/gdrive.ts` (cuentas y
+credenciales guardadas en el dispositivo + llamadas a la API de Drive),
+`src/components/forja/gdrive-picker-button.tsx` (el selector visual de
+Drive) y el diálogo `src/components/forja/gdrive-dialog.tsx`. Ya no hay
+rutas de servidor para esto (`src/app/api/gdrive/*` no existe): ni el
+Client ID ni la API Key son secretos, así que no hace falta que el
+servidor los toque — mismo trato que las API keys de los proveedores de
+modelos en el resto de la app.
+
+Lo que este panel NO hace todavía (fases siguientes, ver §9): guardar lo
+elegido con el Picker en un índice, subir/clasificar recursos, generar
+metadata, detectar duplicados o alimentar al research agent. Es la base
+sobre la que se construye todo eso — sin ella no hay ninguna cuenta que
+consultar.
 
 ## 3. Research Agent
 - Busca primero en la Knowledge Base.

@@ -6,6 +6,11 @@
  * conectar cuentas y verlas. Subir/clasificar recursos, detectar
  * duplicados y el research agent llegan en fases siguientes — a propósito,
  * para no meter todo de golpe sin poder probarlo por partes.
+ *
+ * La conexión usa Google Identity Services en vez de un intercambio OAuth
+ * de servidor (ver gdrive-gis.ts): más fácil de configurar (Client ID +
+ * API Key, sin secret) y sin la trampa del "redirect_uri_mismatch" que
+ * sufrió un usuario real con el flujo anterior.
  */
 import { useEffect, useState } from "react";
 import { Check, Cloud, Copy, ExternalLink, FileText, HardDrive, Loader2, LogOut, RefreshCw, Settings2 } from "lucide-react";
@@ -20,10 +25,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { accessCodeHeaders } from "@/lib/forja/chat-client";
 import { formatBytes, quotaPercent } from "@/lib/forja/gdrive-oauth";
-import { gdListRecentFiles, type GDriveAccount, type GDriveFile } from "@/lib/forja/gdrive";
-import { useGdriveAccounts, useGdriveCredsStatus } from "./gdrive-connect";
+import { gdGetCreds, gdListRecentFiles, type GDriveAccount, type GDriveCreds, type GDriveFile } from "@/lib/forja/gdrive";
+import { useGdriveAccounts, useGdriveCredsStatus, type GdriveCredsStatus } from "./gdrive-connect";
+import { GDrivePickerButton } from "./gdrive-picker-button";
 import { cn } from "@/lib/utils";
 
 function barColor(pct: number | null): string {
@@ -51,13 +56,11 @@ function CopyButton({ text }: { text: string }) {
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // Clipboard bloqueado (permiso, contexto no seguro): selecciona el
-      // texto para que al menos se pueda copiar a mano.
       toast.error("No se pudo copiar automáticamente", { description: "Selecciona el texto y cópialo a mano." });
       return;
     }
     setCopied(true);
-    toast.success("URI copiado");
+    toast.success("Copiado");
     setTimeout(() => setCopied(false), 1500);
   };
   return (
@@ -68,56 +71,46 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function RedirectUriBlock() {
+/** Solo el ORIGEN (dominio), sin ruta: a diferencia del "URI de
+ * redirección" del flujo anterior, esto es lo único que hay que pegar en
+ * Google Cloud → "Authorized JavaScript origins", y no tiene que coincidir
+ * carácter por carácter con ninguna ruta — mucho más difícil de fallar. */
+function AuthorizedOriginBlock() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const redirectUri = `${origin}/api/gdrive/oauth/callback`;
   return (
     <div>
       <div className="flex items-center gap-2 rounded-md bg-muted px-2 py-1.5">
-        <code className="block flex-1 truncate text-[11px]">{redirectUri}</code>
-        <CopyButton text={redirectUri} />
+        <code className="block flex-1 truncate text-[11px]">{origin}</code>
+        <CopyButton text={origin} />
       </div>
       <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-[10.5px] text-muted-foreground">
-        <li>Tiene que ser tipo «Aplicación web», no «Aplicación de escritorio».</li>
-        <li>Cópialo tal cual: con https, sin espacios ni barra final de más.</li>
-        <li>Si tu app cambia de dominio, este URI cambia — vuelve a copiarlo.</li>
+        <li>Va en «Authorized JavaScript origins», NO en «Authorized redirect URIs» — no hace falta ninguna ruta.</li>
+        <li>Es solo el dominio: sin barra final, con https.</li>
+        <li>Si tu app cambia de dominio, vuelve a copiarlo.</li>
       </ul>
     </div>
   );
 }
 
-function GDriveCredsForm({ onSaved }: { onSaved: () => void }) {
+function GDriveCredsForm({ onSaved }: { onSaved: (creds: GDriveCreds) => void }) {
   const [clientId, setClientId] = useState("");
-  const [clientSecret, setClientSecret] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  const [appId, setAppId] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const save = async () => {
-    if (!clientId.trim() || !clientSecret.trim()) return;
-    setSaving(true);
-    try {
-      const res = await fetch("/api/gdrive/oauth/creds", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...accessCodeHeaders() },
-        body: JSON.stringify({ clientId: clientId.trim(), clientSecret: clientSecret.trim() }),
-      });
-      const j = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok || !j.ok) throw new Error(j.error || "No se pudieron guardar las credenciales");
-      toast.success("Credenciales de Google guardadas");
-      setClientId("");
-      setClientSecret("");
-      onSaved();
-    } catch (e) {
-      toast.error("No se pudo guardar", { description: e instanceof Error ? e.message : String(e) });
-    } finally {
-      setSaving(false);
-    }
+  const save = () => {
+    if (!clientId.trim() || !apiKey.trim()) return;
+    onSaved({ clientId: clientId.trim(), apiKey: apiKey.trim(), appId: appId.trim() || undefined });
+    toast.success("Credenciales de Google guardadas");
+    setClientId("");
+    setApiKey("");
+    setAppId("");
   };
 
   return (
     <div className="space-y-3 rounded-xl border border-border/60 bg-card/40 px-3 py-3">
       <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-        Google no deja registrar una app automáticamente como GitHub: cada persona crea su propio cliente
-        OAuth (gratis, dos minutos) en{" "}
+        Cada persona crea su propio cliente OAuth (gratis, dos minutos) en{" "}
         <a
           href="https://console.cloud.google.com/apis/credentials"
           target="_blank"
@@ -126,9 +119,10 @@ function GDriveCredsForm({ onSaved }: { onSaved: () => void }) {
         >
           Google Cloud Console <ExternalLink className="size-3" />
         </a>
-        : «Crear credenciales» → «ID de cliente de OAuth» → añade este URI de redirección exacto:
+        : «Crear credenciales» → «ID de cliente de OAuth» (tipo «Aplicación web») y también una «Clave de
+        API». Añade este origen:
       </p>
-      <RedirectUriBlock />
+      <AuthorizedOriginBlock />
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="gd-client-id" className="text-[11px]">Client ID</Label>
@@ -141,36 +135,52 @@ function GDriveCredsForm({ onSaved }: { onSaved: () => void }) {
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="gd-client-secret" className="text-[11px]">Client Secret</Label>
+          <Label htmlFor="gd-api-key" className="text-[11px]">API Key</Label>
           <Input
-            id="gd-client-secret"
-            type="password"
-            value={clientSecret}
-            onChange={(e) => setClientSecret(e.target.value)}
-            placeholder="GOCSPX-…"
+            id="gd-api-key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="AIza…"
             className="h-8 font-mono text-xs"
           />
         </div>
       </div>
+      <button
+        type="button"
+        onClick={() => setShowAdvanced((v) => !v)}
+        className="text-[10.5px] text-muted-foreground underline underline-offset-2"
+      >
+        {showAdvanced ? "Ocultar avanzado" : "Avanzado: ID de la app (opcional)"}
+      </button>
+      {showAdvanced && (
+        <div className="space-y-1">
+          <Label htmlFor="gd-app-id" className="text-[11px]">ID de la app (número de proyecto)</Label>
+          <Input
+            id="gd-app-id"
+            value={appId}
+            onChange={(e) => setAppId(e.target.value)}
+            placeholder="123456789012"
+            className="h-8 font-mono text-xs"
+          />
+        </div>
+      )}
       <Button
         type="button"
         size="sm"
         className="h-8 text-[11px]"
-        disabled={!clientId.trim() || !clientSecret.trim() || saving}
-        onClick={() => void save()}
+        disabled={!clientId.trim() || !apiKey.trim()}
+        onClick={save}
       >
-        {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
         Guardar credenciales
       </Button>
     </div>
   );
 }
 
-/** Una vez configuradas, las credenciales quedan ocultas por defecto (el
- * secret no vuelve a mostrarse) pero siempre accesibles: si la conexión
- * falla por un URI mal copiado, hace falta poder volver a verlo y, si hace
- * falta, empezar de cero sin tocar variables de entorno. */
-function ConfiguredCredsPanel({ source, onForget }: { source: "env" | "cookie" | null; onForget: () => void }) {
+/** Las credenciales no son secretas, pero se mantienen ocultas por
+ * limpieza visual — siempre accesibles para revisar el origen exacto o
+ * empezar de cero si algo no encaja. */
+function ConfiguredCredsPanel({ status, onForget }: { status: GdriveCredsStatus; onForget: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-xl border border-border/60 bg-card/40 px-3 py-2">
@@ -180,25 +190,25 @@ function ConfiguredCredsPanel({ source, onForget }: { source: "env" | "cookie" |
         className="flex w-full items-center gap-2 text-[11.5px] text-muted-foreground hover:text-foreground"
       >
         <Settings2 className="size-3.5" />
-        Credenciales de Google {source === "env" ? "(fijadas por el despliegue)" : "guardadas"}
+        Credenciales de Google {status.source === "env" ? "(fijadas por el despliegue)" : "guardadas"}
         <span className="ml-auto text-[10.5px] underline underline-offset-2">{open ? "Ocultar" : "Ver / cambiar"}</span>
       </button>
       {open && (
         <div className="mt-2 space-y-2">
           <p className="text-[11px] text-muted-foreground">
-            Si la conexión falla, lo más común es que este URI no coincida carácter por carácter con el que
-            pusiste en Google Cloud:
+            Si la conexión falla, revisa que este origen esté en «Authorized JavaScript origins» de tu cliente
+            OAuth:
           </p>
-          <RedirectUriBlock />
-          {source === "cookie" && (
+          <AuthorizedOriginBlock />
+          {status.source === "local" && (
             <Button type="button" variant="outline" size="sm" className="h-7 text-[11px]" onClick={onForget}>
               Olvidar y pegar otras credenciales
             </Button>
           )}
-          {source === "env" && (
+          {status.source === "env" && (
             <p className="text-[10.5px] text-muted-foreground">
-              Están puestas por variables de entorno del despliegue (GOOGLE_CLIENT_ID/SECRET); para cambiarlas
-              hay que editarlas ahí.
+              Están puestas por variables de entorno del despliegue (NEXT_PUBLIC_GOOGLE_CLIENT_ID/API_KEY);
+              para cambiarlas hay que editarlas ahí.
             </p>
           )}
         </div>
@@ -207,15 +217,19 @@ function ConfiguredCredsPanel({ source, onForget }: { source: "env" | "cookie" |
   );
 }
 
-function AccountFiles({ account }: { account: GDriveAccount }) {
+function AccountFiles({ account, creds }: { account: GDriveAccount; creds: GDriveCreds | null }) {
   const [files, setFiles] = useState<GDriveFile[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = () => {
+    if (!creds) {
+      setError("Faltan las credenciales de Google — vuelve a pegarlas arriba.");
+      return;
+    }
     setLoading(true);
     setError(null);
-    gdListRecentFiles(account)
+    gdListRecentFiles(account, creds)
       .then(setFiles)
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false));
@@ -271,7 +285,17 @@ function AccountFiles({ account }: { account: GDriveAccount }) {
  * chip de color + nombre a la izquierda, barra de almacenamiento a la
  * derecha con el dato debajo — pero sobre cuentas de verdad, no sobre
  * carpetas de una Knowledge Base que todavía no existe (eso es la Fase 2). */
-function AccountRow({ account, color, onDisconnect }: { account: GDriveAccount; color: string; onDisconnect: (email: string) => void }) {
+function AccountRow({
+  account,
+  creds,
+  color,
+  onDisconnect,
+}: {
+  account: GDriveAccount;
+  creds: GDriveCreds | null;
+  color: string;
+  onDisconnect: (email: string) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const pct = quotaPercent(account.quota);
 
@@ -301,7 +325,7 @@ function AccountRow({ account, color, onDisconnect }: { account: GDriveAccount; 
         </div>
       </div>
 
-      <div className="mt-1.5 flex items-center gap-3">
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
@@ -309,6 +333,22 @@ function AccountRow({ account, color, onDisconnect }: { account: GDriveAccount; 
         >
           {expanded ? "Ocultar archivos" : "Ver archivos"}
         </button>
+        {creds && (
+          <GDrivePickerButton
+            creds={creds}
+            accessToken={account.accessToken}
+            onPicked={(files) => {
+              if (files.length === 0) return;
+              toast.message(
+                files.length === 1 ? `Elegido: ${files[0]!.name}` : `Elegidos ${files.length} elementos`,
+                {
+                  description:
+                    "Todavía no se guardan en la Knowledge Base — eso llega con el Knowledge Base Manager (Fase 2).",
+                }
+              );
+            }}
+          />
+        )}
         <button
           type="button"
           onClick={() => onDisconnect(account.email)}
@@ -317,14 +357,15 @@ function AccountRow({ account, color, onDisconnect }: { account: GDriveAccount; 
           <LogOut className="size-3" /> Desconectar
         </button>
       </div>
-      {expanded && <AccountFiles account={account} />}
+      {expanded && <AccountFiles account={account} creds={creds} />}
     </div>
   );
 }
 
 export function GDriveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { accounts, busy, connect, disconnect } = useGdriveAccounts();
-  const { status, reload, forget } = useGdriveCredsStatus();
+  const { status, save, forget } = useGdriveCredsStatus();
+  const creds = gdGetCreds();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -338,7 +379,7 @@ export function GDriveDialog({ open, onOpenChange }: { open: boolean; onOpenChan
               ? `${accounts.length} ${accounts.length === 1 ? "cuenta conectada" : "cuentas conectadas"}`
               : "Sin cuentas conectadas todavía"}
           </DialogDescription>
-          {status?.configured && (
+          {status.configured && (
             <Button
               type="button"
               size="sm"
@@ -353,8 +394,8 @@ export function GDriveDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
-          {status && !status.configured && <GDriveCredsForm onSaved={reload} />}
-          {status?.configured && <ConfiguredCredsPanel source={status.source} onForget={() => void forget()} />}
+          {!status.configured && <GDriveCredsForm onSaved={save} />}
+          {status.configured && <ConfiguredCredsPanel status={status} onForget={forget} />}
 
           {accounts.length === 0 ? (
             <p className="text-[12px] text-muted-foreground">
@@ -366,6 +407,7 @@ export function GDriveDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                 <AccountRow
                   key={a.email}
                   account={a}
+                  creds={creds}
                   color={CHIP_COLORS[i % CHIP_COLORS.length]!}
                   onDisconnect={disconnect}
                 />

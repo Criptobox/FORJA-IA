@@ -4,10 +4,14 @@ import { expect, test, type Page } from "./fixtures";
  *
  * Conectar cuentas de Google Drive, ver su almacenamiento y una vista
  * previa de sus archivos, desde un diálogo propio en la barra lateral.
- * Google no tiene un registro automático como el manifiesto de GitHub
- * Apps, así que primero hace falta pegar un Client ID/Secret — este test
- * cubre las dos pantallas: sin credenciales, y con una cuenta ya
- * conectada (con la API de Drive mockeada, sin red real).
+ *
+ * La conexión usa Google Identity Services (Client ID + API Key, sin
+ * secret) en vez del intercambio OAuth de servidor de antes — ese flujo le
+ * dio a un usuario real un "Error 400: redirect_uri_mismatch" sin ninguna
+ * pista dentro de Forja. Este test cubre las dos pantallas: sin
+ * credenciales, y con una cuenta ya conectada (con la API de Drive
+ * mockeada, sin red real — GIS en sí no se ejerce aquí, solo la lectura de
+ * cuentas ya guardadas).
  */
 
 async function seed(page: Page) {
@@ -42,13 +46,18 @@ test.describe("Panel Drive", () => {
     await page.setViewportSize({ width: 1280, height: 900 });
   });
 
-  test("sin credenciales, muestra cómo crearlas en Google Cloud", async ({ page }) => {
+  test("sin credenciales, muestra cómo crearlas en Google Cloud (Client ID + API Key, sin secret)", async ({
+    page,
+  }) => {
     await page.goto("/");
     await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: "Drive" }).click();
 
     await expect(page.getByRole("dialog").getByText("Google Cloud Console")).toBeVisible();
-    await expect(page.getByRole("dialog").getByText(/api\/gdrive\/oauth\/callback/)).toBeVisible();
+    // Ya no pide Client Secret ni un "redirect URI" con ruta exacta.
+    await expect(page.getByLabel("Client Secret")).toHaveCount(0);
+    await expect(page.getByLabel("API Key")).toBeVisible();
+    await expect(page.getByRole("dialog").getByText(/Authorized JavaScript origins/)).toBeVisible();
     await expect(page.getByText("Todavía no hay ninguna cuenta de Google Drive conectada.")).toBeVisible();
   });
 
@@ -72,6 +81,7 @@ test.describe("Panel Drive", () => {
       })
     );
     await page.addInitScript(() => {
+      localStorage.setItem("forja-gdrive-creds", JSON.stringify({ clientId: "test-cid", apiKey: "test-key" }));
       localStorage.setItem(
         "forja-gdrive-accounts",
         JSON.stringify([
@@ -80,7 +90,6 @@ test.describe("Panel Drive", () => {
             name: "Ana Torres",
             avatar: "",
             accessToken: "ya29.fake",
-            refreshToken: "1//fake",
             expiresAt: Date.now() + 3600_000,
             quota: { limit: 16106127360, usage: 13153337344, usageInDrive: 13153337344 },
           },
@@ -94,6 +103,10 @@ test.describe("Panel Drive", () => {
 
     await expect(page.getByText("ana@example.com")).toBeVisible();
     await expect(page.getByText(/12 GB \/ 15 GB/)).toBeVisible();
+    // Con credenciales guardadas, el botón de conectar SÍ aparece.
+    await expect(page.getByRole("button", { name: "Conectar cuenta" })).toBeVisible();
+    // Y el selector visual de Drive (Picker) está disponible por cuenta.
+    await expect(page.getByRole("button", { name: "Elegir en Drive" })).toBeVisible();
 
     await page.getByText("Ver archivos").click();
     await expect(page.getByText("referencia.png")).toBeVisible({ timeout: 10_000 });
