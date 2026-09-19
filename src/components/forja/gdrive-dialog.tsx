@@ -1,11 +1,11 @@
 "use client";
-/** Forja IA — Panel "Drive": cuentas de Google Drive conectadas, su
- * almacenamiento y una vista previa de lo que hay en cada una.
- *
- * Fase 1 del plan de Knowledge Base (docs/PLAN-V10-KNOWLEDGE-BASE.md): solo
- * conectar cuentas y verlas. Subir/clasificar recursos, detectar
- * duplicados y el research agent llegan en fases siguientes — a propósito,
- * para no meter todo de golpe sin poder probarlo por partes.
+/** Forja IA — Cuentas de Google Drive: conexión, almacenamiento y vista
+ * previa de archivos. Vive DENTRO del diálogo "Conocimiento"
+ * (`kb-dialog.tsx`) como `<DriveAccountsPanel>` — antes era su propio
+ * diálogo "Drive" aparte, pero el usuario lo dejó claro: "la idea era un
+ * panel con todo, no una cosa por un lado y otra por otro" — Drive y la
+ * Knowledge Base son las dos mitades de lo mismo, así que ahora comparten
+ * un solo diálogo con dos columnas.
  *
  * La conexión usa Google Identity Services en vez de un intercambio OAuth
  * de servidor (ver gdrive-gis.ts): más fácil de configurar (Client ID +
@@ -13,18 +13,11 @@
  * sufrió un usuario real con el flujo anterior.
  */
 import { useEffect, useState } from "react";
-import { Check, Cloud, Copy, ExternalLink, FileText, HardDrive, Loader2, LogOut, RefreshCw, Settings2 } from "lucide-react";
+import { Check, Cloud, Copy, ExternalLink, FileText, Loader2, LogOut, RefreshCw, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { formatBytes, quotaPercent } from "@/lib/forja/gdrive-oauth";
 import { gdGetCreds, gdListRecentFiles, type GDriveAccount, type GDriveCreds, type GDriveFile } from "@/lib/forja/gdrive";
 import { kbHasResource, kbUpsertResource } from "@/lib/forja/kb-index";
@@ -411,60 +404,60 @@ function AccountRow({
   );
 }
 
-export function GDriveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+/** El contenido de "Tus Google Drives", sin diálogo propio — se monta
+ * dentro de `KBDialog` como una de sus dos columnas. */
+export function DriveAccountsPanel() {
   const { accounts, busy, connect, disconnect } = useGdriveAccounts();
   const { status, save, forget } = useGdriveCredsStatus();
   const creds = gdGetCreds();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <DialogHeader className="border-b border-border/60 px-4 py-3 pr-10">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <HardDrive className="size-4" /> Tus Google Drives
-          </DialogTitle>
-          <DialogDescription className="text-[12px]">
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="flex items-center gap-2 text-[13px] font-semibold">
+            <Cloud className="size-4" /> Tus Google Drives
+          </h3>
+          <p className="text-[11px] text-muted-foreground">
             {accounts.length > 0
               ? `${accounts.length} ${accounts.length === 1 ? "cuenta conectada" : "cuentas conectadas"}`
               : "Sin cuentas conectadas todavía"}
-          </DialogDescription>
-          {status.configured && (
-            <Button
-              type="button"
-              size="sm"
-              onClick={connect}
-              disabled={busy}
-              className="mt-1 h-8 w-fit gap-1.5 forja-gradient-bg border-0 text-white hover:opacity-90"
-            >
-              {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Cloud className="size-3.5" />}
-              {busy ? "Conectando…" : "Conectar cuenta"}
-            </Button>
-          )}
-        </DialogHeader>
-
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
-          {!status.configured && <GDriveCredsForm onSaved={save} />}
-          {status.configured && <ConfiguredCredsPanel status={status} onForget={forget} />}
-
-          {accounts.length === 0 ? (
-            <p className="text-[12px] text-muted-foreground">
-              Todavía no hay ninguna cuenta de Google Drive conectada.
-            </p>
-          ) : (
-            <div className="space-y-2.5">
-              {accounts.map((a, i) => (
-                <AccountRow
-                  key={a.email}
-                  account={a}
-                  creds={creds}
-                  color={CHIP_COLORS[i % CHIP_COLORS.length]!}
-                  onDisconnect={disconnect}
-                />
-              ))}
-            </div>
-          )}
+          </p>
         </div>
-      </DialogContent>
-    </Dialog>
+        {status.configured && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={connect}
+            disabled={busy}
+            className="h-8 shrink-0 gap-1.5 forja-gradient-bg border-0 text-white hover:opacity-90"
+          >
+            {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Cloud className="size-3.5" />}
+            {busy ? "Conectando…" : "Conectar cuenta"}
+          </Button>
+        )}
+      </div>
+
+      {!status.configured && <GDriveCredsForm onSaved={save} />}
+      {status.configured && <ConfiguredCredsPanel status={status} onForget={forget} />}
+
+      {accounts.length === 0 ? (
+        <p className="text-[12px] text-muted-foreground">
+          Todavía no hay ninguna cuenta de Google Drive conectada.
+        </p>
+      ) : (
+        <div className="space-y-2.5">
+          {accounts.map((a, i) => (
+            <AccountRow
+              key={a.email}
+              account={a}
+              creds={creds}
+              color={CHIP_COLORS[i % CHIP_COLORS.length]!}
+              onDisconnect={disconnect}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

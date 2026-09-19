@@ -14,7 +14,6 @@ import {
   Github,
   GraduationCap,
   Hammer,
-  HardDrive,
   LayoutDashboard,
   MessageSquarePlus,
   Monitor,
@@ -65,7 +64,6 @@ export function Sidebar({
   onOpenSkills,
   onOpenRadar,
   onOpenGithub,
-  onOpenDrive,
   onOpenKnowledgeBase,
   onOpenArena,
   onOpenPanel,
@@ -86,7 +84,6 @@ export function Sidebar({
   onOpenSkills?: () => void;
   onOpenRadar?: () => void;
   onOpenGithub?: () => void;
-  onOpenDrive?: () => void;
   onOpenKnowledgeBase?: () => void;
   onOpenArena?: () => void;
   onOpenPanel?: () => void;
@@ -153,7 +150,6 @@ export function Sidebar({
         { label: "Web Studio", icon: <Sparkles className="size-4" />, onClick: onOpenStudio, title: "Web Studio: flujo especializado para construir, medir y corregir interfaces web" },
         { label: "Repos", icon: <FolderGit2 className="size-4" />, onClick: onOpenRepos, title: "Repo Studio: conecta un repo de GitHub (directo sin descargar), edítalo y haz push" },
         { label: "GitHub", icon: <Github className="size-4" />, onClick: onOpenGithub, title: "Subir carpeta a GitHub sin límite de 100 archivos" },
-        { label: "Drive", icon: <HardDrive className="size-4" />, onClick: onOpenDrive, title: "Conecta tus cuentas de Google Drive: almacenamiento y datos disponibles para Forja" },
       ],
     },
     {
@@ -209,7 +205,7 @@ export function Sidebar({
       titulo: "Herramientas",
       items: [
         { label: "Biblioteca", icon: <BookOpen className="size-4" />, onClick: onOpenLibrary, title: "Biblioteca de prompts" },
-        { label: "Conocimiento", icon: <Database className="size-4" />, onClick: onOpenKnowledgeBase, title: "Knowledge Base: recursos elegidos desde Drive, con categoría y etiquetas" },
+        { label: "Conocimiento", icon: <Database className="size-4" />, onClick: onOpenKnowledgeBase, title: "Knowledge Base: conecta tus cuentas de Google Drive e importa recursos, con categoría y etiquetas" },
         { label: "Skills", icon: <Puzzle className="size-4" />, onClick: onOpenSkills, title: "Skills: instrucciones que se suman al prompt de sistema" },
         { label: "Memoria", icon: <BrainCircuit className="size-4" />, onClick: onOpenFailures, title: "Memoria de fallos: reglas aprendidas de errores reales que el agente consulta antes de actuar" },
         { label: "Uso", icon: <Activity className="size-4" />, onClick: onOpenUsage, title: "Uso: peticiones, latencia y ahorro de contexto por modelo (todo local)" },

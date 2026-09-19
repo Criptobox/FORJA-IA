@@ -12,8 +12,14 @@ Crear una biblioteca centralizada y extensible para que Forja pueda consultar co
 Google Drive funciona como almacenamiento externo. No es el cerebro. Forja consulta índices y recupera recursos concretos.
 
 ## 2bis. Drive (panel dentro de Forja) — Fase 1, YA IMPLEMENTADA
-Apartado dedicado, abierto desde la barra lateral (`Drive`, icono de disco),
-donde se ve todo lo relacionado con las cuentas de Google Drive conectadas:
+Al principio esto vivía en su propio apartado de la barra lateral
+("Drive", icono de disco), separado de "Conocimiento". El usuario lo
+probó y pidió lo contrario: *"la idea era un panel con todo, no una cosa
+por un lado y otra por otro... todo los datos de ese tipo en 1 solo
+lugar"*. Desde entonces las cuentas de Google Drive conectadas viven
+dentro del mismo diálogo "Conocimiento" (ver §9, fase 2), como una
+columna al lado del índice — un único apartado en la barra lateral, no
+dos. Lo que se ve ahí:
 
 - **Conectar varias cuentas.** Cada persona crea su propio cliente OAuth en
   su Google Cloud (Google no tiene un registro automático como el
@@ -50,11 +56,13 @@ token, sin servidor), `src/lib/forja/gdrive-oauth.ts` (utilidades puras:
 alcance, formato de bytes), `src/lib/forja/gdrive.ts` (cuentas y
 credenciales guardadas en el dispositivo + llamadas a la API de Drive),
 `src/components/forja/gdrive-picker-button.tsx` (el selector visual de
-Drive) y el diálogo `src/components/forja/gdrive-dialog.tsx`. Ya no hay
-rutas de servidor para esto (`src/app/api/gdrive/*` no existe): ni el
-Client ID ni la API Key son secretos, así que no hace falta que el
-servidor los toque — mismo trato que las API keys de los proveedores de
-modelos en el resto de la app.
+Drive) y `src/components/forja/gdrive-dialog.tsx`, que ya no exporta un
+diálogo propio: exporta `<DriveAccountsPanel>`, la columna que
+`kb-dialog.tsx` monta dentro del diálogo "Conocimiento". Ya no hay rutas
+de servidor para esto (`src/app/api/gdrive/*` no existe): ni el Client ID
+ni la API Key son secretos, así que no hace falta que el servidor los
+toque — mismo trato que las API keys de los proveedores de modelos en el
+resto de la app.
 
 Lo que este panel NO hace todavía (fases siguientes, ver §9): guardar lo
 elegido con el Picker en un índice, subir/clasificar recursos, generar
@@ -104,10 +112,14 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
 ## 9. Fases de implementación
 1. **Drive (§2bis) — hecho.** Conectar cuentas, ver almacenamiento y
    archivos recientes.
-2. **Knowledge Base Manager — hecho, con clasificación real incluida.**
-   Nuevo apartado "Conocimiento" en la barra lateral
-   (`src/components/forja/kb-dialog.tsx`, índice en
-   `src/lib/forja/kb-index.ts`): cada recurso guarda id/nombre/tipo/
+2. **Knowledge Base Manager — hecho, con clasificación real incluida, y
+   ya fusionado con Drive en un solo panel.** Apartado "Conocimiento" en
+   la barra lateral (`src/components/forja/kb-dialog.tsx`, índice en
+   `src/lib/forja/kb-index.ts`) — la ÚNICA entrada para todo esto; "Drive"
+   dejó de existir como apartado aparte. Dos columnas dentro del mismo
+   diálogo: a la izquierda, importar y ver los recursos indexados; a la
+   derecha, `<DriveAccountsPanel>` con las cuentas de Google Drive
+   conectadas (en móvil se apilan). Cada recurso guarda id/nombre/tipo/
    tamaño/cuenta/enlace/categoría/etiquetas/tecnología/licencia/estado/
    fecha — el equivalente a `INDEX.json`, pero en localStorage (solo
    metadata; los archivos siguen en Drive, así la biblioteca puede crecer
