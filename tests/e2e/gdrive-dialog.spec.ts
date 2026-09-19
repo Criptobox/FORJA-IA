@@ -93,9 +93,9 @@ test.describe("Panel Drive", () => {
     await page.getByRole("button", { name: "Drive" }).click();
 
     await expect(page.getByText("ana@example.com")).toBeVisible();
-    await expect(page.getByText(/de 15 GB usados/)).toBeVisible();
+    await expect(page.getByText(/12 GB \/ 15 GB/)).toBeVisible();
 
-    await page.getByText("Ver archivos de esta cuenta").click();
+    await page.getByText("Ver archivos").click();
     await expect(page.getByText("referencia.png")).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText("1 MB")).toBeVisible();
 

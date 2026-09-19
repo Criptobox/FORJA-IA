@@ -2,13 +2,13 @@
 /** Forja IA — Panel "Drive": cuentas de Google Drive conectadas, su
  * almacenamiento y una vista previa de lo que hay en cada una.
  *
- * Fase 1 del plan de Knowledge Base (docs/knowledge-base-plan.md): solo
+ * Fase 1 del plan de Knowledge Base (docs/PLAN-V10-KNOWLEDGE-BASE.md): solo
  * conectar cuentas y verlas. Subir/clasificar recursos, detectar
  * duplicados y el research agent llegan en fases siguientes — a propósito,
  * para no meter todo de golpe sin poder probarlo por partes.
  */
 import { useEffect, useState } from "react";
-import { Cloud, ExternalLink, FileText, HardDrive, Loader2, LogOut, RefreshCw } from "lucide-react";
+import { Check, Cloud, Copy, ExternalLink, FileText, HardDrive, Loader2, LogOut, RefreshCw, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,12 +33,63 @@ function barColor(pct: number | null): string {
   return "bg-emerald-500";
 }
 
+/** Un color de acento distinto por cuenta, en el mismo tono "chip de
+ * color + icono" que el panel de referencia — aquí sobre cuentas reales,
+ * no sobre carpetas que todavía no existen. */
+const CHIP_COLORS = [
+  "bg-violet-500/15 text-violet-600 dark:text-violet-400",
+  "bg-pink-500/15 text-pink-600 dark:text-pink-400",
+  "bg-sky-500/15 text-sky-600 dark:text-sky-400",
+  "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+  "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+  "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400",
+];
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Clipboard bloqueado (permiso, contexto no seguro): selecciona el
+      // texto para que al menos se pueda copiar a mano.
+      toast.error("No se pudo copiar automáticamente", { description: "Selecciona el texto y cópialo a mano." });
+      return;
+    }
+    setCopied(true);
+    toast.success("URI copiado");
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <Button type="button" variant="ghost" size="sm" className="h-6 shrink-0 gap-1 text-[10.5px]" onClick={() => void copy()}>
+      {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+      Copiar
+    </Button>
+  );
+}
+
+function RedirectUriBlock() {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const redirectUri = `${origin}/api/gdrive/oauth/callback`;
+  return (
+    <div>
+      <div className="flex items-center gap-2 rounded-md bg-muted px-2 py-1.5">
+        <code className="block flex-1 truncate text-[11px]">{redirectUri}</code>
+        <CopyButton text={redirectUri} />
+      </div>
+      <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-[10.5px] text-muted-foreground">
+        <li>Tiene que ser tipo «Aplicación web», no «Aplicación de escritorio».</li>
+        <li>Cópialo tal cual: con https, sin espacios ni barra final de más.</li>
+        <li>Si tu app cambia de dominio, este URI cambia — vuelve a copiarlo.</li>
+      </ul>
+    </div>
+  );
+}
+
 function GDriveCredsForm({ onSaved }: { onSaved: () => void }) {
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [saving, setSaving] = useState(false);
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const redirectUri = `${origin}/api/gdrive/oauth/callback`;
 
   const save = async () => {
     if (!clientId.trim() || !clientSecret.trim()) return;
@@ -75,10 +126,9 @@ function GDriveCredsForm({ onSaved }: { onSaved: () => void }) {
         >
           Google Cloud Console <ExternalLink className="size-3" />
         </a>
-        : «Crear credenciales» → «ID de cliente de OAuth» → tipo «Aplicación web» → añade este URI de
-        redirección exacto:
+        : «Crear credenciales» → «ID de cliente de OAuth» → añade este URI de redirección exacto:
       </p>
-      <code className="block break-all rounded-md bg-muted px-2 py-1.5 text-[11px]">{redirectUri}</code>
+      <RedirectUriBlock />
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="gd-client-id" className="text-[11px]">Client ID</Label>
@@ -112,6 +162,47 @@ function GDriveCredsForm({ onSaved }: { onSaved: () => void }) {
         {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
         Guardar credenciales
       </Button>
+    </div>
+  );
+}
+
+/** Una vez configuradas, las credenciales quedan ocultas por defecto (el
+ * secret no vuelve a mostrarse) pero siempre accesibles: si la conexión
+ * falla por un URI mal copiado, hace falta poder volver a verlo y, si hace
+ * falta, empezar de cero sin tocar variables de entorno. */
+function ConfiguredCredsPanel({ source, onForget }: { source: "env" | "cookie" | null; onForget: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl border border-border/60 bg-card/40 px-3 py-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-2 text-[11.5px] text-muted-foreground hover:text-foreground"
+      >
+        <Settings2 className="size-3.5" />
+        Credenciales de Google {source === "env" ? "(fijadas por el despliegue)" : "guardadas"}
+        <span className="ml-auto text-[10.5px] underline underline-offset-2">{open ? "Ocultar" : "Ver / cambiar"}</span>
+      </button>
+      {open && (
+        <div className="mt-2 space-y-2">
+          <p className="text-[11px] text-muted-foreground">
+            Si la conexión falla, lo más común es que este URI no coincida carácter por carácter con el que
+            pusiste en Google Cloud:
+          </p>
+          <RedirectUriBlock />
+          {source === "cookie" && (
+            <Button type="button" variant="outline" size="sm" className="h-7 text-[11px]" onClick={onForget}>
+              Olvidar y pegar otras credenciales
+            </Button>
+          )}
+          {source === "env" && (
+            <p className="text-[10.5px] text-muted-foreground">
+              Están puestas por variables de entorno del despliegue (GOOGLE_CLIENT_ID/SECRET); para cambiarlas
+              hay que editarlas ahí.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -176,54 +267,56 @@ function AccountFiles({ account }: { account: GDriveAccount }) {
   );
 }
 
-function AccountCard({ account, onDisconnect }: { account: GDriveAccount; onDisconnect: (email: string) => void }) {
+/** Fila compacta al estilo del panel "Tus Google Drives" de referencia:
+ * chip de color + nombre a la izquierda, barra de almacenamiento a la
+ * derecha con el dato debajo — pero sobre cuentas de verdad, no sobre
+ * carpetas de una Knowledge Base que todavía no existe (eso es la Fase 2). */
+function AccountRow({ account, color, onDisconnect }: { account: GDriveAccount; color: string; onDisconnect: (email: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const pct = quotaPercent(account.quota);
 
   return (
-    <div className="rounded-xl border border-border/60 bg-card/40 px-3 py-3">
-      <div className="flex items-center gap-2.5">
-        {account.avatar ? (
-          <img src={account.avatar} alt="" className="size-8 rounded-full" width={32} height={32} />
-        ) : (
-          <Cloud className="size-8 rounded-full bg-muted p-1.5" />
-        )}
+    <div className="rounded-xl border border-border/60 bg-card/40 px-3 py-2.5">
+      <div className="flex items-center gap-3">
+        <div className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", color)}>
+          {account.avatar ? (
+            <img src={account.avatar} alt="" className="size-9 rounded-lg object-cover" width={36} height={36} />
+          ) : (
+            <Cloud className="size-4" />
+          )}
+        </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-medium">{account.name}</p>
+          <p className="truncate text-[13px] font-semibold">{account.name}</p>
           <p className="truncate text-[11px] text-muted-foreground">{account.email}</p>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1 text-[11px] text-muted-foreground hover:text-red-500"
-          onClick={() => onDisconnect(account.email)}
-        >
-          <LogOut className="size-3.5" /> Desconectar
-        </Button>
-      </div>
-
-      <div className="mt-3">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className={cn("h-full rounded-full transition-all", barColor(pct))}
-            style={{ width: `${pct ?? 8}%` }}
-          />
+        <div className="w-28 shrink-0 sm:w-36">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className={cn("h-full rounded-full transition-all", barColor(pct))} style={{ width: `${pct ?? 8}%` }} />
+          </div>
+          <p className="mt-1 text-right text-[10px] text-muted-foreground">
+            {account.quota.limit
+              ? `${formatBytes(account.quota.usage)} / ${formatBytes(account.quota.limit)}`
+              : `${formatBytes(account.quota.usage)} · sin límite`}
+          </p>
         </div>
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          {account.quota.limit
-            ? `${formatBytes(account.quota.usage)} de ${formatBytes(account.quota.limit)} usados`
-            : `${formatBytes(account.quota.usage)} usados · sin límite`}
-        </p>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="mt-2 text-[11px] text-forja-violet underline underline-offset-2"
-      >
-        {expanded ? "Ocultar archivos" : "Ver archivos de esta cuenta"}
-      </button>
+      <div className="mt-1.5 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-[11px] text-forja-violet underline underline-offset-2"
+        >
+          {expanded ? "Ocultar archivos" : "Ver archivos"}
+        </button>
+        <button
+          type="button"
+          onClick={() => onDisconnect(account.email)}
+          className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground hover:text-red-500"
+        >
+          <LogOut className="size-3" /> Desconectar
+        </button>
+      </div>
       {expanded && <AccountFiles account={account} />}
     </div>
   );
@@ -231,35 +324,37 @@ function AccountCard({ account, onDisconnect }: { account: GDriveAccount; onDisc
 
 export function GDriveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { accounts, busy, connect, disconnect } = useGdriveAccounts();
-  const { status, reload } = useGdriveCredsStatus();
+  const { status, reload, forget } = useGdriveCredsStatus();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <DialogHeader className="border-b border-border/60 px-4 py-3">
+        <DialogHeader className="border-b border-border/60 px-4 py-3 pr-10">
           <DialogTitle className="flex items-center gap-2 text-base">
-            <HardDrive className="size-4" /> Drive
+            <HardDrive className="size-4" /> Tus Google Drives
           </DialogTitle>
           <DialogDescription className="text-[12px]">
-            Cuentas de Google Drive conectadas: almacenamiento y datos que Forja puede consultar.
+            {accounts.length > 0
+              ? `${accounts.length} ${accounts.length === 1 ? "cuenta conectada" : "cuentas conectadas"}`
+              : "Sin cuentas conectadas todavía"}
           </DialogDescription>
-        </DialogHeader>
-
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
-          {status && !status.configured && <GDriveCredsForm onSaved={reload} />}
-
           {status?.configured && (
             <Button
               type="button"
               size="sm"
               onClick={connect}
               disabled={busy}
-              className="h-8 gap-1.5 forja-gradient-bg border-0 text-white hover:opacity-90"
+              className="mt-1 h-8 w-fit gap-1.5 forja-gradient-bg border-0 text-white hover:opacity-90"
             >
               {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Cloud className="size-3.5" />}
-              {busy ? "Conectando…" : "Conectar cuenta de Google"}
+              {busy ? "Conectando…" : "Conectar cuenta"}
             </Button>
           )}
+        </DialogHeader>
+
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
+          {status && !status.configured && <GDriveCredsForm onSaved={reload} />}
+          {status?.configured && <ConfiguredCredsPanel source={status.source} onForget={() => void forget()} />}
 
           {accounts.length === 0 ? (
             <p className="text-[12px] text-muted-foreground">
@@ -267,8 +362,13 @@ export function GDriveDialog({ open, onOpenChange }: { open: boolean; onOpenChan
             </p>
           ) : (
             <div className="space-y-2.5">
-              {accounts.map((a) => (
-                <AccountCard key={a.email} account={a} onDisconnect={disconnect} />
+              {accounts.map((a, i) => (
+                <AccountRow
+                  key={a.email}
+                  account={a}
+                  color={CHIP_COLORS[i % CHIP_COLORS.length]!}
+                  onDisconnect={disconnect}
+                />
               ))}
             </div>
           )}

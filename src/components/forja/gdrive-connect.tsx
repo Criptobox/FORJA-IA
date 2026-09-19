@@ -19,6 +19,7 @@ export function useGdriveAccounts(): {
   const [accounts, setAccounts] = useState<GDriveAccount[]>([]);
   const [busy, setBusy] = useState(false);
   const pollRef = useRef<number | null>(null);
+  const gotMessageRef = useRef(false);
 
   const refresh = useCallback(() => {
     setAccounts(gdGetAccounts());
@@ -40,9 +41,13 @@ export function useGdriveAccounts(): {
         error?: string;
       };
       if (!d || d.type !== GD_OAUTH_MSG) return;
+      gotMessageRef.current = true;
       setBusy(false);
       if (d.error) {
-        toast.error("No se pudo conectar Google Drive", { description: d.error });
+        const hint = /redirect_uri/i.test(d.error)
+          ? ` Revisa que el URI de redirección en Google Cloud sea EXACTO: ${window.location.origin}/api/gdrive/oauth/callback`
+          : "";
+        toast.error("No se pudo conectar Google Drive", { description: d.error + hint, duration: 12000 });
         return;
       }
       if (!d.accessToken || !d.email) return;
@@ -82,6 +87,7 @@ export function useGdriveAccounts(): {
 
   const connect = useCallback(() => {
     setBusy(true);
+    gotMessageRef.current = false;
     const url = "/api/gdrive/oauth/start";
     const w = window.open(url, "forja-gdrive", "popup=yes,width=620,height=740") || window.open(url, "_blank");
     if (!w) {
@@ -95,6 +101,17 @@ export function useGdriveAccounts(): {
         if (pollRef.current) window.clearInterval(pollRef.current);
         pollRef.current = null;
         setBusy(false);
+        // Si la ventana se cerró sin que llegara ni éxito ni error, lo más
+        // probable es que Google haya cortado el flujo ANTES de volver a
+        // Forja (por ejemplo "redirect_uri_mismatch": el URI que registraste
+        // en Google Cloud no es carácter por carácter igual al de aquí).
+        if (!gotMessageRef.current) {
+          const uri = `${window.location.origin}/api/gdrive/oauth/callback`;
+          toast.error("La ventana se cerró sin conectar", {
+            description: `Revisa que el URI de redirección en Google Cloud sea EXACTO: ${uri}`,
+            duration: 12000,
+          });
+        }
       }
     }, 500);
   }, []);
@@ -109,7 +126,11 @@ export interface GdriveCredsStatus {
 
 /** Consulta si ya hay Client ID/Secret guardados (env del despliegue o
  * cookie pegada a mano) sin exponer el secret al cliente. */
-export function useGdriveCredsStatus(): { status: GdriveCredsStatus | null; reload: () => void } {
+export function useGdriveCredsStatus(): {
+  status: GdriveCredsStatus | null;
+  reload: () => void;
+  forget: () => Promise<void>;
+} {
   const [status, setStatus] = useState<GdriveCredsStatus | null>(null);
   const reload = useCallback(() => {
     void fetch("/api/gdrive/oauth/creds", { headers: accessCodeHeaders() })
@@ -118,5 +139,11 @@ export function useGdriveCredsStatus(): { status: GdriveCredsStatus | null; relo
       .catch(() => setStatus({ configured: false, source: null }));
   }, []);
   useEffect(() => reload(), [reload]);
-  return { status, reload };
+
+  const forget = useCallback(async () => {
+    await fetch("/api/gdrive/oauth/creds", { method: "DELETE", headers: accessCodeHeaders() });
+    reload();
+  }, [reload]);
+
+  return { status, reload, forget };
 }
