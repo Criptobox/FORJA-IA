@@ -1,12 +1,15 @@
 import { expect, test, type Page } from "./fixtures";
 
-/** Forja IA — Knowledge Base Manager (Fase 2 del plan, §9.2).
+/** Forja IA — "Conocimiento": un solo panel con Drive y la Knowledge Base
+ * juntos (Fase 1 + Fase 2 del plan). Antes eran dos diálogos separados
+ * ("Drive" y "Conocimiento"); el usuario pidió explícito que fuera "un
+ * panel con todo... todo los datos de ese tipo en 1 solo lugar" — este
+ * archivo cubre ambas mitades desde el mismo diálogo.
  *
- * Ver y clasificar a mano los recursos que se eligieron desde Drive, y
- * añadir un archivo directo desde la lista de "archivos recientes" del
- * panel Drive sin pasar por el selector visual (el Picker en sí no se
- * puede ejercer en pruebas automáticas: necesita la ventana real de
- * Google).
+ * La conexión usa Google Identity Services (Client ID + API Key, sin
+ * secret) en vez del intercambio OAuth de servidor de antes — ese flujo le
+ * dio a un usuario real un "Error 400: redirect_uri_mismatch" sin ninguna
+ * pista dentro de Forja.
  */
 
 async function seed(page: Page) {
@@ -35,18 +38,27 @@ async function seed(page: Page) {
   });
 }
 
-test.describe("Knowledge Base", () => {
+test.describe("Conocimiento (Drive + Knowledge Base en un solo panel)", () => {
   test.beforeEach(async ({ page }) => {
     await seed(page);
     await page.setViewportSize({ width: 1280, height: 900 });
   });
 
-  test("vacía, explica cómo añadir el primer recurso", async ({ page }) => {
+  test("vacío, explica cómo añadir el primer recurso y cómo crear las credenciales de Google", async ({
+    page,
+  }) => {
     await page.goto("/");
     await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: "Conocimiento" }).click();
 
+    // Mitad Knowledge Base.
     await expect(page.getByText(/Todavía no hay ningún recurso en el índice/)).toBeVisible();
+    // Mitad Drive, en el MISMO diálogo — ya no hay que abrir otro panel.
+    await expect(page.getByRole("dialog").getByText("Google Cloud Console")).toBeVisible();
+    await expect(page.getByLabel("Client Secret")).toHaveCount(0);
+    await expect(page.getByLabel("API Key")).toBeVisible();
+    await expect(page.getByRole("dialog").getByText(/Authorized JavaScript origins/)).toBeVisible();
+    await expect(page.getByText("Todavía no hay ninguna cuenta de Google Drive conectada.")).toBeVisible();
   });
 
   test("con recursos, se ven las estadísticas reales y se puede clasificar y quitar", async ({ page }) => {
@@ -85,7 +97,7 @@ test.describe("Knowledge Base", () => {
     await page.getByText("Categoría / etiquetas").click();
     await page.getByPlaceholder("ej. componentes-ui").fill("visual");
     await page.getByPlaceholder("dashboard, oscuro, tarjetas").fill("landing, oscuro");
-    await page.getByRole("button", { name: "Guardar" }).click();
+    await page.getByRole("button", { name: "Guardar", exact: true }).click();
 
     await expect(page.getByText("Clasificado", { exact: true })).toBeVisible();
     await expect(page.getByText("landing", { exact: true })).toBeVisible();
@@ -94,7 +106,9 @@ test.describe("Knowledge Base", () => {
     await expect(page.getByText(/Todavía no hay ningún recurso en el índice/)).toBeVisible();
   });
 
-  test("añadir un archivo desde Drive → aparece en la Knowledge Base", async ({ page }) => {
+  test("con una cuenta conectada, se ve su almacenamiento y sus archivos, y se puede añadir uno a la Knowledge Base", async ({
+    page,
+  }) => {
     await page.route("https://www.googleapis.com/drive/v3/files**", (route) =>
       route.fulfill({
         contentType: "application/json",
@@ -132,15 +146,22 @@ test.describe("Knowledge Base", () => {
 
     await page.goto("/");
     await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("button", { name: "Drive" }).click();
+    await page.getByRole("button", { name: "Conocimiento" }).click();
+
+    // Mitad Drive: cuenta, almacenamiento, Picker disponible.
+    await expect(page.getByText("ana@example.com")).toBeVisible();
+    await expect(page.getByText(/12 GB \/ 15 GB/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Conectar cuenta" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Elegir en Drive" })).toBeVisible();
+
+    // "+ Añadir" cruza al lado de la Knowledge Base sin salir del diálogo.
     await page.getByText("Ver archivos").click();
     await expect(page.getByText("paleta-de-colores.pdf")).toBeVisible({ timeout: 10_000 });
     await page.getByRole("button", { name: "+ Añadir" }).click();
     await expect(page.getByRole("button", { name: "Ya añadido" })).toBeVisible();
-    await page.getByRole("button", { name: "Close", exact: true }).click();
-
-    await page.getByRole("button", { name: "Conocimiento" }).click();
-    await expect(page.getByText("paleta-de-colores.pdf")).toBeVisible();
     await expect(page.getByText("Nuevo", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Desconectar" }).click();
+    await expect(page.getByText("Todavía no hay ninguna cuenta de Google Drive conectada.")).toBeVisible();
   });
 });

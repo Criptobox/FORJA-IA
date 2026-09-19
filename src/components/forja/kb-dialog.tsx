@@ -1,14 +1,20 @@
 "use client";
-/** Forja IA — Knowledge Base Manager (Fase 2 del plan, §9.2).
+/** Forja IA — "Conocimiento": un solo panel con todo lo de la Knowledge
+ * Base (Fase 2 del plan, §9.2), no un apartado por un lado y otro por
+ * otro — el usuario lo pidió explícito tras ver Drive y Conocimiento como
+ * dos diálogos separados: "la idea era un panel con todo... todo los
+ * datos de ese tipo en 1 solo lugar".
  *
- * Dos formas de llenar el índice: "Elegir en Drive" (panel Drive, sobre
- * archivos que ya existían) donde categoría/etiquetas se ponen a mano, e
- * "Importar recursos" aquí mismo — subir un archivo del dispositivo, que
- * `kb-import.tsx` clasifica con el modelo activo y sube a la cuenta/
- * carpeta de Drive que decide, sin fingir el resultado si el modelo no
- * está disponible. La deduplicación (Fase 4, comparación visual lado a
- * lado) sigue sin existir: lo que hay es un aviso de "mismo contenido"
- * por hash antes de subir dos veces el mismo archivo.
+ * Dos columnas: a la izquierda, importar y ver los recursos indexados; a
+ * la derecha, las cuentas de Google Drive conectadas (`gdrive-dialog.tsx`,
+ * como `<DriveAccountsPanel>` — ya no es su propio diálogo). En móvil se
+ * apilan.
+ *
+ * Formas de llenar el índice: "Importar recursos" (sube del dispositivo,
+ * `kb-import.tsx` clasifica con el modelo activo y decide cuenta/carpeta
+ * de Drive), "Elegir en Drive" (el Picker, sobre archivos que ya
+ * existían) y "+ Añadir" en los archivos recientes de cada cuenta —
+ * las tres viven ahora en el mismo sitio.
  */
 import { useState } from "react";
 import { Database, ExternalLink, FileText, Trash2 } from "lucide-react";
@@ -27,6 +33,7 @@ import { gdGetCreds } from "@/lib/forja/gdrive";
 import type { KBResource, KBResourceStatus } from "@/lib/forja/kb-index";
 import { useKbIndex } from "./kb-connect";
 import { useGdriveAccounts } from "./gdrive-connect";
+import { DriveAccountsPanel } from "./gdrive-dialog";
 import { KBImport } from "./kb-import";
 import { cn } from "@/lib/utils";
 
@@ -189,16 +196,16 @@ export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
         <DialogHeader className="border-b border-border/60 px-4 py-3 pr-10">
           <DialogTitle className="flex items-center gap-2 text-base">
-            <Database className="size-4" /> Knowledge Base
+            <Database className="size-4" /> Conocimiento
           </DialogTitle>
           <DialogDescription className="text-[12px]">
-            Sube o elige recursos desde Drive: Forja los clasifica y decide dónde van.
+            Sube o elige recursos desde Drive: Forja los clasifica y decide dónde van — todo en un solo lugar.
           </DialogDescription>
           {resources.length > 0 && (
-            <div className="mt-2 grid grid-cols-4 gap-1.5">
+            <div className="mt-2 grid grid-cols-4 gap-1.5 sm:max-w-md">
               <StatChip label="Total" value={stats.total} />
               <StatChip label="Nuevos" value={stats.nuevo} />
               <StatChip label="Clasificados" value={stats.clasificado} />
@@ -207,24 +214,30 @@ export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
           )}
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-4 py-3">
-          <KBImport accounts={accounts} creds={creds} />
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto px-4 py-3 lg:grid-cols-[1fr_320px] lg:overflow-hidden">
+          <div className="space-y-2.5 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+            <KBImport accounts={accounts} creds={creds} />
 
-          {resources.length === 0 ? (
-            <p className="text-[12px] text-muted-foreground">
-              Todavía no hay ningún recurso en el índice. Sube uno arriba, o abre <strong>Drive</strong> en la
-              barra lateral → «Elegir en Drive» en una cuenta conectada.
-            </p>
-          ) : (
-            resources.map((r) => (
-              <ResourceRow
-                key={r.id}
-                resource={r}
-                onUpdate={(patch) => update(r.id, patch)}
-                onRemove={() => remove(r.id)}
-              />
-            ))
-          )}
+            {resources.length === 0 ? (
+              <p className="text-[12px] text-muted-foreground">
+                Todavía no hay ningún recurso en el índice. Sube uno arriba, o elige uno con «Elegir en Drive» en
+                una cuenta conectada, a la derecha.
+              </p>
+            ) : (
+              resources.map((r) => (
+                <ResourceRow
+                  key={r.id}
+                  resource={r}
+                  onUpdate={(patch) => update(r.id, patch)}
+                  onRemove={() => remove(r.id)}
+                />
+              ))
+            )}
+          </div>
+
+          <div className="border-t border-border/60 pt-3 lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+            <DriveAccountsPanel />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
