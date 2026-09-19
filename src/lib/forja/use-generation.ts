@@ -109,7 +109,7 @@ import {
   senasGenericas,
 } from "./generico";
 import { senasEfectosFueraDeDireccion } from "./efectos";
-import { idPorNombre } from "./design-directions";
+import { idPorNombre, senasComposicionFueraDeDireccion } from "./design-directions";
 import {
   decidirTrasCuotaEnTexto,
   decidirTrasError,
@@ -1373,6 +1373,7 @@ export function useGeneration(ctx: CtxGeneracion) {
               const senas = [
                 ...senasGenericas(medidas),
                 ...senasEfectosFueraDeDireccion(medidas, direccionUsada),
+                ...senasComposicionFueraDeDireccion(medidas, direccionUsada),
               ];
               const quedan = quedanIntentos(revisiones);
 

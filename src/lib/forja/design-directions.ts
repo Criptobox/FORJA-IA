@@ -18,6 +18,7 @@
  */
 
 import { efectosDe, promptEfectos } from "./efectos";
+import type { MedidasGenerico, SenaGenerica } from "./generico";
 
 /** Una dirección visual completa y autocontenida. */
 export interface DireccionVisual {
@@ -381,4 +382,69 @@ export function esEncargoUINueva(prompt: string): boolean {
     /\b(cr[eé]a|crea|haz|hazme|construye|dise[ñn]a|genera|programa|monta|desarrolla|build|create|make|design)\b/i;
   const ui = /\b(web|p[áa]gina|sitio|landing|app|aplicaci[óo]n|dashboard|panel|portfolio|tienda|blog|formulario|componente|ui|interfaz)\b/i;
   return construir.test(t) && ui.test(t);
+}
+
+/* ------------------------------------------------------------------ */
+/* solo la composición que SU dirección permite                       */
+/* ------------------------------------------------------------------ */
+
+/** Composiciones que cada dirección prohíbe DE VERDAD (su propio campo
+ * `composicion`, convertido en algo medible). Solo entran las dos señas de
+ * `generico.ts` que admiten una lectura inequívoca por dirección: la
+ * prohibición de "brutalista" ("elegancia neutra") no tiene una medida
+ * concreta detrás, así que esa dirección no añade nada aquí — mismo
+ * criterio de `senasGenericas`: si no se puede medir, no se afirma. */
+type ComposicionProhibida = "hero-centrado" | "tarjetas-iguales";
+
+const COMPOSICION_POR_DIRECCION: Record<string, readonly ComposicionProhibida[]> = {
+  editorial: ["hero-centrado"],
+  minimal: ["tarjetas-iguales"],
+  tech: ["hero-centrado"],
+  brutalista: [],
+  calido: ["tarjetas-iguales"],
+  experimental: ["tarjetas-iguales"],
+};
+
+/**
+ * El bloque de dirección ya le dice al modelo, en `composicion`, qué
+ * layout tiene prohibido — pero eso solo se lo dice; nadie comprobaba si
+ * le hacía caso. `senasGenericas` mide hero centrado y tarjetas clonadas
+ * para CUALQUIER dirección, con una salvedad genérica ("si tu dirección
+ * lo pide, déjalo") que vale igual la haya pedido o no. Esto mide la
+ * página YA PINTADA y, cuando la dirección elegida prohíbe justo lo que
+ * se midió, esa salvedad deja de valer: no es una decisión de la
+ * dirección, es la dirección incumplida.
+ *
+ * Mismo mecanismo que `senasEfectosFueraDeDireccion` (misma forma
+ * `SenaGenerica[]`, mismo aviso/reintento reutilizado) — y, como esa, es
+ * ADITIVA: no sustituye los hallazgos de `senasGenericas`, que siguen
+ * valiendo para cualquier dirección o ninguna. Si las dos disparan sobre
+ * el mismo hecho medido, el modelo ve la versión con salvedad y la
+ * versión sin ella; la segunda es la que de verdad importa.
+ */
+export function senasComposicionFueraDeDireccion(
+  m: MedidasGenerico,
+  direccionId: string | null | undefined
+): SenaGenerica[] {
+  if (!direccionId) return [];
+  const prohibidas = COMPOSICION_POR_DIRECCION[direccionId];
+  if (!prohibidas?.length) return [];
+  const d = direccionPorId(direccionId);
+  const nombre = d?.nombre ?? direccionId;
+  const out: SenaGenerica[] = [];
+  if (prohibidas.includes("hero-centrado") && m.heroCentrado) {
+    out.push({
+      id: "hero-fuera-de-direccion",
+      detalle: `La dirección "${nombre}" prohíbe el hero centrado con botón, y la portada mide justo eso.`,
+      arreglo: `Esto no es una salvedad tuya que puedas dejar como está: la dirección "${nombre}" ya decidió su composición — ${d?.composicion ?? ""}. Rehaz la portada siguiéndola.`,
+    });
+  }
+  if (prohibidas.includes("tarjetas-iguales") && m.gruposIguales > 0) {
+    out.push({
+      id: "tarjetas-fuera-de-direccion",
+      detalle: `La dirección "${nombre}" prohíbe la rejilla de tarjetas clonadas, y hay ${m.gruposIguales} fila(s) así.`,
+      arreglo: `Esto no es una salvedad tuya que puedas dejar como está: la dirección "${nombre}" ya decidió su composición — ${d?.composicion ?? ""}. Rehaz esa sección siguiéndola.`,
+    });
+  }
+  return out;
 }

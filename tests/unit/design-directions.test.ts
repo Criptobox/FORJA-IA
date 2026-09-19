@@ -8,7 +8,9 @@ import {
   esEncargoUINueva,
   idPorNombre,
   promptDireccion,
+  senasComposicionFueraDeDireccion,
 } from "../../src/lib/forja/design-directions";
+import { MEDIDAS_VACIAS, type MedidasGenerico } from "../../src/lib/forja/generico";
 
 describe("direcciones curadas", () => {
   it("tienen ids únicos, uno por cada una", () => {
@@ -137,5 +139,50 @@ describe("esEncargoUINueva", () => {
     expect(esEncargoUINueva("cambia el botón a azul")).toBe(false);
     expect(esEncargoUINueva("¿qué es un hero section?")).toBe(false);
     expect(esEncargoUINueva("")).toBe(false);
+  });
+});
+
+describe("senasComposicionFueraDeDireccion — el Director revisa lo que se pintó", () => {
+  const medida = (m: Partial<MedidasGenerico>): MedidasGenerico => ({ ...MEDIDAS_VACIAS, ...m });
+
+  it("hero centrado en «editorial»: la dirección lo prohíbe explícitamente", () => {
+    const senas = senasComposicionFueraDeDireccion(medida({ heroCentrado: true }), "editorial");
+    expect(senas).toHaveLength(1);
+    expect(senas[0].id).toBe("hero-fuera-de-direccion");
+    expect(senas[0].detalle).toContain("Editorial de revista");
+    expect(senas[0].arreglo).not.toMatch(/si tu dirección/i); // sin salvedad: aquí ya se sabe cuál es
+  });
+
+  it("hero centrado en «tech»: también prohibido (landing de marketing con hero)", () => {
+    expect(senasComposicionFueraDeDireccion(medida({ heroCentrado: true }), "tech")).toHaveLength(1);
+  });
+
+  it("hero centrado en «calido»: esa dirección no lo prohíbe, no es una seña", () => {
+    expect(senasComposicionFueraDeDireccion(medida({ heroCentrado: true }), "calido")).toEqual([]);
+  });
+
+  it("tarjetas clonadas en «minimal», «calido» y «experimental»: las tres lo prohíben", () => {
+    for (const id of ["minimal", "calido", "experimental"]) {
+      const senas = senasComposicionFueraDeDireccion(medida({ gruposIguales: 2 }), id);
+      expect(senas, id).toHaveLength(1);
+      expect(senas[0].id).toBe("tarjetas-fuera-de-direccion");
+    }
+  });
+
+  it("«brutalista» no prohíbe nada medible: su única regla («elegancia neutra») no es una seña", () => {
+    expect(senasComposicionFueraDeDireccion(medida({ heroCentrado: true, gruposIguales: 3 }), "brutalista")).toEqual([]);
+  });
+
+  it("sin lo medido, no hay nada que decir aunque la dirección lo prohíba", () => {
+    expect(senasComposicionFueraDeDireccion(medida({}), "editorial")).toEqual([]);
+  });
+
+  it("sin dirección elegida (turno de retoque, no de UI nueva), no se juzga a ciegas", () => {
+    expect(senasComposicionFueraDeDireccion(medida({ heroCentrado: true }), null)).toEqual([]);
+    expect(senasComposicionFueraDeDireccion(medida({ heroCentrado: true }), undefined)).toEqual([]);
+  });
+
+  it("una dirección desconocida no revienta: da []", () => {
+    expect(senasComposicionFueraDeDireccion(medida({ heroCentrado: true }), "no-existe")).toEqual([]);
   });
 });
