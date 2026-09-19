@@ -13,6 +13,7 @@ import {
   Github,
   GraduationCap,
   Hammer,
+  HardDrive,
   LayoutDashboard,
   MessageSquarePlus,
   Monitor,
@@ -63,6 +64,7 @@ export function Sidebar({
   onOpenSkills,
   onOpenRadar,
   onOpenGithub,
+  onOpenDrive,
   onOpenArena,
   onOpenPanel,
   onOpenGuide,
@@ -82,6 +84,7 @@ export function Sidebar({
   onOpenSkills?: () => void;
   onOpenRadar?: () => void;
   onOpenGithub?: () => void;
+  onOpenDrive?: () => void;
   onOpenArena?: () => void;
   onOpenPanel?: () => void;
   onOpenGuide?: () => void;
@@ -147,6 +150,7 @@ export function Sidebar({
         { label: "Web Studio", icon: <Sparkles className="size-4" />, onClick: onOpenStudio, title: "Web Studio: flujo especializado para construir, medir y corregir interfaces web" },
         { label: "Repos", icon: <FolderGit2 className="size-4" />, onClick: onOpenRepos, title: "Repo Studio: conecta un repo de GitHub (directo sin descargar), edítalo y haz push" },
         { label: "GitHub", icon: <Github className="size-4" />, onClick: onOpenGithub, title: "Subir carpeta a GitHub sin límite de 100 archivos" },
+        { label: "Drive", icon: <HardDrive className="size-4" />, onClick: onOpenDrive, title: "Conecta tus cuentas de Google Drive: almacenamiento y datos disponibles para Forja" },
       ],
     },
     {

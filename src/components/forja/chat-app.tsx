@@ -47,6 +47,7 @@ import { PresentationDialog } from "./presentation-dialog";
 import { SkillsDialog } from "./skills-dialog";
 import { FreeRadarDialog } from "./free-radar";
 import { GitHubDialog } from "./github-dialog";
+import { GDriveDialog } from "./gdrive-dialog";
 import { RepoStudioDialog } from "./repo-dialog";
 import { SandboxStudio } from "./sandbox-studio";
 import { ConvoTabs } from "./convo-tabs";
@@ -185,6 +186,7 @@ export function ChatApp() {
   const [skillsOpen, setSkillsOpen] = useState(false);
   const [radarOpen, setRadarOpen] = useState(false);
   const [githubOpen, setGithubOpen] = useState(false);
+  const [gdriveOpen, setGdriveOpen] = useState(false);
   const [reposOpen, setReposOpen] = useState(false);
   const [repoSeedUrl, setRepoSeedUrl] = useState<string | null>(null);
   const [sandboxOpen, setSandboxOpen] = useState(false);
@@ -1801,6 +1803,7 @@ export function ChatApp() {
           onOpenSkills={() => setSkillsOpen(true)}
           onOpenRadar={() => setRadarOpen(true)}
           onOpenGithub={() => setGithubOpen(true)}
+          onOpenDrive={() => setGdriveOpen(true)}
           onOpenArena={() => setArenaOpen(true)}
           onOpenPanel={() => setSystemOpen(true)}
           onOpenGuide={() => setOnboardingOpen(true)}
@@ -1857,6 +1860,10 @@ export function ChatApp() {
             }}
             onOpenGithub={() => {
               setGithubOpen(true);
+              setSidebarOpen(false);
+            }}
+            onOpenDrive={() => {
+              setGdriveOpen(true);
               setSidebarOpen(false);
             }}
             onOpenArena={() => {
@@ -1974,6 +1981,7 @@ export function ChatApp() {
         initial={githubInitial}
         onInitialConsumed={() => setGithubInitial(null)}
       />
+      <GDriveDialog open={gdriveOpen} onOpenChange={setGdriveOpen} />
       <RepoStudioDialog
         open={reposOpen}
         onOpenChange={setReposOpen}
