@@ -529,6 +529,465 @@ html[data-accent="naranja"] {
   padding: 2px 4px 6px;
 }
 
+/* ============================================================
+   Forja State Loader — estados animados del yunque.
+   Portado 1:1 desde los mockups de marca (mismas coordenadas, mismos
+   tiempos, mismos colores); solo las clases llevan el prefijo `fj-`
+   para no chocar con nada del resto de la app. Ver
+   `src/components/forja/forja-state-loader.tsx`.
+   ============================================================ */
+:root {
+  --fj-halo: #FB8A3C;
+  --fj-mint: #22C55E;
+  --fj-steel: #6CC4FF;
+}
+
+.fj-loader {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.fj-logo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 8px 24px rgba(251, 138, 60, 0.25));
+}
+.fj-logo svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.fj-cara, .fj-cuerpo, .fj-base { transform-origin: center; }
+.fj-spark { transform-origin: 189px 45px; transform-box: fill-box; }
+
+/* 01 · creando */
+.fj-v-creando .fj-spark {
+  animation: fjSparkGrow 2.4s ease-in-out infinite;
+}
+@keyframes fjSparkGrow {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50%      { transform: scale(2.2) rotate(45deg); opacity: 1; }
+}
+.fj-v-creando .fj-cara {
+  animation: fjCaraPulse 2.4s ease-in-out infinite;
+}
+@keyframes fjCaraPulse {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1px); }
+}
+.fj-v-creando.fj-loader::after {
+  content: "";
+  position: absolute;
+  inset: 30% 25% auto 25%;
+  height: 40%;
+  background: radial-gradient(circle, var(--fj-halo) 0%, transparent 70%);
+  opacity: 0.18;
+  animation: fjHaloPulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 50%;
+}
+@keyframes fjHaloPulse {
+  0%, 100% { opacity: 0.12; transform: scale(0.95); }
+  50%      { opacity: 0.28; transform: scale(1.05); }
+}
+
+/* 02 · pensando */
+.fj-v-pensando .fj-logo {
+  animation: fjContemplate 4s ease-in-out infinite;
+}
+@keyframes fjContemplate {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
+.fj-v-pensando .fj-spark {
+  animation: fjSparkDim 2.4s ease-in-out infinite;
+}
+@keyframes fjSparkDim {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+.fj-thinking-dots {
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.fj-thinking-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #FB8A3C;
+  box-shadow: 0 0 8px var(--fj-halo);
+  animation: fjDotPulse 1.4s ease-in-out infinite;
+}
+.fj-thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.fj-thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes fjDotPulse {
+  0%, 100% { opacity: 0.25; transform: scale(0.7); }
+  50%      { opacity: 1;    transform: scale(1.2); }
+}
+
+/* 03 · buscando */
+.fj-radar-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px solid rgba(108, 196, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.fj-radar-ring.fj-radar-r1 { width: 60%; height: 60%; }
+.fj-radar-ring.fj-radar-r2 { width: 87%; height: 87%; animation: fjRingPulse 2.4s ease-in-out infinite; }
+.fj-radar-ring.fj-radar-r3 { width: 113%; height: 113%; opacity: 0.5; }
+@keyframes fjRingPulse {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 0.6; }
+}
+.fj-radar-sweep {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(108, 196, 255, 0.85) 35deg, rgba(108, 196, 255, 0.3) 70deg, transparent 100deg);
+  -webkit-mask: radial-gradient(circle, transparent 38%, #000 39%, #000 100%);
+          mask: radial-gradient(circle, transparent 38%, #000 39%, #000 100%);
+  animation: fjSpin 2.4s linear infinite;
+}
+@keyframes fjSpin { to { transform: rotate(360deg); } }
+.fj-v-buscando .fj-logo { position: relative; z-index: 2; }
+
+/* 04 · trabajando */
+.fj-hammer {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  width: 30%;
+  height: 30%;
+  transform-origin: 50% 100%;
+  animation: fjHammerStrike 1.1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+.fj-hammer svg { width: 100%; height: 100%; }
+@keyframes fjHammerStrike {
+  0%   { transform: translate(-50%, -20px) rotate(-40deg); }
+  35%  { transform: translate(-50%,  16px) rotate( 10deg); }
+  50%  { transform: translate(-50%,  20px) rotate(  0deg); }
+  65%  { transform: translate(-50%,  16px) rotate(-10deg); }
+  100% { transform: translate(-50%, -20px) rotate(-40deg); }
+}
+.fj-hit-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 38%;
+  height: 38%;
+  border: 1.5px solid var(--fj-halo);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.4);
+  opacity: 0;
+  animation: fjHitRing 1.1s ease-out infinite;
+}
+@keyframes fjHitRing {
+  0%, 45% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  55%     { opacity: 1; }
+  100%    { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+}
+.fj-v-trabajando .fj-cuerpo {
+  animation: fjCuerpoSquash 1.1s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+@keyframes fjCuerpoSquash {
+  0%, 40%, 70%, 100% { transform: scaleY(1); }
+  50%, 60%           { transform: scaleY(0.96); }
+}
+.fj-impact-spark {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #FFF3E2;
+  box-shadow: 0 0 6px var(--fj-halo);
+  opacity: 0;
+  animation: fjSparkBurst 1.1s ease-out infinite;
+}
+@keyframes fjSparkBurst {
+  0%, 45% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+  55%     { opacity: 1; }
+  100%    { opacity: 0; transform: var(--fj-end) scale(0.2); }
+}
+
+/* 05 · reparando */
+.fj-v-reparando .fj-cara {
+  animation: fjSlotInCara 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes fjSlotInCara {
+  0%, 10%   { transform: translate(-50px, -20px) rotate(-12deg); opacity: 0; }
+  35%       { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  55%       { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  75%, 100% { opacity: 0; transform: translate(0, 0) scale(0.9); }
+}
+.fj-v-reparando .fj-cuerpo {
+  animation: fjSlotInCuerpo 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes fjSlotInCuerpo {
+  0%, 20%   { transform: translate(50px, -10px) rotate(8deg); opacity: 0; }
+  45%       { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  65%       { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  80%, 100% { opacity: 0; transform: translate(0, 0) scale(0.9); }
+}
+.fj-v-reparando .fj-base {
+  animation: fjSlotInBase 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes fjSlotInBase {
+  0%, 30%   { transform: translate(0, 40px); opacity: 0; }
+  55%       { transform: translate(0, 0); opacity: 1; }
+  72%       { transform: translate(0, 0); opacity: 1; }
+  85%, 100% { opacity: 0; transform: translate(0, 0) scale(0.9); }
+}
+.fj-v-reparando .fj-spark {
+  animation: fjSparkReveal 3.2s ease-out infinite;
+}
+@keyframes fjSparkReveal {
+  0%, 60% { opacity: 0; transform: scale(0) rotate(-90deg); }
+  72%     { opacity: 1; transform: scale(1.4) rotate(0deg); }
+  85%     { opacity: 1; transform: scale(1) rotate(0deg); }
+  100%    { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.fj-v-reparando.fj-loader::after {
+  content: "";
+  position: absolute;
+  inset: 35% 28% auto 28%;
+  height: 35%;
+  background: radial-gradient(circle, rgba(102, 224, 163, 0.4) 0%, transparent 70%);
+  opacity: 0;
+  animation: fjRepairGlow 3.2s ease-out infinite;
+  pointer-events: none;
+  border-radius: 50%;
+}
+@keyframes fjRepairGlow {
+  0%, 60% { opacity: 0; }
+  72%     { opacity: 0.6; }
+  100%    { opacity: 0; }
+}
+
+/* 06 · finalizado */
+.fj-v-finalizado .fj-spark { opacity: 0.85; }
+.fj-check-stamp {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  width: 42%;
+  height: 42%;
+  transform: translate(-50%, 0) scale(0);
+  opacity: 0;
+  animation: fjCheckStamp 3.2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  filter: drop-shadow(0 4px 16px rgba(34, 197, 94, 0.4));
+}
+.fj-check-stamp svg { width: 100%; height: 100%; }
+@keyframes fjCheckStamp {
+  0%, 20%  { opacity: 0; transform: translate(-50%, -50px) scale(0.3); }
+  35%      { opacity: 1; transform: translate(-50%, 4px) scale(0.9); }
+  45%      { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
+  55%      { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  85%      { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100%     { opacity: 0; transform: translate(-50%, 0) scale(0.92); }
+}
+.fj-tick {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: fjTickDraw 3.2s ease-out infinite;
+}
+@keyframes fjTickDraw {
+  0%, 38%  { stroke-dashoffset: 24; }
+  58%      { stroke-dashoffset: 0; }
+  100%     { stroke-dashoffset: 0; }
+}
+.fj-celebrate-ring {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  width: 42%;
+  height: 42%;
+  border: 2px solid var(--fj-mint);
+  border-radius: 50%;
+  transform: translate(-50%, 0) scale(0.5);
+  opacity: 0;
+  animation: fjCelebrateRing 3.2s ease-out infinite;
+}
+@keyframes fjCelebrateRing {
+  0%, 38% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+  50%     { opacity: 0.8; transform: translate(-50%, 0) scale(1); }
+  75%     { opacity: 0; transform: translate(-50%, 0) scale(2.2); }
+  100%    { opacity: 0; transform: translate(-50%, 0) scale(2.2); }
+}
+.fj-confetti {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--fj-mint);
+  border-radius: 1px;
+  opacity: 0;
+  animation: fjConfettiBurst 3.2s ease-out infinite;
+}
+@keyframes fjConfettiBurst {
+  0%, 42%  { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+  52%      { opacity: 1; }
+  100%     { opacity: 0; transform: translate(var(--fj-dx), var(--fj-dy)) rotate(var(--fj-rot)); }
+}
+
+/* 07 · generando (tres variantes: dots / sweep / progress) */
+.fj-stream-dots {
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.fj-stream-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FB8A3C;
+  box-shadow: 0 0 12px var(--fj-halo);
+  animation: fjStreamDot 1.4s ease-in-out infinite;
+}
+.fj-stream-dots span:nth-child(2) { animation-delay: 0.16s; }
+.fj-stream-dots span:nth-child(3) { animation-delay: 0.32s; }
+@keyframes fjStreamDot {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(0.7) translateY(0); }
+  30%           { opacity: 1;   transform: scale(1.15) translateY(-4px); }
+}
+.fj-v-generando .fj-logo { animation: fjStreamBreath 2.4s ease-in-out infinite; }
+@keyframes fjStreamBreath {
+  0%, 100% { filter: drop-shadow(0 8px 24px rgba(251, 138, 60, 0.25)); }
+  50%      { filter: drop-shadow(0 10px 32px rgba(251, 138, 60, 0.5)); }
+}
+.fj-stream-cursor {
+  width: 2px;
+  height: 14px;
+  background: #FB8A3C;
+  margin-left: 2px;
+  animation: fjCursorBlink 0.8s steps(2) infinite;
+  box-shadow: 0 0 8px var(--fj-halo);
+  border-radius: 1px;
+}
+@keyframes fjCursorBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+.fj-stream-sweep {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(255, 195, 140, 0.8) 40deg, transparent 90deg);
+  -webkit-mask: radial-gradient(circle, transparent 30%, #000 32%, #000 100%);
+          mask: radial-gradient(circle, transparent 30%, #000 32%, #000 100%);
+  animation: fjSpin 1.6s linear infinite;
+}
+.fj-progress-track {
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 78%;
+  height: 4px;
+  background: rgba(251, 138, 60, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.fj-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FFC48C, #FB8A3C);
+  box-shadow: 0 0 10px var(--fj-halo);
+  border-radius: 2px;
+  animation: fjProgressFill 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes fjProgressFill {
+  0%   { width: 0%; }
+  70%  { width: 100%; }
+  100% { width: 100%; }
+}
+.fj-v-generando-c .fj-logo { animation: fjStreamBreath 2s ease-in-out infinite; }
+
+/* Timeline de progreso (ForjaProgressTimeline): icono grande del yunque
+ * (fase activa) + filas con fases REALES de un mensaje en curso, sin
+ * duraciones inventadas — ver ese componente. El círculo de estado de
+ * cada fila es el mismo `.task-status` del mockup de marca: a tamaño de
+ * spinner el dibujo del yunque se vuelve ilegible, así que aquí solo se
+ * usa el icono grande, una vez, y las filas llevan un círculo simple. */
+.fj-timeline-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fj-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.fj-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+}
+.fj-timeline-status {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: all 0.35s ease;
+}
+.fj-timeline-row--running .fj-timeline-status {
+  border-color: var(--fj-halo);
+  background: color-mix(in oklab, var(--fj-halo) 12%, transparent);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--fj-halo) 30%, transparent);
+}
+.fj-timeline-row--running .fj-timeline-status::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--fj-halo);
+  animation: fjTaskPulse 1s ease-in-out infinite;
+}
+@keyframes fjTaskPulse {
+  0%, 100% { transform: scale(0.6); opacity: 0.6; }
+  50%      { transform: scale(1.2); opacity: 1; }
+}
+.fj-timeline-row--done .fj-timeline-status {
+  border-color: var(--fj-mint);
+  background: var(--fj-mint);
+}
+.fj-timeline-row--done .fj-timeline-status::after {
+  content: "";
+  width: 8px;
+  height: 5px;
+  border-left: 1.5px solid #fff;
+  border-bottom: 1.5px solid #fff;
+  transform: rotate(-45deg) translate(1px, -1.5px);
+}
+.fj-timeline-row--pending .fj-timeline-label,
+.fj-timeline-row--done .fj-timeline-label {
+  color: var(--muted-foreground);
+}
+
 /* Quien pide menos movimiento en el sistema no ve ninguno de estos efectos. */
 @media (prefers-reduced-motion: reduce) {
   .stagger-in,
@@ -550,5 +1009,38 @@ html[data-accent="naranja"] {
   }
   .lift-card:hover {
     transform: none;
+  }
+
+  /* Forja State Loader: todo el subárbol deja de moverse de golpe. */
+  .fj-loader,
+  .fj-loader *,
+  .fj-loader::after {
+    animation: none !important;
+  }
+  /* Sin animación, algunas piezas se quedan en su fotograma de reposo
+   * (opacity/scale en 0) porque solo el keyframe las hace visibles:
+   * aquí se fuerza el estado final útil en vez de dejarlas invisibles
+   * o mal colocadas. */
+  .fj-check-stamp,
+  .fj-v-reparando .fj-cara,
+  .fj-v-reparando .fj-cuerpo,
+  .fj-v-reparando .fj-base,
+  .fj-v-reparando .fj-spark {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .fj-hammer {
+    transform: translate(-50%, -20px) rotate(-40deg) !important;
+  }
+  .fj-celebrate-ring,
+  .fj-confetti,
+  .fj-hit-ring,
+  .fj-impact-spark,
+  .fj-v-creando.fj-loader::after,
+  .fj-v-reparando.fj-loader::after {
+    display: none !important;
+  }
+  .fj-timeline-row--running .fj-timeline-status::after {
+    animation: none !important;
   }
 }

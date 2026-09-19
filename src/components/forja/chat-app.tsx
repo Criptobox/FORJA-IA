@@ -60,7 +60,7 @@ import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/forja/use-media-query";
 import { Welcome } from "./welcome";
 import { registerServiceWorker } from "./pwa";
 import { BannerVersionNueva } from "./app-update";
-import { ForjaLogo } from "./logo";
+import { ForjaStateLoader } from "./forja-state-loader";
 import { ModelArenaDialog } from "./model-arena";
 import { SystemPanel } from "./panel-sistema";
 import { ShortcutsDialog } from "./shortcuts-dialog";
@@ -1325,7 +1325,7 @@ export function ChatApp() {
   if (!hydrated) {
     return (
       <div className="flex h-dvh items-center justify-center">
-        <ForjaLogo size={56} className="generating" />
+        <ForjaStateLoader state="creando" size={112} />
       </div>
     );
   }
