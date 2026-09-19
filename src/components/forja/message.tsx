@@ -375,45 +375,40 @@ export const MessageItem = memo(function MessageItem({
                 ) : proyecto && streaming ? (
                   <div className="stream-cursor-wrap">
                     {introMientrasEscribe && <Markdown content={introMientrasEscribe} />}
-                    <div
-                      className="mt-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-[12.5px]"
-                      aria-live="polite"
-                    >
-                      <ForjaProgressTimeline
-                        heroState="generando"
-                        heroVariant="dots"
-                        steps={[
-                          {
-                            id: "pensando",
-                            label: msg.reasoning ? "Reflexionando…" : "Pensando…",
-                            status: "done",
-                          },
-                          {
-                            id: "generando",
-                            label: "Escribiendo tu página… se ve en vivo en la vista previa.",
-                            status: "running",
-                          },
-                        ]}
-                      />
-                    </div>
+                    <ForjaProgressTimeline
+                      className="mt-2"
+                      heroState="generando"
+                      heroVariant="dots"
+                      steps={[
+                        {
+                          id: "pensando",
+                          label: msg.reasoning ? "Reflexionando…" : "Pensando…",
+                          status: "done",
+                        },
+                        {
+                          id: "generando",
+                          label: "Escribiendo tu página… se ve en vivo en la vista previa.",
+                          status: "running",
+                        },
+                      ]}
+                    />
                   </div>
                 ) : (
                 <div className={streaming ? "stream-cursor-wrap" : ""}>
                   {streaming && (
-                    <div className="mb-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-[12.5px]" aria-live="polite">
-                      <ForjaProgressTimeline
-                        heroState="generando"
-                        heroVariant="dots"
-                        steps={[
-                          {
-                            id: "pensando",
-                            label: msg.reasoning ? "Reflexionando…" : "Pensando…",
-                            status: "done",
-                          },
-                          { id: "generando", label: "Generando…", status: "running" },
-                        ]}
-                      />
-                    </div>
+                    <ForjaProgressTimeline
+                      className="mb-2"
+                      heroState="generando"
+                      heroVariant="dots"
+                      steps={[
+                        {
+                          id: "pensando",
+                          label: msg.reasoning ? "Reflexionando…" : "Pensando…",
+                          status: "done",
+                        },
+                        { id: "generando", label: "Generando…", status: "running" },
+                      ]}
+                    />
                   )}
                   <Markdown content={shown} colapsarCodigoGrande={!!proyecto} />
                   {tooLong && (
@@ -429,19 +424,17 @@ export const MessageItem = memo(function MessageItem({
                 </div>
                 )
               ) : streaming ? (
-                <div className="rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-[12.5px]" aria-live="polite">
-                  <ForjaProgressTimeline
-                    heroState="pensando"
-                    steps={[
-                      {
-                        id: "pensando",
-                        label: msg.reasoning ? "Reflexionando…" : "Pensando…",
-                        status: "running",
-                      },
-                      { id: "generando", label: "Generando…", status: "pending" },
-                    ]}
-                  />
-                </div>
+                <ForjaProgressTimeline
+                  heroState="pensando"
+                  steps={[
+                    {
+                      id: "pensando",
+                      label: msg.reasoning ? "Reflexionando…" : "Pensando…",
+                      status: "running",
+                    },
+                    { id: "generando", label: "Generando…", status: "pending" },
+                  ]}
+                />
               ) : null}
               {/* ——— Evidence Mode: chips de cita archivo:línea ——— */}
               {!streaming && citas.length > 0 && (

@@ -26,12 +26,12 @@ import {
   Loader2,
   Play,
   RefreshCcw,
-  ScanSearch,
   Sparkles,
   ListChecks,
 } from "lucide-react";
 import { Markdown } from "./markdown";
 import { ForjaLogo } from "./logo";
+import { ForjaStateLoader } from "./forja-state-loader";
 import { cn } from "@/lib/utils";
 import type { AgentTrace, AgentStepBlock, AgentReviewBlock } from "@/lib/forja/agent-loop";
 import type { StalledInfo } from "@/lib/forja/agent-loop";
@@ -355,7 +355,7 @@ export function AgentTraceView({
       {/* ── Estado del bucle + botón Continuar ── */}
       {!streaming && stalled?.stalled && onContinue && (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/[0.07] px-3 py-2">
-          <ScanSearch className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <ForjaStateLoader state="detenido" size={28} className="shrink-0" />
           <span className="min-w-0 flex-1 text-[12px]">
             {stalled.reason === "revision-pendiente"
               ? "Bucle del agente · revisión pendiente"

@@ -21,7 +21,11 @@ export type ForjaLoaderState =
   | "trabajando"
   | "reparando"
   | "finalizado"
-  | "generando";
+  | "generando"
+  /** El modelo dejó de responder a medias (`agentStalled()` en
+   *  agent-loop.ts): el yunque se apaga y se queda quieto en vez de
+   *  seguir animado como si trabajara — la señal es real, no cosmética. */
+  | "detenido";
 
 export type ForjaGenerandoVariant = "dots" | "sweep" | "progress";
 
@@ -173,6 +177,16 @@ export function ForjaStateLoader({
         {state === "generando" && variant === "progress" && (
           <div className="fj-progress-track" aria-hidden>
             <div className="fj-progress-fill" />
+          </div>
+        )}
+
+        {state === "detenido" && (
+          <div className="fj-pause-badge" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="12" fill="#F59E0B" />
+              <rect x="8" y="7" width="3" height="10" rx="1" fill="#1a0d04" />
+              <rect x="13" y="7" width="3" height="10" rx="1" fill="#1a0d04" />
+            </svg>
           </div>
         )}
       </div>

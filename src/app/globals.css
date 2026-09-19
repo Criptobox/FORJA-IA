@@ -923,30 +923,41 @@ html[data-accent="naranja"] {
 /* Timeline de progreso (ForjaProgressTimeline): icono grande del yunque
  * (fase activa) + filas con fases REALES de un mensaje en curso, sin
  * duraciones inventadas — ver ese componente. El círculo de estado de
- * cada fila es el mismo `.task-status` del mockup de marca: a tamaño de
- * spinner el dibujo del yunque se vuelve ilegible, así que aquí solo se
- * usa el icono grande, una vez, y las filas llevan un círculo simple. */
-.fj-timeline-wrap {
+ * cada fila es el mismo `.task-status` del mockup de marca (mismo tamaño,
+ * 22px, mismo padding de fila): a tamaño de spinner el dibujo del yunque
+ * se vuelve ilegible, así que aquí solo se usa el icono grande, una vez,
+ * y las filas llevan un círculo simple — pero con el mismo aire que en
+ * el mockup, no una lista apretada. */
+.fj-timeline-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  background: color-mix(in oklab, var(--muted) 40%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+.fj-timeline-hero {
+  margin-left: 2px;
 }
 .fj-timeline {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   flex: 1;
   min-width: 0;
 }
 .fj-timeline-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 2px 0;
+  gap: 12px;
+  padding: 8px 4px;
+}
+.fj-timeline-row + .fj-timeline-row {
+  border-top: 1px solid var(--border);
 }
 .fj-timeline-status {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 1.5px solid color-mix(in oklab, var(--muted-foreground) 40%, transparent);
   display: grid;
@@ -983,9 +994,47 @@ html[data-accent="naranja"] {
   border-bottom: 1.5px solid #fff;
   transform: rotate(-45deg) translate(1px, -1.5px);
 }
+.fj-timeline-label {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.fj-timeline-row--running .fj-timeline-label {
+  font-weight: 500;
+}
 .fj-timeline-row--pending .fj-timeline-label,
 .fj-timeline-row--done .fj-timeline-label {
   color: var(--muted-foreground);
+}
+
+/* Estado «detenido»: el modelo dejó de responder a medias — señal REAL
+ * (`agentStalled()`, agent-loop.ts), no una animación de adorno. El
+ * yunque se queda quieto y apagado (no "trabajando") y una insignia
+ * ámbar con dos barras de pausa lo deja claro incluso a tamaño pequeño,
+ * donde el resto de estados con adornos (radar, martillo…) no se leen. */
+.fj-v-detenido .fj-logo {
+  filter: grayscale(0.35) drop-shadow(0 8px 20px rgba(251, 138, 60, 0.12));
+  animation: fjIdleBreath 3s ease-in-out infinite;
+}
+@keyframes fjIdleBreath {
+  0%, 100% { opacity: 0.8; }
+  50%      { opacity: 0.6; }
+}
+.fj-pause-badge {
+  position: absolute;
+  bottom: -4%;
+  right: -4%;
+  width: 42%;
+  height: 42%;
+  filter: drop-shadow(0 2px 6px rgba(245, 158, 11, 0.45));
+  animation: fjPauseBadgePulse 1.8s ease-in-out infinite;
+}
+.fj-pause-badge svg {
+  width: 100%;
+  height: 100%;
+}
+@keyframes fjPauseBadgePulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.06); }
 }
 
 /* Quien pide menos movimiento en el sistema no ve ninguno de estos efectos. */

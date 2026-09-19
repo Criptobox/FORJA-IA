@@ -23,16 +23,18 @@ export function ForjaProgressTimeline({
   heroState,
   heroVariant,
   steps,
+  className,
 }: {
   /** Estado del yunque grande que representa la fase activa. */
   heroState: ForjaLoaderState;
   heroVariant?: ForjaGenerandoVariant;
   steps: ForjaTimelineStep[];
+  className?: string;
 }) {
   return (
-    <div className="fj-timeline-wrap">
-      <ForjaStateLoader state={heroState} variant={heroVariant} size={36} className="shrink-0" />
-      <ul className="fj-timeline" aria-live="polite">
+    <div className={["fj-timeline-card", className].filter(Boolean).join(" ")} aria-live="polite">
+      <ForjaStateLoader state={heroState} variant={heroVariant} size={40} className="fj-timeline-hero shrink-0" />
+      <ul className="fj-timeline">
         {steps.map((step) => (
           <li key={step.id} className={`fj-timeline-row fj-timeline-row--${step.status}`}>
             <span className="fj-timeline-status" aria-hidden />
