@@ -328,6 +328,95 @@ describe("diagnose_project", () => {
   });
 });
 
+describe("check_definition_of_done", () => {
+  const proyectoLimpio = {
+    "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width"><title>Forja</title></head><body><img alt="Logo" src="logo.svg"></body></html>',
+    "logo.svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>",
+  };
+  const qaLimpio = { width: 320, ok: true, items: [], at: Date.now(), noRespondio: false };
+
+  it("avisa si no hay Sandbox disponible", async () => {
+    const r = await runTool(call("check_definition_of_done", {}), ctx());
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("No hay Sandbox");
+  });
+
+  it("si el proyecto no se ejecuta, no hay evidencia y dice NO LISTO", async () => {
+    const c = ctx({
+      runProject: async () => ({
+        ok: false, ejecutado: false, logs: 0, errors: 0, logLines: [], errorLines: [],
+        reason: "el iframe no respondió",
+      }),
+    });
+    const r = await runTool(call("check_definition_of_done", {}), c);
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("NO LISTO PARA PUBLICAR");
+    expect(r.content).toContain("el iframe no respondió");
+  });
+
+  it("con verificación, seguridad y salud limpias, dice LISTO PARA PUBLICAR", async () => {
+    const c = ctx({
+      projectFiles: proyectoLimpio,
+      runProject: async () => ({
+        ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [], qa: qaLimpio,
+      }),
+    });
+    const r = await runTool(call("check_definition_of_done", {}), c);
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("LISTO PARA PUBLICAR");
+    expect(r.content).not.toContain("NO LISTO");
+  });
+
+  it("aunque verify_project apruebe, un bloqueante de salud (página huérfana en el mapa) tumba el veredicto", async () => {
+    // El mapa del proyecto es evidencia que `verify_project` no mira: aquí es
+    // donde `check_definition_of_done` aporta algo que el otro tool no ve.
+    const c = ctx({
+      projectFiles: proyectoLimpio,
+      runProject: async () => ({
+        ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [], qa: qaLimpio,
+      }),
+      projectMap: {
+        name: "Demo",
+        description: "demo",
+        files: [{ name: "index.html", kind: "html", summary: "portada", links: [] }],
+        features: [],
+        updatedAt: Date.now(),
+      },
+    });
+    const r = await runTool(call("check_definition_of_done", {}), c);
+    expect(r.content).toContain("NO LISTO PARA PUBLICAR");
+    expect(r.content).toContain("huérfana");
+  });
+
+  it("una credencial embebida se detecta y bloquea el veredicto", async () => {
+    // ensamblada en runtime para no disparar el guard de higiene del repo
+    // (tests/unit/higiene-repo.test.ts) con una clave de forma real en el fuente
+    const clave = ["sk", "-abcdefghijklmnopqrstuvwx"].join("");
+    const c = ctx({
+      projectFiles: {
+        ...proyectoLimpio,
+        "config.js": `const key = '${clave}';`,
+      },
+      runProject: async () => ({
+        ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [], qa: qaLimpio,
+      }),
+    });
+    const r = await runTool(call("check_definition_of_done", {}), c);
+    expect(r.content).toContain("NO LISTO PARA PUBLICAR");
+    expect(r.content).toContain("Hallazgos de seguridad");
+  });
+
+  it("nunca inventa un check que no corrió: sin QA visual no hay PASS aunque no truene nada", async () => {
+    const c = ctx({
+      projectFiles: proyectoLimpio,
+      runProject: async () => ({ ok: true, ejecutado: true, logs: 0, errors: 0, logLines: [], errorLines: [] }),
+    });
+    const r = await runTool(call("check_definition_of_done", {}), c);
+    expect(r.content).toContain("NO LISTO PARA PUBLICAR");
+    expect(r.content).toContain("NO PASS");
+  });
+});
+
 describe("visual_review", () => {
   it("avisa si no hay Sandbox disponible", async () => {
     const r = await runTool(call("visual_review", {}), ctx());

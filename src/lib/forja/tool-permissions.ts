@@ -111,6 +111,12 @@ export const PERMISOS_TOOL: Record<string, PermisoTool> = {
     efectos: ["lee_proyecto", "ejecuta"],
     nota: "convierte la evidencia de la verificación en acciones concretas; no modifica archivos",
   },
+  // Misma ejecución segura que verify_project; combina esa evidencia con
+  // seguridad y salud del proyecto en un solo veredicto de publicación.
+  check_definition_of_done: {
+    efectos: ["lee_proyecto", "ejecuta"],
+    nota: "combina verificación, seguridad y salud del proyecto en un veredicto de «listo para publicar»",
+  },
   // Ejecuta el proyecto para capturarlo (como run_project) Y sale a la red:
   // la crítica es una llamada aparte a un modelo con visión.
   visual_review: {

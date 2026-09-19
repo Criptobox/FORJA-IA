@@ -31,6 +31,8 @@ import { aplicarParches, mensajeResultado, parsearParches, type Parche } from ".
 import { buscarEnWeb } from "./busqueda-web";
 import { verifyWebProject, summarizeVerification, type WebVerification } from "./web-verifier";
 import { diagnoseFindings, summarizeDiagnosis } from "./web-diagnostics";
+import { scanSecurity } from "./security-center";
+import { calculateProjectHealth } from "./project-health";
 import {
   crearSnapshot,
   guardarSnapshot,
@@ -264,6 +266,8 @@ export async function runTool(
         return await runVerifyProject(call, ctx);
       case "diagnose_project":
         return await runDiagnoseProject(call, ctx);
+      case "check_definition_of_done":
+        return await runCheckDefinitionOfDone(call, ctx);
       case "visual_review":
         return await runVisualReview(call, ctx);
       default:
@@ -998,6 +1002,69 @@ async function runDiagnoseProject(call: ToolCall, ctx: ToolContext): Promise<Too
   ctx.lastConsole = { lines: (outcome.consola ?? []).slice(-MAX_CONSOLA), fecha: Date.now() };
   ctx.lastRun = snapshotDeOutcome(outcome);
   return toolOk(call, summarizeDiagnosis(diagnosis));
+}
+
+/**
+ * `check_definition_of_done`: sección 92 del plan — una checklist real antes
+ * de dar un proyecto por terminado. No mide nada nuevo: une en un solo
+ * veredicto la evidencia que ya producen por separado `verify_project`
+ * (funcional + accesibilidad estática), `security-center` (patrones de
+ * riesgo — HTTP sin cifrar, eval, innerHTML, script remoto — más allá de
+ * los secretos que ya cubre el verificador) y `project-health` (score
+ * agregado con sus propios bloqueantes). Misma disciplina que el resto del
+ * repo: sin Sandbox o sin ejecución, NO ESTÁ LISTO — nunca "no se sabe"
+ * disfrazado de aprobado.
+ */
+async function runCheckDefinitionOfDone(call: ToolCall, ctx: ToolContext): Promise<ToolResult> {
+  if (!ctx.runProject) {
+    return toolError(call, "No hay Sandbox disponible. El usuario no tiene un proyecto abierto en el Sandbox.");
+  }
+  const outcome = await ctx.runProject({ qa: true });
+  if (!outcome.ejecutado) {
+    return toolOk(
+      call,
+      `NO LISTO PARA PUBLICAR.\nNo se pudo ejecutar el proyecto: ${outcome.reason ?? "motivo desconocido"}. Sin ejecución no hay evidencia suficiente para un veredicto.`
+    );
+  }
+  const verification = verifyWebProject(ctx.projectFiles, {
+    executed: outcome.ejecutado,
+    errors: outcome.errors,
+    errorLines: outcome.errorLines,
+    qa: outcome.qa,
+  });
+  const textoProyecto = Object.values(ctx.projectFiles).join("\n");
+  const seguridad = scanSecurity(textoProyecto);
+  const salud = calculateProjectHealth({
+    map: ctx.projectMap,
+    qa: outcome.qa ? [outcome.qa] : null,
+    html: textoProyecto,
+  });
+  ctx.lastConsole = { lines: (outcome.consola ?? []).slice(-MAX_CONSOLA), fecha: Date.now() };
+  ctx.lastRun = snapshotDeOutcome(outcome);
+
+  const altos = seguridad.findings.filter((f) => f.severity === "high");
+  const listo = verification.passed && altos.length === 0 && salud.blockers.length === 0;
+
+  const lines = [
+    `${listo ? "LISTO PARA PUBLICAR" : "NO LISTO PARA PUBLICAR"}.`,
+    `Verificación funcional/accesibilidad: ${verification.passed ? "PASS" : "NO PASS"} (evidencia completa: ${verification.evidenceComplete ? "sí" : "no"}).`,
+    `Seguridad básica: ${seguridad.findings.length} hallazgo(s)${seguridad.score != null ? ` (score ${seguridad.score}/100)` : ""}.`,
+    `Salud del proyecto: ${salud.score != null ? `${salud.score}/100` : "sin datos suficientes"}.`,
+  ];
+  if (verification.findings.length) {
+    lines.push("Hallazgos de verificación:");
+    lines.push(...verification.findings.slice(0, 8).map((f) => `- [${f.severity}] ${f.message}${f.path ? ` (${f.path})` : ""}`));
+  }
+  if (seguridad.findings.length) {
+    lines.push("Hallazgos de seguridad:");
+    lines.push(...seguridad.findings.slice(0, 8).map((f) => `- [${f.severity}] ${f.detail}`));
+  }
+  if (salud.blockers.length) {
+    lines.push("Bloqueantes de salud del proyecto:");
+    lines.push(...salud.blockers.map((b) => `- ${b}`));
+  }
+  lines.push(seguridad.disclaimer);
+  return toolOk(call, lines.join("\n"));
 }
 
 /**

@@ -101,7 +101,8 @@ Reglas del bucle:
 6. Si creas o modificas un proyecto, termina con el mapa actualizado (incluye "notes" con las decisiones/reglas del proyecto que debas recordar, y "links" con los archivos locales que cada archivo referencia):
 <project-map>{"name":"Nombre","description":"1 línea","files":[{"name":"index.html","kind":"html","summary":"qué contiene","links":["styles.css","app.js"]}],"features":["función 1"],"notes":["tema principal: azul"]}</project-map>
 7. Si modificas un proyecto web, la revisión DEBE basarse en evidencia: ejecuta el proyecto y usa \`verify_project\` cuando esté disponible. Nunca marques pass="yes" solo porque el código parece correcto. Si no hay evidencia, usa pass="no" y explica qué comprobación falta.
-8. Si \`verify_project\` (o su revisión con pass="no") deja hallazgos, usa \`diagnose_project\` para convertir esa evidencia en una acción concreta (archivo candidato, causa, criterio de cierre) antes de corregir a ciegas.${memoria}`;
+8. Si \`verify_project\` (o su revisión con pass="no") deja hallazgos, usa \`diagnose_project\` para convertir esa evidencia en una acción concreta (archivo candidato, causa, criterio de cierre) antes de corregir a ciegas.
+9. Antes de cerrar con <answer> un proyecto web que consideres terminado, usa \`check_definition_of_done\` para un veredicto único de "¿esto está listo para publicarse?". Si dice NO LISTO, no lo des por terminado: sigue iterando sobre lo que señale.${memoria}`;
 }
 
 const TAGS = "plan|step|review|answer|project-map";

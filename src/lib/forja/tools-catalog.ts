@@ -361,6 +361,15 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
     },
   },
   {
+    name: "check_definition_of_done",
+    description:
+      "Une en un solo veredicto la evidencia que ya producen por separado «verify_project» (funcional + accesibilidad estática), el escáner de seguridad (HTTP sin cifrar, eval, innerHTML, script remoto, secretos) y la salud del proyecto: responde exactamente a «¿esto está listo para publicarse?». No mide nada nuevo ni sustituye a «verify_project»; solo lo combina con el resto de evidencia ya disponible. Úsala antes de dar un proyecto por terminado, no en cada iteración. Sin Sandbox o sin ejecución, dice NO LISTO — nunca aprueba a ciegas.",
+    parameters: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
     name: "visual_review",
     description:
       "Toma una captura REAL de la página renderizada (no mide el DOM, la VE) y se la enseña a un modelo con visión para que la critique: jerarquía, alineación, espaciado, contraste, composición, algo que se vea roto o genérico. Distinta de «run_project» con «qa»: eso mide números; esto ve la página como un usuario. Úsala tras un cambio visual importante, no en cada turno — cuesta una llamada de visión aparte. Si el modelo activo no admite imágenes, te lo dice en vez de ejecutarse. Nota: no ve lo que pinta un <canvas> (el motor 3D incluido) — solo el DOM.",

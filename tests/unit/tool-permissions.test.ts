@@ -80,7 +80,7 @@ describe("toolPermitida", () => {
   it("apagar «ejecutar» deja fuera las que corren código", () => {
     const p = { ...todo(true), ejecuta: false };
     const fuera = TOOL_CATALOG.filter((t) => !toolPermitida(t.name, p).permitida).map((t) => t.name);
-    expect(fuera.sort()).toEqual(["diagnose_project", "run_js", "run_project", "run_regression", "verify_project", "visual_review"]);
+    expect(fuera.sort()).toEqual(["check_definition_of_done", "diagnose_project", "run_js", "run_project", "run_regression", "verify_project", "visual_review"]);
   });
 
   it("una herramienta que necesita dos efectos cae si falta cualquiera", () => {
