@@ -216,6 +216,17 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
    una respuesta vacía: falla ese candidato, prueba el siguiente de la
    cadena, y si no queda ninguno, se lo dice al usuario citando el texto
    exacto en vez de mostrarlo como si fuera la web pedida.
+
+   **Seguía colando en una tercera forma: JSON — hecho.** Tras el
+   arreglo de arriba, el mismo problema volvió a aparecer, esta vez como
+   `{"User Safety": "safe", "Response Safety": "safe"}`. La comilla de
+   cierre justo después de "Safety" (antes de los dos puntos) rompía el
+   patrón, que solo esperaba texto plano sin comillas de por medio.
+   `PATRON_FILTRO_SEGURIDAD` ahora acepta comillas opcionales alrededor
+   de "Safety" y del valor ("safe"/"unsafe"), así que reconoce tanto el
+   texto plano como la variante JSON, pegadas o no. Las dos formas
+   tienen su propio mock (`mock-filtro-seguridad`,
+   `mock-filtro-seguridad-json`) y su propio caso de prueba.
 3. **Análisis visual.** Composición, tipografía, color, agrupación de
    capturas desktop/tablet/mobile — la clasificación de texto/nombre ya
    existe (punto 2); esto es clasificar por lo que se VE en una imagen,

@@ -33,6 +33,7 @@ const MODELOS = [
   "mock-cortado",
   "mock-vacio",
   "mock-filtro-seguridad",
+  "mock-filtro-seguridad-json",
   "mock-rescate",
   "mock-largo",
   "mock-corta-y-cae",
@@ -672,6 +673,13 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // de seguridad EN VEZ de la página pedida. No está vacío (se contaba
   // como respuesta buena), pero tampoco es una respuesta.
   if (modelo === "mock-filtro-seguridad") return "User Safety: safe\nResponse Safety: safe";
+
+  // `mock-filtro-seguridad-json`: la MISMA respuesta, pero en JSON — otro
+  // caso real visto en la app (coló en la primera versión del filtro
+  // porque la comilla de cierre justo después de "Safety" rompía el
+  // patrón que solo esperaba texto plano).
+  if (modelo === "mock-filtro-seguridad-json")
+    return '{"User Safety": "safe", "Response Safety": "safe"}';
 
   // `mock-cortado`: imita al modelo que se queda sin tokens a mitad de una
   // etiqueta. Es el caso real que dejaba al agente parado en silencio. Cuando

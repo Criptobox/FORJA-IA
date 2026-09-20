@@ -70,6 +70,15 @@ describe("esSoloFiltroSeguridad", () => {
     expect(esSoloFiltroSeguridad("User Safety: safeResponse Safety: safe")).toBe(true);
   });
 
+  it("detecta la variante en JSON (visto en la app real, coló en el primer intento)", () => {
+    // La comilla de cierre justo después de "Safety" (antes de los dos
+    // puntos) rompía el patrón original: por eso esta variante coló.
+    expect(
+      esSoloFiltroSeguridad('{"User Safety": "safe", "Response Safety": "safe"}')
+    ).toBe(true);
+    expect(esSoloFiltroSeguridad('{"user safety":"unsafe"}')).toBe(true);
+  });
+
   it("mayúsculas, minúsculas y «unsafe» también cuentan", () => {
     expect(esSoloFiltroSeguridad("user safety: unsafe")).toBe(true);
     expect(esSoloFiltroSeguridad("PROMPT SAFETY: safe")).toBe(true);

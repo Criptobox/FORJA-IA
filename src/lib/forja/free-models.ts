@@ -100,13 +100,17 @@ export function isQuotaError(text: string): boolean {
  * OpenRouter) devuelven EN VEZ de la respuesta real — no delante, en vez
  * de. Se contaba como éxito porque no está vacío, y el usuario se
  * quedaba con eso como si fuera la respuesta a "hazme una web para una
- * barbería". Sin espacio de por medio entre dos avisos pegados
- * ("safeResponse") también cuenta: es la misma respuesta sin separador. */
+ * barbería". Dos variantes reales vistas, las dos cubiertas:
+ *  · texto plano pegado sin separador: "...safeResponse Safety: safe"
+ *  · el mismo aviso en JSON: {"User Safety": "safe", "Response Safety": "safe"}
+ * Los `"?` opcionales son por la variante JSON — sin ellos, la comilla de
+ * cierre justo después de "Safety" (antes de los dos puntos) rompía el
+ * patrón y esa forma pasaba colada. */
 // Sin «\b» al principio a propósito: cuando dos avisos quedan pegados sin
 // separador ("...safeResponse Safety: safe"), la letra de justo antes de
 // "Response" es otra letra ("e"), así que un «\b» ahí no encontraría
 // límite de palabra y se perdería el segundo aviso al reemplazarlos.
-const PATRON_FILTRO_SEGURIDAD = /(?:user|response|prompt)\s*safety\s*:\s*(?:safe|unsafe)/i;
+const PATRON_FILTRO_SEGURIDAD = /"?(?:user|response|prompt)\s*safety"?\s*:\s*"?(?:safe|unsafe)"?/i;
 
 export function esSoloFiltroSeguridad(text: string): boolean {
   const t = text.trim();
