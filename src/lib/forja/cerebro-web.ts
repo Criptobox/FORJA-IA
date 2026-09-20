@@ -11,6 +11,7 @@ import { buildDesignArchitecture, designArchitecturePrompt, type DesignArchitect
 import { kbContext, type KBRetrievalQuery } from "./knowledge-retrieval";
 import { kbContentContext } from "./kb-content-retrieval";
 import { retrieveSmartKB, retrieveSmartKBWithContent, smartKBContext } from "./kb-smart-retrieval";
+import { searchForjaRecipes, recipeContext } from "./recipe-builder";
 import { visionDesignerPrompt, compactVisionContext, type VisionAnalysis } from "./vision-designer";
 import { buildWebStudioPrompt, type WebStudioOptions } from "./web-studio";
 
@@ -55,8 +56,13 @@ export async function buildCerebroPlanWithKnowledge(input: CerebroInput): Promis
   const bundle = await retrieveSmartKBWithContent(query, { maxFiles: 4, maxCharsPerFile: 12000, maxTotalChars: 30000 });
   const smartContext = smartKBContext(bundle.results, 5000);
   const remoteContext = kbContentContext(bundle.content, 30000);
+  const recipes = searchForjaRecipes(input.brief, 2);
+  const recipeContexts = recipes.map((recipe) => recipeContext(recipe, 4500)).join("\n\n");
   if (smartContext.length > "[FORJA SMART KNOWLEDGE RETRIEVAL]".length) {
     plan.prompt = `${plan.prompt}\n\n${smartContext}\n\nREGLA DE RECUPERACIÓN: prioriza los componentes, patrones y rutas marcados como coincidencias estructurales. No supongas que otro archivo del repositorio fue leído.`;
+  }
+  if (recipeContexts) {
+    plan.prompt = `${plan.prompt}\n\n${recipeContexts}\n\nREGLA DE RECETAS: una receta es una guía reutilizable, no una copia ciega. Adapta sus componentes al proyecto actual y verifica dependencias, licencia y QA.`;
   }
   if (remoteContext.includes("\n## ")) {
     plan.prompt = `${plan.prompt}\n\n${remoteContext}\n\nREGLA DE CONTENIDO: usa el código recuperado como referencia verificable. No inventes que has leído archivos que aparecen como "no leído".`;
