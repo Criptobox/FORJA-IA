@@ -7,8 +7,9 @@
  */
 
 import { buildDesignArchitecture, designArchitecturePrompt, type DesignArchitecture } from "./design-architect";
-import { retrieveKB, kbContext, type KBRetrievalQuery } from "./knowledge-retrieval";
-import { retrieveKBContent, kbContentContext } from "./kb-content-retrieval";
+import { kbContext, type KBRetrievalQuery } from "./knowledge-retrieval";
+import { kbContentContext } from "./kb-content-retrieval";
+import { retrieveSmartKB, retrieveSmartKBWithContent, smartKBContext } from "./kb-smart-retrieval";
 import { visionDesignerPrompt, compactVisionContext, type VisionAnalysis } from "./vision-designer";
 import { buildWebStudioPrompt, type WebStudioOptions } from "./web-studio";
 
@@ -40,12 +41,22 @@ export interface CerebroPlan {
 
 /** Versión asíncrona que, después de filtrar por metadatos, recupera solo
  * los archivos de código remotos que realmente aportan al brief. Mantiene
- * `buildCerebroPlan` síncrono para no romper integraciones existentes. */
+ * `buildCerebroPlan` síncrono para no romper integraciones existentes.
+ *
+ * Una sola llamada a `retrieveSmartKBWithContent` (que ya calcula el
+ * ranking Y el contenido): pedirlo dos veces por separado —una para el
+ * ranking, otra dentro de la recuperación de contenido— repetía el mismo
+ * trabajo síncrono (incluida una relectura de `kbGetResources()`/
+ * `kbGetProjectManifests()`) sin ninguna necesidad. */
 export async function buildCerebroPlanWithKnowledge(input: CerebroInput): Promise<CerebroPlan> {
   const plan = buildCerebroPlan(input);
-  const results = retrieveKB(input.kb ?? { text: input.brief, limit: 12 });
-  const content = await retrieveKBContent(results, { maxFiles: 4, maxCharsPerFile: 12000, maxTotalChars: 30000 });
-  const remoteContext = kbContentContext(content, 30000);
+  const query = input.kb ?? { text: input.brief, limit: 12, codeFirst: true };
+  const bundle = await retrieveSmartKBWithContent(query, { maxFiles: 4, maxCharsPerFile: 12000, maxTotalChars: 30000 });
+  const smartContext = smartKBContext(bundle.results, 5000);
+  const remoteContext = kbContentContext(bundle.content, 30000);
+  if (smartContext.length > "[FORJA SMART KNOWLEDGE RETRIEVAL]".length) {
+    plan.prompt = `${plan.prompt}\n\n${smartContext}\n\nREGLA DE RECUPERACIÓN: prioriza los componentes, patrones y rutas marcados como coincidencias estructurales. No supongas que otro archivo del repositorio fue leído.`;
+  }
   if (remoteContext.includes("\n## ")) {
     plan.prompt = `${plan.prompt}\n\n${remoteContext}\n\nREGLA DE CONTENIDO: usa el código recuperado como referencia verificable. No inventes que has leído archivos que aparecen como "no leído".`;
   }
@@ -58,7 +69,7 @@ export function buildCerebroPlan(input: CerebroInput): CerebroPlan {
     previousDirectionIds: input.previousDirectionIds,
   });
 
-  const results = retrieveKB(input.kb ?? { text: input.brief, limit: 12 });
+  const results = retrieveSmartKB(input.kb ?? { text: input.brief, limit: 12, codeFirst: true });
 
   const visual = input.vision
     ? compactVisionContext(input.vision)
