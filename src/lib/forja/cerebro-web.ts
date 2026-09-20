@@ -6,6 +6,7 @@
  * conocimiento, QA y herramientas necesita el modelo activo.
  */
 
+import { buildAgentRuntimePrompt } from "./agent-runtime";
 import { buildDesignArchitecture, designArchitecturePrompt, type DesignArchitecture } from "./design-architect";
 import { kbContext, type KBRetrievalQuery } from "./knowledge-retrieval";
 import { kbContentContext } from "./kb-content-retrieval";
@@ -87,6 +88,7 @@ export function buildCerebroPlan(input: CerebroInput): CerebroPlan {
     `TAREA: ${input.task}`,
     studio,
     designArchitecturePrompt(architecture),
+    buildAgentRuntimePrompt({ task: input.brief, existingProject: input.hasExistingProject ?? true, maxIterations: 2 }),
     visual,
     kbContext(results),
     "",
