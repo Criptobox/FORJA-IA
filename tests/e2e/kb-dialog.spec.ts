@@ -240,4 +240,37 @@ test.describe("Conocimiento (Drive + Knowledge Base en un solo panel)", () => {
     await expect(page.getByText("logo-casi-igual.png")).toHaveCount(0);
     await expect(page.getByText("logo-original.png")).toBeVisible();
   });
+
+  test("el panel MEGA vive junto a Drive, sin correo/contraseña no deja conectar, y no toca localStorage con la contraseña", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Conocimiento" }).click();
+
+    // Mismo panel que Drive, no un diálogo aparte.
+    await expect(page.getByRole("dialog").getByText("Google Cloud Console")).toBeVisible();
+    await expect(page.getByText("Conectar MEGA").first()).toBeVisible();
+    await expect(page.getByText(/código, repositorios, componentes y recetas/i)).toBeVisible();
+
+    const conectar = page.getByRole("button", { name: "Conectar MEGA" });
+    await expect(conectar).toBeDisabled();
+
+    await page.getByPlaceholder("tu@email.com").fill("ana@example.com");
+    // Solo el correo no basta: sigue deshabilitado hasta que también haya
+    // contraseña — el formulario no deja intentarlo con datos a medias.
+    await expect(conectar).toBeDisabled();
+    await page.getByLabel("Contraseña").fill("una-clave-cualquiera");
+    await expect(conectar).toBeEnabled();
+
+    // El aviso de seguridad es real, no solo un texto de relleno: nunca se
+    // escribe la contraseña en localStorage, se escriba o no "Conectar"
+    // (aquí no se pulsa: un login real llamaría a la red de MEGA, fuera de
+    // lo que una prueba automática puede o debe hacer).
+    await expect(page.getByText(/Forja no la guarda en localStorage/)).toBeVisible();
+    const guardadoEnStorage = await page.evaluate(() =>
+      Object.keys(localStorage).some((k) => localStorage.getItem(k)?.includes("una-clave-cualquiera"))
+    );
+    expect(guardadoEnStorage).toBe(false);
+  });
 });

@@ -36,6 +36,7 @@ import { kbGetProjectManifest } from "@/lib/forja/kb-projects";
 import { useKbIndex } from "./kb-connect";
 import { useGdriveAccounts } from "./gdrive-connect";
 import { DriveAccountsPanel } from "./gdrive-dialog";
+import { MegaPanel } from "./mega-dialog";
 import { KBImport } from "./kb-import";
 import { cn } from "@/lib/utils";
 
@@ -300,8 +301,9 @@ export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
             )}
           </div>
 
-          <div className="border-t border-border/60 pt-3 lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+          <div className="space-y-3 border-t border-border/60 pt-3 lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
             <DriveAccountsPanel />
+            <MegaPanel />
           </div>
         </div>
       </DialogContent>
