@@ -47,6 +47,8 @@ export interface KBResource {
   duplicateOf?: string;
   /** score de similitud visual guardado para la cola de revisión. */
   visualSimilarity?: number;
+  /** id de un manifiesto estructural generado para ZIP/repositorios. */
+  projectManifestId?: string;
   /** relaciones explícitas entre recursos del corpus. */
   relatedResourceIds?: string[];
 }

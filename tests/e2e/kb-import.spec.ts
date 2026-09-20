@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "./fixtures";
+import { writeZip } from "../../src/lib/forja/zip";
 
 /** Forja IA — "Importar recursos": subir un archivo del dispositivo,
  * clasificarlo con el modelo activo y subirlo a Drive sin que el usuario
@@ -193,5 +194,48 @@ test.describe("Importar recursos (Knowledge Base)", () => {
     expect(uploadCalled).toBe(false);
     // Sigue habiendo un solo recurso en el índice: el original, no una copia.
     await expect(page.getByRole("button", { name: "Quitar del índice" })).toHaveCount(1);
+  });
+
+  test("subir un ZIP también analiza su estructura, y el resumen del stack queda visible en el recurso", async ({
+    page,
+  }) => {
+    await mockDrive(page);
+    await page.route("**/api/mock-llm/chat/completions", (route) =>
+      route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          choices: [{ message: { content: '{"category": "proyectos", "technology": "React", "tags": ["repo"]}' } }],
+        }),
+      })
+    );
+
+    const enc = new TextEncoder();
+    const zipBytes = writeZip([
+      { path: "package.json", data: enc.encode('{"name":"demo"}') },
+      { path: "package-lock.json", data: enc.encode("{}") },
+      { path: "next.config.ts", data: enc.encode("export default {}") },
+      { path: "src/app/page.tsx", data: enc.encode("export default function Page() { return <div>hola</div>; }") },
+      { path: "node_modules/paquete/index.js", data: enc.encode("module.exports = 1;") },
+    ]);
+
+    await page.goto("/");
+    await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Conocimiento" }).click();
+
+    await page.getByLabel("Seleccionar archivos").setInputFiles({
+      name: "mi-proyecto.zip",
+      mimeType: "application/zip",
+      buffer: Buffer.from(zipBytes),
+    });
+
+    await expect(page.getByText(/Proyecto analizado: 5 archivos.*React.*TypeScript/).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    // El resumen del stack no es solo el aviso de progreso que se acaba de
+    // soltar: también queda en la fila del recurso más abajo, en un
+    // párrafo aparte — comprobado por selector, no solo por texto repetido.
+    const resumenEnLaFila = page.locator("p", { hasText: "Proyecto analizado: 5 archivos" });
+    await expect(resumenEnLaFila).toBeVisible();
+    await expect(resumenEnLaFila).toContainText("Next.js");
   });
 });

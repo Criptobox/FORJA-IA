@@ -25,6 +25,8 @@ import { classifyFile, isTextLike, readTextExcerpt } from "@/lib/forja/kb-classi
 import { findOrCreateFolder, pickAccountWithMostSpace, uploadFileToDrive } from "@/lib/forja/gdrive-upload";
 import { kbExistingCategories, kbFindByHash, kbGetResources, kbHashFile, kbUpsertResource } from "@/lib/forja/kb-index";
 import { computeVisualFingerprint, findVisualDuplicateCandidates } from "@/lib/forja/visual-similarity";
+import { analyzeZipRepository } from "@/lib/forja/kb-repo-analyzer";
+import { kbSaveProjectManifest } from "@/lib/forja/kb-projects";
 import type { GDriveAccount, GDriveCreds } from "@/lib/forja/gdrive";
 import { splitModelKey } from "@/lib/forja/types";
 import { useForja } from "@/lib/forja/store";
@@ -54,6 +56,18 @@ async function importOneFile(
   }
 
   onStage("clasificando");
+  let projectManifestId: string | undefined;
+  let projectDetail = "";
+  if (/\.zip$/i.test(file.name)) {
+    try {
+      const analysis = await analyzeZipRepository(file);
+      kbSaveProjectManifest(analysis);
+      projectManifestId = analysis.id;
+      projectDetail = ` Proyecto analizado: ${analysis.totalFiles} archivos; ${analysis.components.length} componentes; ${analysis.technologies.join(", ") || "stack no detectado"}.`;
+    } catch (e) {
+      projectDetail = ` No se pudo analizar el ZIP: ${e instanceof Error ? e.message : String(e)}.`;
+    }
+  }
   const visual = await computeVisualFingerprint(file);
   const visualCandidates = visual
     ? findVisualDuplicateCandidates(visual.hash, kbGetResources(), 8)
@@ -129,11 +143,12 @@ async function importOneFile(
       // "Conservar ambos" (que deja el recurso sin relación) no tendría
       // nada que deshacer.
       visualSimilarity,
+      projectManifestId,
     });
     if (visualDuplicateOf) {
-      onStage("listo", `Guardado para revisión: visualmente parecido a otro recurso (${uploaded.account.email}).`);
+      onStage("listo", `Guardado para revisión: visualmente parecido a otro recurso (${uploaded.account.email}).${projectDetail}`);
     } else {
-      onStage("listo", category ? `Guardado en «${category}» (${uploaded.account.email}).` : `Guardado sin clasificar (${uploaded.account.email}).`);
+      onStage("listo", category ? `Guardado en «${category}» (${uploaded.account.email}).${projectDetail}` : `Guardado sin clasificar (${uploaded.account.email}).${projectDetail}`);
     }
   } catch (e) {
     onStage("error", e instanceof Error ? e.message : String(e));

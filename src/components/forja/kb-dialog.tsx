@@ -32,6 +32,7 @@ import { formatBytes } from "@/lib/forja/gdrive-oauth";
 import { gdGetCreds } from "@/lib/forja/gdrive";
 import type { KBResource, KBResourceStatus } from "@/lib/forja/kb-index";
 import { acceptAsRelated, discardDuplicateFromIndex, getVisualReviewPair, getVisualReviewQueue, keepBothVisualResources } from "@/lib/forja/kb-review";
+import { kbGetProjectManifest } from "@/lib/forja/kb-projects";
 import { useKbIndex } from "./kb-connect";
 import { useGdriveAccounts } from "./gdrive-connect";
 import { DriveAccountsPanel } from "./gdrive-dialog";
@@ -115,6 +116,19 @@ function ResourceRow({
           ))}
         </div>
       )}
+
+      {resource.projectManifestId && (() => {
+        const manifest = kbGetProjectManifest(resource.projectManifestId);
+        if (!manifest) return null;
+        return (
+          <p className="mt-1.5 text-[10.5px] text-muted-foreground">
+            Proyecto analizado: {manifest.totalFiles} archivos ·{" "}
+            {manifest.technologies.join(", ") || "stack no detectado"}
+            {manifest.frameworks.length ? ` · ${manifest.frameworks.join(", ")}` : ""}
+            {manifest.components.length ? ` · ${manifest.components.length} componentes` : ""}
+          </p>
+        );
+      })()}
 
       <div className="mt-1.5 flex items-center gap-3">
         <button
