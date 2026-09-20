@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  esSoloFiltroSeguridad,
   filterFreeModels,
   isFreeModel,
   isQuotaError,
@@ -56,6 +57,37 @@ describe("isQuotaError", () => {
 
   it("un error normal no es de cuota", () => {
     expect(isQuotaError("Invalid username or password")).toBe(false);
+  });
+});
+
+describe("esSoloFiltroSeguridad", () => {
+  it("detecta el caso real: solo el aviso, nada de contenido", () => {
+    expect(esSoloFiltroSeguridad("User Safety: safe")).toBe(true);
+    expect(esSoloFiltroSeguridad("User Safety: safe\nResponse Safety: safe")).toBe(true);
+  });
+
+  it("detecta el caso pegado sin separador (visto en la app real)", () => {
+    expect(esSoloFiltroSeguridad("User Safety: safeResponse Safety: safe")).toBe(true);
+  });
+
+  it("mayúsculas, minúsculas y «unsafe» también cuentan", () => {
+    expect(esSoloFiltroSeguridad("user safety: unsafe")).toBe(true);
+    expect(esSoloFiltroSeguridad("PROMPT SAFETY: safe")).toBe(true);
+  });
+
+  it("una respuesta real que solo MENCIONA la seguridad no cuenta", () => {
+    // Le sobra muchísimo texto real detrás del aviso: no es "solo el filtro".
+    const real = "User Safety: safe\n\n" + "```html\n<!DOCTYPE html><html>...</html>\n```".repeat(3);
+    expect(esSoloFiltroSeguridad(real)).toBe(false);
+  });
+
+  it("vacío no cuenta (eso lo cubre la detección de respuesta vacía)", () => {
+    expect(esSoloFiltroSeguridad("")).toBe(false);
+    expect(esSoloFiltroSeguridad("   ")).toBe(false);
+  });
+
+  it("una respuesta normal, sin nada de esto, no cuenta", () => {
+    expect(esSoloFiltroSeguridad("<!DOCTYPE html><html><body>Bienvenido</body></html>")).toBe(false);
   });
 });
 

@@ -32,6 +32,7 @@ const MODELOS = [
   "mock-tools-free",
   "mock-cortado",
   "mock-vacio",
+  "mock-filtro-seguridad",
   "mock-rescate",
   "mock-largo",
   "mock-corta-y-cae",
@@ -665,6 +666,12 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // y cierra el stream sin escribir nada. Se contaba como respuesta buena y la
   // burbuja se quedaba en blanco. Devuelve solo razonamiento.
   if (modelo === "mock-vacio") return "";
+
+  // `mock-filtro-seguridad`: imita el caso real visto con nemotron vía
+  // OpenRouter en FORJA WEB — el modelo devuelve el preámbulo de un filtro
+  // de seguridad EN VEZ de la página pedida. No está vacío (se contaba
+  // como respuesta buena), pero tampoco es una respuesta.
+  if (modelo === "mock-filtro-seguridad") return "User Safety: safe\nResponse Safety: safe";
 
   // `mock-cortado`: imita al modelo que se queda sin tokens a mitad de una
   // etiqueta. Es el caso real que dejaba al agente parado en silencio. Cuando

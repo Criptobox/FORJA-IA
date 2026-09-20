@@ -31,7 +31,7 @@ import {
 } from "./types";
 import { PROVIDER_MAP } from "./providers";
 import { streamChat } from "./chat-client";
-import { isQuotaError, pickFailoverCandidate, sanearOrdenFallback } from "./free-models";
+import { esSoloFiltroSeguridad, isQuotaError, pickFailoverCandidate, sanearOrdenFallback } from "./free-models";
 import {
   buildTaskChain,
   classifyTask,
@@ -1101,11 +1101,19 @@ export function useGeneration(ctx: CtxGeneracion) {
           // nada. Se contaba como ÉXITO, así que la burbuja se quedaba en
           // blanco y todo se paraba ahí sin decir por qué. Es un fallo, y como
           // fallo avanza en la cadena.
-          if (!aportado.trim()) {
+          //
+          // Y un caso real distinto pero con la misma cura: el modelo
+          // devuelve el preámbulo de un filtro de seguridad ("User Safety:
+          // safe") EN VEZ de la respuesta — no está vacío, pero tampoco es
+          // una respuesta a lo que se pidió. Visto con nemotron vía
+          // OpenRouter en FORJA WEB: la burbuja mostraba "User Safety: safe"
+          // como si fuera la web pedida.
+          const soloFiltroSeguridad = !!aportado.trim() && esSoloFiltroSeguridad(aportado);
+          if (!aportado.trim() || soloFiltroSeguridad) {
             const key = makeModelKey(candidate.providerId, candidate.modelId);
             useHealth.getState().recordFailure(key, 0);
             settle(candidate, false, elapsed);
-            const soloPenso = reasoning.trim().length > 0;
+            const soloPenso = !soloFiltroSeguridad && reasoning.trim().length > 0;
             const dVacio = decidirTrasVacio({
               status: 200,
               mensajeCuota: false,
@@ -1115,10 +1123,15 @@ export function useGeneration(ctx: CtxGeneracion) {
               indice: ci,
               cadena: chain,
               parcial: "",
+              // El filtro de seguridad tampoco se rescata: no es progreso
+              // real, es el mismo no-contenido que la respuesta vacía.
               rescatable: false,
             });
+            const etiquetaFallo = soloFiltroSeguridad
+              ? "solo devolvió el filtro de seguridad"
+              : "no escribió respuesta";
             if (dVacio.tipo === "siguiente") {
-              toast.warning(forjaWeb ? "Forja IA no escribió respuesta" : `${candidate.modelId} no escribió respuesta`, {
+              toast.warning(forjaWeb ? `Forja IA ${etiquetaFallo}` : `${candidate.modelId} ${etiquetaFallo}`, {
                 description: forjaWeb
                   ? `${soloPenso ? "Se le fue el turno razonando. " : ""}Probando con otra fuente.`
                   : `${soloPenso ? "Se le fue el turno razonando. " : ""}Probando con ${chain[dVacio.indice].modelId}.`,
@@ -1127,9 +1140,11 @@ export function useGeneration(ctx: CtxGeneracion) {
               ci = dVacio.indice - 1;
               continue;
             }
-            const aviso = soloPenso
-              ? "El modelo terminó de razonar pero cerró la respuesta sin escribir nada. Su razonamiento está aquí debajo. Suele pasar cuando el límite de salida se agota pensando: sube «Tokens máximos» en Ajustes o prueba otro modelo."
-              : "El modelo cerró la respuesta sin escribir nada.";
+            const aviso = soloFiltroSeguridad
+              ? "El modelo devolvió solo la comprobación de seguridad («User Safety: safe»), sin ninguna respuesta real detrás. Prueba otro modelo."
+              : soloPenso
+                ? "El modelo terminó de razonar pero cerró la respuesta sin escribir nada. Su razonamiento está aquí debajo. Suele pasar cuando el límite de salida se agota pensando: sube «Tokens máximos» en Ajustes o prueba otro modelo."
+                : "El modelo cerró la respuesta sin escribir nada.";
             updateMessage(sessionId, assistantId, {
               // lo rescatado del modelo anterior no se tira por que el nuevo
               // no aportara: se conserva y se explica debajo

@@ -95,6 +95,28 @@ export function isQuotaError(text: string): boolean {
   );
 }
 
+/** «User Safety: safe» / «Response Safety: safe»: el preámbulo de
+ * clasificación de seguridad que algunos modelos (visto con nemotron vía
+ * OpenRouter) devuelven EN VEZ de la respuesta real — no delante, en vez
+ * de. Se contaba como éxito porque no está vacío, y el usuario se
+ * quedaba con eso como si fuera la respuesta a "hazme una web para una
+ * barbería". Sin espacio de por medio entre dos avisos pegados
+ * ("safeResponse") también cuenta: es la misma respuesta sin separador. */
+// Sin «\b» al principio a propósito: cuando dos avisos quedan pegados sin
+// separador ("...safeResponse Safety: safe"), la letra de justo antes de
+// "Response" es otra letra ("e"), así que un «\b» ahí no encontraría
+// límite de palabra y se perdería el segundo aviso al reemplazarlos.
+const PATRON_FILTRO_SEGURIDAD = /(?:user|response|prompt)\s*safety\s*:\s*(?:safe|unsafe)/i;
+
+export function esSoloFiltroSeguridad(text: string): boolean {
+  const t = text.trim();
+  if (!t || !PATRON_FILTRO_SEGURIDAD.test(t)) return false;
+  const sinFiltro = t.replace(new RegExp(PATRON_FILTRO_SEGURIDAD.source, "gi"), "").trim();
+  // Lo que sobra tras quitar el/los aviso(s) es prácticamente nada: esto
+  // ERA solo el filtro, no una respuesta con el filtro delante.
+  return sinFiltro.length < 20;
+}
+
 /** Sanea un orden de failover guardado: fuera los ids que ya no existen y
  * al final los proveedores que falten.
  *

@@ -202,6 +202,20 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
    un nombre por sí solo. Es una regla global del catálogo de
    herramientas, no solo de FORJA WEB: protege cualquier conversación con
    modo agente.
+
+   **Un filtro de seguridad sin contenido no se enseña como si fuera la
+   respuesta — hecho.** El usuario probó "Crea una web para una
+   barbería" en FORJA WEB y la burbuja mostró literalmente `User Safety:
+   safe` — y en el turno siguiente, `User Safety: safeResponse Safety:
+   safe` (dos avisos pegados sin separador). Ni una línea de HTML. La
+   causa: eso no está vacío, así que el chequeo de "respuesta vacía" no
+   lo veía — se contaba como éxito. `esSoloFiltroSeguridad()`
+   (`free-models.ts`) detecta este preámbulo de clasificación de
+   seguridad (visto con nemotron vía OpenRouter) aunque los dos avisos
+   vengan pegados sin espacio, y `use-generation.ts` lo trata igual que
+   una respuesta vacía: falla ese candidato, prueba el siguiente de la
+   cadena, y si no queda ninguno, se lo dice al usuario citando el texto
+   exacto en vez de mostrarlo como si fuera la web pedida.
 3. **Análisis visual.** Composición, tipografía, color, agrupación de
    capturas desktop/tablet/mobile — la clasificación de texto/nombre ya
    existe (punto 2); esto es clasificar por lo que se VE en una imagen,
