@@ -112,7 +112,8 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
       await editor.click();
       await expect(indexHtml).toBeVisible({ timeout: 3_000 });
     }).toPass({ timeout: 30_000 });
-    // el árbol se abre por la carpeta raíz del ZIP
+    // index.html está en la raíz real del proyecto (sin la carpeta que
+    // envolvía el ZIP), así que se ve sin desplegar nada
     await expect(indexHtml).toBeVisible();
   }
 
@@ -167,19 +168,26 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
   test("navega el árbol de carpetas del proyecto", async ({ page }) => {
     await abrirDemo(page);
 
-    // la carpeta raíz del ZIP viene desplegada y las de dentro, plegadas
+    // sin la carpeta que envolvía el ZIP ("demo-web/"), "css" ya es una
+    // carpeta del primer nivel: viene desplegada de entrada, junto con
+    // "js" y "assets" — antes hacía falta desplegar "demo-web" primero y
+    // estas quedaban plegadas dentro.
     const carpetaCss = page.getByRole("button", { name: /^css/ });
-    await expect(carpetaCss).toHaveAttribute("aria-expanded", "false");
-    await expect(page.getByRole("button", { name: /^style\.css/ })).toBeHidden();
-
-    await carpetaCss.click();
     await expect(carpetaCss).toHaveAttribute("aria-expanded", "true");
     const estilo = page.getByRole("button", { name: /^style\.css/ });
     await expect(estilo).toBeVisible();
 
+    // se puede plegar y volver a desplegar
+    await carpetaCss.click();
+    await expect(carpetaCss).toHaveAttribute("aria-expanded", "false");
+    await expect(estilo).toBeHidden();
+    await carpetaCss.click();
+    await expect(carpetaCss).toHaveAttribute("aria-expanded", "true");
+    await expect(estilo).toBeVisible();
+
     // al elegirlo se abre en el editor, con su ruta completa
     await estilo.click();
-    await expect(page.getByLabel("Contenido de demo-web/css/style.css")).toBeVisible();
+    await expect(page.getByLabel("Contenido de css/style.css")).toBeVisible();
 
     // el buscador despliega el árbol y filtra
     await page.getByLabel("Buscar archivos del proyecto").fill("app.js");
@@ -213,7 +221,7 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
 
     // se introduce a propósito un fallo que solo se ve al revisar
     await page.getByRole("button", { name: /^index\.html/ }).click();
-    const ta = page.getByLabel("Contenido de demo-web/index.html");
+    const ta = page.getByLabel("Contenido de index.html");
     await ta.fill(
       [
         "<!doctype html>",
@@ -232,14 +240,14 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
     // el enlace roto aparece con su archivo y su línea
     const roto = page.getByRole("button", { name: /no-existe\.css/ }).first();
     await expect(roto).toBeVisible();
-    await expect(page.getByText("demo-web/index.html:6")).toBeVisible();
+    await expect(page.getByText("index.html:6")).toBeVisible();
 
     // al pulsarlo se vuelve al editor con esa línea seleccionada
     await roto.click();
-    await expect(page.getByLabel("Contenido de demo-web/index.html")).toBeVisible();
+    await expect(page.getByLabel("Contenido de index.html")).toBeVisible();
 
     // corregido el enlace, la revisión se rehace sola y da el visto bueno
-    await page.getByLabel("Contenido de demo-web/index.html").fill(
+    await page.getByLabel("Contenido de index.html").fill(
       [
         "<!doctype html>",
         '<html lang="es"><head>',
@@ -262,10 +270,10 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
       await page.getByRole("button", { name: "Archivo nuevo" }).click();
       await expect(page.getByLabel("Ruta del archivo nuevo")).toBeVisible({ timeout: 3_000 });
     }).toPass({ timeout: 20_000 });
-    await page.getByLabel("Ruta del archivo nuevo").fill("demo-web/config.js");
+    await page.getByLabel("Ruta del archivo nuevo").fill("config.js");
     await page.getByRole("button", { name: "Crear", exact: true }).click();
     await page
-      .getByLabel("Contenido de demo-web/config.js")
+      .getByLabel("Contenido de config.js")
       // el texto se ensambla en runtime: sin patrón de credencial en el fuente
       .fill(["const AWS = \"", "AK", "IAIOSFODNN7EXAMPLE", "\";"].join(""));
 
@@ -317,10 +325,10 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
       await page.getByRole("button", { name: "Archivo nuevo" }).click();
       await expect(page.getByLabel("Ruta del archivo nuevo")).toBeVisible({ timeout: 3_000 });
     }).toPass({ timeout: 20_000 });
-    await page.getByLabel("Ruta del archivo nuevo").fill("demo-web/config.js");
+    await page.getByLabel("Ruta del archivo nuevo").fill("config.js");
     await page.getByRole("button", { name: "Crear", exact: true }).click();
     await page
-      .getByLabel("Contenido de demo-web/config.js")
+      .getByLabel("Contenido de config.js")
       // el texto se ensambla en runtime: sin patrón de credencial en el fuente
       .fill(["const AWS = \"", "AK", "IAIOSFODNN7EXAMPLE", "\";"].join(""));
 
@@ -348,7 +356,7 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Sandbox", exact: false }).first().click();
     await page
-      .getByLabel("Contenido de demo-web/config.js")
+      .getByLabel("Contenido de config.js")
       .fill(
         [
           'const AWS = "',
@@ -376,7 +384,7 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
 
     // se edita una línea concreta del HTML
     await page.getByRole("button", { name: /^index\.html/ }).click();
-    const ta = page.getByLabel("Contenido de demo-web/index.html");
+    const ta = page.getByLabel("Contenido de index.html");
     await ta.fill(
       [
         "<!doctype html>",
@@ -398,9 +406,9 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
 
     // un archivo nuevo aparece marcado como tal
     await page.getByRole("button", { name: "Archivo nuevo" }).click();
-    await page.getByLabel("Ruta del archivo nuevo").fill("demo-web/nuevo.js");
+    await page.getByLabel("Ruta del archivo nuevo").fill("nuevo.js");
     await page.getByRole("button", { name: "Crear", exact: true }).click();
-    await page.getByLabel("Contenido de demo-web/nuevo.js").fill("export const x = 1;");
+    await page.getByLabel("Contenido de nuevo.js").fill("export const x = 1;");
     await irAPestana(page, /Cambios/);
     await expect(page.getByText("nuevo", { exact: true }).first()).toBeVisible();
     await expect(page.getByText(/2 archivos con cambios/)).toBeVisible();
@@ -417,7 +425,7 @@ test.describe("Forja IA — Sandbox (navegar, ejecutar, revisar)", () => {
     await abrirDemo(page);
 
     await page.getByRole("button", { name: /^index\.html/ }).click();
-    const ta = page.getByLabel("Contenido de demo-web/index.html");
+    const ta = page.getByLabel("Contenido de index.html");
     await expect(ta).toBeVisible();
     await ta.fill("<!doctype html><html><head><title>Editado</title></head><body><h1>Editado E2E</h1></body></html>");
     await expect(page.getByText("sin guardar")).toBeVisible();

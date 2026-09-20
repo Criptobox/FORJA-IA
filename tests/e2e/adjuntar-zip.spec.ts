@@ -100,8 +100,10 @@ test("un ZIP se abre entero y su contenido llega al modelo", async ({ page }) =>
   expect(enviado, "el index").toContain("MARCA-INDEX");
   expect(enviado, "el js").toContain("MARCA-JS");
   expect(enviado, "el readme").toContain("MARCA-README");
-  // el índice completo también, para que sepa la forma del proyecto
-  expect(enviado, "índice").toContain("proyecto/logo.png");
+  // el índice completo también, para que sepa la forma del proyecto — sin
+  // la carpeta "proyecto/" que envolvía el ZIP entero (se quita sola: es
+  // la única carpeta de primer nivel)
+  expect(enviado, "índice").toContain("logo.png");
   // el ruido NO viaja, pero se dice que se omitió
   expect(enviado, "sin node_modules").not.toContain("MARCA-RUIDO");
   expect(enviado, "lo dice").toContain("Lo que NO viaja en este mensaje");

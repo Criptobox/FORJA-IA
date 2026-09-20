@@ -84,7 +84,7 @@ import {
 import { LEVEL_META, ReviewBanner, ReviewDiagnostics } from "./review-view";
 import { DiffView, type ChangedFile } from "./diff-view";
 import { fileDiff, wholeFileDiff } from "@/lib/forja/diff";
-import { readZip, writeZip } from "@/lib/forja/zip";
+import { dropWrapperFolder, readZip, writeZip } from "@/lib/forja/zip";
 import {
   injectVisualQA,
   onQAAutoResult,
@@ -915,7 +915,11 @@ export function SandboxStudio({
       setLoading(true);
       try {
         const buf = await file.arrayBuffer();
-        const list = await readZip(buf);
+        // Un ZIP descargado de un repo (o cualquier proyecto exportado) mete
+        // todo dentro de una única carpeta envolvente — sin esto, el árbol
+        // del Sandbox quedaba con esa carpeta como único elemento en la
+        // raíz, con el proyecto entero dentro, en vez de con sus archivos.
+        const list = dropWrapperFolder(await readZip(buf));
         const map: Record<string, Entry> = {};
         for (const e of list) {
           if (isJunkPath(e.path) || map[e.path]) continue;

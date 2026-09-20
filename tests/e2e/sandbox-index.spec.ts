@@ -67,4 +67,13 @@ test("un ZIP con carpeta abre su index.html, no el HTML que va antes alfabética
   // el Sandbox arranca solo el proyecto: dentro tiene que estar el index
   const marco = page.frameLocator('iframe[title="Vista previa del Sandbox"]');
   await expect(marco.locator("#quien")).toHaveText("SOY EL INDEX", { timeout: 20_000 });
+
+  // y la carpeta "mi-web/" que envolvía el ZIP no sobrevive: el árbol tiene
+  // que mostrar los archivos y carpetas REALES del proyecto en la raíz, no
+  // una única carpeta con todo dentro.
+  await page.getByRole("tab", { name: "Editor" }).click();
+  await expect(page.getByRole("button", { name: /^index\.html/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: /^about\.html/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^css/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^mi-web/ })).toHaveCount(0);
 });

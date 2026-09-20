@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { crc32, readZip, writeZip } from "../../src/lib/forja/zip";
+import { crc32, dropWrapperFolder, readZip, writeZip } from "../../src/lib/forja/zip";
 
 describe("crc32", () => {
   it("vector conocido «123456789» → 0xCBF43926", () => {
@@ -69,5 +69,56 @@ describe("readZip", () => {
     expect(paths).toContain("demo-web/js/app.js");
     const html = new TextDecoder().decode(entries.find((e) => e.path.endsWith("index.html"))!.data);
     expect(html).toContain("css/style.css");
+  });
+});
+
+describe("dropWrapperFolder", () => {
+  const p = (...paths: string[]) => paths.map((path) => ({ path }));
+
+  it("quita la carpeta única que envuelve TODO (caso real: ZIP de un repo)", () => {
+    const out = dropWrapperFolder(p("mi-repo-main/index.html", "mi-repo-main/src/app.js", "mi-repo-main/README.md"));
+    expect(out.map((e) => e.path).sort()).toEqual(["README.md", "index.html", "src/app.js"]);
+  });
+
+  it("un ZIP normal, sin carpeta envolvente, se queda tal cual", () => {
+    const out = dropWrapperFolder(p("index.html", "css/style.css", "js/app.js"));
+    expect(out.map((e) => e.path).sort()).toEqual(["css/style.css", "index.html", "js/app.js"]);
+  });
+
+  it("con MÁS de un elemento en el primer nivel, no toca nada (esa sí es la raíz real)", () => {
+    // Dos proyectos sueltos en el mismo ZIP, o un ZIP con un archivo Y una
+    // carpeta en la raíz: no hay una única carpeta que envuelva todo.
+    const out = dropWrapperFolder(p("proyecto-a/index.html", "proyecto-b/index.html"));
+    expect(out.map((e) => e.path).sort()).toEqual(["proyecto-a/index.html", "proyecto-b/index.html"]);
+  });
+
+  it("un archivo suelto en la raíz junto a una carpeta tampoco cuenta como envoltura", () => {
+    const out = dropWrapperFolder(p("README.md", "mi-repo-main/index.html"));
+    expect(out.map((e) => e.path).sort()).toEqual(["README.md", "mi-repo-main/index.html"]);
+  });
+
+  it("envoltura doble (dos carpetas anidadas antes del proyecto real) se quita entera", () => {
+    const out = dropWrapperFolder(p("a/b/index.html", "a/b/css/style.css"));
+    expect(out.map((e) => e.path).sort()).toEqual(["css/style.css", "index.html"]);
+  });
+
+  it("una única entrada ya en la raíz no se toca", () => {
+    const out = dropWrapperFolder(p("index.html"));
+    expect(out.map((e) => e.path)).toEqual(["index.html"]);
+  });
+
+  it("una única entrada envuelta sí se desenvuelve", () => {
+    const out = dropWrapperFolder(p("mi-repo-main/index.html"));
+    expect(out.map((e) => e.path)).toEqual(["index.html"]);
+  });
+
+  it("vacío no rompe nada", () => {
+    expect(dropWrapperFolder([])).toEqual([]);
+  });
+
+  it("no muta las entradas originales", () => {
+    const original = p("mi-repo-main/index.html");
+    dropWrapperFolder(original);
+    expect(original[0]!.path).toBe("mi-repo-main/index.html");
   });
 });

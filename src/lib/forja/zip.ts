@@ -92,6 +92,29 @@ export async function readZip(buf: ArrayBuffer): Promise<ZipEntry[]> {
   return out;
 }
 
+/** Si TODAS las entradas comparten una única carpeta de primer nivel, la
+ * quita — es el caso de un ZIP descargado de GitHub ("mi-repo-main/…" para
+ * cada archivo, o cualquier proyecto exportado igual): sin esto, el
+ * proyecto quedaba con esa carpeta como único elemento en la raíz, con todo
+ * dentro, en vez de con los archivos y carpetas reales del proyecto.
+ *
+ * Si hay más de un archivo o carpeta en el primer nivel, no se toca nada:
+ * esa SÍ es la raíz real del proyecto (un ZIP normal de una web, con
+ * `index.html` y `css/` sueltos, tiene que seguir así). Repite mientras siga
+ * habiendo una única carpeta envolviendo (tope de 5 vueltas: un ZIP de
+ * verdad no anida así de hondo, y evita un bucle si algo raro pasara). */
+export function dropWrapperFolder<T extends { path: string }>(entries: readonly T[]): T[] {
+  let out: T[] = [...entries];
+  for (let vuelta = 0; vuelta < 5 && out.length > 0; vuelta++) {
+    const raiz = out[0]!.path.split("/")[0];
+    if (!raiz) break;
+    const todasEnvueltas = out.every((e) => e.path.startsWith(`${raiz}/`));
+    if (!todasEnvueltas) break;
+    out = out.map((e) => ({ ...e, path: e.path.slice(raiz.length + 1) }));
+  }
+  return out;
+}
+
 /* ---------- escritor (STORE) ---------- */
 
 const CRC_TABLE = (() => {

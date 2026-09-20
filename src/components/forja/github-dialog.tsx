@@ -40,7 +40,7 @@ import { useForja } from "@/lib/forja/store";
 import { GitHubConnect } from "./github-connect";
 import { ReviewGateCard, useReviewGate } from "./review-view";
 import type { PublishSeed } from "@/lib/forja/sandbox";
-import { readZip, type ZipEntry } from "@/lib/forja/zip";
+import { dropWrapperFolder, readZip, type ZipEntry } from "@/lib/forja/zip";
 
 /** Fija en el código, no se construye a partir de nada dinámico. */
 const GH_INSTALLATIONS_URL = "https://github.com/settings/installations";
@@ -191,7 +191,11 @@ export function GitHubDialog({
   const pickZipFile = async (file: File) => {
     let entries: ZipEntry[];
     try {
-      entries = await readZip(await file.arrayBuffer());
+      // Sin `dropWrapperFolder`, un ZIP de un repo (que ya trae su propia
+      // carpeta envolvente, "mi-repo-main/…") quedaba subido dos veces
+      // envuelto: la de abajo sobrevivía a que `relPathFrom` solo quita un
+      // nivel (el que se añade aquí abajo con `zipRoot`).
+      entries = dropWrapperFolder(await readZip(await file.arrayBuffer()));
     } catch (e) {
       toast.error("No se pudo leer el ZIP", {
         description: e instanceof Error ? e.message : String(e),

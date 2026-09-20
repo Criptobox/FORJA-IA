@@ -24,7 +24,7 @@ import {
   MAX_DOCUMENTOS,
   MAX_IMAGENES,
 } from "./reparto-adjuntos";
-import { readZip } from "./zip";
+import { dropWrapperFolder, readZip } from "./zip";
 import { isTextPath, decodeText } from "./sandbox";
 import { resumenZip, zipATexto } from "./zip-a-texto";
 import { readSheetFile } from "./sheets";
@@ -62,7 +62,7 @@ export function useChatAttachments() {
         // convierte en índice + contenido priorizado. Nada sale del dispositivo.
         for (const f of cupos.zips) {
           try {
-            const entradas = await readZip(await f.arrayBuffer());
+            const entradas = dropWrapperFolder(await readZip(await f.arrayBuffer()));
             if (!entradas.length) throw new Error("El ZIP está vacío");
             const resumen = zipATexto(
               f.name,
