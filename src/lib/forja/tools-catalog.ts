@@ -423,6 +423,28 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
     },
   },
   {
+    name: "kb_project_search",
+    description:
+      "Busca componentes, patrones, tecnologías o archivos reutilizables entre los ZIP/repositorios que el usuario ya subió y Forja analizó localmente (Project Manifest). Úsala ANTES de escribir un componente desde cero cuando pueda existir ya en un proyecto indexado (ej. «necesito un FilterDrawer en React»). Devuelve solo los archivos relevantes, ordenados por relevancia — nunca el repositorio entero. Si no hay proyectos analizados o nada casa, se te dice — no se inventa un archivo que no exista.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Qué necesitas, en palabras (ej. «filtro lateral de productos», «hero de landing»).",
+        },
+        component: { type: "string", description: "Opcional. Nombre exacto o parcial del componente (ej. «FilterDrawer»)." },
+        technology: { type: "string", description: "Opcional. Tecnología exacta (ej. «React», «TypeScript»)." },
+        pattern: { type: "string", description: "Opcional. Patrón exacto (ej. «component-library», «state-management»)." },
+        limit: {
+          type: "number",
+          description: "Opcional. Cuántos resultados devolver (por defecto 12, máximo 20).",
+        },
+      },
+      required: ["query"],
+    },
+  },
+  {
     name: "research",
     description:
       "Investiga una necesidad para Forja: PRIMERO consulta la Knowledge Base local y solo si no basta recurre a la web. Devuelve las fuentes separadas por origen para que el Cerebro no confunda material indexado con información externa. No inventa fuentes.",

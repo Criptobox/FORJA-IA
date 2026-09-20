@@ -1,0 +1,52 @@
+import { describe, expect, it } from "vitest";
+import { retrieveProjectKnowledge, projectKnowledgeContext } from "@/lib/forja/kb-project-retrieval";
+import type { KBRepoAnalysis } from "@/lib/forja/kb-repo-analyzer";
+
+const project: KBRepoAnalysis = {
+  version: 1, id: "p1", name: "shop-ui", analyzedAt: new Date().toISOString(),
+  totalFiles: 2, indexedFiles: 2, ignoredFiles: 0, totalBytes: 100,
+  technologies: ["React", "TypeScript"], frameworks: ["Next.js"], packageManagers: ["npm"],
+  components: ["ProductCard", "FilterDrawer"], patterns: ["component-library", "utility-css"],
+  licenses: ["LICENSE"], entryPoints: ["src/app/page.tsx"], importantFiles: ["package.json"],
+  files: [
+    { path: "src/components/ProductCard.tsx", sizeBytes: 20, kind: "source", technology: ["React", "TypeScript"], componentNames: ["ProductCard"], patterns: ["component-library", "utility-css"] },
+    { path: "src/components/FilterDrawer.tsx", sizeBytes: 20, kind: "source", technology: ["React", "TypeScript"], componentNames: ["FilterDrawer"], patterns: ["component-library"] },
+  ],
+};
+
+describe("kb-project-retrieval", () => {
+  it("encuentra un componente sin cargar el repositorio completo", () => {
+    const hits = retrieveProjectKnowledge({ text: "filtro", component: "FilterDrawer" }, [project]);
+    expect(hits[0]?.file?.componentNames).toContain("FilterDrawer");
+  });
+
+  it("prioriza tecnología y patrón", () => {
+    const hits = retrieveProjectKnowledge({ text: "card", technology: "React", pattern: "component-library" }, [project]);
+    expect(hits[0]?.score).toBeGreaterThan(5);
+  });
+
+  it("genera contexto compacto", () => {
+    const ctx = projectKnowledgeContext(retrieveProjectKnowledge({ text: "product" }, [project]), 500);
+    expect(ctx).toContain("ProductCard");
+    expect(ctx.length).toBeLessThanOrEqual(500);
+  });
+
+  it("sin proyectos, no hay resultados ni error", () => {
+    expect(retrieveProjectKnowledge({ text: "cualquier cosa" }, [])).toEqual([]);
+  });
+
+  it("sin ninguna coincidencia real, no devuelve nada por capricho", () => {
+    const hits = retrieveProjectKnowledge({ text: "xyzxyzxyz-inventado" }, [project]);
+    expect(hits).toEqual([]);
+  });
+
+  it("respeta el límite de resultados", () => {
+    const hits = retrieveProjectKnowledge({ text: "component react", limit: 1 }, [project]);
+    expect(hits.length).toBeLessThanOrEqual(1);
+  });
+
+  it("el componente exacto puntúa por encima de un archivo que solo casa en texto libre", () => {
+    const hits = retrieveProjectKnowledge({ text: "algo", component: "ProductCard" }, [project]);
+    expect(hits[0]?.file?.componentNames).toContain("ProductCard");
+  });
+});

@@ -137,9 +137,11 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
     // (diagnóstico accionable). v4.33: 20, con check_definition_of_done
     // (veredicto de publicación). v4.44: 21, con kb_search (búsqueda en la
     // Knowledge Base). v4.51: 22, con research (Research Agent: consulta la
-    // Knowledge Base primero y solo recurre a la web si no basta). La lista
-    // va exacta a propósito: comprueba que el catálogo TRADUCIDO llega
-    // entero al modelo, que es distinto de que exista en `tools-catalog.ts`.
+    // Knowledge Base primero y solo recurre a la web si no basta). v4.54:
+    // 23, con kb_project_search (busca componentes/archivos reutilizables
+    // entre los ZIP/repositorios ya analizados). La lista va exacta a
+    // propósito: comprueba que el catálogo TRADUCIDO llega entero al
+    // modelo, que es distinto de que exista en `tools-catalog.ts`.
     expect(names).toEqual([
       "apply_patch",
       "ask_memory",
@@ -149,6 +151,7 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
       "fetch_api",
       "get_quota",
       "git_snapshot",
+      "kb_project_search",
       "kb_search",
       "list_files",
       "read_console",

@@ -93,6 +93,80 @@ describe("kb_search", () => {
   });
 });
 
+describe("kb_project_search", () => {
+  const proyecto = {
+    version: 1 as const,
+    id: "kb-project-1",
+    name: "shop-ui",
+    analyzedAt: "2026-01-01T00:00:00.000Z",
+    totalFiles: 1,
+    indexedFiles: 1,
+    ignoredFiles: 0,
+    totalBytes: 20,
+    technologies: ["React", "TypeScript"],
+    frameworks: ["Next.js"],
+    packageManagers: ["npm"],
+    components: ["FilterDrawer"],
+    patterns: ["component-library"],
+    licenses: [],
+    entryPoints: [],
+    importantFiles: [],
+    files: [
+      {
+        path: "src/components/FilterDrawer.tsx",
+        sizeBytes: 20,
+        kind: "source" as const,
+        technology: ["React", "TypeScript"],
+        componentNames: ["FilterDrawer"],
+        patterns: ["component-library"],
+      },
+    ],
+  };
+
+  it("sin proyectos analizados, lo dice en vez de fingir una búsqueda", async () => {
+    const r = await runTool(call("kb_project_search", { query: "filtro" }), ctx());
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("ningún proyecto ZIP/repositorio analizado");
+  });
+
+  it("encuentra un componente por nombre y devuelve el archivo, no el repositorio entero", async () => {
+    const r = await runTool(
+      call("kb_project_search", { query: "filtro lateral", component: "FilterDrawer" }),
+      ctx({ kbProjectManifests: [proyecto] })
+    );
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("FilterDrawer.tsx");
+    expect(r.content).not.toContain("component-library, utility-css");
+  });
+
+  it("con proyectos pero ninguno casa, lo distingue de «no hay proyectos»", async () => {
+    const r = await runTool(
+      call("kb_project_search", { query: "algo-que-no-existe-en-ningun-lado" }),
+      ctx({ kbProjectManifests: [proyecto] })
+    );
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("Ningún proyecto analizado");
+  });
+
+  it("error si falta query", async () => {
+    const r = await runTool(call("kb_project_search", {}), ctx({ kbProjectManifests: [proyecto] }));
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("query");
+  });
+
+  it("respeta el permiso «lee_proyecto»: apagado, no se ejecuta", async () => {
+    const r = await runTool(
+      call("kb_project_search", { query: "filtro" }),
+      ctx({
+        kbProjectManifests: [proyecto],
+        permisos: { lee_proyecto: false, escribe_proyecto: true, ejecuta: true, red: true },
+      })
+    );
+    expect(r.ok).toBe(false);
+    expect(r.content).toMatch(/leer el proyecto/i);
+  });
+});
+
 describe("write_file", () => {
   it("escribe y actualiza projectFiles", async () => {
     const c = ctx();

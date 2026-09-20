@@ -22,6 +22,8 @@ import { buildToolResultMessage } from "./tools-translate";
 import { runProjectInMemory } from "./sandbox-runner";
 import { runJsInMemory } from "./js-repl";
 import { kbGetResources, type KBResource } from "./kb-index";
+import { kbGetProjectManifests } from "./kb-projects";
+import type { KBRepoAnalysis } from "./kb-repo-analyzer";
 import { promptCritica } from "./screenshot";
 import { parseLlamadasEnTexto, pareceLlamadaEnTexto, quitarLlamadasEnTexto } from "./tool-calls-texto";
 import { useLlamadasTexto } from "./llamadas-texto-medidas";
@@ -73,7 +75,8 @@ export function buildToolContext(
   reglasNo: readonly ReglaNo[] = [],
   reglasAutorizadas: readonly string[] = [],
   vision?: VisionDeps,
-  kbResources: readonly KBResource[] = []
+  kbResources: readonly KBResource[] = [],
+  kbProjectManifests: readonly KBRepoAnalysis[] = []
 ): ToolContext {
   const files = sandboxInitial?.files
     ? Object.fromEntries(sandboxInitial.files.map((f) => [f.path, f.content]))
@@ -90,6 +93,9 @@ export function buildToolContext(
     // Índice de la Knowledge Base para `kb_search`. Igual que `projectMap`,
     // es una lectura: la herramienta no lo modifica.
     kbResources,
+    // Manifiestos de proyectos ZIP/repositorios analizados, para
+    // `kb_project_search`. Misma idea que `kbResources`.
+    kbProjectManifests,
     // Lo que el usuario permite. El runner lo comprueba antes de cada llamada.
     permisos,
     // Y lo que ha prohibido tocar: se comprueba antes de cada escritura.
@@ -260,7 +266,8 @@ export async function ejecutarConTools(
     },
     // Fresca en cada llamada (como `projectMap` en `chat-app.tsx`): si el
     // usuario acaba de indexar algo desde «Conocimiento», este envío ya lo ve.
-    kbGetResources()
+    kbGetResources(),
+    kbGetProjectManifests()
   );
 
   /** Una vuelta de stream. Devuelve las tools que pidió el modelo.

@@ -55,7 +55,7 @@ export const TEXTO_ESTILO = {
 export const FORJA_WEB_PROMPT = [
   "[FORJA WEB — sistema completo]",
   "Flujo obligatorio para construir la web. No te lo saltes, no lo des por hecho sin haberlo pasado, y no anuncies un paso que no vas a ejecutar:",
-  "1. Conocimiento: antes de diseñar o escribir código, llama a «research». Consulta PRIMERO la Knowledge Base y solo si no basta recurre a la web; distingue siempre fuentes internas de externas y no inventes referencias.",
+  "1. Conocimiento: antes de diseñar o escribir código, llama a «research». Consulta PRIMERO la Knowledge Base y solo si no basta recurre a la web; distingue siempre fuentes internas de externas y no inventes referencias. Si necesitas un componente concreto (ej. «un FilterDrawer»), prueba antes «kb_project_search»: puede que ya exista en un ZIP/repositorio que el usuario subió, y reutilizarlo es mejor que reinventarlo.",
   "2. Diseño: decide la dirección visual con lo que encontraste, o con buen criterio si la Knowledge Base no tenía nada.",
   "3. Arquitectura: antes de escribir, decide qué archivos hacen falta y para qué sirve cada uno.",
   "4. Código: escribe el proyecto con las herramientas de archivo, siguiendo esa arquitectura.",

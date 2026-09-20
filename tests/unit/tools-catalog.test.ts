@@ -37,6 +37,7 @@ describe("TOOL_CATALOG", () => {
       "fetch_api",
       "get_quota",
       "git_snapshot",
+      "kb_project_search",
       "kb_search",
       "list_files",
       "read_console",

@@ -20,6 +20,8 @@ import { compareRuns, comparables, resumenRegresion } from "./regression";
 import type { ProjectMap } from "./types";
 import { buscarEnMapa, resumenMemoria, MAX_RESULTADOS_MEMORIA } from "./project-map";
 import { kbSearch, renderKbSearch, type KBResource } from "./kb-index";
+import { retrieveProjectKnowledge, projectKnowledgeContext } from "./kb-project-retrieval";
+import type { KBRepoAnalysis } from "./kb-repo-analyzer";
 import { compararProyectos, resumenProyectos } from "./diff-proyectos";
 import {
   PERMISOS_POR_DEFECTO,
@@ -117,6 +119,11 @@ export interface ToolContext {
    * si no viene (test, o llamador que no lo necesita), la herramienta lo
    * trata como «sin recursos» en vez de fallar. */
   kbResources?: readonly KBResource[];
+  /** Manifiestos estructurales de ZIP/repositorios ya analizados
+   * (`kb-repo-analyzer.ts`), para `kb_project_search`. Misma idea que
+   * `kbResources`: se inyecta fresco en cada llamada y, si no viene, la
+   * herramienta lo trata como «sin proyectos» en vez de fallar. */
+  kbProjectManifests?: readonly KBRepoAnalysis[];
   /** Le enseña una captura al modelo con visión y devuelve su crítica.
    * La implementación real vive en `use-agent-tools.ts` (necesita el
    * proveedor/modelo/clave de la conversación en curso, que el runner no
@@ -271,6 +278,8 @@ export async function runTool(
         return runAskMemory(call, ctx);
       case "kb_search":
         return runKbSearch(call, ctx);
+      case "kb_project_search":
+        return runKbProjectSearch(call, ctx);
       case "research":
         return await runResearchTool(call, ctx);
       case "verify_project":
@@ -977,6 +986,36 @@ function runKbSearch(call: ToolCall, ctx: ToolContext): ToolResult {
   const limite = numArg(call, "limit", 1, 20) ?? 8;
   const resultados = kbSearch([...resources], q, limite);
   return toolOk(call, renderKbSearch(resultados, q, resources.length));
+}
+
+/** Busca componentes/archivos reutilizables entre los ZIP/repositorios ya
+ * analizados (`kb-repo-analyzer.ts`), en vez de que el modelo reinvente un
+ * componente que ya existe en un proyecto indexado. */
+function runKbProjectSearch(call: ToolCall, ctx: ToolContext): ToolResult {
+  const q = strArg(call, "query")?.trim();
+  if (!q) return argError(call, "query");
+  const projects = ctx.kbProjectManifests ?? [];
+  if (!projects.length) {
+    return toolOk(
+      call,
+      "Todavía no hay ningún proyecto ZIP/repositorio analizado en la Knowledge Base. Sube uno desde «Conocimiento» antes de buscar aquí."
+    );
+  }
+  const limite = numArg(call, "limit", 1, 20) ?? 12;
+  const hits = retrieveProjectKnowledge(
+    {
+      text: q,
+      technology: strArg(call, "technology"),
+      pattern: strArg(call, "pattern"),
+      component: strArg(call, "component"),
+      limit: limite,
+    },
+    [...projects]
+  );
+  if (!hits.length) {
+    return toolOk(call, `Ningún proyecto analizado tiene algo que case con «${q}». No inventes un componente que no esté indexado.`);
+  }
+  return toolOk(call, projectKnowledgeContext(hits));
 }
 
 /** `allow_web` usa `boolArgDef` con `true` por defecto, no `boolArg`: el
