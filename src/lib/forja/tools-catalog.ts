@@ -422,6 +422,19 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
       required: ["query"],
     },
   },
+  {
+    name: "research",
+    description:
+      "Investiga una necesidad para Forja: PRIMERO consulta la Knowledge Base local y solo si no basta recurre a la web. Devuelve las fuentes separadas por origen para que el Cerebro no confunda material indexado con información externa. No inventa fuentes.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "Qué necesitas investigar." },
+        allow_web: { type: "boolean", description: "Permite consultar la web si la Knowledge Base no basta. Por defecto true." },
+      },
+      required: ["query"],
+    },
+  },
 ] as const;
 
 /** Mapa name → ToolDef, para buscar por el nombre que devuelve el modelo. */

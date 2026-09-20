@@ -41,12 +41,14 @@ const STATUS_LABEL: Record<KBResourceStatus, string> = {
   nuevo: "Nuevo",
   clasificado: "Clasificado",
   pendiente: "Pendiente",
+  "revision-duplicado": "Revisar similitud",
 };
 
 const STATUS_DOT: Record<KBResourceStatus, string> = {
   nuevo: "bg-sky-500",
   clasificado: "bg-emerald-500",
   pendiente: "bg-amber-500",
+  "revision-duplicado": "bg-orange-500",
 };
 
 function StatChip({ label, value }: { label: string; value: number }) {
@@ -205,11 +207,12 @@ export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
             Sube o elige recursos desde Drive: Forja los clasifica y decide dónde van — todo en un solo lugar.
           </DialogDescription>
           {resources.length > 0 && (
-            <div className="mt-2 grid grid-cols-4 gap-1.5 sm:max-w-md">
+            <div className="mt-2 grid grid-cols-5 gap-1.5 sm:max-w-md">
               <StatChip label="Total" value={stats.total} />
               <StatChip label="Nuevos" value={stats.nuevo} />
               <StatChip label="Clasificados" value={stats.clasificado} />
               <StatChip label="Pendientes" value={stats.pendiente} />
+              <StatChip label="Similares" value={stats.revisionDuplicado} />
             </div>
           )}
         </DialogHeader>

@@ -30,6 +30,7 @@ import {
 import { reglaQueBloquea, motivoBloqueo, type ReglaNo } from "./reglas-no";
 import { aplicarParches, mensajeResultado, parsearParches, type Parche } from "./patch";
 import { buscarEnWeb } from "./busqueda-web";
+import { research as runResearch } from "./research-agent";
 import { verifyWebProject, summarizeVerification, type WebVerification } from "./web-verifier";
 import { diagnoseFindings, summarizeDiagnosis } from "./web-diagnostics";
 import { scanSecurity } from "./security-center";
@@ -270,6 +271,8 @@ export async function runTool(
         return runAskMemory(call, ctx);
       case "kb_search":
         return runKbSearch(call, ctx);
+      case "research":
+        return await runResearchTool(call, ctx);
       case "verify_project":
         return await runVerifyProject(call, ctx);
       case "diagnose_project":
@@ -974,6 +977,19 @@ function runKbSearch(call: ToolCall, ctx: ToolContext): ToolResult {
   const limite = numArg(call, "limit", 1, 20) ?? 8;
   const resultados = kbSearch([...resources], q, limite);
   return toolOk(call, renderKbSearch(resultados, q, resources.length));
+}
+
+/** `allow_web` usa `boolArgDef` con `true` por defecto, no `boolArg`: el
+ * catálogo promete "Por defecto true" cuando el modelo no manda el
+ * argumento, y `boolArg` habría devuelto `false` para "no lo dijo" —
+ * desactivando la web en todo turno donde el modelo no pensara en
+ * escribirlo explícito, al revés de lo documentado. */
+async function runResearchTool(call: ToolCall, ctx: ToolContext): Promise<ToolResult> {
+  const q = strArg(call, "query")?.trim();
+  if (!q) return argError(call, "query");
+  const allowWeb = boolArgDef(call, "allow_web", true);
+  const result = await runResearch(q, [...(ctx.kbResources ?? [])], { allowWeb });
+  return toolOk(call, result.context);
 }
 
 /**

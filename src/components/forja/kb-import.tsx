@@ -24,6 +24,7 @@ import { streamChat } from "@/lib/forja/chat-client";
 import { classifyFile, isTextLike, readTextExcerpt } from "@/lib/forja/kb-classify";
 import { findOrCreateFolder, pickAccountWithMostSpace, uploadFileToDrive } from "@/lib/forja/gdrive-upload";
 import { kbExistingCategories, kbFindByHash, kbGetResources, kbHashFile, kbUpsertResource } from "@/lib/forja/kb-index";
+import { computeVisualFingerprint, findVisualDuplicateCandidates } from "@/lib/forja/visual-similarity";
 import type { GDriveAccount, GDriveCreds } from "@/lib/forja/gdrive";
 import { splitModelKey } from "@/lib/forja/types";
 import { useForja } from "@/lib/forja/store";
@@ -53,6 +54,11 @@ async function importOneFile(
   }
 
   onStage("clasificando");
+  const visual = await computeVisualFingerprint(file);
+  const visualCandidates = visual
+    ? findVisualDuplicateCandidates(visual.hash, kbGetResources(), 8)
+    : [];
+  const visualDuplicateOf = visualCandidates[0]?.id;
   let category = "";
   let technology = "";
   let tags: string[] = [];
@@ -107,14 +113,37 @@ async function importOneFile(
       tags,
       technology,
       license: "",
-      status: category ? "clasificado" : "pendiente",
+      status: visualDuplicateOf ? "revision-duplicado" : (category ? "clasificado" : "pendiente"),
       indexedAt: new Date().toISOString(),
       contentHash: hash,
+      visualHash: visual?.hash,
+      visualHashAlgorithm: visual?.algorithm,
+      relativePath: getRelativePath(file),
+      sourceKind: getSourceKind(file),
+      duplicateOf: visualDuplicateOf,
     });
-    onStage("listo", category ? `Guardado en «${category}» (${uploaded.account.email}).` : `Guardado sin clasificar (${uploaded.account.email}).`);
+    if (visualDuplicateOf) {
+      onStage("listo", `Guardado para revisión: visualmente parecido a otro recurso (${uploaded.account.email}).`);
+    } else {
+      onStage("listo", category ? `Guardado en «${category}» (${uploaded.account.email}).` : `Guardado sin clasificar (${uploaded.account.email}).`);
+    }
   } catch (e) {
     onStage("error", e instanceof Error ? e.message : String(e));
   }
+}
+
+const FOLDER_INPUT_PROPS: Record<string, string> = { webkitdirectory: "", directory: "" };
+
+function getRelativePath(file: File): string | undefined {
+  const relative = (file as File & { webkitRelativePath?: string }).webkitRelativePath;
+  return relative || undefined;
+}
+
+function getSourceKind(file: File): "upload" | "folder" | "zip" {
+  const relative = getRelativePath(file);
+  if (relative) return "folder";
+  if (/\.zip$/i.test(file.name)) return "zip";
+  return "upload";
 }
 
 function StageIcon({ stage }: { stage: ImportStage }) {
@@ -192,8 +221,22 @@ export function KBImport({ accounts, creds }: { accounts: GDriveAccount[]; creds
             }}
           />
         </label>
+        <label className="cursor-pointer rounded-lg border border-border/70 px-3 py-1.5 text-[11.5px] font-medium hover:bg-muted">
+          Importar carpeta / repositorio
+          <input
+            type="file"
+            multiple
+            // Chromium/Edge/Chrome exponen la ruta relativa sin enviar nada al navegador.
+            {...FOLDER_INPUT_PROPS}
+            className="hidden"
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+        </label>
         <p className="flex items-center gap-1 text-[10.5px] text-muted-foreground/80">
-          <Sparkles className="size-3" /> Archivo por archivo — carpetas, ZIP y repositorios llegan después.
+          <Sparkles className="size-3" /> También acepta ZIP. Las similitudes visuales quedan en revisión; Forja nunca borra automáticamente.
         </p>
       </div>
 

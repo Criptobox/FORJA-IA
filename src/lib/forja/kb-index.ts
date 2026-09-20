@@ -16,7 +16,7 @@
  * idéntico" por hash de contenido antes de subir dos veces lo mismo.
  */
 
-export type KBResourceStatus = "nuevo" | "clasificado" | "pendiente";
+export type KBResourceStatus = "nuevo" | "clasificado" | "pendiente" | "revision-duplicado";
 
 export interface KBResource {
   /** id del archivo en Drive: es el identificador natural, no hace falta inventar otro. */
@@ -34,10 +34,17 @@ export interface KBResource {
   status: KBResourceStatus;
   /** ISO: cuándo se añadió al índice (no cuándo se creó el archivo). */
   indexedAt: string;
-  /** SHA-256 del contenido, hexadecimal. Vacío para recursos añadidos antes
-   * de que existiera el hash (elegidos desde Drive, sin subir bytes) — no
-   * se puede calcular sin tener el archivo en el navegador. */
+  /** SHA-256 del contenido, hexadecimal. */
   contentHash?: string;
+  /** Huella visual local (aHash 8x8), solo para imágenes/capturas. */
+  visualHash?: string;
+  visualHashAlgorithm?: "ahash-8x8";
+  /** Ruta relativa cuando el recurso provino de una carpeta/repositorio local. */
+  relativePath?: string;
+  sourceKind?: "upload" | "folder" | "zip" | "drive" | "url";
+  sourceUrl?: string;
+  licenseUrl?: string;
+  duplicateOf?: string;
 }
 
 const INDEX_KEY = "forja-kb-index";
@@ -95,13 +102,17 @@ export interface KBStats {
   nuevo: number;
   clasificado: number;
   pendiente: number;
+  revisionDuplicado: number;
 }
 
 /** Solo cuenta lo que de verdad hay en el índice — nada de cifras de una
  * canalización de análisis que todavía no existe. */
 export function kbStats(resources: KBResource[]): KBStats {
-  const stats: KBStats = { total: resources.length, nuevo: 0, clasificado: 0, pendiente: 0 };
-  for (const r of resources) stats[r.status]++;
+  const stats: KBStats = { total: resources.length, nuevo: 0, clasificado: 0, pendiente: 0, revisionDuplicado: 0 };
+  for (const r of resources) {
+    if (r.status === "revision-duplicado") stats.revisionDuplicado++;
+    else stats[r.status]++;
+  }
   return stats;
 }
 

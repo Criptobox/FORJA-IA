@@ -76,7 +76,7 @@ test("el panel dice qué cubre cada permiso, sacado del catálogo real", async (
     await expect(page.getByText(label, { exact: true })).toBeVisible();
   }
   // Y qué herramientas cubre cada uno, por su nombre
-  await expect(page.getByText(/4 herramientas: fetch_api, read_url, search_web, visual_review/)).toBeVisible();
+  await expect(page.getByText(/5 herramientas: fetch_api, read_url, research, search_web, visual_review/)).toBeVisible();
 });
 
 test("apagar «Salir a internet» avisa de lo que el agente pierde", async ({ page }) => {
@@ -91,8 +91,9 @@ test("apagar «Salir a internet» avisa de lo que el agente pierde", async ({ pa
   await page.getByRole("switch", { name: "Salir a internet" }).click();
   const aviso = page.getByText(/el agente se queda sin/i);
   await expect(aviso).toBeVisible();
-  await expect(aviso).toContainText("4 herramientas");
+  await expect(aviso).toContainText("5 herramientas");
   await expect(aviso).toContainText("read_url");
+  await expect(aviso).toContainText("research");
 });
 
 test("con el permiso apagado, la herramienta NO se ejecuta y el modelo sabe por qué", async ({ page }) => {

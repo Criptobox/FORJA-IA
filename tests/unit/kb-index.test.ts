@@ -196,10 +196,10 @@ describe("kbStats", () => {
       { ...resource, id: "3", status: "clasificado" },
       { ...resource, id: "4", status: "pendiente" },
     ];
-    expect(kbStats(resources)).toEqual({ total: 4, nuevo: 2, clasificado: 1, pendiente: 1 });
+    expect(kbStats(resources)).toEqual({ total: 4, nuevo: 2, clasificado: 1, pendiente: 1, revisionDuplicado: 0 });
   });
 
   it("sin recursos, todo en cero", () => {
-    expect(kbStats([])).toEqual({ total: 0, nuevo: 0, clasificado: 0, pendiente: 0 });
+    expect(kbStats([])).toEqual({ total: 0, nuevo: 0, clasificado: 0, pendiente: 0, revisionDuplicado: 0 });
   });
 });

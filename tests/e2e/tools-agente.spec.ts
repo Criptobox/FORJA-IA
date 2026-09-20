@@ -135,10 +135,11 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
     // visual_review (QA por visión). v4.24: 18, con verify_project
     // (verificación independiente). v4.25: 19, con diagnose_project
     // (diagnóstico accionable). v4.33: 20, con check_definition_of_done
-    // (veredicto de publicación). v4.44: 21, con kb_search (Research en la
-    // Knowledge Base, del preset FORJA WEB). La lista va exacta a propósito:
-    // comprueba que el catálogo TRADUCIDO llega entero al modelo, que es
-    // distinto de que exista en `tools-catalog.ts`.
+    // (veredicto de publicación). v4.44: 21, con kb_search (búsqueda en la
+    // Knowledge Base). v4.51: 22, con research (Research Agent: consulta la
+    // Knowledge Base primero y solo recurre a la web si no basta). La lista
+    // va exacta a propósito: comprueba que el catálogo TRADUCIDO llega
+    // entero al modelo, que es distinto de que exista en `tools-catalog.ts`.
     expect(names).toEqual([
       "apply_patch",
       "ask_memory",
@@ -153,6 +154,7 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
       "read_console",
       "read_file",
       "read_url",
+      "research",
       "run_js",
       "run_project",
       "run_regression",

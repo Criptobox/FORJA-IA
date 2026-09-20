@@ -42,6 +42,7 @@ describe("TOOL_CATALOG", () => {
       "read_console",
       "read_file",
       "read_url",
+      "research",
       "run_js",
       "run_project",
       "run_regression",
