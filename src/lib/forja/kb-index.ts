@@ -45,6 +45,10 @@ export interface KBResource {
   sourceUrl?: string;
   licenseUrl?: string;
   duplicateOf?: string;
+  /** score de similitud visual guardado para la cola de revisión. */
+  visualSimilarity?: number;
+  /** relaciones explícitas entre recursos del corpus. */
+  relatedResourceIds?: string[];
 }
 
 const INDEX_KEY = "forja-kb-index";
@@ -88,8 +92,9 @@ export function kbRemoveResource(id: string): void {
   persist(kbGetResources().filter((r) => r.id !== id));
 }
 
-/** Solo toca los campos que se editan a mano; conserva el resto tal cual. */
-export function kbUpdateResource(id: string, patch: Partial<Pick<KBResource, "category" | "tags" | "technology" | "license" | "status">>): void {
+/** Solo toca los campos que se editan a mano o desde la cola de revisión
+ * visual (`kb-review.ts`); conserva el resto tal cual. */
+export function kbUpdateResource(id: string, patch: Partial<Pick<KBResource, "category" | "tags" | "technology" | "license" | "status" | "relatedResourceIds">>): void {
   const resources = kbGetResources();
   const i = resources.findIndex((r) => r.id === id);
   if (i === -1) return;

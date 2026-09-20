@@ -164,4 +164,80 @@ test.describe("Conocimiento (Drive + Knowledge Base en un solo panel)", () => {
     await page.getByRole("button", { name: "Desconectar" }).click();
     await expect(page.getByText("Todavía no hay ninguna cuenta de Google Drive conectada.")).toBeVisible();
   });
+
+  test("la cola de revisión visual enseña el par y sus tres acciones, y «Conservar ambos» la cierra sin tocar el original", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "forja-kb-index",
+        JSON.stringify([
+          {
+            id: "o", name: "hero-original.png", mimeType: "image/png", sizeBytes: 1000,
+            accountEmail: "ana@example.com", webViewLink: "https://drive.google.com/file/d/o",
+            category: "ui", tags: [], technology: "", license: "", status: "clasificado",
+            indexedAt: "2026-01-01T00:00:00.000Z",
+          },
+          {
+            id: "n", name: "hero-parecido.png", mimeType: "image/png", sizeBytes: 1000,
+            accountEmail: "ana@example.com", webViewLink: "https://drive.google.com/file/d/n",
+            category: "", tags: [], technology: "", license: "", status: "revision-duplicado",
+            indexedAt: "2026-01-02T00:00:00.000Z", duplicateOf: "o", visualSimilarity: 0.93,
+          },
+        ])
+      );
+    });
+
+    await page.goto("/");
+    await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Conocimiento" }).click();
+
+    await expect(page.getByText("Revisión visual")).toBeVisible();
+    await expect(page.getByText("Nuevo: hero-parecido.png")).toBeVisible();
+    await expect(page.getByText("Similitud: 93%")).toBeVisible();
+    await expect(page.getByText("Relacionado: hero-original.png")).toBeVisible();
+
+    await page.getByRole("button", { name: "Conservar ambos" }).click();
+
+    // La cola desaparece (ya no queda ningún "revision-duplicado")...
+    await expect(page.getByText("Revisión visual")).toHaveCount(0);
+    // ...y el recurso pasa a "Clasificado" en la lista de abajo, sin que el
+    // original se haya tocado ni se haya perdido ningún recurso.
+    await expect(page.getByText("hero-parecido.png")).toBeVisible();
+    await expect(page.getByText("hero-original.png")).toBeVisible();
+    await expect(page.getByText("Clasificado", { exact: true })).toHaveCount(2);
+  });
+
+  test("«Quitar del índice» en la cola de revisión borra solo el recurso local, no el original", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "forja-kb-index",
+        JSON.stringify([
+          {
+            id: "o", name: "logo-original.png", mimeType: "image/png", sizeBytes: 1000,
+            accountEmail: "ana@example.com", webViewLink: "https://drive.google.com/file/d/o",
+            category: "branding", tags: [], technology: "", license: "", status: "clasificado",
+            indexedAt: "2026-01-01T00:00:00.000Z",
+          },
+          {
+            id: "n", name: "logo-casi-igual.png", mimeType: "image/png", sizeBytes: 1000,
+            accountEmail: "ana@example.com", webViewLink: "https://drive.google.com/file/d/n",
+            category: "", tags: [], technology: "", license: "", status: "revision-duplicado",
+            indexedAt: "2026-01-02T00:00:00.000Z", duplicateOf: "o", visualSimilarity: 0.88,
+          },
+        ])
+      );
+    });
+
+    await page.goto("/");
+    await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Conocimiento" }).click();
+
+    await expect(page.getByText("Revisión visual")).toBeVisible();
+    await page.getByRole("button", { name: "Quitar del índice" }).first().click();
+
+    await expect(page.getByText("Revisión visual")).toHaveCount(0);
+    await expect(page.getByText("logo-casi-igual.png")).toHaveCount(0);
+    await expect(page.getByText("logo-original.png")).toBeVisible();
+  });
 });

@@ -17,7 +17,7 @@
  * las tres viven ahora en el mismo sitio.
  */
 import { useState } from "react";
-import { Database, ExternalLink, FileText, Trash2 } from "lucide-react";
+import { Check, Database, ExternalLink, FileText, GitCompareArrows, Link2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,7 @@ import {
 import { formatBytes } from "@/lib/forja/gdrive-oauth";
 import { gdGetCreds } from "@/lib/forja/gdrive";
 import type { KBResource, KBResourceStatus } from "@/lib/forja/kb-index";
+import { acceptAsRelated, discardDuplicateFromIndex, getVisualReviewPair, getVisualReviewQueue, keepBothVisualResources } from "@/lib/forja/kb-review";
 import { useKbIndex } from "./kb-connect";
 import { useGdriveAccounts } from "./gdrive-connect";
 import { DriveAccountsPanel } from "./gdrive-dialog";
@@ -191,6 +192,52 @@ function ResourceRow({
   );
 }
 
+/** `resources` viene de `useKbIndex()`, que ya escucha `KB_INDEX_EVENT` y se
+ * refresca solo tras cada `kbUpdateResource`/`kbRemoveResource` — las tres
+ * acciones de abajo llaman a esas funciones, así que no hace falta ningún
+ * `refresh()` manual aparte: duplicaría un mecanismo que ya existe. */
+function VisualReviewQueue({ resources }: { resources: KBResource[] }) {
+  const queue = getVisualReviewQueue(resources);
+  if (!queue.length) return null;
+  return (
+    <div className="rounded-xl border border-orange-500/25 bg-orange-500/5 p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <GitCompareArrows className="size-4 text-orange-500" />
+        <div>
+          <p className="text-xs font-semibold">Revisión visual</p>
+          <p className="text-[10.5px] text-muted-foreground">Forja encontró recursos visualmente parecidos. Ningún archivo remoto se borra automáticamente.</p>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {queue.map((item) => {
+          const pair = getVisualReviewPair(item, resources);
+          const original = pair.original;
+          return (
+            <div key={item.id} className="rounded-lg border border-border/60 bg-background/60 p-2.5">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="min-w-0 rounded-md border border-border/50 p-2">
+                  <p className="truncate text-[11px] font-medium">Nuevo: {item.name}</p>
+                  <p className="text-[10px] text-muted-foreground">Similitud: {Math.round((item.visualSimilarity ?? 0) * 100)}%</p>
+                  {item.webViewLink && <a className="mt-1 inline-flex items-center gap-1 text-[10px] text-forja-violet" href={item.webViewLink} target="_blank" rel="noreferrer"><ExternalLink className="size-3" /> Ver</a>}
+                </div>
+                <div className="min-w-0 rounded-md border border-border/50 p-2">
+                  <p className="truncate text-[11px] font-medium">Relacionado: {original?.name ?? "No encontrado"}</p>
+                  {original?.webViewLink && <a className="mt-1 inline-flex items-center gap-1 text-[10px] text-forja-violet" href={original.webViewLink} target="_blank" rel="noreferrer"><ExternalLink className="size-3" /> Ver</a>}
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <Button size="sm" className="h-7 text-[10.5px]" onClick={() => keepBothVisualResources(item.id)}><Check className="mr-1 size-3" /> Conservar ambos</Button>
+                <Button size="sm" variant="outline" className="h-7 text-[10.5px]" onClick={() => acceptAsRelated(item.id)}><Link2 className="mr-1 size-3" /> Relacionarlos</Button>
+                <Button size="sm" variant="ghost" className="h-7 text-[10.5px] text-muted-foreground" onClick={() => discardDuplicateFromIndex(item.id)}><Trash2 className="mr-1 size-3" /> Quitar del índice</Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { resources, stats, remove, update } = useKbIndex();
   const { accounts } = useGdriveAccounts();
@@ -220,6 +267,7 @@ export function KBDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto px-4 py-3 lg:grid-cols-[1fr_320px] lg:overflow-hidden">
           <div className="space-y-2.5 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
             <KBImport accounts={accounts} creds={creds} />
+            <VisualReviewQueue resources={resources} />
 
             {resources.length === 0 ? (
               <p className="text-[12px] text-muted-foreground">

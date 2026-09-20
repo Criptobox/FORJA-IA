@@ -13,6 +13,8 @@ export interface KBRetrievalQuery {
   technology?: string;
   tags?: string[];
   limit?: number;
+  sourceKind?: KBResource["sourceKind"];
+  includePending?: boolean;
 }
 
 export interface KBRetrievalResult {
@@ -35,6 +37,9 @@ export function retrieveKB(q: KBRetrievalQuery, resources = kbGetResources()): K
       const technology = norm(resource.technology);
       const tags = resource.tags.map(norm);
 
+      if (q.sourceKind && resource.sourceKind !== q.sourceKind) return null;
+      if (q.includePending === false && resource.status === "pendiente") return null;
+
       if (q.category && category === norm(q.category)) { score += 5; reasons.push("categoría"); }
       if (q.technology && technology === norm(q.technology)) { score += 4; reasons.push("tecnología"); }
       for (const tag of wantedTags) {
@@ -54,7 +59,7 @@ export function retrieveKB(q: KBRetrievalQuery, resources = kbGetResources()): K
       if (resource.status === "clasificado" && reasons.length) score += 0.25;
       return { resource, score, reasons: [...new Set(reasons)] };
     })
-    .filter((x) => x.score > 0)
+    .filter((x): x is KBRetrievalResult => x !== null && x.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.max(1, Math.min(q.limit ?? 12, 50)));
 }

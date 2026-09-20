@@ -59,6 +59,7 @@ async function importOneFile(
     ? findVisualDuplicateCandidates(visual.hash, kbGetResources(), 8)
     : [];
   const visualDuplicateOf = visualCandidates[0]?.id;
+  const visualSimilarity = visualCandidates[0]?.similarity;
   let category = "";
   let technology = "";
   let tags: string[] = [];
@@ -121,6 +122,13 @@ async function importOneFile(
       relativePath: getRelativePath(file),
       sourceKind: getSourceKind(file),
       duplicateOf: visualDuplicateOf,
+      // `relatedResourceIds` se deja SIN tocar aquí a propósito: es una
+      // relación explícita que la persona confirma desde la cola de
+      // revisión visual (`kb-review.ts`, botón "Relacionarlos"), no algo
+      // que se declara solo porque el hash visual cruzó el umbral — si no,
+      // "Conservar ambos" (que deja el recurso sin relación) no tendría
+      // nada que deshacer.
+      visualSimilarity,
     });
     if (visualDuplicateOf) {
       onStage("listo", `Guardado para revisión: visualmente parecido a otro recurso (${uploaded.account.email}).`);
