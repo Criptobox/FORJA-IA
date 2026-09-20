@@ -2,10 +2,16 @@ import { expect, test } from "./fixtures";
 
 /** Forja IA — FORJA WEB: el preset seleccionable (como Auto) que activa el
  * sistema completo (Cerebro + Knowledge Base + Research + Diseño + Código +
- * QA) para construir webs. Dos cosas se prueban aquí:
+ * QA) para construir webs. Tres cosas se prueban aquí:
  *   1. Aparece en el selector, se activa con un clic y responde (igual que
  *      la prueba de Auto en `router.spec.ts`).
- *   2. Fuerza el catálogo de herramientas (con `kb_search`, la Research en
+ *   2. De cara al usuario, quien responde es "Forja IA" — nunca el nombre
+ *      del proveedor real (Kimi, Groq, Gemini, o el mock de esta prueba).
+ *      El usuario reportó justo esto: "sigue llamando a otras IAs... la
+ *      idea es que la IA es Forja IA no otra externa". El proveedor real
+ *      sigue eligiéndose por debajo (alguien tiene que generar el texto),
+ *      pero no se nombra en la burbuja ni en los avisos.
+ *   3. Fuerza el catálogo de herramientas (con `kb_search`, la Research en
  *      la Knowledge Base) AUNQUE el interruptor de Ajustes esté apagado:
  *      seleccionarlo ya es la señal de que se quiere el sistema completo.
  */
@@ -66,7 +72,12 @@ test.describe("FORJA WEB (preset seleccionable)", () => {
     await expect(page.getByRole("combobox").first()).toContainText("FORJA WEB");
     await input.fill("Hola FORJA WEB");
     await input.press("Enter");
-    await expect(page.getByText(/mock-mini-free/i).first()).toBeVisible({ timeout: 20_000 });
+    // De cara al usuario responde "Forja IA" — nunca el proveedor/modelo
+    // real de por debajo (aquí, el mock "mock-mini-free").
+    await expect(page.locator(".font-mono", { hasText: "Forja IA" }).first()).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByText("mock-mini-free")).toHaveCount(0);
   });
 
   test("fuerza el catálogo de herramientas (con kb_search) aunque el modo agente esté apagado", async ({

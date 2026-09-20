@@ -163,6 +163,23 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
    `prompt-actual.ts`). Sigue corriendo sobre el mismo modelo real que
    "Auto" elegiría para la tarea (no es una IA aparte): la
    especialización está en el prompt y las herramientas.
+
+   **Marca: "Forja IA" responde, no el proveedor real — hecho.** El
+   usuario probó el preset y protestó: *"sigue llamando a otras IAs...
+   la idea es que la IA es Forja IA no otra externa"*. Aclarado con un
+   diagrama suyo qué quería decir: no un modelo propio entrenado (eso sí
+   requeriría infraestructura real, ver la aclaración que se le dio),
+   sino que de cara al usuario NUNCA se nombre al proveedor real (Kimi,
+   Groq, Gemini…) cuando responde FORJA WEB — el proveedor sigue
+   eligiéndose por debajo exactamente igual que antes (alguien tiene que
+   generar el texto), solo que no se enseña. `ChatMessage.viaForjaWeb`
+   (`types.ts`) marca cada respuesta generada bajo el preset; la
+   etiqueta bajo la burbuja (`message.tsx`) y los avisos de failover/
+   cuota/error (`use-generation.ts`) muestran "Forja IA" en vez del
+   proveedor cuando ese flag está puesto. Los paneles técnicos (Ajustes,
+   Panel del sistema, cuotas) siguen enseñando el proveedor real: son
+   para que el propio usuario depure, no la conversación de cara a
+   quien usa la web.
 3. **Análisis visual.** Composición, tipografía, color, agrupación de
    capturas desktop/tablet/mobile — la clasificación de texto/nombre ya
    existe (punto 2); esto es clasificar por lo que se VE en una imagen,

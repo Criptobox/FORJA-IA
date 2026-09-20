@@ -57,7 +57,12 @@ function looksDegenerate(text: string): boolean {
   return /(.{2,40}?)\1{4,}$/.test(tail);
 }
 
-function modelLabel(modelKey?: string): string {
+/** Bajo FORJA WEB, de cara al usuario responde "Forja IA" — no se nombra al
+ * proveedor real (Kimi, Groq, Gemini…) que la app eligió por debajo. El
+ * proveedor real sigue en `msg.model` para salud/cuotas; aquí solo se
+ * decide qué se ENSEÑA. */
+function modelLabel(modelKey?: string, viaForjaWeb?: boolean): string {
+  if (viaForjaWeb) return "Forja IA";
   if (!modelKey) return "";
   const split = splitModelKey(modelKey);
   if (!split) return "";
@@ -511,7 +516,7 @@ export const MessageItem = memo(function MessageItem({
         <div className="mt-1 flex min-h-6 flex-wrap items-center gap-x-2 gap-y-1">
           {msg.model && !streaming && (
             <span className="max-w-[60%] truncate whitespace-nowrap font-mono text-[10.5px] text-muted-foreground/70">
-              {modelLabel(msg.model)}
+              {modelLabel(msg.model, msg.viaForjaWeb)}
             </span>
           )}
           {msg.elapsedMs != null && !streaming && (

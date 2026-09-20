@@ -477,7 +477,7 @@ export function useGeneration(ctx: CtxGeneracion) {
       // de proveedor pensado para web).
       const forjaWeb = isForjaWebKey(freshKey);
       const task = forjaWeb
-        ? ({ kind: "web", label: "FORJA WEB" } as const)
+        ? ({ kind: "web", label: "sistema completo" } as const)
         : classifyTask(lastUserPrompt(session.messages));
 
       // ——— cadena de candidatos ———
@@ -514,8 +514,11 @@ export function useGeneration(ctx: CtxGeneracion) {
         }
         if (depth === 0) {
           toast.message(`${forjaWeb ? "FORJA WEB" : "Auto"} · ${task.label}`, {
+            // FORJA WEB no nombra al proveedor real (Kimi, Groq, Gemini…): de
+            // cara al usuario, quien responde es Forja IA. Auto sí lo dice —
+            // ahí la transparencia es justo lo que se pidió al construirlo.
             description: forjaWeb
-              ? `${chain[0].modelId} · ${PROVIDER_MAP[chain[0].providerId]?.name ?? chain[0].providerId}. Research en tu Knowledge Base, diseño, código y QA en un solo bucle.`
+              ? "Forja IA: Research en tu Knowledge Base, diseño, código y QA en un solo bucle."
               : `${chain[0].modelId} · ${PROVIDER_MAP[chain[0].providerId]?.name ?? chain[0].providerId}. Si se acaba la cuota, pasa al siguiente.`,
             duration: 4500,
           });
@@ -532,6 +535,7 @@ export function useGeneration(ctx: CtxGeneracion) {
       if (semilla) {
         updateMessage(sessionId, assistantId, {
           model: `${chain[0].providerId}::${chain[0].modelId}`,
+          viaForjaWeb: forjaWeb,
           error: false,
         });
       } else {
@@ -540,6 +544,7 @@ export function useGeneration(ctx: CtxGeneracion) {
           role: "assistant",
           content: "",
           model: `${chain[0].providerId}::${chain[0].modelId}`,
+          viaForjaWeb: forjaWeb,
           createdAt: Date.now(),
         });
       }
@@ -759,6 +764,7 @@ export function useGeneration(ctx: CtxGeneracion) {
               content: base0,
               reasoning: undefined,
               model: `${candidate.providerId}::${candidate.modelId}`,
+              viaForjaWeb: forjaWeb,
               error: false,
             });
           }
@@ -989,16 +995,22 @@ export function useGeneration(ctx: CtxGeneracion) {
             if (ultimo) ultimo.decision = decision.tipo;
             if (decision.tipo === "siguiente") {
               const sig = chain[decision.indice];
+              // FORJA WEB nunca nombra la fuente real (ni la que falló ni la
+              // siguiente): de cara al usuario, quien responde es Forja IA.
               toast.warning(
-                grande
-                  ? `La conversación no le cabe a ${candidate.modelId}`
-                  : muerto
-                    ? `${candidate.modelId} ya no existe`
-                  : auto || forjaWeb
-                    ? `${forjaWeb ? "FORJA WEB" : "Auto"}: ${candidate.modelId} falló`
-                    : `${candidate.modelId} no respondió`,
+                forjaWeb
+                  ? "Forja IA: buscando otra fuente disponible"
+                  : grande
+                    ? `La conversación no le cabe a ${candidate.modelId}`
+                    : muerto
+                      ? `${candidate.modelId} ya no existe`
+                      : auto
+                        ? `Auto: ${candidate.modelId} falló`
+                        : `${candidate.modelId} no respondió`,
                 {
-                  description: `Saltando a ${sig.modelId} · ${PROVIDER_MAP[sig.providerId]?.name ?? ""}`,
+                  description: forjaWeb
+                    ? "Reintentando con lo que tengas conectado."
+                    : `Saltando a ${sig.modelId} · ${PROVIDER_MAP[sig.providerId]?.name ?? ""}`,
                   duration: 6000,
                 }
               );
@@ -1058,10 +1070,15 @@ export function useGeneration(ctx: CtxGeneracion) {
             });
             if (dCuota.tipo === "siguiente") {
               updateMessage(sessionId, assistantId, { content: base0, reasoning: undefined });
-              toast.warning(`${auto || forjaWeb ? (forjaWeb ? "FORJA WEB" : "Auto") : candidate.modelId}: cuota agotada`, {
-                description: `Saltando a ${chain[dCuota.indice].modelId}.`,
-                duration: 6000,
-              });
+              toast.warning(
+                forjaWeb ? "Forja IA: cuota agotada" : `${auto ? "Auto" : candidate.modelId}: cuota agotada`,
+                {
+                  description: forjaWeb
+                    ? "Saltando a otra fuente disponible."
+                    : `Saltando a ${chain[dCuota.indice].modelId}.`,
+                  duration: 6000,
+                }
+              );
               ci = dCuota.indice - 1;
               continue;
             }
@@ -1101,8 +1118,10 @@ export function useGeneration(ctx: CtxGeneracion) {
               rescatable: false,
             });
             if (dVacio.tipo === "siguiente") {
-              toast.warning(`${candidate.modelId} no escribió respuesta`, {
-                description: `${soloPenso ? "Se le fue el turno razonando. " : ""}Probando con ${chain[dVacio.indice].modelId}.`,
+              toast.warning(forjaWeb ? "Forja IA no escribió respuesta" : `${candidate.modelId} no escribió respuesta`, {
+                description: forjaWeb
+                  ? `${soloPenso ? "Se le fue el turno razonando. " : ""}Probando con otra fuente.`
+                  : `${soloPenso ? "Se le fue el turno razonando. " : ""}Probando con ${chain[dVacio.indice].modelId}.`,
                 duration: 6000,
               });
               ci = dVacio.indice - 1;

@@ -16,6 +16,11 @@ export interface ChatMessage {
   reasoning?: string;
   /** modelo (modelKey) que generó la respuesta */
   model?: string;
+  /** esta respuesta la generó el preset FORJA WEB. La interfaz no nombra al
+   * proveedor real (Kimi, Groq, Gemini…) cuando esto es true — de cara al
+   * usuario, quien responde es "Forja IA"; el proveedor real sigue
+   * guardado en `model` para salud/cuotas/depuración, solo no se enseña. */
+  viaForjaWeb?: boolean;
   createdAt: number;
   error?: boolean;
   /** duración en ms de la generación */
