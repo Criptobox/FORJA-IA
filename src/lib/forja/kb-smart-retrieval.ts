@@ -13,6 +13,8 @@ import type { KBRepoAnalysis, KBRepoFile } from "./kb-repo-analyzer";
 
 export interface KBSmartQuery extends KBRetrievalQuery {
   component?: string;
+  /** Componentes relacionados que deben recuperarse como un conjunto coherente. */
+  components?: string[];
   pattern?: string;
   /** Prioriza código y recursos de MEGA cuando el objetivo es reutilizar código. */
   codeFirst?: boolean;
@@ -29,6 +31,7 @@ export interface KBSmartBundle {
   results: KBSmartResult[];
   content: KBContentHit[];
   component?: string;
+  components?: string[];
   pattern?: string;
   technology?: string;
 }
@@ -61,8 +64,20 @@ function inferQuery(q: KBSmartQuery, manifests: KBRepoAnalysis[], resources: KBR
     ...resources.map((r) => r.technology),
   ]);
 
+  const explicitComponents = unique((q.components ?? []).map((x) => x.trim()).filter(Boolean));
+  const inferredComponent = q.component || findMention(q.text, allComponents);
+  const mentionedComponents = unique([
+    ...explicitComponents,
+    ...(inferredComponent ? [inferredComponent] : []),
+    ...allComponents.filter((candidate) => {
+      const c = norm(candidate);
+      return c.length >= 5 && norm(q.text).includes(c);
+    }).slice(0, 12),
+  ]);
+
   return {
-    component: q.component || findMention(q.text, allComponents),
+    component: inferredComponent,
+    components: mentionedComponents,
     pattern: q.pattern || findMention(q.text, allPatterns),
     technology: q.technology || findMention(q.text, allTechnologies),
   };
@@ -139,6 +154,20 @@ export function retrieveSmartKB(q: KBSmartQuery, resources = kbGetResources(), m
         reasons.push("manifest-tecnología");
       }
 
+      // Si la consulta pide varias piezas, premia proyectos que contienen varias
+      // de ellas. Esto hace que el conjunto Navbar + ProductCard + CartDrawer,
+      // por ejemplo, tienda a salir del mismo proyecto y no de fuentes mezcladas.
+      if (inferred.components.length > 1) {
+        const projectComponents = manifest.components.map(norm);
+        const bundleMatches = inferred.components.filter((component) =>
+          projectComponents.some((candidate) => candidate.includes(norm(component)) || norm(component).includes(candidate)),
+        );
+        if (bundleMatches.length > 1) {
+          score += Math.min(18, bundleMatches.length * 4);
+          reasons.push(`bundle:${bundleMatches.length}/${inferred.components.length}`);
+        }
+      }
+
       const candidates = manifest.files
         .map((file) => ({ file, match: fileMatches(file, inferred, textWords) }))
         .filter((x) => x.match.score > 0)
@@ -184,15 +213,61 @@ export function retrieveSmartKB(q: KBSmartQuery, resources = kbGetResources(), m
     .slice(0, Math.max(1, Math.min(q.limit ?? 12, 50)));
 }
 
+/**
+ * Recupera varios componentes relacionados como un conjunto coherente: intenta
+ * cubrir cada pieza pedida con al menos un resultado y completa el resto con
+ * las coincidencias globales de `retrieveSmartKB`.
+ *
+ * La cobertura no puede comprobar solo `matchedComponent`: ese campo viene del
+ * único archivo "mejor" del manifiesto para el `component` singular inferido
+ * (ver `inferQuery`/`fileMatches`), así que TODOS los recursos de un mismo
+ * proyecto terminan con el mismo `matchedComponent` aunque cada uno sea en
+ * realidad un componente distinto. Con eso solo, pedir "Navbar + ProductCard +
+ * FilterDrawer" nunca encontraría el recurso `Navbar.tsx` en la fase de
+ * cobertura —quedaría cubierto solo si el recorte por `limit` lo dejaba pasar
+ * de rebote en el relleno final—, justo el escenario que esta fase promete
+ * resolver. Por eso también se compara contra el nombre/ruta propios del
+ * recurso.
+ */
+export function retrieveSmartKBBundle(
+  q: KBSmartQuery,
+  resources = kbGetResources(),
+  manifests = kbGetProjectManifests(),
+): KBSmartResult[] {
+  const inferred = inferQuery(q, manifests, resources);
+  const base = retrieveSmartKB({ ...q, component: inferred.component, components: inferred.components, limit: 50 }, resources, manifests);
+  if (inferred.components.length < 2) return base.slice(0, q.limit ?? 12);
+
+  const selected: KBSmartResult[] = [];
+  const used = new Set<string>();
+  for (const component of inferred.components) {
+    const label = norm(component);
+    const match = base.find((hit) => {
+      if (used.has(hit.resource.id)) return false;
+      return (
+        (hit.matchedComponent && norm(hit.matchedComponent).includes(label)) ||
+        norm(hit.resource.name).includes(label) ||
+        norm(hit.resource.relativePath || "").includes(label)
+      );
+    });
+    if (match) { selected.push(match); used.add(match.resource.id); }
+  }
+  for (const hit of base) {
+    if (selected.length >= Math.min(q.limit ?? 12, 20)) break;
+    if (!used.has(hit.resource.id)) { selected.push(hit); used.add(hit.resource.id); }
+  }
+  return selected;
+}
+
 export async function retrieveSmartKBWithContent(
   q: KBSmartQuery,
   contentOptions: KBContentOptions = {},
   resources = kbGetResources(),
   manifests = kbGetProjectManifests(),
 ): Promise<KBSmartBundle> {
-  const results = retrieveSmartKB(q, resources, manifests);
+  const results = retrieveSmartKBBundle(q, resources, manifests);
   const content = await retrieveKBContent(results, {
-    maxFiles: contentOptions.maxFiles ?? 4,
+    maxFiles: contentOptions.maxFiles ?? 6,
     maxCharsPerFile: contentOptions.maxCharsPerFile ?? 12000,
     maxTotalChars: contentOptions.maxTotalChars ?? 30000,
     maxBytesPerFile: contentOptions.maxBytesPerFile,

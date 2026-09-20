@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { retrieveSmartKB, smartKBContext } from "@/lib/forja/kb-smart-retrieval";
+import { retrieveSmartKB, retrieveSmartKBBundle, smartKBContext } from "@/lib/forja/kb-smart-retrieval";
 import type { KBResource } from "@/lib/forja/kb-index";
 import type { KBRepoAnalysis } from "@/lib/forja/kb-repo-analyzer";
 
@@ -15,11 +15,24 @@ const manifest: KBRepoAnalysis = {
   ],
 };
 
-const resource = (id: string, name: string, path: string): KBResource => ({
+const bundleManifest: KBRepoAnalysis = {
+  version: 1, id: "shop-bundle-manifest", name: "shop-ui-completa", analyzedAt: new Date().toISOString(),
+  totalFiles: 3, indexedFiles: 3, ignoredFiles: 0, totalBytes: 150,
+  technologies: ["React", "TypeScript"], frameworks: ["Next.js"], packageManagers: ["npm"],
+  components: ["Navbar", "ProductCard", "FilterDrawer"], patterns: ["component-library"],
+  licenses: ["MIT"], entryPoints: ["src/app/page.tsx"], importantFiles: ["package.json"],
+  files: [
+    { path: "src/components/Navbar.tsx", sizeBytes: 20, kind: "source", technology: ["React", "TypeScript"], componentNames: ["Navbar"], patterns: ["component-library"] },
+    { path: "src/components/ProductCard.tsx", sizeBytes: 20, kind: "source", technology: ["React", "TypeScript"], componentNames: ["ProductCard"], patterns: ["component-library"] },
+    { path: "src/components/FilterDrawer.tsx", sizeBytes: 20, kind: "source", technology: ["React", "TypeScript"], componentNames: ["FilterDrawer"], patterns: ["component-library"] },
+  ],
+};
+
+const resource = (id: string, name: string, path: string, manifestId = "shop-manifest"): KBResource => ({
   id, name, mimeType: "text/tsx", sizeBytes: 100, accountEmail: "MEGA", webViewLink: "",
   category: "codigo", tags: ["react"], technology: "React", license: "MIT", status: "clasificado",
   indexedAt: new Date().toISOString(), relativePath: path, sourceKind: "mega", sourceProvider: "mega",
-  remoteId: id, projectManifestId: "shop-manifest",
+  remoteId: id, projectManifestId: manifestId,
 });
 
 describe("kb-smart-retrieval", () => {
@@ -67,5 +80,45 @@ describe("kb-smart-retrieval", () => {
       [manifest]
     );
     expect(results[0]?.reasons).toEqual(expect.arrayContaining(["código", "MEGA"]));
+  });
+
+  it("agrupa varias piezas relacionadas del mismo proyecto (bundle)", () => {
+    const results = retrieveSmartKBBundle({
+      text: "Navbar ProductCard FilterDrawer",
+      components: ["Navbar", "ProductCard", "FilterDrawer"],
+      codeFirst: true,
+      limit: 6,
+    }, [
+      resource("nav", "Navbar.tsx", "shop/src/components/Navbar.tsx", "shop-bundle-manifest"),
+      resource("pc", "ProductCard.tsx", "shop/src/components/ProductCard.tsx", "shop-bundle-manifest"),
+      resource("fd", "FilterDrawer.tsx", "shop/src/components/FilterDrawer.tsx", "shop-bundle-manifest"),
+    ], [bundleManifest]);
+    expect(results.map((x) => x.resource.name)).toEqual(
+      expect.arrayContaining(["Navbar.tsx", "ProductCard.tsx", "FilterDrawer.tsx"])
+    );
+    expect(results.every((x) => x.matchedProject === "shop-ui-completa")).toBe(true);
+  });
+
+  it("la cobertura no descarta una pieza pedida por comparar solo `matchedComponent`", () => {
+    // Los tres recursos comparten manifiesto, así que `matchedComponent` es
+    // el mismo para los tres (el "mejor" archivo del manifiesto para el
+    // `component` singular inferido — ver `fileMatches`/`inferQuery`). Si la
+    // fase de cobertura de `retrieveSmartKBBundle` comparara solo contra
+    // `matchedComponent`, la búsqueda de "Navbar" y "ProductCard" no
+    // encontraría nada (ambos "matchedComponent" resuelven a otro nombre) y,
+    // con un `limit` menor que el número de piezas pedidas, el recurso
+    // `Navbar.tsx` real habría quedado fuera del resultado aunque el usuario
+    // lo pidió explícitamente y existe en la Knowledge Base.
+    const results = retrieveSmartKBBundle({
+      text: "Navbar ProductCard FilterDrawer",
+      components: ["Navbar", "ProductCard", "FilterDrawer"],
+      codeFirst: true,
+      limit: 2,
+    }, [
+      resource("pc", "ProductCard.tsx", "shop/src/components/ProductCard.tsx", "shop-bundle-manifest"),
+      resource("fd", "FilterDrawer.tsx", "shop/src/components/FilterDrawer.tsx", "shop-bundle-manifest"),
+      resource("nav", "Navbar.tsx", "shop/src/components/Navbar.tsx", "shop-bundle-manifest"),
+    ], [bundleManifest]);
+    expect(results.map((x) => x.resource.name)).toContain("Navbar.tsx");
   });
 });
