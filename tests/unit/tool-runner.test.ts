@@ -38,6 +38,61 @@ describe("read_file", () => {
   });
 });
 
+describe("kb_search", () => {
+  const recurso = {
+    id: "f1",
+    name: "landing-referencia.png",
+    mimeType: "image/png",
+    sizeBytes: 2048,
+    accountEmail: "ana@example.com",
+    webViewLink: "https://drive.google.com/file/d/1",
+    category: "visual",
+    tags: ["dashboard", "oscuro"],
+    technology: "React",
+    license: "propio",
+    status: "clasificado" as const,
+    indexedAt: "2026-01-01T00:00:00.000Z",
+  };
+
+  it("sin recursos indexados, lo dice en vez de fingir una búsqueda", async () => {
+    const r = await runTool(call("kb_search", { query: "dashboard" }), ctx());
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("Todavía no hay ningún recurso");
+  });
+
+  it("con recursos pero ninguno casa, lo distingue de «no hay nada indexado»", async () => {
+    const r = await runTool(call("kb_search", { query: "algo-que-no-existe" }), ctx({ kbResources: [recurso] }));
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("1 recurso(s) indexados");
+    expect(r.content).toContain("ninguno casa");
+  });
+
+  it("encuentra por categoría/etiqueta/tecnología y devuelve el enlace de Drive", async () => {
+    const r = await runTool(call("kb_search", { query: "dashboard" }), ctx({ kbResources: [recurso] }));
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("landing-referencia.png");
+    expect(r.content).toContain(recurso.webViewLink);
+  });
+
+  it("error si falta query", async () => {
+    const r = await runTool(call("kb_search", {}), ctx({ kbResources: [recurso] }));
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("query");
+  });
+
+  it("respeta el permiso «lee_proyecto»: apagado, no se ejecuta", async () => {
+    const r = await runTool(
+      call("kb_search", { query: "dashboard" }),
+      ctx({
+        kbResources: [recurso],
+        permisos: { lee_proyecto: false, escribe_proyecto: true, ejecuta: true, red: true },
+      })
+    );
+    expect(r.ok).toBe(false);
+    expect(r.content).toMatch(/leer el proyecto/i);
+  });
+});
+
 describe("write_file", () => {
   it("escribe y actualiza projectFiles", async () => {
     const c = ctx();

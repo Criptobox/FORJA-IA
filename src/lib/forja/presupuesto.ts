@@ -23,6 +23,7 @@ export type PiezaId =
   | "skills"
   | "permisos"
   | "agente"
+  | "forjaWeb"
   | "ficha"
   | "mapa"
   | "contexto"
@@ -55,6 +56,7 @@ const ETIQUETAS: Record<PiezaId, { label: string; donde: string }> = {
   skills: { label: "Skills activas", donde: "Skills" },
   permisos: { label: "Límites de las skills", donde: "se va con las skills" },
   agente: { label: "Modo agente", donde: "el interruptor del agente" },
+  forjaWeb: { label: "FORJA WEB", donde: "el selector de modelo" },
   ficha: { label: "Ficha del proyecto", donde: "resumen del mapa" },
   mapa: { label: "Mapa del proyecto", donde: "el mapa de la sesión" },
   contexto: { label: "Auto Context", donde: "la memoria del proyecto" },
@@ -92,6 +94,9 @@ export interface EntradaPrompt {
   skills?: string | null;
   permisos?: string | null;
   agente?: string | null;
+  /** bloque del preset FORJA WEB (Research → Diseño → Código → QA), solo
+   * cuando ese pseudo-modelo está seleccionado */
+  forjaWeb?: string | null;
   ficha?: string | null;
   mapa?: string | null;
   /** Auto Context: decisiones/errores pertinentes detectados antes de enviar */
@@ -117,6 +122,7 @@ const ORDEN: PiezaId[] = [
   "skills",
   "permisos",
   "agente",
+  "forjaWeb",
   "ficha",
   "mapa",
   "contexto",
@@ -140,6 +146,7 @@ function trozos(e: EntradaPrompt): Partial<Record<PiezaId, string>> {
     skills: e.skills ?? "",
     permisos: e.permisos ?? "",
     agente: e.agente ?? "",
+    forjaWeb: e.forjaWeb ?? "",
     ficha: e.ficha ?? "",
     mapa: e.mapa ?? "",
     contexto: e.contexto ?? "",

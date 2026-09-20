@@ -77,6 +77,7 @@ export const PERMISOS_TOOL: Record<string, PermisoTool> = {
   list_files: { efectos: ["lee_proyecto"], nota: "lista los archivos del proyecto" },
   read_console: { efectos: ["lee_proyecto"], nota: "relee la consola de la última ejecución" },
   ask_memory: { efectos: ["lee_proyecto"], nota: "consulta el mapa y tus notas" },
+  kb_search: { efectos: ["lee_proyecto"], nota: "busca en el índice local de la Knowledge Base (Drive)" },
   get_quota: { efectos: ["lee_proyecto"], nota: "mira la cuota que te queda con el proveedor" },
   snapshot_diff: { efectos: ["lee_proyecto"], nota: "compara dos estados del proyecto" },
 

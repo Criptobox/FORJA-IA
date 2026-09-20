@@ -403,6 +403,25 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
       required: ["q"],
     },
   },
+  {
+    name: "kb_search",
+    description:
+      "Busca en la Knowledge Base del usuario (recursos indexados desde Google Drive: referencias visuales, componentes, documentos) por nombre, categoría, etiquetas, tecnología o licencia. Úsala ANTES de diseñar o escribir código cuando el usuario tenga una Knowledge Base conectada: reutiliza lo que ya indexó en vez de inventar una referencia. Si no hay nada indexado o nada casa con la búsqueda, se te dice — no se inventa un recurso que no exista.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Términos de búsqueda: nombre, categoría, tecnología o etiqueta (ej. «dashboard oscuro», «logo», «react»).",
+        },
+        limit: {
+          type: "number",
+          description: "Opcional. Cuántos resultados devolver (por defecto 8, máximo 20).",
+        },
+      },
+      required: ["query"],
+    },
+  },
 ] as const;
 
 /** Mapa name → ToolDef, para buscar por el nombre que devuelve el modelo. */

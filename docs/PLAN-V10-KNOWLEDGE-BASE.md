@@ -143,6 +143,26 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
    También falta afinar a qué CUENTA va cada categoría cuando ya existe
    una carpeta con ese nombre en otra cuenta que no es la de más espacio
    libre (hoy ese criterio de "más espacio libre" gana siempre).
+
+   **FORJA WEB (preset seleccionable) — hecho.** El usuario pidió
+   explícito: *"el motor de forja ia hay que configurarlo para que
+   busque en esos Google Drive que son como la base de datos"*. Antes,
+   el agente podía CONSTRUIR con las herramientas del catálogo, pero
+   nada lo conectaba con la Knowledge Base — ninguna herramienta la
+   consultaba. Ahora hay una herramienta nueva, `kb_search`
+   (`tools-catalog.ts` + `tool-runner.ts`), que busca de verdad en el
+   índice (`kb-index.ts`: nombre, categoría, etiquetas, tecnología,
+   licencia) y dice honestamente cuando no hay nada, en vez de inventar
+   un recurso. Y en el selector de modelo hay un preset nuevo, "FORJA
+   WEB" (`FORJA_WEB_MODEL_KEY` en `types.ts`, junto a "Auto" en
+   `model-picker.tsx`): seleccionarlo fuerza el modo agente y el
+   catálogo de herramientas aunque el interruptor de Ajustes esté
+   apagado, y añade al prompt un orden obligatorio — Research
+   (`kb_search` primero) → Diseño → Código → QA (`verify_project`) antes
+   de dar el proyecto por terminado (`FORJA_WEB_PROMPT` en
+   `prompt-actual.ts`). Sigue corriendo sobre el mismo modelo real que
+   "Auto" elegiría para la tarea (no es una IA aparte): la
+   especialización está en el prompt y las herramientas.
 3. **Análisis visual.** Composición, tipografía, color, agrupación de
    capturas desktop/tablet/mobile — la clasificación de texto/nombre ya
    existe (punto 2); esto es clasificar por lo que se VE en una imagen,
@@ -151,9 +171,10 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
    hash antes de subir. Falta la comparación visual lado a lado para
    duplicados NO idénticos (mismo diseño, export distinto) y la decisión
    manual + sincronización del índice al eliminar.
-5. **Research Agent.** Busca primero en la base, fuentes externas solo si
-   falta algo, verifica origen/licencia, deja en INBOX lo que no sabe
-   clasificar.
+5. **Research Agent.** "Busca primero en la base" — **hecho**, vía
+   `kb_search` dentro de FORJA WEB (punto 2). Falta el resto: recurrir a
+   fuentes externas solo si de verdad falta algo, verificar origen/licencia
+   de lo que trae, y dejar en INBOX lo que no sabe clasificar.
 6. **El cerebro consume solo índices**, nunca carpetas completas.
 
 ## 10. Regla principal

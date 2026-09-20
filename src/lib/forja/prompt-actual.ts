@@ -10,6 +10,7 @@ import { useForja } from "./store";
 import { reglasActivas, useFailures } from "./failures";
 import { agentPrompt } from "./agent-loop";
 import { textoDeModos } from "./agent-modes";
+import { isForjaWebKey } from "./types";
 import { analyzeSkillPermissions, renderPermisosPrompt } from "./skill-permissions";
 import { buildPassport, renderPassportForPrompt } from "./passport";
 import { deriveMapFromMessages, renderMapForPrompt } from "./project-map";
@@ -37,6 +38,22 @@ export const TEXTO_ESTILO = {
   detallado:
     "[Estilo: detallado] Responde de forma completa y pedagógica: explica el razonamiento paso a paso, incluye ejemplos y advierte los errores comunes.",
 } as const;
+
+/** Bloque del preset «FORJA WEB» (Cerebro + Knowledge Base + Research +
+ * Diseño + Código + QA). Corto a propósito, como los modos de agente
+ * (`agent-modes.ts`): un prompt largo se come el contexto que hace falta
+ * para el propio proyecto, justo en los modelos gratis para los que existe
+ * Forja. Se suma al bloque del agente, no lo sustituye — necesita el mismo
+ * bucle plan→ejecutar→revisar, solo que con un orden obligatorio delante. */
+export const FORJA_WEB_PROMPT = [
+  "[FORJA WEB — sistema completo]",
+  "Vas a construir una web. Sigue este orden, sin saltarte pasos:",
+  "1. Research: antes de diseñar o escribir código, llama a «kb_search» con lo que necesites (referencia visual, componente, tecnología). Si no hay nada indexado, sigue sin fingir que existe.",
+  "2. Diseño: decide la dirección visual con lo que encontraste, o con buen criterio si la Knowledge Base no tenía nada.",
+  "3. Código: escribe el proyecto con las herramientas de archivo.",
+  "4. QA: antes de darlo por terminado, pasa «verify_project» (o «check_definition_of_done» si se va a publicar). No declares terminado un proyecto sin esa verificación.",
+  "No te saltes «kb_search» dando por hecho que la Knowledge Base está vacía: compruébalo primero.",
+].join("\n");
 
 export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   const st = useForja.getState();
@@ -94,8 +111,14 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   // pasos y un «he actualizado index.html» que nadie pidió: el modelo tiene
   // una plantilla que rellenar y la rellena. Sin ella, contesta como una
   // persona. Ver `turno-trivial.ts`.
+  // FORJA WEB fuerza el modo agente aunque el interruptor de Ajustes esté
+  // apagado: elegirlo YA es la señal de que se quiere el sistema completo,
+  // no un interruptor aparte que haya que recordar encender (`use-generation.ts`
+  // aplica la misma regla al decidir si se pasa el catálogo de herramientas).
+  const modeloActual = sesionActual?.modelKey ?? st.settings.defaultModelKey ?? null;
+  const forjaWebActivo = isForjaWebKey(modeloActual);
   const agente =
-    st.settings.agentMode && !trivial
+    (st.settings.agentMode || forjaWebActivo) && !trivial
       ? [
           agentPrompt(st.settings.agentMaxLoops, reglasActivas(useFailures.getState().entries)),
           // Evidence Mode (plan técnico §5): afirmaciones sobre el código con
@@ -103,6 +126,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
           INSTRUCCION_EVIDENCIA,
         ].join("\n\n")
       : null;
+  const forjaWeb = forjaWebActivo && !trivial ? FORJA_WEB_PROMPT : null;
 
   let ficha: string | null = null;
   let mapa: string | null = null;
@@ -185,6 +209,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     skills,
     permisos,
     agente,
+    forjaWeb,
     ficha,
     mapa,
     contexto: contextoFinal,

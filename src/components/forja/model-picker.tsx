@@ -1,7 +1,7 @@
 "use client";
 /** Forja IA — Selector de modelo con filtro «Solo gratis», modo Auto y salud (cooldowns) */
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronDown, KeyRound, Search, Sparkles, Star, Timer, Zap } from "lucide-react";
+import { Check, ChevronDown, Globe, KeyRound, Search, Sparkles, Star, Timer, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -24,7 +24,7 @@ import { useUsage } from "@/lib/forja/usage";
 import { useLimites } from "@/lib/forja/limites-medidos";
 import { avisoDePerfil, lineasDePerfil, perfilDe } from "@/lib/forja/perfil-modelo";
 import { useHealth, cooldownRemaining } from "@/lib/forja/health";
-import { AUTO_MODEL_KEY, isAutoKey, pickManualModel } from "@/lib/forja/types";
+import { AUTO_MODEL_KEY, isAutoKey, FORJA_WEB_MODEL_KEY, isForjaWebKey, pickManualModel } from "@/lib/forja/types";
 import { ModelLogo } from "@/components/forja/model-logo";
 
 export interface ModelOption {
@@ -194,12 +194,20 @@ export function ModelPicker({
             className
           )}
         >
-          {selectedInfo || isAutoKey(value) ? (
+          {selectedInfo || isAutoKey(value) || isForjaWebKey(value) ? (
             <span className="flex min-w-0 items-center gap-2">
               {isAutoKey(value) ? (
                 <>
                   <Zap className="size-4 text-violet-500" />
                   <span className="text-[13px] font-medium">Auto</span>
+                  <span className="hidden truncate text-xs text-muted-foreground sm:inline">
+                    · activado
+                  </span>
+                </>
+              ) : isForjaWebKey(value) ? (
+                <>
+                  <Globe className="size-4 text-forja-cyan" />
+                  <span className="text-[13px] font-medium">FORJA WEB</span>
                   <span className="hidden truncate text-xs text-muted-foreground sm:inline">
                     · activado
                   </span>
@@ -309,6 +317,70 @@ export function ModelPicker({
                   );
                 }}
                 aria-label="Activar Auto"
+                className="scale-[0.85]"
+              />
+            </div>
+          </div>
+          <div className="border-b px-3 py-2.5">
+            {/* Mismo patrón que Auto (div, no button anidado): el sistema
+                completo (Cerebro + Knowledge Base + Research + Diseño +
+                Código + QA) para construir webs con lo que ya tienes
+                indexado en Drive. */}
+            <div
+              className={cn(
+                "flex w-full items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition",
+                isForjaWebKey(value)
+                  ? "border-forja-cyan/40 bg-forja-cyan/10"
+                  : "border-border/70 bg-card/40 hover:border-forja-cyan/30 hover:bg-forja-cyan/5"
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (isForjaWebKey(value)) {
+                    onChange(
+                      pickManualModel(
+                        useForja.getState().settings.lastManualModelKey,
+                        lastGood?.key,
+                        models[0]?.key
+                      )
+                    );
+                    return;
+                  }
+                  onChange(FORJA_WEB_MODEL_KEY);
+                  setOpen(false);
+                }}
+                className="flex min-w-0 flex-1 items-center gap-2 text-left"
+              >
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-forja-cyan/15">
+                  <Globe className="size-4 text-forja-cyan" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13px] font-semibold">FORJA WEB</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isForjaWebKey(value)
+                      ? "activado · púlsalo para apagarlo"
+                      : "sistema completo: busca en tu Knowledge Base, diseña, escribe el código y hace QA"}
+                  </span>
+                </span>
+              </button>
+              <Switch
+                checked={isForjaWebKey(value)}
+                onCheckedChange={(on) => {
+                  if (on) {
+                    onChange(FORJA_WEB_MODEL_KEY);
+                    setOpen(false);
+                    return;
+                  }
+                  onChange(
+                    pickManualModel(
+                      useForja.getState().settings.lastManualModelKey,
+                      lastGood?.key,
+                      models[0]?.key
+                    )
+                  );
+                }}
+                aria-label="Activar FORJA WEB"
                 className="scale-[0.85]"
               />
             </div>

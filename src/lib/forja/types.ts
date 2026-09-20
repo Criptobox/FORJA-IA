@@ -340,12 +340,25 @@ export function isAutoKey(key: string | null | undefined): boolean {
   return key === AUTO_MODEL_KEY;
 }
 
-/** El primer candidato que no sea Auto. Sirve para apagar Auto siempre. */
+/** Pseudo-modelo «FORJA WEB»: el sistema completo para construir webs con lo
+ * que el usuario ya tiene indexado en su Knowledge Base (Cerebro + Knowledge
+ * Base + Research + Diseño + Código + QA). Igual que Auto, elige el mejor
+ * modelo gratis disponible (siempre para la tarea «web»), pero además fuerza
+ * el modo agente y el catálogo de herramientas aunque estén apagados en
+ * Ajustes — seleccionarlo YA es la señal de que se quiere el sistema
+ * completo, no un interruptor aparte que haya que recordar encender. */
+export const FORJA_WEB_MODEL_KEY = "forja::web";
+export function isForjaWebKey(key: string | null | undefined): boolean {
+  return key === FORJA_WEB_MODEL_KEY;
+}
+
+/** El primer candidato que no sea un pseudo-modelo (Auto o FORJA WEB). Sirve
+ * para volver al modelo manual al apagar cualquiera de los dos. */
 export function pickManualModel(
   ...candidates: Array<string | null | undefined>
 ): string | null {
   for (const k of candidates) {
-    if (k && !isAutoKey(k)) return k;
+    if (k && !isAutoKey(k) && !isForjaWebKey(k)) return k;
   }
   return null;
 }

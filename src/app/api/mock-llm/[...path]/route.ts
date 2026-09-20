@@ -26,6 +26,10 @@ const MODELOS = [
   "mock-vision",
   "mock-paid-pro",
   "mock-tools",
+  // Alias de `mock-tools` que además pasa el filtro de "gratis" (contiene
+  // «-free»): hace falta para probar FORJA WEB, que enruta por la misma
+  // cadena de candidatos que Auto y esa cadena descarta lo que no sea gratis.
+  "mock-tools-free",
   "mock-cortado",
   "mock-vacio",
   "mock-rescate",
@@ -1344,7 +1348,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
     return Response.json({ choices: [{ message: { content: llamada }, index: 0 }] });
   }
 
-  if (body.tools && (body.model === "mock-tools" || body.model === "mock-lee-url") && !lastIsToolResult) {
+  if (body.tools && (body.model?.startsWith("mock-tools") || body.model === "mock-lee-url") && !lastIsToolResult) {
     const leeUrl = body.model === "mock-lee-url";
     const toolCalls = [
       {

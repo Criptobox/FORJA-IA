@@ -63,6 +63,17 @@ describe("construirPrompt — lo medido es lo que se manda", () => {
     });
     expect(presupuesto.piezas.map((p) => p.id)).toEqual(["sistema", "skills", "agente", "mapa"]);
   });
+
+  it("el bloque de FORJA WEB va justo detrás del modo agente, antes de la ficha", () => {
+    const { prompt, presupuesto } = construirPrompt({
+      ...base,
+      agente: "agente",
+      forjaWeb: "forja web",
+      ficha: "ficha",
+    });
+    expect(presupuesto.piezas.map((p) => p.id)).toEqual(["sistema", "agente", "forjaWeb", "ficha"]);
+    expect(prompt).toContain("forja web");
+  });
 });
 
 describe("modo ahorro", () => {

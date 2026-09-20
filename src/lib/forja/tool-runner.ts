@@ -19,6 +19,7 @@ import type { RunSnapshot } from "./regression";
 import { compareRuns, comparables, resumenRegresion } from "./regression";
 import type { ProjectMap } from "./types";
 import { buscarEnMapa, resumenMemoria, MAX_RESULTADOS_MEMORIA } from "./project-map";
+import { kbSearch, renderKbSearch, type KBResource } from "./kb-index";
 import { compararProyectos, resumenProyectos } from "./diff-proyectos";
 import {
   PERMISOS_POR_DEFECTO,
@@ -110,6 +111,11 @@ export interface ToolContext {
    * `chat-app.tsx`; si no viene, la herramienta lo dice en vez de
    * responder con el vacío. */
   projectMap?: ProjectMap | null;
+  /** Índice de la Knowledge Base (Drive) para `kb_search`. Lo inyecta
+   * `use-agent-tools.ts` leyendo `kb-index.ts` en el momento de la llamada;
+   * si no viene (test, o llamador que no lo necesita), la herramienta lo
+   * trata como «sin recursos» en vez de fallar. */
+  kbResources?: readonly KBResource[];
   /** Le enseña una captura al modelo con visión y devuelve su crítica.
    * La implementación real vive en `use-agent-tools.ts` (necesita el
    * proveedor/modelo/clave de la conversación en curso, que el runner no
@@ -262,6 +268,8 @@ export async function runTool(
         return runSnapshotDiff(call, ctx);
       case "ask_memory":
         return runAskMemory(call, ctx);
+      case "kb_search":
+        return runKbSearch(call, ctx);
       case "verify_project":
         return await runVerifyProject(call, ctx);
       case "diagnose_project":
@@ -931,6 +939,15 @@ function runAskMemory(call: ToolCall, ctx: ToolContext): ToolResult {
   }
   const limite = numArg(call, "limit", 1, 20) ?? MAX_RESULTADOS_MEMORIA;
   return toolOk(call, resumenMemoria(buscarEnMapa(map, q, limite), q));
+}
+
+function runKbSearch(call: ToolCall, ctx: ToolContext): ToolResult {
+  const q = strArg(call, "query")?.trim();
+  if (!q) return argError(call, "query");
+  const resources = ctx.kbResources ?? [];
+  const limite = numArg(call, "limit", 1, 20) ?? 8;
+  const resultados = kbSearch([...resources], q, limite);
+  return toolOk(call, renderKbSearch(resultados, q, resources.length));
 }
 
 /**

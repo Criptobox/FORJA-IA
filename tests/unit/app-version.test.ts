@@ -6,7 +6,7 @@ import {
   compareSemver,
   versionCheck,
 } from "../../src/lib/forja/app-version";
-import { pickManualModel, AUTO_MODEL_KEY } from "../../src/lib/forja/types";
+import { pickManualModel, AUTO_MODEL_KEY, FORJA_WEB_MODEL_KEY, isForjaWebKey } from "../../src/lib/forja/types";
 
 describe("APP_VERSION", () => {
   it("coincide con package.json", () => {
@@ -38,6 +38,22 @@ describe("pickManualModel", () => {
   });
   it("prioriza el último modelo a mano", () => {
     expect(pickManualModel(AUTO_MODEL_KEY, "kimi::kimi-k3", "groq::llama")).toBe("kimi::kimi-k3");
+  });
+  it("apaga FORJA WEB igual que Auto: devuelve null, no el pseudo-modelo", () => {
+    expect(pickManualModel(FORJA_WEB_MODEL_KEY, null, undefined)).toBeNull();
+  });
+  it("con FORJA WEB puesto, también prioriza el último modelo a mano", () => {
+    expect(pickManualModel(FORJA_WEB_MODEL_KEY, "kimi::kimi-k3", "groq::llama")).toBe("kimi::kimi-k3");
+  });
+});
+
+describe("isForjaWebKey", () => {
+  it("distingue el pseudo-modelo FORJA WEB de Auto y de un modelo real", () => {
+    expect(isForjaWebKey(FORJA_WEB_MODEL_KEY)).toBe(true);
+    expect(isForjaWebKey(AUTO_MODEL_KEY)).toBe(false);
+    expect(isForjaWebKey("kimi::kimi-k3")).toBe(false);
+    expect(isForjaWebKey(null)).toBe(false);
+    expect(isForjaWebKey(undefined)).toBe(false);
   });
 });
 

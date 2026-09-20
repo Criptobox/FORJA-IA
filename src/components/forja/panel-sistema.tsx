@@ -30,7 +30,7 @@ import { InspectorVisualBody } from "./inspector-visual";
 import { useForja } from "@/lib/forja/store";
 import { cooldownRemaining, useHealth } from "@/lib/forja/health";
 import { getRecentRequests, subscribeRequests, type RequestLogEntry } from "@/lib/forja/request-log";
-import { isAutoKey, splitModelKey } from "@/lib/forja/types";
+import { isAutoKey, isForjaWebKey, splitModelKey } from "@/lib/forja/types";
 import { PROVIDER_MAP } from "@/lib/forja/providers";
 import { cn } from "@/lib/utils";
 
@@ -76,10 +76,11 @@ function FilaCabecera() {
   }, []);
 
   const activo = (() => {
-    if (!modelKey || isAutoKey(modelKey)) return { providerId: null, modelId: null, esAuto: true };
+    if (!modelKey || isAutoKey(modelKey)) return { providerId: null, modelId: null, label: "Auto" };
+    if (isForjaWebKey(modelKey)) return { providerId: null, modelId: null, label: "FORJA WEB" };
     const split = splitModelKey(modelKey);
-    if (!split) return { providerId: null, modelId: null, esAuto: false };
-    return { providerId: split.providerId, modelId: split.modelId, esAuto: false };
+    if (!split) return { providerId: null, modelId: null, label: null };
+    return { providerId: split.providerId, modelId: split.modelId, label: null };
   })();
 
   const enEnfriamiento = Object.values(entries).filter((e) => cooldownRemaining(e, now) > 0).length;
@@ -97,8 +98,8 @@ function FilaCabecera() {
         title="El modelo que está resolviendo la conversación abierta"
       >
         <Zap className="size-3 text-forja-violet" />
-        {activo.esAuto ? (
-          <span className="font-medium">Auto</span>
+        {activo.label ? (
+          <span className="font-medium">{activo.label}</span>
         ) : activo.modelId ? (
           <>
             <span className="max-w-[200px] truncate font-mono">{activo.modelId}</span>

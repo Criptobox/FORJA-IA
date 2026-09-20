@@ -6,9 +6,11 @@ import {
   kbHashFile,
   kbHasResource,
   kbRemoveResource,
+  kbSearch,
   kbStats,
   kbUpdateResource,
   kbUpsertResource,
+  renderKbSearch,
   type KBResource,
 } from "../../src/lib/forja/kb-index";
 
@@ -121,6 +123,68 @@ describe("kbHashFile", () => {
     expect(a1).toBe(a2);
     expect(a1).not.toBe(b);
     expect(a1).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe("kbSearch / renderKbSearch", () => {
+  const resources: KBResource[] = [
+    { ...resource, id: "1", name: "landing-referencia.png", category: "visual", tags: ["dashboard", "oscuro"], technology: "React" },
+    { ...resource, id: "2", name: "componentes-ui.zip", category: "componentes", tags: [], technology: "" },
+    { ...resource, id: "3", name: "logo.svg", category: "marca", tags: ["logo"], technology: "" },
+  ];
+
+  it("sin recursos, vacío", () => {
+    expect(kbSearch([], "dashboard")).toEqual([]);
+  });
+
+  it("sin términos válidos (query vacía o muy corta), vacío", () => {
+    expect(kbSearch(resources, "")).toEqual([]);
+    expect(kbSearch(resources, "  ")).toEqual([]);
+  });
+
+  it("encuentra por nombre, categoría, etiqueta o tecnología", () => {
+    expect(kbSearch(resources, "dashboard").map((r) => r.id)).toEqual(["1"]);
+    expect(kbSearch(resources, "componentes").map((r) => r.id)).toEqual(["2"]);
+    expect(kbSearch(resources, "react").map((r) => r.id)).toEqual(["1"]);
+    expect(kbSearch(resources, "logo").map((r) => r.id)).toEqual(["3"]);
+  });
+
+  it("sin tildes ni mayúsculas importan", () => {
+    expect(kbSearch(resources, "DASHBOARD").map((r) => r.id)).toEqual(["1"]);
+  });
+
+  it("ordena por cuántos términos distintos casan", () => {
+    // "landing" y "dashboard" casan los dos en el recurso 1; ningún otro
+    // recurso tiene "landing", así que el 1 queda primero.
+    const r = kbSearch(resources, "landing dashboard");
+    expect(r[0]?.id).toBe("1");
+  });
+
+  it("respeta el límite", () => {
+    const dosConElMismoTermino: KBResource[] = [
+      { ...resource, id: "a", name: "banner-oscuro.png", category: "visual" },
+      { ...resource, id: "b", name: "tarjeta-oscuro.png", category: "visual" },
+    ];
+    expect(kbSearch(dosConElMismoTermino, "oscuro", 1)).toHaveLength(1);
+    expect(kbSearch(dosConElMismoTermino, "oscuro", 8)).toHaveLength(2);
+  });
+
+  it("sin nada que case, vacío", () => {
+    expect(kbSearch(resources, "algo-que-no-existe")).toEqual([]);
+  });
+
+  it("renderKbSearch distingue «no hay nada indexado» de «nada casa»", () => {
+    expect(renderKbSearch([], "x", 0)).toMatch(/todavía no hay ningún recurso/i);
+    expect(renderKbSearch([], "x", 3)).toMatch(/ninguno casa/i);
+  });
+
+  it("renderKbSearch enseña nombre, categoría/tecnología/etiquetas y el enlace", () => {
+    const texto = renderKbSearch([resources[0]!], "dashboard", resources.length);
+    expect(texto).toContain("landing-referencia.png");
+    expect(texto).toContain("visual");
+    expect(texto).toContain("React");
+    expect(texto).toContain("dashboard, oscuro");
+    expect(texto).toContain(resources[0]!.webViewLink);
   });
 });
 

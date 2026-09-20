@@ -21,6 +21,7 @@ import { probeTools, supportsTools, type ToolsSupport } from "./tools-probe";
 import { buildToolResultMessage } from "./tools-translate";
 import { runProjectInMemory } from "./sandbox-runner";
 import { runJsInMemory } from "./js-repl";
+import { kbGetResources, type KBResource } from "./kb-index";
 import { promptCritica } from "./screenshot";
 import { parseLlamadasEnTexto, pareceLlamadaEnTexto, quitarLlamadasEnTexto } from "./tool-calls-texto";
 import { useLlamadasTexto } from "./llamadas-texto-medidas";
@@ -71,7 +72,8 @@ export function buildToolContext(
   permisos: PermisosConcedidos = PERMISOS_POR_DEFECTO,
   reglasNo: readonly ReglaNo[] = [],
   reglasAutorizadas: readonly string[] = [],
-  vision?: VisionDeps
+  vision?: VisionDeps,
+  kbResources: readonly KBResource[] = []
 ): ToolContext {
   const files = sandboxInitial?.files
     ? Object.fromEntries(sandboxInitial.files.map((f) => [f.path, f.content]))
@@ -85,6 +87,9 @@ export function buildToolContext(
     // Mapa de la sesión para `ask_memory`. Es una lectura: la herramienta no
     // lo modifica, así que se pasa tal cual y no hay nada que devolver.
     projectMap,
+    // Índice de la Knowledge Base para `kb_search`. Igual que `projectMap`,
+    // es una lectura: la herramienta no lo modifica.
+    kbResources,
     // Lo que el usuario permite. El runner lo comprueba antes de cada llamada.
     permisos,
     // Y lo que ha prohibido tocar: se comprueba antes de cada escritura.
@@ -239,14 +244,24 @@ export async function ejecutarConTools(
   // escribe o restaura en una vuelta existen en la siguiente. Antes se
   // reconstruía por vuelta desde el seed y el agente perdía su propio
   // trabajo entre iteraciones.
-  const tctx = buildToolContext(sandboxInitial, projectMap, permisos, reglasNo, reglasAutorizadas, {
-    providerId,
-    modelId: baseOpts.modelId,
-    config: baseOpts.config,
-    settings: baseOpts.settings,
-    signal: baseOpts.signal,
-    stream: deps.stream,
-  });
+  const tctx = buildToolContext(
+    sandboxInitial,
+    projectMap,
+    permisos,
+    reglasNo,
+    reglasAutorizadas,
+    {
+      providerId,
+      modelId: baseOpts.modelId,
+      config: baseOpts.config,
+      settings: baseOpts.settings,
+      signal: baseOpts.signal,
+      stream: deps.stream,
+    },
+    // Fresca en cada llamada (como `projectMap` en `chat-app.tsx`): si el
+    // usuario acaba de indexar algo desde «Conocimiento», este envío ya lo ve.
+    kbGetResources()
+  );
 
   /** Una vuelta de stream. Devuelve las tools que pidió el modelo.
    * El texto se guarda en `content`: antes se declaraba la variable y

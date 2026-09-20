@@ -26,6 +26,7 @@ import {
   splitModelKey,
   makeModelKey,
   isAutoKey,
+  isForjaWebKey,
   type ProviderId,
 } from "./types";
 import { PROVIDER_MAP } from "./providers";
@@ -288,7 +289,7 @@ export function useGeneration(ctx: CtxGeneracion) {
     const patch: { defaultModelKey: string | null; lastManualModelKey?: string | null } = {
       defaultModelKey: key,
     };
-    if (isAutoKey(key) && current && !isAutoKey(current)) {
+    if ((isAutoKey(key) || isForjaWebKey(key)) && current && !isAutoKey(current) && !isForjaWebKey(current)) {
       patch.lastManualModelKey = current;
     }
     if (state.activeSessionId) {
@@ -470,12 +471,19 @@ export function useGeneration(ctx: CtxGeneracion) {
       // clave fresca del store (importante tras un failover que cambió el modelo)
       const freshKey = session.modelKey ?? state.settings.defaultModelKey ?? undefined;
       const auto = isAutoKey(freshKey);
-      const task = classifyTask(lastUserPrompt(session.messages));
+      // FORJA WEB siempre trata el encargo como «web»: es el preset para
+      // construir sitios, así que no hace falta adivinarlo del texto (y un
+      // «arréglalo» de seguimiento no debe caer a «chat» y perder el encaje
+      // de proveedor pensado para web).
+      const forjaWeb = isForjaWebKey(freshKey);
+      const task = forjaWeb
+        ? ({ kind: "web", label: "FORJA WEB" } as const)
+        : classifyTask(lastUserPrompt(session.messages));
 
       // ——— cadena de candidatos ———
       type Candidate = { providerId: ProviderId; modelId: string };
       let chain: Candidate[] = [];
-      if (auto) {
+      if (auto || forjaWeb) {
         const health = useHealth.getState();
         // el bloqueo mira modelo Y proveedor: si la cuota del proveedor está agotada,
         // no se dan tumbos entre sus modelos — se salta directo al siguiente proveedor
@@ -498,15 +506,17 @@ export function useGeneration(ctx: CtxGeneracion) {
           useUsage.getState().byModel
         );
         if (chain.length === 0) {
-          toast.error("Auto no tiene modelos disponibles", {
+          toast.error(`${forjaWeb ? "FORJA WEB" : "Auto"} no tiene modelos disponibles`, {
             description: "Conecta al menos un proveedor gratis (Gemini, Groq, OpenRouter…) en Ajustes.",
             action: { label: "Abrir", onClick: () => { setFocusProvider("gemini"); setSettingsOpen(true); } },
           });
           return;
         }
         if (depth === 0) {
-          toast.message(`Auto · ${task.label}`, {
-            description: `${chain[0].modelId} · ${PROVIDER_MAP[chain[0].providerId]?.name ?? chain[0].providerId}. Si se acaba la cuota, pasa al siguiente.`,
+          toast.message(`${forjaWeb ? "FORJA WEB" : "Auto"} · ${task.label}`, {
+            description: forjaWeb
+              ? `${chain[0].modelId} · ${PROVIDER_MAP[chain[0].providerId]?.name ?? chain[0].providerId}. Research en tu Knowledge Base, diseño, código y QA en un solo bucle.`
+              : `${chain[0].modelId} · ${PROVIDER_MAP[chain[0].providerId]?.name ?? chain[0].providerId}. Si se acaba la cuota, pasa al siguiente.`,
             duration: 4500,
           });
         }
@@ -765,8 +775,12 @@ export function useGeneration(ctx: CtxGeneracion) {
             const ultimoUsuario = [...(useForja.getState().sessions.find((x) => x.id === sessionId)?.messages ?? [])]
               .reverse()
               .find((m) => m.role === "user");
+            // FORJA WEB fuerza el modo agente aunque el interruptor de
+            // Ajustes esté apagado: seleccionarlo YA es la señal de que se
+            // quiere el sistema completo (`prompt-actual.ts` aplica la misma
+            // regla para el bloque de prompt del agente).
             const agentOn =
-              useForja.getState().settings.agentMode &&
+              (useForja.getState().settings.agentMode || forjaWeb) &&
               !esTurnoTrivial(ultimoUsuario?.content ?? "");
             const maxLoops = Math.max(1, Math.min(8, useForja.getState().settings.agentMaxLoops || 3));
             const cfg = useForja.getState().providers[candidate.providerId];
@@ -961,7 +975,7 @@ export function useGeneration(ctx: CtxGeneracion) {
               mensajeCuota: isQuotaError(msg),
               modeloMuerto: muerto,
               peticionInvalida: esPeticionInvalida(status, msg),
-              auto,
+              auto: auto || forjaWeb,
               depth,
               maxSaltos: MAX_SALTOS,
               indice: ci,
@@ -980,8 +994,8 @@ export function useGeneration(ctx: CtxGeneracion) {
                   ? `La conversación no le cabe a ${candidate.modelId}`
                   : muerto
                     ? `${candidate.modelId} ya no existe`
-                  : auto
-                    ? `Auto: ${candidate.modelId} falló`
+                  : auto || forjaWeb
+                    ? `${forjaWeb ? "FORJA WEB" : "Auto"}: ${candidate.modelId} falló`
                     : `${candidate.modelId} no respondió`,
                 {
                   description: `Saltando a ${sig.modelId} · ${PROVIDER_MAP[sig.providerId]?.name ?? ""}`,
@@ -1034,7 +1048,7 @@ export function useGeneration(ctx: CtxGeneracion) {
             const dCuota = decidirTrasCuotaEnTexto({
               status: 402,
               mensajeCuota: true,
-              auto,
+              auto: auto || forjaWeb,
               depth,
               maxSaltos: MAX_SALTOS,
               indice: ci,
@@ -1044,7 +1058,7 @@ export function useGeneration(ctx: CtxGeneracion) {
             });
             if (dCuota.tipo === "siguiente") {
               updateMessage(sessionId, assistantId, { content: base0, reasoning: undefined });
-              toast.warning(`${auto ? "Auto" : candidate.modelId}: cuota agotada`, {
+              toast.warning(`${auto || forjaWeb ? (forjaWeb ? "FORJA WEB" : "Auto") : candidate.modelId}: cuota agotada`, {
                 description: `Saltando a ${chain[dCuota.indice].modelId}.`,
                 duration: 6000,
               });
@@ -1078,7 +1092,7 @@ export function useGeneration(ctx: CtxGeneracion) {
             const dVacio = decidirTrasVacio({
               status: 200,
               mensajeCuota: false,
-              auto,
+              auto: auto || forjaWeb,
               depth,
               maxSaltos: MAX_SALTOS,
               indice: ci,
@@ -1133,7 +1147,7 @@ export function useGeneration(ctx: CtxGeneracion) {
           // Con el modo agente esto lo lleva `agentStalled`, que entiende sus
           // etiquetas; aquí es para todo lo demás, que es como se pide una web
           // la mayoría de las veces.
-          if (!useForja.getState().settings.agentMode) {
+          if (!useForja.getState().settings.agentMode && !forjaWeb) {
             // Dos señales: lo que dice el proveedor y la forma del texto.
             // Con cualquiera de las dos se continúa — el proveedor acierta
             // donde la forma no ve nada (un corte a media frase), y la forma
@@ -1288,7 +1302,7 @@ export function useGeneration(ctx: CtxGeneracion) {
           // todavía no es la entrega: revisarlo ahora sería corregir un
           // borrador y gastar una de las dos vueltas que hay.
           let retomando = false;
-          if (useForja.getState().settings.agentMode) {
+          if (useForja.getState().settings.agentMode || forjaWeb) {
             // `true`: el stream ya acabó, así que una etiqueta abierta no es
             // que esté escribiendo — es que se cortó a mitad.
             const info = agentStalled(parseAgentTrace(content), true);
