@@ -8,6 +8,7 @@
 
 import { buildDesignArchitecture, designArchitecturePrompt, type DesignArchitecture } from "./design-architect";
 import { retrieveKB, kbContext, type KBRetrievalQuery } from "./knowledge-retrieval";
+import { retrieveKBContent, kbContentContext } from "./kb-content-retrieval";
 import { visionDesignerPrompt, compactVisionContext, type VisionAnalysis } from "./vision-designer";
 import { buildWebStudioPrompt, type WebStudioOptions } from "./web-studio";
 
@@ -35,6 +36,20 @@ export interface CerebroPlan {
   retrievalCount: number;
   stages: string[];
   toolPolicy: string[];
+}
+
+/** Versión asíncrona que, después de filtrar por metadatos, recupera solo
+ * los archivos de código remotos que realmente aportan al brief. Mantiene
+ * `buildCerebroPlan` síncrono para no romper integraciones existentes. */
+export async function buildCerebroPlanWithKnowledge(input: CerebroInput): Promise<CerebroPlan> {
+  const plan = buildCerebroPlan(input);
+  const results = retrieveKB(input.kb ?? { text: input.brief, limit: 12 });
+  const content = await retrieveKBContent(results, { maxFiles: 4, maxCharsPerFile: 12000, maxTotalChars: 30000 });
+  const remoteContext = kbContentContext(content, 30000);
+  if (remoteContext.includes("\n## ")) {
+    plan.prompt = `${plan.prompt}\n\n${remoteContext}\n\nREGLA DE CONTENIDO: usa el código recuperado como referencia verificable. No inventes que has leído archivos que aparecen como "no leído".`;
+  }
+  return plan;
 }
 
 export function buildCerebroPlan(input: CerebroInput): CerebroPlan {

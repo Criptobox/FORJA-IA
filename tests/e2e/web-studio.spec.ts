@@ -197,6 +197,27 @@ test("Project Tasks: añadir, avanzar de pendiente a hecha y borrar, todo persis
   await expect(page.getByText("Pendientes (0)")).toBeVisible();
 });
 
+test("«Iniciar con agente» prepara el contexto (Cerebro + Knowledge Base) y deja el prompt listo para enviar", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Web Studio", exact: false }).first().click();
+  await expect(page.getByText("Forja Web Studio")).toBeVisible({ timeout: 10_000 });
+
+  await page.getByPlaceholder("Ej.: mejora el hero sin cambiar la identidad…").fill("Landing de una cafetería");
+  await page.getByRole("button", { name: "Iniciar con agente" }).click();
+
+  // v4.57: el botón ahora hace una recuperación async (kb-content-retrieval
+  // contra MEGA cuando hay recursos indexados) antes de entregar el prompt
+  // — sin sesión MEGA ni Knowledge Base, se resuelve casi al instante, pero
+  // sigue siendo async: comprobamos el resultado final, no el frame exacto
+  // en el que aparece "Preparando contexto…" (correría el riesgo de un test
+  // frágil por timing).
+  await expect(page.getByText("Web Studio preparado")).toBeVisible({ timeout: 15_000 });
+  const textarea = page.locator("textarea").first();
+  await expect(textarea).toHaveValue(/FORJA CEREBRO WEB/);
+  await expect(textarea).toHaveValue(/Landing de una cafetería/);
+});
+
 /** Regresión real: a 320/390px el stepper de 7 etapas (dentro de una fila
  * con overflow-x-auto) empujaba TODO el diálogo fuera de la pantalla,
  * porque el div contenedor no tenía min-w-0 y un hijo grid/flex no se

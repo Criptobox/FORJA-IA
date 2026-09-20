@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { ProjectMap } from "@/lib/forja/types";
 import { WEB_STUDIO_STAGES } from "@/lib/forja/web-studio";
-import { buildCerebroPlan } from "@/lib/forja/cerebro-web";
+import { buildCerebroPlanWithKnowledge } from "@/lib/forja/cerebro-web";
 import { calculateProjectHealth, type ProjectHealth } from "@/lib/forja/project-health";
 import { scanSecurity, type SecurityReport } from "@/lib/forja/security-center";
 import { useProjectTasks } from "@/lib/forja/project-tasks";
@@ -41,6 +41,7 @@ export function ForjaStudioDialog({
   const [qa, setQa] = useState<QAResult[] | null>(null);
   const [qaRunning, setQaRunning] = useState(false);
   const [security, setSecurity] = useState<SecurityReport | null>(null);
+  const [starting, setStarting] = useState(false);
   const frame = useRef<HTMLIFrameElement>(null);
   const tasks = useProjectTasks();
   const failures = useFailures((s) => s.entries);
@@ -71,15 +72,20 @@ export function ForjaStudioDialog({
     setSecurity(report);
     report.findings.filter(f => f.severity !== "low").slice(0, 8).forEach(f => tasks.add(`Security: ${f.detail}`, "system"));
   };
-  const startWebStudio = () => {
-    const plan = buildCerebroPlan({
-      task: "create-web",
-      brief: brief || "Construye o mejora la interfaz web del proyecto actual según el contexto disponible.",
-      hasExistingProject: true,
-    });
-    onStart?.(plan.prompt);
-    setStage("plan");
-    onOpenChange(false);
+  const startWebStudio = async () => {
+    setStarting(true);
+    try {
+      const plan = await buildCerebroPlanWithKnowledge({
+        task: "create-web",
+        brief: brief || "Construye o mejora la interfaz web del proyecto actual según el contexto disponible.",
+        hasExistingProject: true,
+      });
+      onStart?.(plan.prompt);
+      setStage("plan");
+      onOpenChange(false);
+    } finally {
+      setStarting(false);
+    }
   };
 
   const todo = tasks.tasks.filter(t => t.status === "todo");
@@ -149,7 +155,10 @@ export function ForjaStudioDialog({
                   <p className="mb-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
                     El Cerebro decide automáticamente la industria, arquitectura y dirección visual para evitar plantillas repetidas.
                   </p>
-                  <Button onClick={startWebStudio} className="mt-3 w-full gap-2"><Play className="size-4" />Iniciar con agente</Button>
+                  <Button onClick={() => void startWebStudio()} disabled={starting} className="mt-3 w-full gap-2">
+                    {starting ? <RefreshCw className="size-4 animate-spin" /> : <Play className="size-4" />}
+                    {starting ? "Preparando contexto…" : "Iniciar con agente"}
+                  </Button>
                   <p className="mt-2 text-[10px] text-muted-foreground">El prompt obliga a inspeccionar primero y a declarar pruebas reales.</p>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-card/50 p-4">
