@@ -32,6 +32,10 @@ export interface ForjaRecipe {
   updatedAt: string;
   usageCount: number;
   quality?: number;
+  qualityStatus?: "approved" | "review" | "rejected";
+  qualityReasons?: string[];
+  qualityCheckedAt?: string;
+  qaEvidence?: boolean;
 }
 
 const STORAGE_KEY = "forja-recipes";
@@ -119,7 +123,7 @@ export function deleteForjaRecipe(id: string): void { persist(read().filter((rec
 export function searchForjaRecipes(text: string, limit = 8): ForjaRecipe[] {
   const terms = norm(text).split(/[^a-z0-9]+/).filter((x) => x.length > 2);
   if (!terms.length) return [];
-  return read().map((recipe) => {
+  return read().filter((recipe) => recipe.qualityStatus !== "rejected").map((recipe) => {
     const haystack = norm([recipe.name, recipe.description, recipe.query, recipe.technology || "", ...recipe.components.map((c) => c.name), ...recipe.patterns].join(" "));
     const score = terms.reduce((sum, term) => sum + (haystack.includes(term) ? 10 : 0), 0);
     return { recipe, score };

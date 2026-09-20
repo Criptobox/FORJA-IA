@@ -12,6 +12,7 @@ import { kbContext, type KBRetrievalQuery } from "./knowledge-retrieval";
 import { kbContentContext } from "./kb-content-retrieval";
 import { retrieveSmartKB, retrieveSmartKBWithContent, smartKBContext } from "./kb-smart-retrieval";
 import { searchForjaRecipes, recipeContext } from "./recipe-builder";
+import { recipeCanBeReused } from "./recipe-quality-gate";
 import { visionDesignerPrompt, compactVisionContext, type VisionAnalysis } from "./vision-designer";
 import { buildWebStudioPrompt, type WebStudioOptions } from "./web-studio";
 
@@ -56,7 +57,7 @@ export async function buildCerebroPlanWithKnowledge(input: CerebroInput): Promis
   const bundle = await retrieveSmartKBWithContent(query, { maxFiles: 4, maxCharsPerFile: 12000, maxTotalChars: 30000 });
   const smartContext = smartKBContext(bundle.results, 5000);
   const remoteContext = kbContentContext(bundle.content, 30000);
-  const recipes = searchForjaRecipes(input.brief, 2);
+  const recipes = searchForjaRecipes(input.brief, 4).filter(recipeCanBeReused).slice(0, 2);
   const recipeContexts = recipes.map((recipe) => recipeContext(recipe, 4500)).join("\n\n");
   if (smartContext.length > "[FORJA SMART KNOWLEDGE RETRIEVAL]".length) {
     plan.prompt = `${plan.prompt}\n\n${smartContext}\n\nREGLA DE RECUPERACIÓN: prioriza los componentes, patrones y rutas marcados como coincidencias estructurales. No supongas que otro archivo del repositorio fue leído.`;
