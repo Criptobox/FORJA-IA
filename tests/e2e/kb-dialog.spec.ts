@@ -273,4 +273,18 @@ test.describe("Conocimiento (Drive + Knowledge Base en un solo panel)", () => {
     );
     expect(guardadoEnStorage).toBe(false);
   });
+
+  test("indexar desde MEGA pide conectar primero, sin fingir una carpeta vacía como si ya hubiera sesión", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Conocimiento" }).click();
+
+    // Sin conexión, el panel de indexación lo dice explícitamente — no
+    // muestra un explorador de carpetas vacío que parecería una MEGA real
+    // sin nada dentro.
+    await expect(page.getByText("Conecta MEGA arriba para explorar e indexar su biblioteca de código.")).toBeVisible();
+    await expect(page.getByText("Indexar desde MEGA")).toHaveCount(0);
+  });
 });

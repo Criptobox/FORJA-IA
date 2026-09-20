@@ -3,9 +3,8 @@
  * "El índice y la recuperación selectiva evitan cargar toda la
  * biblioteca" (regla 8 del plan): aquí solo vive METADATA (id, nombre,
  * categoría, etiquetas, origen, estado…) guardada en el dispositivo — los
- * archivos de verdad se quedan en Google Drive, que es quien hace de
- * almacenamiento. Por eso la biblioteca puede crecer a varios GB sin que
- * esto pese nada.
+ * archivos de verdad permanecen en su proveedor remoto (Drive o MEGA).
+ * Por eso la biblioteca puede crecer a varios GB sin que el índice pese nada.
  *
  * "Importar recursos" (`kb-import.tsx`) sí clasifica con el modelo activo
  * de la conversación (`kb-classify.ts`) al subir un archivo nuevo — pero
@@ -17,6 +16,7 @@
  */
 
 export type KBResourceStatus = "nuevo" | "clasificado" | "pendiente" | "revision-duplicado";
+export type KBSourceProvider = "google-drive" | "mega" | "local" | "url";
 
 export interface KBResource {
   /** id del archivo en Drive: es el identificador natural, no hace falta inventar otro. */
@@ -41,7 +41,9 @@ export interface KBResource {
   visualHashAlgorithm?: "ahash-8x8";
   /** Ruta relativa cuando el recurso provino de una carpeta/repositorio local. */
   relativePath?: string;
-  sourceKind?: "upload" | "folder" | "zip" | "drive" | "url";
+  sourceKind?: "upload" | "folder" | "zip" | "drive" | "mega" | "url";
+  sourceProvider?: KBSourceProvider;
+  remoteId?: string;
   sourceUrl?: string;
   licenseUrl?: string;
   duplicateOf?: string;
@@ -138,8 +140,16 @@ export function kbFindByHash(hash: string): KBResource | undefined {
 /** SHA-256 del contenido de un archivo, en hexadecimal. `crypto.subtle` es
  * nativo del navegador: no hace falta ninguna librería para esto. */
 export async function kbHashFile(file: File): Promise<string> {
-  const buf = await file.arrayBuffer();
-  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return kbHashBytes(new Uint8Array(await file.arrayBuffer()));
+}
+
+/** SHA-256 de bytes ya descargados, en hexadecimal — útil para proveedores
+ * remotos como MEGA, donde ya se tienen los bytes y no un `File`. */
+export async function kbHashBytes(bytes: Uint8Array): Promise<string> {
+  // `Uint8Array<ArrayBufferLike>` no encaja con el `BufferSource` que pide
+  // `digest` (TS distingue de más aquí: en runtime cualquier Uint8Array es
+  // una vista válida). El cast es solo de tipos, no cambia los bytes.
+  const digest = await crypto.subtle.digest("SHA-256", bytes as unknown as BufferSource);
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
