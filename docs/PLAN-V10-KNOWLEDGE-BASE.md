@@ -180,6 +180,28 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
    Panel del sistema, cuotas) siguen enseñando el proveedor real: son
    para que el propio usuario depure, no la conversación de cara a
    quien usa la web.
+
+   **El flujo tiene que ejecutarse de verdad, no ser cajas bonitas —
+   hecho.** El usuario mandó un diagrama con el flujo exacto que quería:
+   Brief → Conocimiento → Diseño → Arquitectura → Código → Navegador →
+   QA → Reparación → Nueva prueba → Entrega, y una regla explícita: al
+   encontrar un fallo, el modelo tiene que localizar el archivo
+   responsable y corregirlo AHÍ — nunca crear un archivo de parche aparte
+   ("fix-123.ts", "patch-final.js", "temporary-fix.html"). `FORJA_WEB_PROMPT`
+   ahora nombra las ocho etapas en ese orden, cada una con su herramienta
+   real (Conocimiento→`kb_search`, QA→`verify_project`, Reparación→
+   `edit_file`/`apply_patch`, Nueva prueba→`verify_project` otra vez,
+   Entrega→`check_definition_of_done`). Y la prohibición de archivos de
+   parche no se quedó en una frase que el modelo pudiera ignorar:
+   `tool-runner.ts` la HACE CUMPLIR — `esNombreDeParche()` rechaza
+   `write_file` cuando el archivo es NUEVO y su nombre contiene un token
+   como "fix", "patch", "temp", "backup" o "final" (comparado por token
+   completo, no por substring, para no atrapar "prefix.ts" ni
+   "traffic.js"). Sobrescribir un archivo que el proyecto ya tenía con
+   ese nombre sigue permitido: la regla evita CREAR el patrón, no prohíbe
+   un nombre por sí solo. Es una regla global del catálogo de
+   herramientas, no solo de FORJA WEB: protege cualquier conversación con
+   modo agente.
 3. **Análisis visual.** Composición, tipografía, color, agrupación de
    capturas desktop/tablet/mobile — la clasificación de texto/nombre ya
    existe (punto 2); esto es clasificar por lo que se VE en una imagen,

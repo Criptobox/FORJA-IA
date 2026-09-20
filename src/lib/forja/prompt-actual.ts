@@ -40,19 +40,28 @@ export const TEXTO_ESTILO = {
 } as const;
 
 /** Bloque del preset «FORJA WEB» (Cerebro + Knowledge Base + Research +
- * Diseño + Código + QA). Corto a propósito, como los modos de agente
- * (`agent-modes.ts`): un prompt largo se come el contexto que hace falta
- * para el propio proyecto, justo en los modelos gratis para los que existe
- * Forja. Se suma al bloque del agente, no lo sustituye — necesita el mismo
- * bucle plan→ejecutar→revisar, solo que con un orden obligatorio delante. */
+ * Diseño + Arquitectura + Código + QA + Reparación). Se suma al bloque del
+ * agente, no lo sustituye — necesita el mismo bucle plan→ejecutar→revisar,
+ * solo que con un flujo obligatorio delante.
+ *
+ * El usuario pidió explícito que esto no fuera "cajas bonitas": el flujo
+ * tiene que ejecutarse de verdad, y cuando algo falle, el modelo tiene que
+ * arreglar el archivo original — no crear un "fix.ts"/"patch-final.js" al
+ * lado. Esto último ya no es solo una instrucción: `tool-runner.ts`
+ * RECHAZA esos nombres en `write_file` cuando el archivo es nuevo (busca
+ * `esNombreDeParche`), así que el prompt se lo explica para que no
+ * reintente lo mismo. */
 export const FORJA_WEB_PROMPT = [
   "[FORJA WEB — sistema completo]",
-  "Vas a construir una web. Sigue este orden, sin saltarte pasos:",
-  "1. Research: antes de diseñar o escribir código, llama a «kb_search» con lo que necesites (referencia visual, componente, tecnología). Si no hay nada indexado, sigue sin fingir que existe.",
+  "Flujo obligatorio para construir la web. No te lo saltes, no lo des por hecho sin haberlo pasado, y no anuncies un paso que no vas a ejecutar:",
+  "1. Conocimiento: antes de diseñar o escribir código, llama a «kb_search» con lo que necesites (referencia visual, componente, tecnología). Si no hay nada indexado, sigue sin fingir que existe.",
   "2. Diseño: decide la dirección visual con lo que encontraste, o con buen criterio si la Knowledge Base no tenía nada.",
-  "3. Código: escribe el proyecto con las herramientas de archivo.",
-  "4. QA: antes de darlo por terminado, pasa «verify_project» (o «check_definition_of_done» si se va a publicar). No declares terminado un proyecto sin esa verificación.",
-  "No te saltes «kb_search» dando por hecho que la Knowledge Base está vacía: compruébalo primero.",
+  "3. Arquitectura: antes de escribir, decide qué archivos hacen falta y para qué sirve cada uno.",
+  "4. Código: escribe el proyecto con las herramientas de archivo, siguiendo esa arquitectura.",
+  "5. QA: pasa «verify_project» (ejecuta el proyecto de verdad y mide) antes de darlo por terminado. No declares terminado un proyecto sin esa verificación.",
+  "6. Reparación: si «verify_project» encuentra un fallo, localiza el archivo y la línea responsables (usa «read_file» si hace falta) y corrige ESE MISMO archivo con «edit_file» o «apply_patch». PROHIBIDO crear un archivo nuevo para el arreglo («fix.ts», «patch-final.js», «temporary-fix.html»…): el sistema rechaza esos nombres en «write_file» — localiza y corrige el original.",
+  "7. Nueva prueba: tras cada reparación, vuelve a pasar «verify_project» — no des el trabajo por bueno con la palabra del paso anterior.",
+  "8. Entrega: usa «check_definition_of_done» antes de decir que está listo para publicarse.",
 ].join("\n");
 
 export function entradaPromptActual(sessionId?: string): EntradaPrompt {

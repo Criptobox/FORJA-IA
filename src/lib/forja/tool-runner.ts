@@ -313,6 +313,23 @@ function runReadFile(call: ToolCall, ctx: ToolContext): ToolResult {
   return toolOk(call, ctx.projectFiles[path]);
 }
 
+/** Palabras que delatan un archivo de parche en vez de una corrección real:
+ * el modelo detecta un fallo y, en vez de arreglar el archivo responsable,
+ * crea uno nuevo al lado («fix-123.ts», «patch-final.js»,
+ * «temporary-fix.html»…) — el problema sigue en el original y ahora hay
+ * DOS versiones que mantener. Se compara por TOKEN completo (separado por
+ * «-», «_» o «.»), no por substring: así "prefix.ts" o "traffic.js" no
+ * caen por contener "fix"/"traf" a medias. */
+const PALABRAS_ARCHIVO_PARCHE = ["fix", "patch", "temp", "tmp", "temporary", "backup", "bak", "final"];
+
+function esNombreDeParche(path: string): boolean {
+  const nombre = path.split("/").pop() ?? path;
+  const base = nombre.replace(/\.[a-z0-9]+$/i, "");
+  return base
+    .split(/[-_.]/)
+    .some((token) => PALABRAS_ARCHIVO_PARCHE.includes(token.toLowerCase()));
+}
+
 function runWriteFile(call: ToolCall, ctx: ToolContext): ToolResult {
   const rawPath = strArg(call, "path");
   const content = strArg(call, "content");
@@ -320,6 +337,15 @@ function runWriteFile(call: ToolCall, ctx: ToolContext): ToolResult {
   const path = projectPath(rawPath);
   if (!path) return invalidPath(call);
   if (content === undefined) return argError(call, "content");
+  // Solo se comprueba al CREAR un archivo nuevo: sobrescribir uno que el
+  // proyecto ya tenía con ese nombre (aunque sea desafortunado) no es el
+  // patrón que esto evita.
+  if (!(path in ctx.projectFiles) && esNombreDeParche(path)) {
+    return toolError(
+      call,
+      `«${path}» parece un archivo de parche o corrección aparte, no el original — el problema seguiría en el archivo de verdad y quedarían dos versiones que mantener. Localiza el archivo responsable (usa «read_file» o «list_files» si no lo tienes claro) y corrígelo AHÍ con «edit_file» o «apply_patch», no crees uno nuevo.`
+    );
+  }
   const veto = vetoDe(ctx, path, "write_file");
   if (veto) return toolError(call, veto);
   // Escribimos en el contexto en memoria. La persistencia real al

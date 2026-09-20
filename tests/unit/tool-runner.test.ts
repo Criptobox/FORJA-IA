@@ -111,6 +111,31 @@ describe("write_file", () => {
     expect(r.ok).toBe(false);
     expect(r.content).toContain("content");
   });
+
+  it("rechaza crear un archivo NUEVO con nombre de parche", async () => {
+    const c = ctx();
+    for (const nombre of ["fix-123.ts", "patch-final.js", "temporary-fix.html", "utils.bak.js", "backup-styles.css"]) {
+      const r = await runTool(call("write_file", { path: nombre, content: "x" }), c);
+      expect(r.ok, nombre).toBe(false);
+      expect(r.content, nombre).toContain("edit_file");
+      expect(c.projectFiles[nombre], nombre).toBeUndefined();
+    }
+  });
+
+  it("no confunde nombres normales que solo contienen la palabra a medias", async () => {
+    const c = ctx();
+    for (const nombre of ["prefix-loader.js", "traffic.js", "index.html"]) {
+      const r = await runTool(call("write_file", { path: nombre, content: "x" }), c);
+      expect(r.ok, nombre).toBe(true);
+    }
+  });
+
+  it("permite SOBRESCRIBIR un archivo que ya existía con ese nombre (no es el patrón que se evita)", async () => {
+    const c = ctx({ projectFiles: { "temp-fix.js": "viejo" } });
+    const r = await runTool(call("write_file", { path: "temp-fix.js", content: "nuevo" }), c);
+    expect(r.ok).toBe(true);
+    expect(c.projectFiles["temp-fix.js"]).toBe("nuevo");
+  });
 });
 
 describe("rutas de archivo: sin salir del proyecto", () => {

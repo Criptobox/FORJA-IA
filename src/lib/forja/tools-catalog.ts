@@ -79,7 +79,7 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
   {
     name: "write_file",
     description:
-      "Escribe o reemplaza por completo el contenido de un archivo del proyecto. Crea el archivo si no existe. Para archivos NUEVOS es la herramienta correcta; si el archivo YA EXISTE y el cambio es parcial, usa «apply_patch» o «edit_file»: gastan muchos menos tokens y no arriesgan el resto del archivo.",
+      "Escribe o reemplaza por completo el contenido de un archivo del proyecto. Crea el archivo si no existe. Para archivos NUEVOS es la herramienta correcta; si el archivo YA EXISTE y el cambio es parcial, usa «apply_patch» o «edit_file»: gastan muchos menos tokens y no arriesgan el resto del archivo. Al corregir un fallo, NO crees un archivo nuevo con nombre de parche («fix.ts», «patch-final.js», «temp-fix.html», «backup»…): se rechaza. Localiza el archivo responsable y corrígelo ahí con «edit_file» o «apply_patch».",
     parameters: {
       type: "object",
       properties: {
