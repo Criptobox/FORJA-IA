@@ -29,6 +29,7 @@ import {
 import { INSTRUCCION_EVIDENCIA } from "./evidencia";
 import { INSTRUCCION_VARIOS_ARCHIVOS, pideVariosArchivos } from "./multi-archivo";
 import { esEncargoDeTiendaOCatalogo, INSTRUCCION_TIENDA_INTERACTIVA } from "./catalogo-interactivo";
+import { buildDesignArchitecture, designArchitecturePrompt } from "./design-architect";
 
 /** Textos de los estilos de salida. Fuera de la función para que se puedan
  *  medir sin montar nada. */
@@ -135,7 +136,6 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
           INSTRUCCION_EVIDENCIA,
         ].join("\n\n")
       : null;
-  const forjaWeb = forjaWebActivo && !trivial ? FORJA_WEB_PROMPT : null;
 
   let ficha: string | null = null;
   let mapa: string | null = null;
@@ -180,16 +180,46 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   // tiene que reelegir la identidad visual del proyecto. La elección respeta
   // lo que el prompt traiga («minimalista») y, si no trae nada, rota evitando
   // las direcciones ya usadas en este proyecto (variación forzada).
+  //
+  // Bajo FORJA WEB también hace falta una dirección aunque el prompt no use
+  // verbos de "crear UI" (p.ej. "arréglame esta web"): el Design Architect de
+  // más abajo necesita una, y tiene que ser la MISMA que esta — reelegirla
+  // por separado (como hacía la versión anterior) podía darle al modelo dos
+  // paletas/tipografías distintas en el mismo prompt.
   let diseno: string | null = null;
   let disenoId: string | undefined = undefined;
-  if (!trivial && esEncargoUINueva(promptUsuario)) {
-    const eleccion = elegirDireccion(
+  let eleccionDireccion: ReturnType<typeof elegirDireccion> | null = null;
+  if (!trivial && (esEncargoUINueva(promptUsuario) || forjaWebActivo)) {
+    eleccionDireccion = elegirDireccion(
       promptUsuario,
       (memoria?.disenos ?? []).slice(0, 4).map((d) => d.direccion)
     );
-    diseno = promptDireccion(eleccion);
-    disenoId = eleccion.direccion.nombre;
+    disenoId = eleccionDireccion.direccion.nombre;
+    // Bajo FORJA WEB, el bloque del Design Architect (más abajo) ya incluye
+    // paleta, tipografía y composición de esta misma dirección — repetirlo
+    // aquí sería la misma información dos veces en el mismo prompt.
+    if (!forjaWebActivo) {
+      diseno = promptDireccion(eleccionDireccion);
+    }
   }
+
+  // ——— FORJA WEB: arquitectura de diseño del Cerebro ———
+  // Usa la MISMA dirección ya elegida arriba (`directionId`) — nunca una
+  // reelección independiente con `previousDirectionIds` vacío, que siempre
+  // caería en la misma primera opción del catálogo (ver `design-architect.ts`).
+  const cerebroArquitectura =
+    forjaWebActivo && !trivial
+      ? designArchitecturePrompt(
+          buildDesignArchitecture({
+            brief: promptUsuario,
+            directionId: eleccionDireccion?.direccion.id,
+          })
+        )
+      : null;
+  const forjaWeb =
+    forjaWebActivo && !trivial
+      ? [FORJA_WEB_PROMPT, cerebroArquitectura].filter(Boolean).join("\n\n")
+      : null;
 
   // ——— Qué contexto viaja de verdad ———
   // Se cuenta AQUÍ, junto a las piezas, y con los mismos topes que se aplican

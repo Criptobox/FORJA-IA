@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { ProjectMap } from "@/lib/forja/types";
-import { buildWebStudioPrompt, WEB_STUDIO_STAGES } from "@/lib/forja/web-studio";
+import { WEB_STUDIO_STAGES } from "@/lib/forja/web-studio";
+import { buildCerebroPlan } from "@/lib/forja/cerebro-web";
 import { calculateProjectHealth, type ProjectHealth } from "@/lib/forja/project-health";
 import { scanSecurity, type SecurityReport } from "@/lib/forja/security-center";
 import { useProjectTasks } from "@/lib/forja/project-tasks";
@@ -36,7 +37,6 @@ export function ForjaStudioDialog({
   onRunVisualQA?: () => Promise<QAResult[]>;
 }) {
   const [brief, setBrief] = useState("");
-  const [direction, setDirection] = useState("");
   const [stage, setStage] = useState<"brief"|"plan"|"build"|"qa"|"fix"|"regression"|"publish">("brief");
   const [qa, setQa] = useState<QAResult[] | null>(null);
   const [qaRunning, setQaRunning] = useState(false);
@@ -72,12 +72,12 @@ export function ForjaStudioDialog({
     report.findings.filter(f => f.severity !== "low").slice(0, 8).forEach(f => tasks.add(`Security: ${f.detail}`, "system"));
   };
   const startWebStudio = () => {
-    const prompt = buildWebStudioPrompt({
+    const plan = buildCerebroPlan({
+      task: "create-web",
       brief: brief || "Construye o mejora la interfaz web del proyecto actual según el contexto disponible.",
-      visualDirection: direction,
-      useExistingProject: true,
+      hasExistingProject: true,
     });
-    onStart?.(prompt);
+    onStart?.(plan.prompt);
     setStage("plan");
     onOpenChange(false);
   };
@@ -146,7 +146,9 @@ export function ForjaStudioDialog({
                 <div className="rounded-2xl border border-border/60 bg-card/50 p-4">
                   <div className="mb-3 flex items-center gap-2"><Code2 className="size-4 text-primary" /><h3 className="text-sm font-semibold">Brief del trabajo</h3></div>
                   <Input value={brief} onChange={e => setBrief(e.target.value)} placeholder="Ej.: mejora el hero sin cambiar la identidad…" className="mb-3" />
-                  <Input value={direction} onChange={e => setDirection(e.target.value)} placeholder="Dirección visual opcional: premium, sobrio…" />
+                  <p className="mb-2 rounded-lg border border-primary/15 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                    El Cerebro decide automáticamente la industria, arquitectura y dirección visual para evitar plantillas repetidas.
+                  </p>
                   <Button onClick={startWebStudio} className="mt-3 w-full gap-2"><Play className="size-4" />Iniciar con agente</Button>
                   <p className="mt-2 text-[10px] text-muted-foreground">El prompt obliga a inspeccionar primero y a declarar pruebas reales.</p>
                 </div>

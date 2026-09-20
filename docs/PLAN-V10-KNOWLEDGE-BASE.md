@@ -239,7 +239,19 @@ La biblioteca puede crecer desde decenas de MB hasta varios GB sin mover el cód
    `kb_search` dentro de FORJA WEB (punto 2). Falta el resto: recurrir a
    fuentes externas solo si de verdad falta algo, verificar origen/licencia
    de lo que trae, y dejar en INBOX lo que no sabe clasificar.
-6. **El cerebro consume solo índices**, nunca carpetas completas.
+6. **El cerebro consume solo índices**, nunca carpetas completas —
+   **hecho**, vía `retrieveKB()`/`kbContext()`
+   (`src/lib/forja/knowledge-retrieval.ts`, parte del Cerebro Web
+   descrito en `docs/IMPLEMENTACION-CEREBRO-WEB.md`): filtra primero por
+   metadatos del índice local (categoría, tecnología, tags, nombre) y
+   solo entrega al prompt un contexto compacto con los candidatos que
+   puntuaron, nunca la biblioteca entera. Revisando el código recibido se
+   encontró y corrigió un fallo que rompía justo esta regla: el bonus por
+   estado "clasificado" se sumaba sin condición, así que CUALQUIER
+   recurso clasificado pasaba el filtro `score > 0` aunque no hubiera
+   coincidido en nada — con una biblioteca grande, "selectivo" habría
+   dejado de significar algo. Ahora ese bonus solo desempata entre
+   recursos que ya tenían alguna coincidencia real.
 
 ## 10. Regla principal
 Forja debe usar la Knowledge Base como memoria técnica y visual consultable, no como una carpeta donde se acumula contenido sin control.
