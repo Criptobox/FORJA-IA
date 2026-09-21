@@ -45,7 +45,7 @@ function currentKeys(): VaultPayload {
   }
   let githubToken = "";
   try {
-    githubToken = localStorage.getItem("gh_token") ?? "";
+    githubToken = localStorage.getItem("forja-github-token") ?? localStorage.getItem("gh_token") ?? "";
   } catch {
     /* ignore */
   }
@@ -64,7 +64,10 @@ export async function setVaultPin(pin: string): Promise<void> {
   for (const id of Object.keys(st.providers) as ProviderId[]) {
     if (st.providers[id].apiKey) st.setProviderConfig(id, { apiKey: "" });
   }
-  if (payload.githubToken) localStorage.removeItem("gh_token");
+  if (payload.githubToken) {
+    localStorage.removeItem("forja-github-token");
+    localStorage.removeItem("gh_token");
+  }
   useVault.setState({ enabled: true, unlocked: true });
 }
 
@@ -84,7 +87,7 @@ export async function unlockVault(pin: string): Promise<boolean> {
       st.setProviderConfig(id as ProviderId, { apiKey: key });
     }
   }
-  if (payload.githubToken) localStorage.setItem("gh_token", payload.githubToken);
+  if (payload.githubToken) localStorage.setItem("forja-github-token", payload.githubToken);
   sessionStorage.setItem(SESSION_PIN, pin);
   useVault.setState({ enabled: true, unlocked: true });
   return true;
