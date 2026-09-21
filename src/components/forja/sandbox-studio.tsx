@@ -35,6 +35,7 @@ import {
   Minimize2,
   Play,
   RefreshCw,
+  Rocket,
   RotateCcw,
   Search,
   ShieldCheck,
@@ -47,6 +48,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { accessCodeHeaders } from "@/lib/forja/chat-client";
+import { encodeDeploy, MAX_FRAGMENT_BYTES } from "@/lib/forja/static-deploy";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/forja/use-media-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -590,6 +592,12 @@ export function SandboxStudio({
   const [loading, setLoading] = useState(false);
   const [runHtml, setRunHtml] = useState<string | null>(null);
   const [buildingSandbox, setBuildingSandbox] = useState(false);
+  const [deploying, setDeploying] = useState(false);
+  /** Último enlace de despliegue generado (ver static-deploy.ts): el sitio
+   * entero viaja dentro del propio enlace, así que no hay nada que listar
+   * en ningún sitio — perderlo es perder el despliegue. Se muestra hasta
+   * que el usuario lo cierra o genera uno nuevo. */
+  const [deployUrl, setDeployUrl] = useState<string | null>(null);
   /** Archivos que el HTML pide y no están, con su diagnóstico. Vive en estado
    * y no en un aviso pasajero: el aviso se iba a los pocos segundos y el
    * usuario se quedaba mirando una página pelada sin saber por qué. */
@@ -1423,6 +1431,80 @@ export function SandboxStudio({
     });
   };
 
+  /** Publica el proyecto en un enlace que cualquiera puede abrir, sin GitHub
+   * ni cuenta de hosting: arma el mismo HTML autocontenido que la Vista
+   * previa (compilando antes en el servidor si el proyecto lo necesita) y lo
+   * codifica en el fragmento de una URL de `/d`. Ver static-deploy.ts para
+   * el porqué y el trade-off (enlace largo, no queda listado en ningún
+   * sitio) asumido a propósito. */
+  const deploy = useCallback(async () => {
+    if (deploying) return;
+    setDeploying(true);
+    const id = "sandbox-deploy";
+    toast.loading("Preparando el despliegue…", { id });
+    try {
+      let map = buildFilesMap();
+      const preferred = selPath && isHtmlPath(selPath) ? selPath : null;
+      let entry = pickEntryPath([...map.keys()], preferred);
+
+      if (!entry) {
+        if (!pareceProyectoConBuild([...map.keys()])) {
+          throw new Error("No hay ninguna página HTML que desplegar.");
+        }
+        toast.loading("Instalando dependencias y construyendo…", { id });
+        const files: { path: string; content: string }[] = [];
+        for (const e of Object.values(entries)) {
+          if (e.text !== null) files.push({ path: e.path, content: e.text });
+        }
+        const res = await fetch("/api/repos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...accessCodeHeaders() },
+          body: JSON.stringify({ action: "buildFromFiles", files }),
+        });
+        const j = (await res.json()) as Record<string, unknown>;
+        if (!res.ok) throw new Error(String(j.error ?? `Error ${res.status}`));
+        if (j.status === "no-static-output") {
+          throw new Error(String(j.message ?? "Se compiló, pero no hay salida estática que desplegar."));
+        }
+        const built = (j.files as { path: string; content: string }[]) ?? [];
+        if (!built.length) throw new Error("La build no generó archivos para desplegar.");
+        map = new Map(built.map((f) => [f.path, encodeText(f.content)]));
+        entry = pickEntryPath([...map.keys()]);
+        if (!entry) throw new Error("La build generó archivos, pero ninguno es un HTML de entrada.");
+      }
+
+      toast.loading("Empaquetando el sitio…", { id });
+      const empaquetado = buildRunHtml(entry, map);
+      const { fragment, bytes, tooLarge } = await encodeDeploy(empaquetado.html);
+      if (tooLarge) {
+        throw new Error(
+          `El sitio pesa demasiado para un enlace de despliegue (${Math.round(bytes / 1024)} KB codificados; ` +
+            `máx. ${Math.round(MAX_FRAGMENT_BYTES / 1024)} KB). Reduce imágenes/vídeos pesados o, para un ` +
+            `proyecto grande, usa Repo Studio + GitHub Pages.`
+        );
+      }
+      const url = `${window.location.origin}/d#${fragment}`;
+      setDeployUrl(url);
+      let copiado = false;
+      try {
+        await navigator.clipboard.writeText(url);
+        copiado = true;
+      } catch {
+        /* portapapeles no disponible: igual se muestra el enlace abajo */
+      }
+      toast.success(copiado ? "Desplegado — enlace copiado" : "Desplegado", {
+        id,
+        description: url,
+        duration: 12000,
+      });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      toast.error("No se pudo desplegar", { id, description: message, duration: 15000 });
+    } finally {
+      setDeploying(false);
+    }
+  }, [deploying, buildFilesMap, selPath, entries]);
+
   const createFile = () => {
     const path = newPath.trim().replace(/^\/+/, "");
     if (!path) return;
@@ -1709,6 +1791,21 @@ export function SandboxStudio({
                   )}
                 </Button>
                 <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs"
+                  onClick={() => void deploy()}
+                  disabled={deploying}
+                  title="Genera un enlace que cualquiera puede abrir, sin GitHub ni cuenta de hosting"
+                >
+                  {deploying ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Rocket className="size-3.5" />
+                  )}
+                  Desplegar
+                </Button>
+                <Button
                   variant="ghost"
                   size="sm"
                   className="h-8 gap-1.5 text-xs"
@@ -1719,6 +1816,35 @@ export function SandboxStudio({
                 </Button>
               </div>
             </div>
+            {deployUrl && (
+              <div className="flex items-center gap-2 border-b bg-emerald-500/10 px-4 py-2 text-xs">
+                <Rocket className="size-3.5 shrink-0 text-emerald-600" />
+                <span className="shrink-0 text-emerald-700 dark:text-emerald-400">Desplegado:</span>
+                <Input
+                  readOnly
+                  value={deployUrl}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="h-7 flex-1 font-mono text-[11px]"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 shrink-0 gap-1 text-xs"
+                  onClick={() => void navigator.clipboard.writeText(deployUrl).then(() => toast.success("Enlace copiado"))}
+                >
+                  <Copy className="size-3.5" /> Copiar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 shrink-0 p-0"
+                  onClick={() => setDeployUrl(null)}
+                  title="Cerrar"
+                >
+                  <X className="size-3.5" />
+                </Button>
+              </div>
+            )}
 
             <div
               className={cn(
