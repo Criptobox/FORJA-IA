@@ -48,6 +48,9 @@ const SKIP_DIRS = new Set([
 ]);
 const MAX_LIST = 800;
 const MAX_READ_BYTES = 400 * 1024;
+/** Tope agregado para `buildFromFiles`: el proyecto entero que se escribe en
+ * la carpeta temporal antes de instalar/construir, no un archivo suelto. */
+const MAX_BUILD_TOTAL_BYTES = 20 * 1024 * 1024;
 const BINARY_EXT = new Set([
   ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".tgz",
   ".tar", ".rar", ".7z", ".exe", ".dll", ".so", ".dylib", ".woff", ".woff2",
@@ -545,9 +548,16 @@ export async function POST(req: Request) {
       if (!raw.length) {
         return NextResponse.json({ error: "No se recibió ningún archivo para construir." }, { status: 400 });
       }
+      if (raw.length > MAX_LIST) {
+        return NextResponse.json(
+          { error: `Demasiados archivos para construir (${raw.length}; máx. ${MAX_LIST}).` },
+          { status: 413 }
+        );
+      }
       const tmp = mkdtempSync(join(tmpdir(), "forja-sandbox-build-"));
       try {
         let written = 0;
+        let totalBytes = 0;
         for (const f of raw) {
           const rel = typeof f.path === "string" ? f.path : "";
           const content = typeof f.content === "string" ? f.content : null;
@@ -556,6 +566,19 @@ export async function POST(req: Request) {
           if (rel.includes("..") || rel.startsWith("/") || rel.includes("\0")) continue;
           const full = pathResolve(tmp, rel);
           if (!full.startsWith(tmp + sep) && full !== tmp) continue;
+          // Límites de tamaño: sin esto, un solo archivo o la suma de todos
+          // podía agotar disco/memoria del servidor antes de llegar siquiera
+          // a `npm install` — el mismo tipo de límite que ya protege la
+          // lectura (`MAX_READ_BYTES`), aplicado ahora también a la escritura.
+          const bytes = Buffer.byteLength(content, "utf8");
+          if (bytes > MAX_READ_BYTES) continue;
+          totalBytes += bytes;
+          if (totalBytes > MAX_BUILD_TOTAL_BYTES) {
+            return NextResponse.json(
+              { error: `El proyecto supera el límite de ${MAX_BUILD_TOTAL_BYTES / (1024 * 1024)} MB para construir.` },
+              { status: 413 }
+            );
+          }
           mkdirSync(full.slice(0, full.lastIndexOf(sep)), { recursive: true });
           writeFileSync(full, content, "utf8");
           written++;
