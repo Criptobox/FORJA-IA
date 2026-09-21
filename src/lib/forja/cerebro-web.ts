@@ -13,7 +13,7 @@ import { kbContentContext } from "./kb-content-retrieval";
 import { retrieveSmartKB, retrieveSmartKBWithContent, smartKBContext } from "./kb-smart-retrieval";
 import { searchForjaRecipes, recipeContext } from "./recipe-builder";
 import { recipeCanBeReused } from "./recipe-quality-gate";
-import { recommendSkills, skillsPlanContext } from "./skill-recommender";
+import { buildForjaOrchestration, orchestrationContext } from "./skill-agent-tool-orchestrator";
 import type { SkillItem } from "./types";
 import { visionDesignerPrompt, compactVisionContext, type VisionAnalysis } from "./vision-designer";
 import { buildWebStudioPrompt, type WebStudioOptions } from "./web-studio";
@@ -82,12 +82,17 @@ export function buildCerebroPlan(input: CerebroInput): CerebroPlan {
 
   const results = retrieveSmartKB(input.kb ?? { text: input.brief, limit: 12, codeFirst: true });
 
-  const skillPlan = skillsPlanContext(
-    recommendSkills(
-      { brief: input.brief, taskKind: "web", existingProject: input.hasExistingProject, needsVisualReference: Boolean(input.vision) },
-      input.skills ?? []
-    )
-  );
+  // El orquestador V24 ya calcula y renderiza las skills recomendadas (más
+  // recetas, agentes, presupuesto y gates) en un solo bloque: llamar aparte
+  // a `recommendSkills`/`skillsPlanContext` repetiría el mismo cálculo y
+  // metería la misma lista de skills dos veces en el prompt.
+  const orchestration = buildForjaOrchestration({
+    brief: input.brief,
+    taskKind: "web",
+    existingProject: input.hasExistingProject,
+    needsVisualReference: Boolean(input.vision),
+    skills: input.skills ?? [],
+  });
 
   const visual = input.vision
     ? compactVisionContext(input.vision)
@@ -106,7 +111,7 @@ export function buildCerebroPlan(input: CerebroInput): CerebroPlan {
     studio,
     designArchitecturePrompt(architecture),
     buildAgentRuntimePrompt({ task: input.brief, existingProject: input.hasExistingProject ?? true, maxIterations: 2 }),
-    skillPlan,
+    orchestrationContext(orchestration),
     visual,
     kbContext(results),
     "",

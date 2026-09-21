@@ -6,7 +6,7 @@
  * mano en dos sitios ya hizo que divergieran: Ajustes anunció «v3.1» durante
  * cuatro versiones.
  */
-export const APP_VERSION = process.env.NEXT_PUBLIC_FORJA_VERSION || "4.63.0";
+export const APP_VERSION = process.env.NEXT_PUBLIC_FORJA_VERSION || "4.64.0";
 export const APP_REPO = "Criptobox/FORJA-IA";
 
 /** Commit de esta build (7 caracteres), vacío si no se supo. */
