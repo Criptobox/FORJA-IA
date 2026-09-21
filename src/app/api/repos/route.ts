@@ -23,6 +23,7 @@
  * en un servidor Node (Vercel, un VPS…) para probar esa parte.
  */
 import { guardRequest, guardResponse } from "@/lib/forja/api-guard";
+import { MAX_BUILD_UPLOAD_BYTES } from "@/lib/forja/build-limits";
 import { NextResponse } from "next/server";
 import { spawnSync } from "node:child_process";
 import {
@@ -54,8 +55,12 @@ const SKIP_DIRS = new Set([
 const MAX_LIST = 800;
 const MAX_READ_BYTES = 400 * 1024;
 /** Tope agregado para `buildFromFiles`: el proyecto entero que se escribe en
- * la carpeta temporal antes de instalar/construir, no un archivo suelto. */
-const MAX_BUILD_TOTAL_BYTES = 20 * 1024 * 1024;
+ * la carpeta temporal antes de instalar/construir, no un archivo suelto.
+ * Mismo valor que el cliente comprueba ANTES de mandar la petición (ver
+ * build-limits.ts): por encima de esto, Vercel ya rechazó el cuerpo entero
+ * de la función serverless antes de llegar aquí, así que esta comprobación
+ * es defensa adicional, no la primera línea real de defensa. */
+const MAX_BUILD_TOTAL_BYTES = MAX_BUILD_UPLOAD_BYTES;
 const BINARY_EXT = new Set([
   ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".tgz",
   ".tar", ".rar", ".7z", ".exe", ".dll", ".so", ".dylib", ".woff", ".woff2",

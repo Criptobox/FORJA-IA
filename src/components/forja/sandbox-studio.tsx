@@ -49,6 +49,7 @@ import {
 import { toast } from "sonner";
 import { accessCodeHeaders } from "@/lib/forja/chat-client";
 import { encodeDeploy, MAX_FRAGMENT_BYTES } from "@/lib/forja/static-deploy";
+import { buildUploadSizeError, parseBuildResponse } from "@/lib/forja/build-limits";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/forja/use-media-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -560,6 +561,29 @@ function RegressionPanel({
 
 /** Preferencia de tamaño del Sandbox en escritorio (por dispositivo, no en el store). */
 const CLAVE_MAXIMIZADO = "forja-sandbox-maximizado";
+
+/** Manda el proyecto entero a `/api/repos` (`buildFromFiles`) y devuelve la
+ * respuesta ya parseada. Común a «Construir y previsualizar» y a
+ * «Desplegar»: las dos mandan exactamente el mismo tipo de petición.
+ *
+ * Comprueba el tamaño ANTES de mandar nada: por encima de
+ * MAX_BUILD_UPLOAD_BYTES, Vercel rechaza el cuerpo de la función serverless
+ * con una respuesta de texto plano («Request Entity Too Large»), no JSON.
+ * Sin esta comprobación, `res.json()` revienta con «Unexpected token…» en
+ * vez de decir qué pasó de verdad. */
+async function postBuildFromFiles(
+  files: { path: string; content: string }[]
+): Promise<Record<string, unknown>> {
+  const totalBytes = files.reduce((n, f) => n + encodeText(f.content).length, 0);
+  const sizeError = buildUploadSizeError(totalBytes);
+  if (sizeError) throw new Error(sizeError);
+  const res = await fetch("/api/repos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...accessCodeHeaders() },
+    body: JSON.stringify({ action: "buildFromFiles", files }),
+  });
+  return parseBuildResponse(res.status, await res.text());
+}
 
 export function SandboxStudio({
   open,
@@ -1170,13 +1194,7 @@ export function SandboxStudio({
         }
         files.push({ path: e.path, content: e.text });
       }
-      const res = await fetch("/api/repos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...accessCodeHeaders() },
-        body: JSON.stringify({ action: "buildFromFiles", files }),
-      });
-      const j = (await res.json()) as Record<string, unknown>;
-      if (!res.ok) throw new Error(String(j.error ?? `Error ${res.status}`));
+      const j = await postBuildFromFiles(files);
 
       if (j.status === "no-static-output") {
         toast.info("Se compiló, pero no hay nada estático que previsualizar", {
@@ -1456,13 +1474,7 @@ export function SandboxStudio({
         for (const e of Object.values(entries)) {
           if (e.text !== null) files.push({ path: e.path, content: e.text });
         }
-        const res = await fetch("/api/repos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", ...accessCodeHeaders() },
-          body: JSON.stringify({ action: "buildFromFiles", files }),
-        });
-        const j = (await res.json()) as Record<string, unknown>;
-        if (!res.ok) throw new Error(String(j.error ?? `Error ${res.status}`));
+        const j = await postBuildFromFiles(files);
         if (j.status === "no-static-output") {
           throw new Error(String(j.message ?? "Se compiló, pero no hay salida estática que desplegar."));
         }
