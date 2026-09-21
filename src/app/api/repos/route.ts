@@ -6,18 +6,21 @@
  *  - read  { repoKey, path }      → contenido de un archivo (texto)
  *  - write { repoKey, path, content } → guarda cambios en el disco local
  *  - build { repoKey }            → npm/yarn/pnpm install + build; sirve la salida estática (out/dist/build)
+ *  - buildFromFiles { files }     → igual, pero para un proyecto que solo existe en memoria (el
+ *                                    Sandbox, creado por IA o pegado a mano): se escribe en una
+ *                                    carpeta temporal, se construye igual, y se borra al terminar.
  *
  * Los repos viven en <proyecto>/workspace/repos/<owner>---<repo> (carpeta ignorada por git).
  *
- * `build` instala dependencias y ejecuta el script `build` del proyecto tal
- * cual venga en su `package.json` — a diferencia del resto de acciones, que
- * solo leen/escriben archivos, esto ejecuta código arbitrario del repo
- * (postinstall, el propio build) en el servidor. Requiere un proyecto con
- * salida ESTÁTICA (Vite, CRA, Next con export estático): el Sandbox ejecuta
- * HTML/CSS/JS ya construidos, no un servidor Node en marcha, así que un
- * proyecto con rutas de servidor/SSR real no se puede previsualizar aquí
- * aunque la build termine bien — hace falta desplegarlo en un servidor Node
- * (Vercel, un VPS…) para probar esa parte.
+ * `build`/`buildFromFiles` instalan dependencias y ejecutan el script `build`
+ * del proyecto tal cual venga en su `package.json` — a diferencia del resto
+ * de acciones, que solo leen/escriben archivos, esto ejecuta código
+ * arbitrario (postinstall, el propio build) en el servidor. Requieren un
+ * proyecto con salida ESTÁTICA (Vite, CRA, Next con export estático): el
+ * Sandbox ejecuta HTML/CSS/JS ya construidos, no un servidor Node en marcha,
+ * así que un proyecto con rutas de servidor/SSR real no se puede
+ * previsualizar aquí aunque la build termine bien — hace falta desplegarlo
+ * en un servidor Node (Vercel, un VPS…) para probar esa parte.
  */
 import { guardRequest, guardResponse } from "@/lib/forja/api-guard";
 import { NextResponse } from "next/server";
@@ -26,6 +29,7 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
   readdirSync,
   rmSync,
@@ -146,6 +150,124 @@ export function findStaticOutputDir(root: string): string | null {
 export function trimLog(text: string, max = 4000): string {
   const t = text.trim();
   return t.length > max ? `…\n${t.slice(-max)}` : t;
+}
+
+type BuildRunResult =
+  | { kind: "error"; status: number; error: string; log?: string }
+  | { kind: "no-static-output"; message: string; log: string }
+  | {
+      kind: "built";
+      outputDir: string;
+      packageManager: PackageManager;
+      files: { path: string; content: string }[];
+      skipped: number;
+      truncated: boolean;
+    };
+
+/** Instala dependencias y construye el proyecto que vive en `dir`, sea la
+ * carpeta de un repo clonado o una temporal recién escrita. Común a `build`
+ * (repoKey) y `buildFromFiles` (Sandbox en memoria): ambas acciones acaban
+ * ejecutando exactamente los mismos pasos sobre una carpeta en disco. */
+function runInstallAndBuild(dir: string): BuildRunResult {
+  if (!existsSync(join(dir, "package.json"))) {
+    return { kind: "error", status: 400, error: "El proyecto no tiene package.json: no hay nada que construir." };
+  }
+  if (!hasBuildScript(dir)) {
+    return { kind: "error", status: 400, error: "El package.json no declara un script «build»." };
+  }
+
+  const pm = detectPackageManager(dir);
+  if (!hasPackageManager(pm)) {
+    return {
+      kind: "error",
+      status: 500,
+      error: `No se encontró «${pm}» en el servidor: hace falta para instalar dependencias y construir.`,
+    };
+  }
+
+  const install = spawnSync(pmBin(pm), installArgs(pm), {
+    cwd: dir,
+    encoding: "utf8",
+    timeout: 8 * 60_000,
+    maxBuffer: 20 * 1024 * 1024,
+  });
+  if (install.error || install.status !== 0) {
+    return {
+      kind: "error",
+      status: 500,
+      error: `Falló «${pm} install»`,
+      log: trimLog(`${install.stdout ?? ""}\n${install.stderr ?? ""}`),
+    };
+  }
+
+  const build = spawnSync(pmBin(pm), ["run", "build"], {
+    cwd: dir,
+    encoding: "utf8",
+    timeout: 5 * 60_000,
+    maxBuffer: 20 * 1024 * 1024,
+  });
+  const buildLog = trimLog(`${build.stdout ?? ""}\n${build.stderr ?? ""}`);
+  if (build.error || build.status !== 0) {
+    return { kind: "error", status: 500, error: `Falló «${pm} run build»`, log: buildLog };
+  }
+
+  const outputDirName = findStaticOutputDir(dir);
+  if (!outputDirName) {
+    return {
+      kind: "no-static-output",
+      message:
+        "Se compiló, pero no se generó ninguna salida estática (index.html) en out/, dist/ o build/. " +
+        "Probablemente el proyecto usa rutas de servidor o renderizado en el servidor (SSR): el Sandbox " +
+        "ejecuta HTML/CSS/JS ya construidos, no un servidor Node en marcha. Despliega el proyecto en " +
+        "Vercel o en un servidor Node para probar esa parte.",
+      log: buildLog,
+    };
+  }
+
+  const outputDir = join(dir, outputDirName);
+  const list: { path: string; size: number }[] = [];
+  walkFiles(outputDir, outputDir, list);
+  const files: { path: string; content: string }[] = [];
+  let skipped = 0;
+  for (const f of list) {
+    if (BINARY_EXT.has(extname(f.path).toLowerCase()) || f.size > MAX_READ_BYTES) {
+      skipped++;
+      continue;
+    }
+    try {
+      files.push({ path: f.path, content: readFileSync(join(outputDir, f.path), "utf8") });
+    } catch {
+      skipped++;
+    }
+  }
+  return {
+    kind: "built",
+    outputDir: outputDirName,
+    packageManager: pm,
+    files,
+    skipped,
+    truncated: list.length >= MAX_LIST,
+  };
+}
+
+function buildResultToResponse(result: BuildRunResult): NextResponse {
+  if (result.kind === "error") {
+    return NextResponse.json(
+      { error: result.error, ...(result.log ? { log: result.log } : {}) },
+      { status: result.status }
+    );
+  }
+  if (result.kind === "no-static-output") {
+    return NextResponse.json({ status: "no-static-output", message: result.message, log: result.log });
+  }
+  return NextResponse.json({
+    status: "built",
+    outputDir: result.outputDir,
+    packageManager: result.packageManager,
+    files: result.files,
+    skipped: result.skipped,
+    truncated: result.truncated,
+  });
 }
 
 function ghHeaders(token?: string): HeadersInit {
@@ -411,91 +533,43 @@ export async function POST(req: Request) {
           { status: 404 }
         );
       }
-      if (!existsSync(join(dir, "package.json"))) {
-        return NextResponse.json(
-          { error: "El proyecto no tiene package.json: no hay nada que construir." },
-          { status: 400 }
-        );
-      }
-      if (!hasBuildScript(dir)) {
-        return NextResponse.json(
-          { error: "El package.json no declara un script «build»." },
-          { status: 400 }
-        );
-      }
+      return buildResultToResponse(runInstallAndBuild(dir));
+    }
 
-      const pm = detectPackageManager(dir);
-      if (!hasPackageManager(pm)) {
-        return NextResponse.json(
-          { error: `No se encontró «${pm}» en el servidor: hace falta para instalar dependencias y construir.` },
-          { status: 500 }
-        );
+    // Para un proyecto que solo existe en memoria (el Sandbox, creado por IA
+    // o pegado a mano): no hay `repoKey` ni carpeta en workspace/repos/, así
+    // que se escribe en una carpeta temporal, se construye igual que arriba,
+    // y se borra pase lo que pase — no es un repo que valga la pena conservar.
+    if (action === "buildFromFiles") {
+      const raw = Array.isArray(body.files) ? (body.files as Array<{ path?: unknown; content?: unknown }>) : [];
+      if (!raw.length) {
+        return NextResponse.json({ error: "No se recibió ningún archivo para construir." }, { status: 400 });
       }
-
-      const install = spawnSync(pmBin(pm), installArgs(pm), {
-        cwd: dir,
-        encoding: "utf8",
-        timeout: 8 * 60_000,
-        maxBuffer: 20 * 1024 * 1024,
-      });
-      if (install.error || install.status !== 0) {
-        return NextResponse.json(
-          {
-            error: `Falló «${pm} install»`,
-            log: trimLog(`${install.stdout ?? ""}\n${install.stderr ?? ""}`),
-          },
-          { status: 500 }
-        );
-      }
-
-      const build = spawnSync(pmBin(pm), ["run", "build"], {
-        cwd: dir,
-        encoding: "utf8",
-        timeout: 5 * 60_000,
-        maxBuffer: 20 * 1024 * 1024,
-      });
-      const buildLog = trimLog(`${build.stdout ?? ""}\n${build.stderr ?? ""}`);
-      if (build.error || build.status !== 0) {
-        return NextResponse.json({ error: `Falló «${pm} run build»`, log: buildLog }, { status: 500 });
-      }
-
-      const outputDirName = findStaticOutputDir(dir);
-      if (!outputDirName) {
-        return NextResponse.json({
-          status: "no-static-output",
-          message:
-            "Se compiló, pero no se generó ninguna salida estática (index.html) en out/, dist/ o build/. " +
-            "Probablemente el proyecto usa rutas de servidor o renderizado en el servidor (SSR): el Sandbox " +
-            "ejecuta HTML/CSS/JS ya construidos, no un servidor Node en marcha. Despliega el proyecto en " +
-            "Vercel o en un servidor Node para probar esa parte.",
-          log: buildLog,
-        });
-      }
-
-      const outputDir = join(dir, outputDirName);
-      const list: { path: string; size: number }[] = [];
-      walkFiles(outputDir, outputDir, list);
-      const files: { path: string; content: string }[] = [];
-      let skipped = 0;
-      for (const f of list) {
-        if (BINARY_EXT.has(extname(f.path).toLowerCase()) || f.size > MAX_READ_BYTES) {
-          skipped++;
-          continue;
+      const tmp = mkdtempSync(join(tmpdir(), "forja-sandbox-build-"));
+      try {
+        let written = 0;
+        for (const f of raw) {
+          const rel = typeof f.path === "string" ? f.path : "";
+          const content = typeof f.content === "string" ? f.content : null;
+          if (!rel || content === null) continue;
+          // misma protección que `safeJoin`, pero sin repoKey de por medio.
+          if (rel.includes("..") || rel.startsWith("/") || rel.includes("\0")) continue;
+          const full = pathResolve(tmp, rel);
+          if (!full.startsWith(tmp + sep) && full !== tmp) continue;
+          mkdirSync(full.slice(0, full.lastIndexOf(sep)), { recursive: true });
+          writeFileSync(full, content, "utf8");
+          written++;
         }
-        try {
-          files.push({ path: f.path, content: readFileSync(join(outputDir, f.path), "utf8") });
-        } catch {
-          skipped++;
+        if (!written) {
+          return NextResponse.json(
+            { error: "Ningún archivo recibido tenía una ruta válida para escribir." },
+            { status: 400 }
+          );
         }
+        return buildResultToResponse(runInstallAndBuild(tmp));
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
       }
-      return NextResponse.json({
-        status: "built",
-        outputDir: outputDirName,
-        packageManager: pm,
-        files,
-        skipped,
-        truncated: list.length >= MAX_LIST,
-      });
     }
 
     return NextResponse.json({ error: `Acción desconocida: ${action}` }, { status: 400 });

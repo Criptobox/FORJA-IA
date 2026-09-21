@@ -28,6 +28,7 @@ import {
   FolderOpen,
   GitCompare,
   Github,
+  Hammer,
   Loader2,
   MousePointerClick,
   Maximize2,
@@ -45,6 +46,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { accessCodeHeaders } from "@/lib/forja/chat-client";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/forja/use-media-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -587,6 +589,7 @@ export function SandboxStudio({
   const [openDirs, setOpenDirs] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [runHtml, setRunHtml] = useState<string | null>(null);
+  const [buildingSandbox, setBuildingSandbox] = useState(false);
   /** Archivos que el HTML pide y no están, con su diagnóstico. Vive en estado
    * y no en un aviso pasajero: el aviso se iba a los pocos segundos y el
    * usuario se quedaba mirando una página pelada sin saber por qué. */
@@ -1061,6 +1064,15 @@ export function SandboxStudio({
     return map;
   }, [entries]);
 
+  /** ¿El proyecto que hay AHORA en el Sandbox es de los que necesitan un
+   * paso de build (Vite/Next/CRA…) antes de tener algún HTML? Se usa para
+   * mostrar la caja de «Construir y previsualizar» en vez del prompt
+   * genérico de «Ejecutar» en la pestaña Vista. */
+  const necesitaBuild = useMemo(
+    () => pareceProyectoConBuild(Object.keys(entries)),
+    [entries]
+  );
+
   /** Aplica el arreglo propuesto: cambia en el HTML la referencia rota para
    * que apunte al archivo que sí existe. Se toca el HTML y no se renombra el
    * archivo del usuario — así el cambio sale en la pestaña «Cambios» y se
@@ -1088,6 +1100,115 @@ export function SandboxStudio({
     [entries, entryDeLaVista]
   );
 
+  /** Aplica el resultado ya construido/ejecutable (HTML + recursos) a la
+   * vista previa. Extraído de `run()` para que el resultado de una build
+   * real en el servidor (`buildInSandbox`) pueda reutilizar exactamente el
+   * mismo camino que ejecutar un proyecto sin bundler. */
+  const renderMapInSandbox = useCallback(
+    (map: Map<string, Uint8Array>, entry: string) => {
+      const built = buildRunHtml(entry, map);
+      setFaltantes(diagnosticar(built.missing, [...map.keys()]));
+      setEntryDeLaVista(entry);
+      // el medidor de QA y el runtime del piloto viajan DENTRO del HTML: el sandbox
+      // no deja leer su DOM desde fuera, pero postMessage sí cruza. La exportación
+      // no pasa por aquí: sale limpio.
+      const servido = injectPilot(injectVisualQA(built.html));
+      setRunHtml(servido);
+      setRunKey((k) => k + 1);
+      logsRef.current = [];
+      setLogs([]);
+      // resultados del piloto de la ejecución anterior: ya no describen esta página
+      setPilotoResultados(null);
+      setPanel("vista");
+      setVistaCompleta(true);
+      // instantánea pendiente: se cierra a los 3 s con lo que haya en consola y
+      // la medida de QA que el medidor mande al cargar (regresión visible)
+      // `built.htmlBytes`, no `servido.length`: el peso que se enseña es el del
+      // PROYECTO. Con `servido` se le sumaban los kilobytes del puente de consola,
+      // del medidor de QA y del piloto que Forja inyecta y que nunca salen de
+      // aquí — un peso que el usuario no tiene y no puede bajar.
+      pendienteRef.current = { entry, htmlBytes: built.htmlBytes, startedAt: Date.now() };
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(finalizarSnapshot, 3000);
+      if (built.bareImports.length) {
+        toast.error("Este proyecto importa paquetes de npm", {
+          description: `${built.bareImports.slice(0, 3).join(", ")}… El Sandbox no instala dependencias: solo ejecuta el código del propio proyecto.`,
+        });
+      }
+      // Los archivos que faltan ya NO se cuentan aquí: se quedan en la banda de
+      // la vista previa, que no se va sola. Un aviso de tres segundos delante de
+      // una página sin estilos no es avisar.
+    },
+    [finalizarSnapshot]
+  );
+
+  /** Instala dependencias y construye, en el servidor, el proyecto tal como
+   * está AHORA MISMO en el Sandbox (sin necesidad de que venga de un repo de
+   * GitHub por Repo Studio): útil para lo que va creando el propio chat en
+   * formato Vite/Next/CRA. La salida estática se abre en la misma vista
+   * previa que un proyecto sin bundler. */
+  const buildInSandbox = useCallback(async () => {
+    if (buildingSandbox) return;
+    setBuildingSandbox(true);
+    const id = "sandbox-build";
+    toast.loading("Instalando dependencias y construyendo… puede tardar varios minutos", { id });
+    try {
+      const files: { path: string; content: string }[] = [];
+      let skippedBinary = 0;
+      for (const e of Object.values(entries)) {
+        if (e.text === null) {
+          skippedBinary++;
+          continue;
+        }
+        files.push({ path: e.path, content: e.text });
+      }
+      const res = await fetch("/api/repos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...accessCodeHeaders() },
+        body: JSON.stringify({ action: "buildFromFiles", files }),
+      });
+      const j = (await res.json()) as Record<string, unknown>;
+      if (!res.ok) throw new Error(String(j.error ?? `Error ${res.status}`));
+
+      if (j.status === "no-static-output") {
+        toast.info("Se compiló, pero no hay nada estático que previsualizar", {
+          id,
+          description: String(j.message ?? ""),
+          duration: 12000,
+        });
+        return;
+      }
+
+      const built = (j.files as { path: string; content: string }[]) ?? [];
+      if (!built.length) {
+        toast.error("La build no generó archivos que se puedan previsualizar", { id });
+        return;
+      }
+      const map = new Map(built.map((f) => [f.path, encodeText(f.content)]));
+      const entry = pickEntryPath([...map.keys()]);
+      if (!entry) {
+        toast.error("La build generó archivos, pero ninguno es un HTML de entrada", { id });
+        return;
+      }
+      renderMapInSandbox(map, entry);
+      const skipped = Number(j.skipped ?? 0) + (skippedBinary ? 1 : 0);
+      toast.success("Proyecto construido y en marcha", {
+        id,
+        description: `${built.length} archivos desde ${j.outputDir}/${skipped ? ` · ${skipped} binarios omitidos` : ""}`,
+      });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      const log = e instanceof Error ? (e as Error & { log?: string }).log : undefined;
+      toast.error("No se pudo construir el proyecto", {
+        id,
+        description: log ? `${message}\n\n${log.slice(-500)}` : message,
+        duration: 15000,
+      });
+    } finally {
+      setBuildingSandbox(false);
+    }
+  }, [buildingSandbox, entries, renderMapInSandbox]);
+
   const run = useCallback(() => {
     const map = buildFilesMap();
     const preferred = selPath && isHtmlPath(selPath) ? selPath : null;
@@ -1096,7 +1217,9 @@ export function SandboxStudio({
       if (pareceProyectoConBuild([...map.keys()])) {
         toast.error("Este proyecto necesita compilarse antes de poder verse", {
           description:
-            "Tiene package.json pero ningún HTML: es un proyecto de Vite, Next, CRA… El Sandbox ejecuta archivos tal cual, sin bundler. Si lo abriste desde Repo Studio (modo descargado), usa «Construir y previsualizar» ahí para instalarlo y verlo aquí mismo. Si no, súbelo a GitHub y despliégalo (p. ej. en Vercel) para verlo funcionando.",
+            "Tiene package.json pero ningún HTML: es un proyecto de Vite, Next, CRA… El Sandbox ejecuta archivos tal cual, sin bundler.",
+          action: { label: "Construir y previsualizar", onClick: () => void buildInSandbox() },
+          duration: 15000,
         });
       } else {
         toast.error("No hay ninguna página HTML que ejecutar", {
@@ -1105,39 +1228,8 @@ export function SandboxStudio({
       }
       return;
     }
-    const built = buildRunHtml(entry, map);
-    setFaltantes(diagnosticar(built.missing, [...map.keys()]));
-    setEntryDeLaVista(entry);
-    // el medidor de QA y el runtime del piloto viajan DENTRO del HTML: el sandbox
-    // no deja leer su DOM desde fuera, pero postMessage sí cruza. La exportación
-    // no pasa por aquí: sale limpio.
-    const servido = injectPilot(injectVisualQA(built.html));
-    setRunHtml(servido);
-    setRunKey((k) => k + 1);
-    logsRef.current = [];
-    setLogs([]);
-    // resultados del piloto de la ejecución anterior: ya no describen esta página
-    setPilotoResultados(null);
-    setPanel("vista");
-    setVistaCompleta(true);
-    // instantánea pendiente: se cierra a los 3 s con lo que haya en consola y
-    // la medida de QA que el medidor mande al cargar (regresión visible)
-    // `built.htmlBytes`, no `servido.length`: el peso que se enseña es el del
-    // PROYECTO. Con `servido` se le sumaban los kilobytes del puente de consola,
-    // del medidor de QA y del piloto que Forja inyecta y que nunca salen de
-    // aquí — un peso que el usuario no tiene y no puede bajar.
-    pendienteRef.current = { entry, htmlBytes: built.htmlBytes, startedAt: Date.now() };
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(finalizarSnapshot, 3000);
-    if (built.bareImports.length) {
-      toast.error("Este proyecto importa paquetes de npm", {
-        description: `${built.bareImports.slice(0, 3).join(", ")}… El Sandbox no instala dependencias: solo ejecuta el código del propio proyecto.`,
-      });
-    }
-    // Los archivos que faltan ya NO se cuentan aquí: se quedan en la banda de
-    // la vista previa, que no se va sola. Un aviso de tres segundos delante de
-    // una página sin estilos no es avisar.
-  }, [buildFilesMap, selPath, finalizarSnapshot]);
+    renderMapInSandbox(map, entry);
+  }, [buildFilesMap, selPath, buildInSandbox, renderMapInSandbox]);
 
   /* Al cargar un proyecto (semilla o ZIP) con index.html, abrir directo
    * la vista previa en vez de quedarse en el editor. Lo pide el usuario:
@@ -2198,6 +2290,33 @@ export function SandboxStudio({
                       srcDoc={runHtml}
                       className="min-h-0 h-full w-full flex-1 border-0 bg-white"
                     />
+                  </div>
+                ) : panel === "vista" && necesitaBuild ? (
+                  <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+                    <Hammer className="size-8 text-muted-foreground/40" />
+                    <p className="max-w-[320px] text-xs text-muted-foreground">
+                      Este proyecto tiene <code>package.json</code> pero ningún HTML: es de Vite, Next,
+                      CRA… El Sandbox ejecuta archivos tal cual, sin bundler. Instala dependencias y
+                      construye aquí mismo para verlo.
+                    </p>
+                    <Button
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs"
+                      onClick={() => void buildInSandbox()}
+                      disabled={buildingSandbox}
+                    >
+                      {buildingSandbox ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Hammer className="size-3.5" />
+                      )}
+                      {buildingSandbox ? "Construyendo…" : "Construir y previsualizar"}
+                    </Button>
+                    <p className="max-w-[320px] text-[10.5px] text-muted-foreground/70">
+                      Puede tardar varios minutos. Si el proyecto usa rutas de servidor/SSR real (como la
+                      propia Forja), la build se hace igual pero avisa que hace falta un servidor Node
+                      para verlo en vivo.
+                    </p>
                   </div>
                 ) : panel === "vista" ? (
                   <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
