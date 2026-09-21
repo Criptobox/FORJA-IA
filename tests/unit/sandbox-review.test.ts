@@ -61,6 +61,12 @@ describe("lineAt", () => {
   });
 });
 
+describe("engine version", () => {
+  it("identifica el motor corregido de V29.2", () => {
+    expect(SANDBOX_REVIEW_ENGINE_VERSION).toBe("v29.2.2");
+  });
+});
+
 describe("maskJs", () => {
   it("no cuenta delimitadores dentro de cadenas ni comentarios", () => {
     const code = `const a = "no {cuenta}"; // tampoco }
@@ -76,6 +82,10 @@ function f() { return 1; }`;
   });
   it("no se confunde con la división ni con las expresiones regulares", () => {
     expect(findUnbalanced(maskJs("const r = /[}{]/g; const d = a / b;"))).toBeNull();
+  });
+  it("no marca plantillas con backticks anidados como sintaxis rota", () => {
+    const code = "const html = `${Array.from({ length: 9 }, (_, i) => `\<section>${i}\</section>`).join("")}`;";
+    expect(findUnbalanced(maskJs(code))).toBeNull();
   });
   it("detecta una llave sin cerrar de verdad", () => {
     const bad = findUnbalanced(maskJs("function f() {\n  if (x) {\n    y();\n}\n"));
@@ -206,6 +216,15 @@ describe("reviewProject — archivos que no deberían subirse", () => {
 });
 
 describe("reviewProject — enlaces rotos", () => {
+  it("no trata imports desnudos de paquetes CSS como archivos locales rotos", () => {
+    const r = reviewProject(
+      projectOf({
+        "src/app/globals.css": '@import "tailwindcss";\n@import "tw-animate-css";\nbody{margin:0}',
+        "package.json": '{"dependencies":{"tailwindcss":"^4","tw-animate-css":"^1.3.5"}}',
+      })
+    );
+    expect(r.diagnostics.filter((d) => d.family === "ref")).toHaveLength(0);
+  });
   it("detecta un recurso local que no existe y da su línea", () => {
     const r = reviewProject(
       projectOf({
