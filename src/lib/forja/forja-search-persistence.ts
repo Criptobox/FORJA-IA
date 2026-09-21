@@ -27,7 +27,10 @@ function stableStringify(value: unknown): string {
   return `{${Object.keys(obj).sort().map(k => `${JSON.stringify(k)}:${stableStringify(obj[k])}`).join(",")}}`;
 }
 
-function fingerprint(document: ForjaSearchDocument): string {
+/** Huella estable de un documento (id+path+texto+metadata). Exportada para
+ * que otros mecanismos de sincronización (p. ej. forja-sync-watcher.ts, V29)
+ * detecten altas/cambios/bajas con el mismo criterio, sin duplicar la lógica. */
+export function fingerprint(document: ForjaSearchDocument): string {
   const input = `${document.id}\n${document.path ?? ""}\n${document.text}\n${stableStringify(document.metadata ?? {})}`;
   let hash = 2166136261;
   for (let i = 0; i < input.length; i += 1) {
