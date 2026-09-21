@@ -1096,7 +1096,7 @@ export function SandboxStudio({
       if (pareceProyectoConBuild([...map.keys()])) {
         toast.error("Este proyecto necesita compilarse antes de poder verse", {
           description:
-            "Tiene package.json pero ningún HTML: es un proyecto de Vite, Next, CRA… El Sandbox ejecuta archivos tal cual, sin bundler. Súbelo a GitHub y despliégalo (p. ej. en Vercel) para verlo funcionando.",
+            "Tiene package.json pero ningún HTML: es un proyecto de Vite, Next, CRA… El Sandbox ejecuta archivos tal cual, sin bundler. Si lo abriste desde Repo Studio (modo descargado), usa «Construir y previsualizar» ahí para instalarlo y verlo aquí mismo. Si no, súbelo a GitHub y despliégalo (p. ej. en Vercel) para verlo funcionando.",
         });
       } else {
         toast.error("No hay ninguna página HTML que ejecutar", {

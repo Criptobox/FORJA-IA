@@ -143,6 +143,7 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 | 🎯 **Recomendación con el porqué** | Mientras escribes: «Tarea: página web → kimi-k2 · Tarea de UI: buen historial y gratis». La razón sale del historial REAL del proyecto (un modelo que acumula reintentos deja de recomendarse) con botón Usar. |
 | ⬆️ **Subida a GitHub que no miente** | Se sube a la rama por defecto **del repo** (antes se asumía `main`: en uno con `master` se creaba un commit huérfano, el error se ignoraba y la app cantaba «¡Completado!» con GitHub intacto). Al terminar se comprueba que la rama apunta de verdad al commit subido. Si algo falla, el motivo se queda **escrito**, con el detalle de GitHub y qué hacer: 401 reconecta, 403 falta el alcance «repo», 404 el token no ve ese repo. Y si no se puede leer el árbol base, para — seguir habría borrado el resto de archivos del repo. |
 | 🚀 **Publicar en GitHub Pages** | Botón en Repo Studio: sube el workflow de Actions, habilita Pages y devuelve la URL viva. Prompt → sitio publicado sin salir de Forja. Y los commits sin mensaje salen con significado: «Añade galería, actualiza index.html». |
+| 🔨 **Construir y previsualizar (Vite, Next, CRA…)** | El Sandbox ejecuta HTML/CSS/JS tal cual, sin bundler — pero en Repo Studio (modo descargado) el botón «Construir y previsualizar» instala dependencias y corre el `build` real del proyecto en el servidor, y abre la salida estática (`out/`, `dist/` o `build/`) en el Sandbox. Si el proyecto usa rutas de servidor/SSR de verdad (como la propia Forja), la build se hace igual pero avisa que hace falta un servidor Node — Vercel, un VPS… — para probar esa parte en vivo. |
 | ✉️ **Marketing con la identidad del proyecto** | `/email`, `/carrusel` y `/poster`: HTML de email a prueba de Gmail/Outlook, carrusel 1080×1080 y póster editorial — todos con la paleta/tipografía de tu dirección de diseño, no una plantilla desconectada. |
 
 ## 🔒 Si lo publicas en internet
@@ -154,9 +155,17 @@ Al desplegarlo en Vercel o un VPS quedan expuestas, así que:
   bucle local y los metadatos de la nube (`169.254.169.254`, que devuelven
   credenciales de la instancia) están bloqueados, y las redirecciones se
   revalidan salto a salto.
-- **`/api/repos`** clona, lee y **escribe** en el disco del servidor. En
-  producción queda **desactivada** salvo que definas `FORJA_ACCESS_CODE`.
+- **`/api/repos`** clona, lee y **escribe** en el disco del servidor, y su
+  acción `build` además **ejecuta código del propio repo** (`npm install` +
+  el script `build` que traiga, incluidos sus `postinstall`). En producción
+  queda **desactivada** salvo que definas `FORJA_ACCESS_CODE`.
 - Ninguna ruta acepta peticiones desde otra web.
+
+`build` necesita un servidor Node que siga vivo entre el `install` y el
+`build` (varios minutos) y disco persistente entre peticiones: no funciona
+en una función serverless efímera con límite de tiempo corto. Para
+autoalojar Forja con esto habilitado, usa un VPS/contenedor con Node
+persistente, no el modo serverless por defecto de Vercel.
 
 Define `FORJA_ACCESS_CODE` en tu proveedor y cópialo en **Ajustes → Chat**.
 Mira [`.env.example`](.env.example) para el detalle.

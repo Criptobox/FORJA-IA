@@ -12,6 +12,7 @@ import {
   FileText,
   FolderGit2,
   GitCompare,
+  Hammer,
   HardDrive,
   Loader2,
   Play,
@@ -98,6 +99,7 @@ function LocalRepoPanel({
   const [showDiff, setShowDiff] = useState(false);
   const gate = useReviewGate();
   const [loadingAll, setLoadingAll] = useState(false);
+  const [building, setBuilding] = useState(false);
   const [instruction, setInstruction] = useState("");
   const [fixing, setFixing] = useState(false);
   const [pushing, setPushing] = useState(false);
@@ -116,7 +118,12 @@ function LocalRepoPanel({
       body: JSON.stringify(payload),
     });
     const j = (await res.json()) as Record<string, unknown>;
-    if (!res.ok) throw new Error(String(j.error ?? `Error ${res.status}`));
+    if (!res.ok) {
+      // Se cuelga el resto del cuerpo (p. ej. `log` de una build fallida) en
+      // el propio Error, para que quien lo necesite lo lea sin cambiar la
+      // forma en que el resto de llamadas ya consume este helper.
+      throw Object.assign(new Error(String(j.error ?? `Error ${res.status}`)), j);
+    }
     return j;
   };
 
@@ -401,6 +408,50 @@ ${content}`,
     }
   };
 
+  /** Construye el proyecto en el servidor (npm/yarn/pnpm install + build) y
+   * abre la salida estática (out/dist/build) en el Sandbox — para proyectos
+   * de Vite, CRA o Next con export estático que el Sandbox no puede
+   * ejecutar tal cual, por necesitar un paso de build antes de tener HTML.
+   * Puede tardar varios minutos: instala dependencias de verdad. */
+  const buildAndPreview = async () => {
+    if (!info || building) return;
+    setBuilding(true);
+    const id = "repo-build";
+    toast.loading("Instalando dependencias y construyendo… puede tardar varios minutos", { id });
+    try {
+      const j = await api({ action: "build", repoKey: info.repoKey });
+      if (j.status === "no-static-output") {
+        toast.info("Se compiló, pero no hay nada estático que previsualizar", {
+          id,
+          description: String(j.message ?? ""),
+          duration: 12000,
+        });
+        return;
+      }
+      const list = (j.files as { path: string; content: string }[]) ?? [];
+      const skipped = Number(j.skipped ?? 0);
+      if (!list.length) {
+        toast.error("La build no generó archivos que se puedan previsualizar", { id });
+        return;
+      }
+      onOpenInSandbox({ name: `${info.owner}/${info.repo} (build: ${j.outputDir})`, files: list });
+      toast.success("Proyecto construido y abierto en el Sandbox", {
+        id,
+        description: `${list.length} archivos desde ${j.outputDir}/${skipped ? ` · ${skipped} binarios omitidos` : ""}`,
+      });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      const log = e instanceof Error ? (e as Error & { log?: string }).log : undefined;
+      toast.error("No se pudo construir el proyecto", {
+        id,
+        description: log ? `${message}\n\n${log.slice(-500)}` : message,
+        duration: 15000,
+      });
+    } finally {
+      setBuilding(false);
+    }
+  };
+
   const tryInSandbox = () => {
     if (!selPath || !isHtmlPath(selPath)) return;
     onOpenInSandbox({
@@ -462,6 +513,21 @@ ${content}`,
                   <Box className="size-3" />
                 )}
                 Todo el repo al Sandbox
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-[11px]"
+                onClick={() => void buildAndPreview()}
+                disabled={building}
+                title="Instala dependencias y construye el proyecto (Vite, Next, CRA…) para previsualizar la salida estática en el Sandbox"
+              >
+                {building ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <Hammer className="size-3" />
+                )}
+                Construir y previsualizar
               </Button>
               <a
                 href={repoUrl}

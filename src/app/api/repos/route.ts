@@ -5,8 +5,19 @@
  *  - list  { repoKey }            → lista de archivos editables
  *  - read  { repoKey, path }      → contenido de un archivo (texto)
  *  - write { repoKey, path, content } → guarda cambios en el disco local
+ *  - build { repoKey }            → npm/yarn/pnpm install + build; sirve la salida estática (out/dist/build)
  *
  * Los repos viven en <proyecto>/workspace/repos/<owner>---<repo> (carpeta ignorada por git).
+ *
+ * `build` instala dependencias y ejecuta el script `build` del proyecto tal
+ * cual venga en su `package.json` — a diferencia del resto de acciones, que
+ * solo leen/escriben archivos, esto ejecuta código arbitrario del repo
+ * (postinstall, el propio build) en el servidor. Requiere un proyecto con
+ * salida ESTÁTICA (Vite, CRA, Next con export estático): el Sandbox ejecuta
+ * HTML/CSS/JS ya construidos, no un servidor Node en marcha, así que un
+ * proyecto con rutas de servidor/SSR real no se puede previsualizar aquí
+ * aunque la build termine bien — hace falta desplegarlo en un servidor Node
+ * (Vercel, un VPS…) para probar esa parte.
  */
 import { guardRequest, guardResponse } from "@/lib/forja/api-guard";
 import { NextResponse } from "next/server";
@@ -74,6 +85,67 @@ function dirHasContent(dir: string): boolean {
 function hasGit(): boolean {
   const r = spawnSync("git", ["--version"], { encoding: "utf8", timeout: 8000 });
   return !r.error && r.status === 0;
+}
+
+export type PackageManager = "npm" | "yarn" | "pnpm";
+
+/** El binario según plataforma: en Windows los ejecutables de npm/yarn/pnpm
+ * instalados por su instalador oficial son `.cmd`, no el nombre pelado. */
+function pmBin(pm: PackageManager): string {
+  return process.platform === "win32" ? `${pm}.cmd` : pm;
+}
+
+/** Por el lockfile presente, no por preferencia: usar el gestor con el que
+ * el proyecto se instaló de verdad evita resultados distintos a los de su
+ * propio autor (versiones resueltas distintas entre npm/yarn/pnpm). */
+export function detectPackageManager(dir: string): PackageManager {
+  if (existsSync(join(dir, "pnpm-lock.yaml"))) return "pnpm";
+  if (existsSync(join(dir, "yarn.lock"))) return "yarn";
+  return "npm";
+}
+
+function hasPackageManager(pm: PackageManager): boolean {
+  const r = spawnSync(pmBin(pm), ["--version"], { encoding: "utf8", timeout: 8000 });
+  return !r.error && r.status === 0;
+}
+
+function installArgs(pm: PackageManager): string[] {
+  return pm === "npm" ? ["install", "--no-audit", "--no-fund"] : ["install"];
+}
+
+/** ¿El `package.json` declara un script `build`? Sin eso no hay nada que
+ * ejecutar, y lanzar `npm run build` igualmente solo produciría un error
+ * de npm menos claro que decirlo aquí directamente. */
+export function hasBuildScript(dir: string): boolean {
+  try {
+    const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+    return Boolean(pkg.scripts?.build);
+  } catch {
+    return false;
+  }
+}
+
+/** Carpetas de salida estática más comunes (Next `output: "export"`, Vite,
+ * CRA), en ese orden. La primera con un `index.html` en su raíz es la
+ * salida real del build: sin ese archivo, es una carpeta vieja de un build
+ * anterior que falló a medias, o de otra herramienta. */
+const STATIC_OUTPUT_CANDIDATES = ["out", "dist", "build"] as const;
+
+export function findStaticOutputDir(root: string): string | null {
+  for (const name of STATIC_OUTPUT_CANDIDATES) {
+    if (existsSync(join(root, name, "index.html"))) return name;
+  }
+  return null;
+}
+
+/** Recorta un log de proceso a sus últimos `max` caracteres: lo último es
+ * lo que de verdad explica un fallo (el error real, no el ruido de arriba),
+ * y evita mandar megabytes de salida de npm en la respuesta. */
+export function trimLog(text: string, max = 4000): string {
+  const t = text.trim();
+  return t.length > max ? `…\n${t.slice(-max)}` : t;
 }
 
 function ghHeaders(token?: string): HeadersInit {
@@ -328,6 +400,102 @@ export async function POST(req: Request) {
       mkdirSync(full.slice(0, full.lastIndexOf(sep)), { recursive: true });
       writeFileSync(full, content, "utf8");
       return NextResponse.json({ ok: true, size: Buffer.byteLength(content, "utf8") });
+    }
+
+    if (action === "build") {
+      const repoKey = String(body.repoKey ?? "");
+      const dir = safeJoin(repoKey, ".");
+      if (!dirHasContent(dir)) {
+        return NextResponse.json(
+          { error: "El repositorio no está descargado. Ábrelo de nuevo." },
+          { status: 404 }
+        );
+      }
+      if (!existsSync(join(dir, "package.json"))) {
+        return NextResponse.json(
+          { error: "El proyecto no tiene package.json: no hay nada que construir." },
+          { status: 400 }
+        );
+      }
+      if (!hasBuildScript(dir)) {
+        return NextResponse.json(
+          { error: "El package.json no declara un script «build»." },
+          { status: 400 }
+        );
+      }
+
+      const pm = detectPackageManager(dir);
+      if (!hasPackageManager(pm)) {
+        return NextResponse.json(
+          { error: `No se encontró «${pm}» en el servidor: hace falta para instalar dependencias y construir.` },
+          { status: 500 }
+        );
+      }
+
+      const install = spawnSync(pmBin(pm), installArgs(pm), {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 8 * 60_000,
+        maxBuffer: 20 * 1024 * 1024,
+      });
+      if (install.error || install.status !== 0) {
+        return NextResponse.json(
+          {
+            error: `Falló «${pm} install»`,
+            log: trimLog(`${install.stdout ?? ""}\n${install.stderr ?? ""}`),
+          },
+          { status: 500 }
+        );
+      }
+
+      const build = spawnSync(pmBin(pm), ["run", "build"], {
+        cwd: dir,
+        encoding: "utf8",
+        timeout: 5 * 60_000,
+        maxBuffer: 20 * 1024 * 1024,
+      });
+      const buildLog = trimLog(`${build.stdout ?? ""}\n${build.stderr ?? ""}`);
+      if (build.error || build.status !== 0) {
+        return NextResponse.json({ error: `Falló «${pm} run build»`, log: buildLog }, { status: 500 });
+      }
+
+      const outputDirName = findStaticOutputDir(dir);
+      if (!outputDirName) {
+        return NextResponse.json({
+          status: "no-static-output",
+          message:
+            "Se compiló, pero no se generó ninguna salida estática (index.html) en out/, dist/ o build/. " +
+            "Probablemente el proyecto usa rutas de servidor o renderizado en el servidor (SSR): el Sandbox " +
+            "ejecuta HTML/CSS/JS ya construidos, no un servidor Node en marcha. Despliega el proyecto en " +
+            "Vercel o en un servidor Node para probar esa parte.",
+          log: buildLog,
+        });
+      }
+
+      const outputDir = join(dir, outputDirName);
+      const list: { path: string; size: number }[] = [];
+      walkFiles(outputDir, outputDir, list);
+      const files: { path: string; content: string }[] = [];
+      let skipped = 0;
+      for (const f of list) {
+        if (BINARY_EXT.has(extname(f.path).toLowerCase()) || f.size > MAX_READ_BYTES) {
+          skipped++;
+          continue;
+        }
+        try {
+          files.push({ path: f.path, content: readFileSync(join(outputDir, f.path), "utf8") });
+        } catch {
+          skipped++;
+        }
+      }
+      return NextResponse.json({
+        status: "built",
+        outputDir: outputDirName,
+        packageManager: pm,
+        files,
+        skipped,
+        truncated: list.length >= MAX_LIST,
+      });
     }
 
     return NextResponse.json({ error: `Acción desconocida: ${action}` }, { status: 400 });
