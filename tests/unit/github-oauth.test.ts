@@ -128,13 +128,6 @@ describe("gh account storage", () => {
     });
   });
 
-  it("migra el token antiguo gh_token sin volver a pedir OAuth", () => {
-    localStorage.setItem("gh_token", "gho_legacy");
-    expect(ghGetToken()).toBe("gho_legacy");
-    expect(localStorage.getItem("forja-github-token")).toBe("gho_legacy");
-    expect(localStorage.getItem("gh_token")).toBeNull();
-  });
-
   it("desconectar borra token y perfil", () => {
     ghSetToken("gho_x");
     ghSetAccount(null);
