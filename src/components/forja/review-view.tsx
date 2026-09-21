@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import {
   blockingKeys,
   reviewProject,
+  SANDBOX_REVIEW_ENGINE_VERSION,
   type Diagnostic,
   type ReviewFile,
   type ReviewLevel,
@@ -190,6 +191,7 @@ export function ReviewBanner({
           {report.counts.warn === 1 ? "aviso" : "avisos"} · {report.counts.info}{" "}
           {report.counts.info === 1 ? "sugerencia" : "sugerencias"}
         </p>
+        <p className="mt-1 text-[10px] text-muted-foreground/70">Motor de revisión {SANDBOX_REVIEW_ENGINE_VERSION}</p>
       </div>
     </div>
   );

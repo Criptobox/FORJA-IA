@@ -133,8 +133,7 @@ export function useGithubAccount(): {
     throw new Error("Se acabó el tiempo. Vuelve a pulsar Conectar.");
   }, []);
 
-  const connect = useCallback(() => {
-    setBusy(true);
+  const openGithubAuthorization = useCallback(() => {
     const url = "/api/github/oauth/start";
     const w =
       window.open(url, "forja-github", "popup=yes,width=620,height=740") || window.open(url, "_blank");
@@ -183,6 +182,34 @@ export function useGithubAccount(): {
       }
     })();
   }, [pollDevice]);
+
+  const connect = useCallback(() => {
+    // Si GitHub ya estaba conectado en este dispositivo, no debemos volver a
+    // registrar una GitHub App. El flujo anterior abría el manifest cada vez
+    // que faltaba la cookie HttpOnly del servidor y GitHub rechazaba el nombre
+    // "Forja IA" por estar ya ocupado.
+    const existing = ghGetAccount();
+    if (existing?.token) {
+      setBusy(true);
+      void ghResolveAccount(existing.token, existing.source)
+        .then((full) => {
+          ghSetAccount(full);
+          setAccount(full);
+          toast.success(full.login ? `GitHub ya estaba conectado como @${full.login}` : "GitHub ya estaba conectado");
+        })
+        .catch(() => {
+          ghSetAccount(null);
+          setAccount(null);
+          toast.info("La conexión guardada de GitHub ya no es válida. Se iniciará una nueva autorización.");
+          openGithubAuthorization();
+        })
+        .finally(() => setBusy(false));
+      return;
+    }
+    setBusy(true);
+    openGithubAuthorization();
+  }, [openGithubAuthorization]);
+
 
   return { account, token: account?.token ?? "", busy, connect, disconnect, refresh };
 }
