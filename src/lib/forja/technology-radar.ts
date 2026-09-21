@@ -54,7 +54,7 @@ const RADAR: TechnologyRadarEntry[] = [
   { id: "data-prep-kit", name: "Data Prep Kit", area: "data", description: "Preparación y transformación de grandes colecciones de datos.", license: "Apache-2.0", maturity: "candidate", integration: "reference", localFriendly: true, costProfile: "free-open-source", signals: ["dataset", "data", "prepare", "corpus", "clean"], source: "llm-engineer-toolkit" },
 ];
 
-const norm = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const norm = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export function listTechnologyRadar(): TechnologyRadarEntry[] {
   return RADAR.map((entry) => ({ ...entry, signals: [...entry.signals], caveats: entry.caveats ? [...entry.caveats] : undefined }));
@@ -113,4 +113,19 @@ export function technologyRadarContext(matches: TechnologyRadarMatch[]): string 
     "Candidatos de arquitectura; no son instalaciones ni activaciones automáticas.",
     ...matches.map((entry) => `- ${entry.name} [${entry.area}] score=${entry.score}: ${entry.description}${entry.caveats?.length ? ` Cautelas: ${entry.caveats.join(" ")}` : ""}`),
   ].join("\n");
+}
+
+/** V28: mezcla entradas externas ya validadas (ver technology-radar-registry.ts)
+ * con el catálogo propio. Nunca ejecuta ni instala nada — solo agrega datos al
+ * listado que `recommendRadarTools` puede puntuar. Una entrada externa con el
+ * mismo `id` que una ya conocida no reemplaza a la propia: el catálogo interno
+ * manda. */
+export function mergeTechnologyRadarEntries(external: TechnologyRadarEntry[]): TechnologyRadarEntry[] {
+  const byId = new Map(RADAR.map((entry) => [entry.id, entry]));
+  for (const entry of external) {
+    if (!entry.id || !entry.name || !entry.description || !entry.license || !entry.area) continue;
+    if (byId.has(entry.id)) continue;
+    byId.set(entry.id, { ...entry, signals: [...entry.signals], caveats: entry.caveats ? [...entry.caveats] : undefined });
+  }
+  return [...byId.values()];
 }

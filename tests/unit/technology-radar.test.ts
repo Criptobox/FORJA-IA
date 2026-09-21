@@ -4,7 +4,9 @@ import {
   getTechnologyRadarEntry,
   recommendRadarTools,
   technologyRadarContext,
+  mergeTechnologyRadarEntries,
   type RadarArea,
+  type TechnologyRadarEntry,
 } from "@/lib/forja/technology-radar";
 
 const ALL_AREAS: RadarArea[] = [
@@ -70,6 +72,38 @@ describe("recommendRadarTools", () => {
   it("sin ninguna señal en el brief: no devuelve nada por relleno", () => {
     const matches = recommendRadarTools({ brief: "xyz sin relación alguna" });
     expect(matches).toHaveLength(0);
+  });
+});
+
+describe("mergeTechnologyRadarEntries (V28)", () => {
+  const externa: TechnologyRadarEntry = {
+    id: "externa-nueva", name: "Externa Nueva", area: "agents", description: "candidata externa",
+    license: "MIT", maturity: "candidate", integration: "reference", localFriendly: true,
+    costProfile: "free-open-source", signals: ["externa"],
+  };
+
+  it("agrega una entrada externa nueva al catálogo", () => {
+    const merged = mergeTechnologyRadarEntries([externa]);
+    expect(merged.some((e) => e.id === "externa-nueva")).toBe(true);
+    expect(merged.length).toBe(listTechnologyRadar().length + 1);
+  });
+
+  it("una entrada externa con el mismo id que una propia NO la reemplaza", () => {
+    const suplantacion: TechnologyRadarEntry = { ...externa, id: "ollama", name: "Ollama Falso" };
+    const merged = mergeTechnologyRadarEntries([suplantacion]);
+    expect(merged.find((e) => e.id === "ollama")?.name).toBe("Ollama");
+  });
+
+  it("descarta entradas externas sin los campos mínimos, sin lanzar", () => {
+    const incompleta = { ...externa, id: "", name: "" } as TechnologyRadarEntry;
+    const merged = mergeTechnologyRadarEntries([incompleta]);
+    expect(merged.length).toBe(listTechnologyRadar().length);
+  });
+
+  it("no muta el catálogo interno: llamarlo dos veces no acumula duplicados", () => {
+    mergeTechnologyRadarEntries([externa]);
+    const merged = mergeTechnologyRadarEntries([externa]);
+    expect(merged.filter((e) => e.id === "externa-nueva")).toHaveLength(1);
   });
 });
 
