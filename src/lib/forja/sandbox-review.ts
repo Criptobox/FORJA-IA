@@ -47,6 +47,9 @@ export interface Diagnostic {
   hint?: string;
 }
 
+/** Identificador de la revisión que corrige los falsos positivos de V29.2. */
+export const SANDBOX_REVIEW_ENGINE_VERSION = "v29.2.3";
+
 export interface ReviewReport {
   diagnostics: Diagnostic[];
   counts: Record<ReviewLevel, number>;
@@ -95,6 +98,57 @@ export function maskJs(code: string): string {
       if (out[i] !== "\n") out[i] = " ";
     }
   };
+
+  // Para el chequeo de equilibrio no necesitamos interpretar el contenido de
+  // una plantilla. Lo importante es no confundir los backticks anidados que
+  // aparecen dentro de ${...} con el cierre de la plantilla exterior. Esta
+  // rutina localiza el backtick correcto y enmascara TODO su contenido. La
+  // sintaxis real del JS sigue siendo responsabilidad del parser/build.
+  const skipTemplate = (start: number): number => {
+    let i = start + 1;
+    while (i < code.length) {
+      const c = code[i];
+      if (c === "\\") { i += 2; continue; }
+      if (c === "`") return i + 1;
+      if (c === "$" && code[i + 1] === "{") {
+        let depth = 1;
+        i += 2;
+        while (i < code.length && depth > 0) {
+          const d = code[i];
+          const n = code[i + 1];
+          if (d === "\\") { i += 2; continue; }
+          if (d === "'" || d === '"') {
+            const q = d;
+            i++;
+            while (i < code.length) {
+              if (code[i] === "\\") { i += 2; continue; }
+              if (code[i] === q) { i++; break; }
+              i++;
+            }
+            continue;
+          }
+          if (d === "/" && n === "/") {
+            i += 2;
+            while (i < code.length && code[i] !== "\n") i++;
+            continue;
+          }
+          if (d === "/" && n === "*") {
+            const close = code.indexOf("*/", i + 2);
+            i = close < 0 ? code.length : close + 2;
+            continue;
+          }
+          if (d === "`") { i = skipTemplate(i); continue; }
+          if (d === "{") depth++;
+          else if (d === "}") depth--;
+          i++;
+        }
+        continue;
+      }
+      i++;
+    }
+    return code.length;
+  };
+
   let i = 0;
   let prevSignificant = "";
   while (i < code.length) {
@@ -103,59 +157,42 @@ export function maskJs(code: string): string {
     if (c === "/" && next === "/") {
       let j = i + 2;
       while (j < code.length && code[j] !== "\n") j++;
-      blank(i, j);
-      i = j;
-      continue;
+      blank(i, j); i = j; continue;
     }
     if (c === "/" && next === "*") {
       const j = code.indexOf("*/", i + 2);
       const end = j < 0 ? code.length : j + 2;
-      blank(i, end);
+      blank(i, end); i = end; continue;
+    }
+    if (c === '`') {
+      const end = skipTemplate(i);
+      blank(i + 1, end - 1);
       i = end;
+      prevSignificant = '`';
       continue;
     }
-    if (c === '"' || c === "'" || c === "`") {
+    if (c === '"' || c === "'") {
       let j = i + 1;
       while (j < code.length) {
-        if (code[j] === "\\") {
-          j += 2;
-          continue;
-        }
-        if (code[j] === c) break;
-        // una comilla sin cerrar no debe tragarse el resto del archivo
-        if (c !== "`" && code[j] === "\n") break;
+        if (code[j] === "\\") { j += 2; continue; }
+        if (code[j] === c || code[j] === "\n") break;
         j++;
       }
-      blank(i + 1, j); // se conservan las comillas: no afectan al balance
-      i = Math.min(j + 1, code.length);
-      prevSignificant = c;
-      continue;
+      blank(i + 1, j); i = Math.min(j + 1, code.length); prevSignificant = c; continue;
     }
     if (c === "/" && (prevSignificant === "" || /[(,=:[!&|?{};+\-*%~^<>]/.test(prevSignificant))) {
-      // posible literal de expresión regular
-      let j = i + 1;
-      let closed = false;
-      let inClass = false;
+      let j = i + 1, closed = false, inClass = false;
       while (j < code.length) {
         const d = code[j];
-        if (d === "\\") {
-          j += 2;
-          continue;
-        }
+        if (d === "\\") { j += 2; continue; }
         if (d === "\n") break;
         if (d === "[") inClass = true;
         else if (d === "]") inClass = false;
-        else if (d === "/" && !inClass) {
-          closed = true;
-          break;
-        }
+        else if (d === "/" && !inClass) { closed = true; break; }
         j++;
       }
       if (closed) {
-        blank(i + 1, j);
-        i = j + 1;
-        prevSignificant = "/";
-        continue;
+        blank(i + 1, j); i = j + 1; prevSignificant = "/"; continue;
       }
     }
     if (!/\s/.test(c)) prevSignificant = c;
@@ -206,19 +243,23 @@ export function maskCss(code: string): string {
 export function findUnbalanced(
   masked: string
 ): { index: number; expected: string; found: string } | null {
-  const pairs: Record<string, string> = { ")": "(", "]": "[", "}": "{" };
-  const stack: { ch: string; index: number }[] = [];
+  // El Sandbox usa esta comprobación como detector rápido, no como parser JS.
+  // Nos centramos en llaves de bloque/objeto: es la señal más útil y evita
+  // falsos positivos de paréntesis dentro de regex y plantillas complejas.
+  let depth = 0;
+  let first = -1;
   for (let i = 0; i < masked.length; i++) {
     const c = masked[i];
-    if (c === "(" || c === "[" || c === "{") stack.push({ ch: c, index: i });
-    else if (c === ")" || c === "]" || c === "}") {
-      const top = stack.pop();
-      if (!top) return { index: i, expected: "", found: c };
-      if (top.ch !== pairs[c]) return { index: i, expected: top.ch, found: c };
+    if (c === "{") {
+      depth++;
+      if (first < 0) first = i;
+    } else if (c === "}") {
+      if (depth === 0) return { index: i, expected: "", found: "}" };
+      depth--;
+      if (depth === 0) first = -1;
     }
   }
-  const left = stack.pop();
-  return left ? { index: left.index, expected: left.ch, found: "" } : null;
+  return depth > 0 ? { index: first, expected: "{", found: "" } : null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -622,6 +663,16 @@ export function fileDiagnostics(f: ReviewFile, known: Set<string>): Diagnostic[]
     if (isHtmlPath(path) || extOf(path) === "css") {
       const seen = new Set<string>();
       for (const hit of extractRefs(path, text)) {
+        // CSS @import también puede apuntar a un paquete de npm (Tailwind v4,
+        // tw-animate-css, etc.). Un import desnudo que no existe como archivo
+        // local NO es un enlace roto: lo resuelve el bundler/PostCSS durante el build.
+        // Un @import CSS sin ./, ../ ni / es un nombre de paquete (p. ej.
+        // Tailwind v4 o tw-animate-css). Nunca lo conviertas en una referencia
+        // local solo porque el paquete no aparezca como archivo del proyecto.
+        const rawRef = hit.raw.trim();
+        const isCssPackageImport =
+          hit.attr === "@import" && !/^(?:[./]|\/)/.test(rawRef);
+        if (isCssPackageImport && !known.has(hit.target)) continue;
         if (known.has(hit.target) || seen.has(hit.target)) continue;
         seen.add(hit.target);
         if (!budget("ref")) break;
