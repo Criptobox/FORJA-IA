@@ -1,50 +1,36 @@
 # FASE V29 — Forja Sync Watcher
 
-Propaga cambios de una fuente (MEGA/GitHub/Sandbox/Drive) al índice de Forja Search sin reconstruirlo entero, reusando el sistema de huellas (`fingerprint`) de V26.
+Coordina la sincronización de una fuente (MEGA/GitHub/Sandbox/Drive) hacia el índice de Forja Search, reusando `syncForjaSearchIndex` (V26) para el diffing incremental por fingerprint — sin reconstruir el índice entero en cada vuelta.
 
-## Aviso de procedencia — importante
+## Aviso de procedencia
 
-El ZIP subido para esta fase llegó **corrupto**: tenía ~1,3 MB de datos de otra fase pegados después del final real de un ZIP más chico y sin relación (un demo de "web hamburguesa"). Se recuperó el contenido real parseando las cabeceras del ZIP a mano (sin depender del índice central, que faltaba): 397 de 398 archivos recuperados con CRC verificado byte a byte.
+El ZIP subido originalmente para esta fase llegó **corrupto**: tenía ~1,3 MB de otra fase pegados después del final real de un ZIP más chico y sin relación. Se recuperó casi todo el contenido parseando las cabeceras a mano, pero `forja-sync-watcher.ts` (la implementación) no estaba — solo sobrevivió su test. Claude reconstruyó una implementación propia a partir de ese test más la descripción de la fase.
 
-Pero **`src/lib/forja/forja-sync-watcher.ts` (la implementación) nunca estuvo en el archivo** — solo sobrevivió su test, `forja-sync-watcher.test.ts`. La implementación de este archivo fue **reconstruida por Claude** a partir de:
-1. Lo que el test exige exactamente (ver más abajo qué está CONFIRMADO por él).
-2. La descripción de la fase que dio el usuario (el diagrama y la lista de puntos).
+**Esa reconstrucción quedó reemplazada.** El ZIP de la fase siguiente (V30) traía, sin corrupción, una copia intacta de `forja-sync-watcher.ts` — el original real. Se adoptó esa versión completa en su lugar; la reconstrucción de Claude ya no está en el repo. Los dos tests del ZIP original pasan contra ella sin cambios.
 
-Esto significa que el código que corre hoy en `forja-sync-watcher.ts` **no es necesariamente el original que se construyó fuera de esta sesión** — es una reconstrucción de buena fe, funcionalmente compatible con el único artefacto que sobrevivió (el test), pero puede diferir del original en detalles no cubiertos por ese test.
+## API real (confirmada por el archivo original)
 
-## Qué está CONFIRMADO por el test recuperado
-
-- `createForjaSyncWatcher(index, options)` con `intervalMs`/`debounceMs` opcionales.
-- `.sync(loader)`: ejecuta el loader, indexa el resultado, y notifica `changed: true/false` según si algo cambió respecto a la sincronización anterior de esa misma `key`.
-- `.subscribe(listener)`: recibe cada evento de sincronización.
-- `.requestSync(loader)`: agrupa llamadas rápidas — dos seguidas dentro de `debounceMs` terminan en una sola ejecución del loader.
-- `.stop()`: existe y se puede llamar sin argumentos.
-
-## Qué es INTERPRETACIÓN (no confirmado por ningún test original)
-
-- El desglose `added`/`updated`/`removed` en el evento (el test solo mira `changed`).
-- `.watch(loader)` y el polling por `intervalMs` — el test constructor pasa `intervalMs` pero nunca llama a `watch()` ni verifica polling.
-- La protección contra sincronizaciones concurrentes (cola de promesas: cada `sync()`/`requestSync()` espera a que termine la anterior antes de correr).
-- Los tipos `SyncSource`/`SyncBatch`/`SyncLoader` como contrato para futuros adaptadores (V30) — nombres e forma razonados a partir de la descripción, no verificados contra un archivo real.
-- Que una entrada externa no reemplaza fingerprints entre `key` distintas (aislamiento por proyecto/repo).
-
-Todo lo de esta segunda lista tiene tests propios en `tests/unit/forja-sync-watcher.test.ts` (además de los dos del test original), pero son tests que Claude escribió para su propia reconstrucción — no una verificación contra un original perdido.
+- `class ForjaSyncWatcher` / `createForjaSyncWatcher(index, options)` — `intervalMs` (piso de 5000ms) y `debounceMs` (piso 0, por defecto 750ms).
+- `.sync(loader)`: llama a `syncForjaSearchIndex(snapshot.key, index, snapshot.documents)` y devuelve un `ForjaSyncEvent` con `result` (el mismo `{added, updated, removed, unchanged, persisted}` de V26) y `changed`.
+- **Concurrencia**: si ya hay una sincronización en curso, una llamada nueva a `.sync()` NO se encola ni espera — devuelve de inmediato un evento `{source: "unknown", key: "busy", changed: false}` sin tocar el índice. (Nota: esto es distinto de lo que asumió la reconstrucción descartada, que encolaba en vez de descartar.)
+- `.requestSync(loader)`: debounce — agrupa llamadas seguidas.
+- `.start(loader)`: sincroniza de inmediato y arranca el polling cada `intervalMs`. `.stop()` corta ambos.
+- `.subscribe(listener)` devuelve función de cancelación. `.isRunning()`.
 
 ## Flujo
 
-`MEGA / GitHub / Sandbox / Drive → Sync Watcher → ¿qué cambió? (alta/cambio/baja vía fingerprint) → Forja Search → Knowledge Base → Technology Radar → Cerebro`
+`MEGA / GitHub / Sandbox / Drive → Sync Watcher → syncForjaSearchIndex (V26) → Forja Search → Knowledge Base → Technology Radar → Cerebro`
 
 ## Reglas de seguridad
 
-- Un `SyncLoader` solo entrega datos (documentos de texto ya leídos); el watcher nunca ejecuta ni evalúa nada que reciba.
-- No maneja ni guarda credenciales — un adaptador real es responsable de autenticarse por su cuenta.
+- Un loader solo entrega datos (documentos de texto); el watcher nunca ejecuta ni evalúa nada que reciba.
+- No maneja ni guarda credenciales.
 
 ## Archivos
 
 - `src/lib/forja/forja-sync-watcher.ts`.
-- `src/lib/forja/forja-search-persistence.ts`: `fingerprint()` ahora exportada, para que este módulo la reuse en vez de duplicarla.
-- Tests: `tests/unit/forja-sync-watcher.test.ts` (2 casos recuperados del ZIP + 6 propios: desglose del evento, aislamiento entre `key`, concurrencia, polling con y sin `intervalMs`, cancelar una suscripción).
+- Tests: `tests/unit/forja-sync-watcher.test.ts` — los 2 casos del ZIP original + 6 propios (desglose de `result`, aislamiento entre `key`, la concurrencia que DESCARTA en vez de encolar, `start()`/`stop()` con el piso de 5000ms, cancelar una suscripción).
 
 ## Pendiente
 
-Sin adaptadores reales todavía (MEGA/GitHub/Sandbox/Drive) — eso es V30. Este módulo define el contrato (`SyncSource`, `SyncBatch`, `SyncLoader`) que esos adaptadores van a implementar, pero nada lo llama todavía desde la app.
+Sin adaptadores reales al momento de escribir esto — llegan en V30 (`forja-sync-sources.ts`).
