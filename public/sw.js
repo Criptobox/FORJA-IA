@@ -8,11 +8,13 @@
  * los soltaba aunque el servidor tuviera el nuevo. Con v5, el activate
  * borra todo lo que no empiece por 'prism-ai-v5' y se queda limpio.
  *
+ * v9 (V29.2.3): bump para invalidar el caché de una PWA que pudiera conservar el revisor anterior.
+ *
  * v8 (4.26.0): rebrand a Forja IA — nuevo prefijo de VERSION a propósito,
  * para que el logo y los iconos viejos cacheados no sobrevivan al cambio
  * de marca en ningún navegador.
  */
-const VERSION = 'forja-ia-v8';
+const VERSION = 'forja-ia-v9';
 const PAGE_CACHE = `${VERSION}-pages`;
 const PRECACHE = ['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 
