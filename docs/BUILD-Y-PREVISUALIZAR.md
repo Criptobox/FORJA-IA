@@ -42,7 +42,7 @@ A diferencia del resto de acciones de `/api/repos` (que solo leen/escriben archi
 
 `buildFromFiles` escribe en una carpeta temporal (`mkdtempSync`) con la misma protección de rutas que `safeJoin` (sin `..`, sin ruta absoluta, sin byte nulo, y verificación de que la ruta resuelta sigue dentro de la carpeta temporal) y la borra siempre en un `finally`, incluso si el build falla o lanza una excepción.
 
-También requiere un servidor Node persistente (no una función serverless efímera): el `install`+`build` puede tardar varios minutos y necesita que el proceso y el disco sigan vivos entre esos pasos.
+También requiere un servidor Node persistente (no una función serverless efímera): el `install`+`build` puede tardar varios minutos y necesita que el proceso y el disco sigan vivos entre esos pasos. En Vercel esa ruta declara `export const maxDuration = 60` (el tope que funciona igual en Hobby que en Pro sin cambiar configuración) para no cortarse a los ~10-15 s por defecto — pero un proyecto grande, en frío y sin caché de npm entre invocaciones, todavía puede superar esos 60 s. Si eso pasa, la única forma de que termine es correr Forja en un servidor Node propio (no Vercel) o construir el proyecto fuera y subir ya el resultado.
 
 ## Archivos
 
