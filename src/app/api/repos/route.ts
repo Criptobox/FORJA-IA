@@ -40,6 +40,11 @@ import { join, resolve as pathResolve, extname, sep } from "node:path";
 import { tmpdir } from "node:os";
 
 export const runtime = "nodejs";
+/* `build`/`buildFromFiles` corren `npm install` + `build` de verdad: sin esto
+ * Vercel corta la función a los ~10-15 s por defecto, mucho antes de que un
+ * proyecto real termine de instalar dependencias. 60 s es el máximo que
+ * funciona igual en Hobby que en Pro sin tocar la configuración del proyecto. */
+export const maxDuration = 60;
 
 const REPOS_DIR = join(process.cwd(), "workspace", "repos");
 const SKIP_DIRS = new Set([
