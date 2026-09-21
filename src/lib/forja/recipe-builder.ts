@@ -36,6 +36,13 @@ export interface ForjaRecipe {
   qualityReasons?: string[];
   qualityCheckedAt?: string;
   qaEvidence?: boolean;
+  feedback?: {
+    uses: number;
+    passed: number;
+    failed: number;
+    lastOutcome?: "passed" | "failed" | "neutral";
+    lastAt?: string;
+  };
 }
 
 const STORAGE_KEY = "forja-recipes";
@@ -102,6 +109,7 @@ export function buildForjaRecipe(query: KBSmartQuery, results: KBSmartResult[], 
     createdAt: now,
     updatedAt: now,
     usageCount: 0,
+    feedback: { uses: 0, passed: 0, failed: 0 },
   };
 }
 
@@ -125,7 +133,10 @@ export function searchForjaRecipes(text: string, limit = 8): ForjaRecipe[] {
   if (!terms.length) return [];
   return read().filter((recipe) => recipe.qualityStatus !== "rejected").map((recipe) => {
     const haystack = norm([recipe.name, recipe.description, recipe.query, recipe.technology || "", ...recipe.components.map((c) => c.name), ...recipe.patterns].join(" "));
-    const score = terms.reduce((sum, term) => sum + (haystack.includes(term) ? 10 : 0), 0);
+    const matches = terms.reduce((sum, term) => sum + (haystack.includes(term) ? 10 : 0), 0);
+    const feedback = recipe.feedback;
+    const demotion = feedback && feedback.uses >= 3 && feedback.failed > feedback.passed ? 50 : 0;
+    const score = matches - demotion;
     return { recipe, score };
   }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score || b.recipe.updatedAt.localeCompare(a.recipe.updatedAt)).slice(0, limit).map((x) => x.recipe);
 }

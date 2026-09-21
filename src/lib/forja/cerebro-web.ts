@@ -13,6 +13,8 @@ import { kbContentContext } from "./kb-content-retrieval";
 import { retrieveSmartKB, retrieveSmartKBWithContent, smartKBContext } from "./kb-smart-retrieval";
 import { searchForjaRecipes, recipeContext } from "./recipe-builder";
 import { recipeCanBeReused } from "./recipe-quality-gate";
+import { recommendSkills, skillsPlanContext } from "./skill-recommender";
+import type { SkillItem } from "./types";
 import { visionDesignerPrompt, compactVisionContext, type VisionAnalysis } from "./vision-designer";
 import { buildWebStudioPrompt, type WebStudioOptions } from "./web-studio";
 
@@ -31,6 +33,7 @@ export interface CerebroInput {
   kb?: KBRetrievalQuery;
   vision?: VisionAnalysis;
   hasExistingProject?: boolean;
+  skills?: SkillItem[];
 }
 
 export interface CerebroPlan {
@@ -79,6 +82,13 @@ export function buildCerebroPlan(input: CerebroInput): CerebroPlan {
 
   const results = retrieveSmartKB(input.kb ?? { text: input.brief, limit: 12, codeFirst: true });
 
+  const skillPlan = skillsPlanContext(
+    recommendSkills(
+      { brief: input.brief, taskKind: "web", existingProject: input.hasExistingProject, needsVisualReference: Boolean(input.vision) },
+      input.skills ?? []
+    )
+  );
+
   const visual = input.vision
     ? compactVisionContext(input.vision)
     : visionDesignerPrompt(0);
@@ -96,6 +106,7 @@ export function buildCerebroPlan(input: CerebroInput): CerebroPlan {
     studio,
     designArchitecturePrompt(architecture),
     buildAgentRuntimePrompt({ task: input.brief, existingProject: input.hasExistingProject ?? true, maxIterations: 2 }),
+    skillPlan,
     visual,
     kbContext(results),
     "",
