@@ -1,3 +1,12 @@
+
+## 2026-09-21 — V29.2.1 / 4.67.3 — Revisión Sandbox sin falsos positivos
+
+- Corregido el analizador de referencias CSS: `@import "tailwindcss"` y `@import "tw-animate-css"` se consideran imports de paquetes del build, no enlaces locales rotos.
+- Corregido el detector ligero de sintaxis JS para no marcar como rotos archivos válidos con templates/backticks complejos; la comprobación rápida se concentra en llaves de bloque/objeto.
+- Añadidas regresiones para ambos casos.
+- Verificado con `node --check` el `public/motor-forja.mjs` y los verificadores del adapter-test.
+- Dependencias confirmadas: `tailwindcss` y `tw-animate-css` están declaradas en `package.json`.
+
 ---
 Task ID: 2
 Agent: Super Z (main agent)
