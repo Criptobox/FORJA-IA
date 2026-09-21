@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { retrieveProjectKnowledge, projectKnowledgeContext } from "@/lib/forja/kb-project-retrieval";
+import { retrieveProjectKnowledge, projectKnowledgeContext, buildProjectSearchIndex } from "@/lib/forja/kb-project-retrieval";
 import type { KBRepoAnalysis } from "@/lib/forja/kb-repo-analyzer";
 
 const project: KBRepoAnalysis = {
@@ -48,5 +48,38 @@ describe("kb-project-retrieval", () => {
   it("el componente exacto puntúa por encima de un archivo que solo casa en texto libre", () => {
     const hits = retrieveProjectKnowledge({ text: "algo", component: "ProductCard" }, [project]);
     expect(hits[0]?.file?.componentNames).toContain("ProductCard");
+  });
+
+  describe("prefiltro con Forja Search (V25)", () => {
+    it("con índice, encuentra los mismos resultados que sin índice para un brief largo", () => {
+      // El prefiltro busca cada PALABRA de `q.text` por separado (no la
+      // frase completa como un solo trigrama): si buscara la frase entera,
+      // los trigramas que cruzan palabras vecinas diluirían el ratio de
+      // coincidencia real de "FilterDrawer" entre ruido irrelevante, y con
+      // un corpus grande podría quedar fuera del prefiltro aunque el
+      // ranking real sí lo hubiera encontrado.
+      const q = { text: "necesito ayuda urgente con el componente FilterDrawer roto en mi tienda", component: "FilterDrawer" };
+      const withoutIndex = retrieveProjectKnowledge(q, [project]);
+      const index = buildProjectSearchIndex([project]);
+      const withIndex = retrieveProjectKnowledge(q, [project], index);
+      expect(withIndex.map((h) => h.file?.path ?? h.project.id)).toEqual(withoutIndex.map((h) => h.file?.path ?? h.project.id));
+      expect(withIndex[0]?.file?.componentNames).toContain("FilterDrawer");
+    });
+
+    it("descarta proyectos que ni el índice ni la consulta relacionan", () => {
+      const other: KBRepoAnalysis = {
+        ...project,
+        id: "p2",
+        name: "blog-cms",
+        technologies: ["Vue"],
+        frameworks: [],
+        components: ["PostCard"],
+        patterns: [],
+        files: [{ path: "src/components/PostCard.vue", sizeBytes: 20, kind: "source", technology: ["Vue"], componentNames: ["PostCard"], patterns: [] }],
+      };
+      const index = buildProjectSearchIndex([project, other]);
+      const hits = retrieveProjectKnowledge({ text: "filtro", component: "FilterDrawer" }, [project, other], index);
+      expect(hits.every((h) => h.project.id === "p1")).toBe(true);
+    });
   });
 });

@@ -4,6 +4,7 @@
  * manifiesto de un ZIP/repositorio sin volver a leer el proyecto completo.
  */
 import type { KBRepoAnalysis, KBRepoFile } from "./kb-repo-analyzer";
+import { ForjaSearchIndex } from "./forja-search";
 
 export interface KBProjectQuery {
   text: string;
@@ -22,6 +23,46 @@ export interface KBProjectHit {
 
 const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const tokens = (s: string) => norm(s).split(/[^a-z0-9áéíóúüñ]+/i).filter(x => x.length > 2).slice(0, 20);
+
+/** Indexa proyectos y archivos para reducir el universo de candidatos antes
+ * del ranking estructural de `retrieveProjectKnowledge` (V25). */
+export function buildProjectSearchIndex(projects: KBRepoAnalysis[]): ForjaSearchIndex {
+  const index = new ForjaSearchIndex();
+  for (const project of projects) {
+    index.add({
+      id: `project:${project.id}`,
+      text: [project.name, ...project.technologies, ...project.frameworks, ...project.components, ...project.patterns].join(" "),
+      metadata: { kind: "project", projectId: project.id },
+    });
+    for (const file of project.files) {
+      index.add({
+        id: `file:${project.id}:${file.path}`,
+        path: file.path,
+        text: [file.path, ...file.technology, ...file.componentNames, ...file.patterns].join(" "),
+        metadata: { kind: "file", projectId: project.id },
+      });
+    }
+  }
+  return index;
+}
+
+/**
+ * Palabras de `q.text` en vez del texto completo tal cual: una consulta con
+ * un brief largo ("necesito un componente de carrito y navbar para...")
+ * habría generado trigramas que cruzan límites de palabra sobre TODA la
+ * frase, diluyendo el ratio de coincidencia de un documento realmente
+ * relevante (p. ej. "navbar") entre docenas de trigramas irrelevantes de
+ * palabras vecinas. Buscar cada palabra por separado (la misma
+ * tokenización que ya usa `scoreFile`/el scoring de proyecto) mantiene el
+ * prefiltro alineado con lo que el ranking final de verdad comprueba, en
+ * vez de arriesgarse a descartar de entrada una coincidencia real.
+ */
+function indexedCandidateIds(index: ForjaSearchIndex, q: KBProjectQuery): Set<string> {
+  const queries = [...tokens(q.text), q.component, q.pattern, q.technology].filter(Boolean) as string[];
+  const ids = new Set<string>();
+  for (const query of queries) for (const hit of index.search(query, 80)) ids.add(hit.id);
+  return ids;
+}
 
 function scoreFile(file: KBRepoFile, q: KBProjectQuery): { score: number; reasons: string[] } {
   let score = 0;
@@ -44,9 +85,12 @@ function scoreFile(file: KBRepoFile, q: KBProjectQuery): { score: number; reason
 export function retrieveProjectKnowledge(
   q: KBProjectQuery,
   projects: KBRepoAnalysis[],
+  searchIndex?: ForjaSearchIndex,
 ): KBProjectHit[] {
   const hits: KBProjectHit[] = [];
+  const candidateIds = searchIndex ? indexedCandidateIds(searchIndex, q) : null;
   for (const project of projects) {
+    if (candidateIds && !candidateIds.has(`project:${project.id}`) && !project.files.some(file => candidateIds.has(`file:${project.id}:${file.path}`))) continue;
     const projectText = norm([project.name, project.technologies.join(" "), project.frameworks.join(" "), project.components.join(" "), project.patterns.join(" ")].join(" "));
     let projectScore = 0;
     const projectReasons: string[] = [];
@@ -59,6 +103,7 @@ export function retrieveProjectKnowledge(
 
     if (projectScore > 0) hits.push({ project, score: projectScore, reasons: [...new Set(projectReasons)] });
     for (const file of project.files) {
+      if (candidateIds && !candidateIds.has(`file:${project.id}:${file.path}`) && !candidateIds.has(`project:${project.id}`)) continue;
       const local = scoreFile(file, q);
       if (local.score > 0) hits.push({ project, file, score: local.score + projectScore * 0.25, reasons: [...new Set([...local.reasons, ...projectReasons])] });
     }
