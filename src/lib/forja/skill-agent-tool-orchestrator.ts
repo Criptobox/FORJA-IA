@@ -11,6 +11,7 @@ import { searchForjaRecipes } from "./recipe-builder";
 import { recipeCanBeReused } from "./recipe-quality-gate";
 import { recipeConfidence, shouldDemoteRecipe } from "./recipe-feedback";
 import type { KBSmartQuery } from "./kb-smart-retrieval";
+import { recommendRadarTools, type RadarArea, type TechnologyRadarMatch } from "./technology-radar";
 
 export interface OrchestratorInput {
   brief: string;
@@ -27,6 +28,9 @@ export interface OrchestratorInput {
   maxRecipes?: number;
   maxContextChars?: number;
   maxToolCalls?: number;
+  radarAreas?: RadarArea[];
+  radarLocalOnly?: boolean;
+  maxRadarTools?: number;
 }
 
 export interface OrchestratedSkill {
@@ -69,6 +73,7 @@ export interface ForjaOrchestrationPlan {
   budget: AgentBudget;
   contextSources: string[];
   gates: string[];
+  technologyRadar: TechnologyRadarMatch[];
 }
 
 const DEFAULT_BUDGET: AgentBudget = {
@@ -110,6 +115,14 @@ export function buildForjaOrchestration(input: OrchestratorInput): ForjaOrchestr
   // recetas buenas que habrían sobrevivido el filtro, y devolver menos
   // resultados (incluso cero) aunque existan recetas reutilizables reales.
   const recipePoolSize = Math.max(6, input.maxRecipes ?? 6);
+
+  const technologyRadar = recommendRadarTools({
+    brief: input.brief,
+    areas: input.radarAreas,
+    localOnly: input.radarLocalOnly,
+    limit: input.maxRadarTools ?? 5,
+  });
+
   const recipes = searchForjaRecipes(input.brief, recipePoolSize)
     .filter(recipeCanBeReused)
     .filter((recipe) => !shouldDemoteRecipe(recipe))
@@ -178,6 +191,7 @@ export function buildForjaOrchestration(input: OrchestratorInput): ForjaOrchestr
     budget,
     contextSources,
     gates,
+    technologyRadar,
   };
 }
 
@@ -188,6 +202,7 @@ export function orchestrationContext(plan: ForjaOrchestrationPlan): string {
     `Agentes: ${plan.agents.map((a) => a.agent).join(" → ")}`,
     plan.skills.length ? `Skills recomendadas: ${plan.skills.map((s) => `${s.name}${s.required ? " [IMPORTANTE]" : ""}`).join(", ")}` : "Skills recomendadas: ninguna adicional.",
     plan.recipes.length ? `Recetas candidatas: ${plan.recipes.map((r) => `${r.name} (${r.confidence}/100)`).join(", ")}` : "Recetas candidatas: ninguna.",
+    plan.technologyRadar.length ? `Radar tecnológico: ${plan.technologyRadar.map((r) => `${r.name} (${r.score})`).join(", ")}` : "Radar tecnológico: ningún candidato.",
     `Fuentes de contexto: ${plan.contextSources.join(", ")}`,
     `Presupuesto: ${plan.budget.maxToolCalls} llamadas · ${plan.budget.maxContextChars} caracteres · ${plan.budget.maxIterations} iteraciones`,
     "Gates:",

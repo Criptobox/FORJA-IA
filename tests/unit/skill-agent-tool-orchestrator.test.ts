@@ -58,6 +58,30 @@ describe("skill-agent-tool-orchestrator", () => {
     expect(query.text).toBe("dashboard React");
   });
 
+  describe("technology radar (V27)", () => {
+    it("incluye candidatos del radar cuando el brief trae señales", () => {
+      const plan = buildForjaOrchestration({ brief: "necesito RAG con recuperación de documentos" });
+      expect(plan.technologyRadar.length).toBeGreaterThan(0);
+      expect(orchestrationContext(plan)).toContain("Radar tecnológico:");
+    });
+
+    it("sin señales de radar en el brief: plan vacío de radar, no ausente", () => {
+      const plan = buildForjaOrchestration({ brief: "tienda" });
+      expect(plan.technologyRadar).toEqual([]);
+      expect(orchestrationContext(plan)).toContain("Radar tecnológico: ningún candidato.");
+    });
+
+    it("respeta radarAreas y maxRadarTools", () => {
+      const plan = buildForjaOrchestration({
+        brief: "rag agent embeddings evaluation routing local offline",
+        radarAreas: ["rag"],
+        maxRadarTools: 1,
+      });
+      expect(plan.technologyRadar).toHaveLength(1);
+      expect(plan.technologyRadar[0].area).toBe("rag");
+    });
+  });
+
   describe("pool de recetas (localStorage)", () => {
     beforeEach(() => stubLocalStorage());
 
