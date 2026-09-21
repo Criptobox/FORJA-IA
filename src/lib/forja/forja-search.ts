@@ -100,6 +100,11 @@ export class ForjaSearchIndex {
 
   get size(): number { return this.documents.size; }
 
+  /** IDs de todo lo indexado ahora mismo — para que quien sincroniza (p. ej.
+   * forja-search-persistence.ts) sepa qué borrar cuando un documento ya no
+   * viene en la lista nueva, sin tener que llevar esa lista por su cuenta. */
+  getDocumentIds(): string[] { return [...this.documents.keys()]; }
+
   search(query: string, limit = 20): ForjaSearchHit[] {
     const q = norm(query).trim();
     if (!q) return [];

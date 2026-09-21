@@ -44,6 +44,13 @@ describe("ForjaSearchIndex", () => {
     expect(restored.search("ProductCard")[0]?.path).toBe("Card.tsx");
   });
 
+  it("getDocumentIds() lista lo indexado ahora, sin lo ya eliminado", () => {
+    const index = new ForjaSearchIndex();
+    index.addMany([{ id: "a", text: "x" }, { id: "b", text: "y" }]);
+    index.remove("a");
+    expect(index.getDocumentIds()).toEqual(["b"]);
+  });
+
   it("el snapshot no incluye postings derivables: solo los documentos", () => {
     // `restore()` siempre recalcula los trigramas desde `documents` (misma
     // función `grams()`), así que guardar además los postings solo duplica
