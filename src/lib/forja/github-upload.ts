@@ -44,7 +44,18 @@ const MAX_BYTES_PER_BATCH = 12 * 1024 * 1024;
 // ——— token local ———
 export function ghGetToken(): string {
   try {
-    return localStorage.getItem(TOKEN_KEY) ?? "";
+    const current = localStorage.getItem(TOKEN_KEY) ?? "";
+    if (current) return current;
+    // Compatibilidad con versiones antiguas que guardaban el token como
+    // `gh_token` (la bóveda también usaba ese nombre). Si existe, se migra
+    // inmediatamente al almacenamiento canónico y se elimina el duplicado.
+    const legacy = localStorage.getItem("gh_token") ?? "";
+    if (legacy) {
+      localStorage.setItem(TOKEN_KEY, legacy);
+      localStorage.removeItem("gh_token");
+      return legacy;
+    }
+    return "";
   } catch {
     return "";
   }
