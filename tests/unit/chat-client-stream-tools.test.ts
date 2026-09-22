@@ -1,1 +1,111 @@
-LyoqIFRlc3QgdW5pdGFyaW8gZGUgYHN0cmVhbUNoYXRgIGNvbiB0b29sX2NhbGxzIEZSQUdNRU5UQURPUyBlbiBlbCBzdHJlYW0uCiAqCiAqIEdyb3EgeSBPcGVuUm91dGVyIHRyb2NlYW4gdW4gdG9vbF9jYWxsIGVuIHZhcmlvcyBkZWx0YXMgU1NFOiBlbCBwcmltZXJvCiAqIHRyYWUgaWQgKyBub21icmUgY29uIGBhcmd1bWVudHM6ICIiYCwgeSBsb3Mgc2lndWllbnRlcyB0cmFlbiB0cm96b3MgZGVsCiAqIEpTT04gc2luIHJlcGV0aXIgZWwgaWQg4oCUIHNvbG8gZWwgYGluZGV4YCBkZWwgd2lyZSBsb3MgYWdydXBhLiBTaSBlbAogKiBjbGllbnRlIG5vIGFjdW11bGEgcG9yIGBpbmRleGAsIGxhIGxsYW1hZGEgbGxlZ2Egcm90YS4KICoKICogRWwgc3RyZWFtIGRlIGVzdGUgdGVzdCByZXBsaWNhIEJZVEUgQSBCWVRFIGxvIHF1ZSBlbWl0ZSBlbCBtb2RlbG8KICogYG1vY2stdG9vbHMtZnJhZ21lbnRhZG9gIGRlIC9hcGkvbW9jay1sbG0uICovCmltcG9ydCB7IGRlc2NyaWJlLCBpdCwgZXhwZWN0LCB2aSwgYWZ0ZXJFYWNoIH0gZnJvbSAidml0ZXN0IjsKCmNvbnN0IHNldHRpbmdzTW9jayA9IHsgYWNjZXNzQ29kZTogIiIgfTsKdmkubW9jaygiLi4vLi4vc3JjL2xpYi9mb3JqYS9zdG9yZSIsICgpID0+ICh7CiAgdXNlRm9yamE6IHsgZ2V0U3RhdGU6ICgpID0+ICh7IHNldHRpbmdzOiBzZXR0aW5nc01vY2sgfSkgfSwKfSkpOwoKdmkubW9jaygiLi4vLi4vc3JjL2xpYi9mb3JqYS9hdHRhY2htZW50LWJsb2IiLCAoKSA9PiAoewogIHJlc29sdmVBdHRhY2htZW50RGF0YVVybDogYXN5bmMgKGE6IHsgZGF0YVVybD86IHN0cmluZzsgYmxvYklkPzogc3RyaW5nIH0pID0+IGEuZGF0YVVybCA/PyBudWxsLAp9KSk7CgppbXBvcnQgeyBzdHJlYW1DaGF0IH0gZnJvbSAiLi4vLi4vc3JjL2xpYi9mb3JqYS9jaGF0LWNsaWVudCI7CmltcG9ydCB0eXBlIHsgUHJvdmlkZXJDb25maWcgfSBmcm9tICIuLi8uLi9zcmMvbGliL2ZvcmphL3R5cGVzIjsKaW1wb3J0IHsgREVGQVVMVF9TRVRUSU5HUyB9IGZyb20gIi4uLy4uL3NyYy9saWIvZm9yamEvdHlwZXMiOwppbXBvcnQgeyBUT09MX0NBVEFMT0cgfSBmcm9tICIuLi8uLi9zcmMvbGliL2ZvcmphL3Rvb2xzLWNhdGFsb2ciOwoKY29uc3QgY2ZnID0gKGV4dHJhOiBQYXJ0aWFsPFByb3ZpZGVyQ29uZmlnPiA9IHt9KTogUHJvdmlkZXJDb25maWcgPT4KICAoeyBhcGlLZXk6ICJzay14IiwgZW5hYmxlZDogdHJ1ZSwgbW9kZWxzOiBbXSwgLi4uZXh0cmEgfSkgYXMgUHJvdmlkZXJDb25maWc7CgphZnRlckVhY2goKCkgPT4gewogIHZpLnVuc3R1YkFsbEdsb2JhbHMoKTsKfSk7CgovKiogTWlzbW8gd2lyZSBxdWUgYG1vY2stdG9vbHMtZnJhZ21lbnRhZG9gOiAxIGRlbHRhIHF1ZSBhYnJlIGxhIGxsYW1hZGEgeQogKiAgMiBkZWx0YXMgY29uIGZyYWdtZW50b3MgZGVsIEpTT04gZGUgYXJndW1lbnRvcywgdG9kb3MgY29uIGluZGV4IDAuICovCmZ1bmN0aW9uIHNzZUZyYWdtZW50YWRvKCk6IFJlYWRhYmxlU3RyZWFtPFVpbnQ4QXJyYXk+IHsKICBjb25zdCBhcmdzID0gSlNPTi5zdHJpbmdpZnkoewogICAgcGF0aDogImluZGV4Lmh0bWwiLAogICAgY29udGVudDogJzwhRE9DVFlQRSBodG1sPjxodG1sIGxhbmc9ImVzIj48Ym9keT48aDE+RnJhZ21lbnRhZG88L2gxPjwvYm9keT48L2h0bWw+JywKICB9KTsKICBjb25zdCB0ZXJjaW8gPSBNYXRoLmNlaWwoYXJncy5sZW5ndGggLyAzKTsKICBjb25zdCBmcmFnbWVudG9zID0gWzAsIDEsIDJdLm1hcCgoaSkgPT4gYXJncy5zbGljZShpICogdGVyY2lvLCAoaSArIDEpICogdGVyY2lvKSk7CgogIGNvbnN0IGVuY29kZXIgPSBuZXcgVGV4dEVuY29kZXIoKTsKICBjb25zdCBldmVudG9zOiB1bmtub3duW10gPSBbCiAgICB7CiAgICAgIGlkOiAibW9jay1mcmFnLTEiLAogICAgICBjaG9pY2VzOiBbCiAgICAgICAgewogICAgICAgICAgZGVsdGE6IHsKICAgICAgICAgICAgdG9vbF9jYWxsczogWwogICAgICAgICAgICAgIHsgaW5kZXg6IDAsIGlkOiAiY2FsbF9mcmFnXzEiLCB0eXBlOiAiZnVuY3Rpb24iLCBmdW5jdGlvbjogeyBuYW1lOiAid3JpdGVfZmlsZSIsIGFyZ3VtZW50czogIiIgfSB9LAogICAgICAgICAgICBdLAogICAgICAgICAgfSwKICAgICAgICAgIGluZGV4OiAwLAogICAgICAgIH0sCiAgICAgIF0sCiAgICB9LAogICAgLi4uZnJhZ21lbnRvcy5tYXAoKGZyYWcpID0+ICh7CiAgICAgIGlkOiAibW9jay1mcmFnLTEiLAogICAgICBjaG9pY2VzOiBbeyBkZWx0YTogeyB0b29sX2NhbGxzOiBbeyBpbmRleDogMCwgZnVuY3Rpb246IHsgYXJndW1lbnRzOiBmcmFnIH0gfV0gfSwgaW5kZXg6IDAgfV0sCiAgICB9KSksCiAgXTsKCiAgcmV0dXJuIG5ldyBSZWFkYWJsZVN0cmVhbSh7CiAgICBzdGFydChjb250cm9sbGVyKSB7CiAgICAgIGZvciAoY29uc3QgZXYgb2YgZXZlbnRvcykgewogICAgICAgIGNvbnRyb2xsZXIuZW5xdWV1ZShlbmNvZGVyLmVuY29kZShgZGF0YTogJHtKU09OLnN0cmluZ2lmeShldil9XG5cbmApKTsKICAgICAgfQogICAgICBjb250cm9sbGVyLmVucXVldWUoZW5jb2Rlci5lbmNvZGUoImRhdGE6IFtET05FXVxuXG4iKSk7CiAgICAgIGNvbnRyb2xsZXIuY2xvc2UoKTsKICAgIH0sCiAgfSk7Cn0KCmRlc2NyaWJlKCJzdHJlYW1DaGF0IGNvbiB0b29sX2NhbGxzIGZyYWdtZW50YWRvcyBlbiBlbCBzdHJlYW0iLCAoKSA9PiB7CiAgaXQoImFjdW11bGEgbG9zIGZyYWdtZW50b3MgcG9yIGluZGV4IHkgZW50cmVnYSBVTkEgbGxhbWFkYSBjb21wbGV0YSIsIGFzeW5jICgpID0+IHsKICAgIHZpLnN0dWJHbG9iYWwoCiAgICAgICJmZXRjaCIsCiAgICAgIHZpLmZuKAogICAgICAgIGFzeW5jICgpID0+CiAgICAgICAgICBuZXcgUmVzcG9uc2Uoc3NlRnJhZ21lbnRhZG8oKSwgewogICAgICAgICAgICBzdGF0dXM6IDIwMCwKICAgICAgICAgICAgaGVhZGVyczogeyAiQ29udGVudC1UeXBlIjogInRleHQvZXZlbnQtc3RyZWFtIiB9LAogICAgICAgICAgfSkKICAgICAgKQogICAgKTsKCiAgICBjb25zdCBjYXB0dXJhZGFzOiB7IGlkOiBzdHJpbmc7IG5hbWU6IHN0cmluZzsgYXJnczogUmVjb3JkPHN0cmluZywgdW5rbm93bj4gfVtdW10gPSBbXTsKICAgIGF3YWl0IHN0cmVhbUNoYXQoewogICAgICBwcm92aWRlcklkOiAib3BlbmFpIiwKICAgICAgY29uZmlnOiBjZmcoKSwKICAgICAgbW9kZWxJZDogIm1vY2stdG9vbHMtZnJhZ21lbnRhZG8iLAogICAgICBtZXNzYWdlczogW3sgcm9sZTogInVzZXIiLCBjb250ZW50OiAiZXNjcmliZSBsYSBww6FnaW5hIiB9XSwKICAgICAgc2V0dGluZ3M6IHsgLi4uREVGQVVMVF9TRVRUSU5HUywgc3RyZWFtOiB0cnVlIH0sCiAgICAgIHNpZ25hbDogbmV3IEFib3J0Q29udHJvbGxlcigpLnNpZ25hbCwKICAgICAgdG9vbHM6IFRPT0xfQ0FUQUxPRywKICAgICAgb25EZWx0YTogKCkgPT4ge30sCiAgICAgIG9uRG9uZTogKCkgPT4ge30sCiAgICAgIG9uVG9vbENhbGxzOiAoY2FsbHMpID0+IHsKICAgICAgICBjYXB0dXJhZGFzLnB1c2goY2FsbHMubWFwKChjKSA9PiAoeyBpZDogYy5pZCwgbmFtZTogYy5uYW1lLCBhcmdzOiBjLmFyZ3MgfSkpKTsKICAgICAgfSwKICAgIH0pOwoKICAgIGV4cGVjdChjYXB0dXJhZGFzLCAib25Ub29sQ2FsbHMgc2UgZGlzcGFyw7MgdW5hIHZleiIpLnRvSGF2ZUxlbmd0aCgxKTsKICAgIGV4cGVjdChjYXB0dXJhZGFzWzBdLCAiVU5BIHNvbGEgbGxhbWFkYSwgbm8gdHJlcyB0cm96b3MiKS50b0hhdmVMZW5ndGgoMSk7CiAgICBleHBlY3QoY2FwdHVyYWRhc1swXVswXS5pZCkudG9CZSgiY2FsbF9mcmFnXzEiKTsKICAgIGV4cGVjdChjYXB0dXJhZGFzWzBdWzBdLm5hbWUpLnRvQmUoIndyaXRlX2ZpbGUiKTsKICAgIGV4cGVjdChjYXB0dXJhZGFzWzBdWzBdLmFyZ3MucGF0aCkudG9CZSgiaW5kZXguaHRtbCIpOwogICAgZXhwZWN0KFN0cmluZyhjYXB0dXJhZGFzWzBdWzBdLmFyZ3MuY29udGVudCkpLnRvQ29udGFpbigiPGgxPkZyYWdtZW50YWRvPC9oMT4iKTsKICB9KTsKfSk7Cg==
+/** Test unitario de `streamChat` con tool_calls FRAGMENTADOS en el stream.
+ *
+ * Groq y OpenRouter trocean un tool_call en varios deltas SSE: el primero
+ * trae id + nombre con `arguments: ""`, y los siguientes traen trozos del
+ * JSON sin repetir el id — solo el `index` del wire los agrupa. Si el
+ * cliente no acumula por `index`, la llamada llega rota.
+ *
+ * El stream de este test replica BYTE A BYTE lo que emite el modelo
+ * `mock-tools-fragmentado` de /api/mock-llm. */
+import { describe, it, expect, vi, afterEach } from "vitest";
+
+const settingsMock = { accessCode: "" };
+vi.mock("../../src/lib/forja/store", () => ({
+  useForja: { getState: () => ({ settings: settingsMock }) },
+}));
+
+vi.mock("../../src/lib/forja/attachment-blob", () => ({
+  resolveAttachmentDataUrl: async (a: { dataUrl?: string; blobId?: string }) => a.dataUrl ?? null,
+}));
+
+import { streamChat } from "../../src/lib/forja/chat-client";
+import type { ProviderConfig } from "../../src/lib/forja/types";
+import { DEFAULT_SETTINGS } from "../../src/lib/forja/types";
+import { TOOL_CATALOG } from "../../src/lib/forja/tools-catalog";
+
+const cfg = (extra: Partial<ProviderConfig> = {}): ProviderConfig =>
+  ({ apiKey: "sk-x", enabled: true, models: [], ...extra }) as ProviderConfig;
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+/** Mismo wire que `mock-tools-fragmentado`: 1 delta que abre la llamada y
+ *  2 deltas con fragmentos del JSON de argumentos, todos con index 0. */
+function sseFragmentado(): ReadableStream<Uint8Array> {
+  const args = JSON.stringify({
+    path: "index.html",
+    content: '<!DOCTYPE html><html lang="es"><body><h1>Fragmentado</h1></body></html>',
+  });
+  const tercio = Math.ceil(args.length / 3);
+  const fragmentos = [0, 1, 2].map((i) => args.slice(i * tercio, (i + 1) * tercio));
+
+  const encoder = new TextEncoder();
+  const eventos: unknown[] = [
+    {
+      id: "mock-frag-1",
+      choices: [
+        {
+          delta: {
+            tool_calls: [
+              { index: 0, id: "call_frag_1", type: "function", function: { name: "write_file", arguments: "" } },
+            ],
+          },
+          index: 0,
+        },
+      ],
+    },
+    ...fragmentos.map((frag) => ({
+      id: "mock-frag-1",
+      choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: frag } }] }, index: 0 }],
+    })),
+  ];
+
+  return new ReadableStream({
+    start(controller) {
+      for (const ev of eventos) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(ev)}\n\n`));
+      }
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+}
+
+describe("streamChat con tool_calls fragmentados en el stream", () => {
+  it("acumula los fragmentos por index y entrega UNA llamada completa", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(sseFragmentado(), {
+            status: 200,
+            headers: { "Content-Type": "text/event-stream" },
+          })
+      )
+    );
+
+    const capturadas: { id: string; name: string; args: Record<string, unknown> }[][] = [];
+    await streamChat({
+      providerId: "openai",
+      config: cfg(),
+      modelId: "mock-tools-fragmentado",
+      messages: [{ role: "user", content: "escribe la página" }],
+      settings: { ...DEFAULT_SETTINGS, stream: true },
+      signal: new AbortController().signal,
+      tools: TOOL_CATALOG,
+      onDelta: () => {},
+      onDone: () => {},
+      onToolCalls: (calls) => {
+        capturadas.push(calls.map((c) => ({ id: c.id, name: c.name, args: c.args })));
+      },
+    });
+
+    expect(capturadas, "onToolCalls se disparó una vez").toHaveLength(1);
+    expect(capturadas[0], "UNA sola llamada, no tres trozos").toHaveLength(1);
+    expect(capturadas[0][0].id).toBe("call_frag_1");
+    expect(capturadas[0][0].name).toBe("write_file");
+    expect(capturadas[0][0].args.path).toBe("index.html");
+    expect(String(capturadas[0][0].args.content)).toContain("<h1>Fragmentado</h1>");
+  });
+});

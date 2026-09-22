@@ -1,1 +1,225 @@
-InVzZSBjbGllbnQiOwovKiogRm9yamEgSUEg4oCUIERpw6Fsb2dvIGRlIHByZXNlbnRhY2nDs24gKFU2LCBQTEFOLVY3KS4KICoKICogQ29udmllcnRlIGVsIEhUTUwgZGUgbGEgdmlzdGEgcHJldmlhIGVuIGRpYXBvc2l0aXZhcyAodW5hIHBvcgogKiBgPHNlY3Rpb24+YCBvIHBvciBgPGgyPmApIHkgbGFzIG11ZXN0cmEgYSBwYW50YWxsYSBjb21wbGV0YSBkZW50cm8KICogZGUgdW4gZGnDoWxvZ28uIEZsZWNoYXMgaXpxdWllcmRhL2RlcmVjaGEsIHRlY2xhZG8geSBjb250cm9sZXMgZW4KICogcGFudGFsbGEuIFVuIFFSIG9wY2lvbmFsIGNvbiBlbCBuw7ptZXJvIGRlIGRpYXBvc2l0aXZhIGFjdHVhbCBwYXJhCiAqIHF1ZSB1biBtw7N2aWwgc2lydmEgZGUgbWFuZG8gKHNpbiBzZXJ2aWRvcjogZWwgUVIgc29sbyBsbGV2YSB1bgogKiBgP3NsaWRlPU5gIHF1ZSBlbCBwcm9waW8gZGnDoWxvZ28gbGVlIGFsIGFicmlyc2UpLgogKi8KaW1wb3J0IHsgdXNlQ2FsbGJhY2ssIHVzZUVmZmVjdCwgdXNlTWVtbywgdXNlUmVmLCB1c2VTdGF0ZSB9IGZyb20gInJlYWN0IjsKaW1wb3J0IHsKICBDaGV2cm9uTGVmdCwKICBDaGV2cm9uUmlnaHQsCiAgTWF4aW1pemUsCiAgTWluaW1pemUsCiAgICBRckNvZGUsCiAgWCwKfSBmcm9tICJsdWNpZGUtcmVhY3QiOwppbXBvcnQgeyBCdXR0b24gfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvYnV0dG9uIjsKaW1wb3J0IHsKICBEaWFsb2csCiAgRGlhbG9nQ29udGVudCwKICBEaWFsb2dUaXRsZSwKfSBmcm9tICJAL2NvbXBvbmVudHMvdWkvZGlhbG9nIjsKaW1wb3J0IHsgY24gfSBmcm9tICJAL2xpYi91dGlscyI7CmltcG9ydCB7IHNsaWRlc0Zyb21IdG1sLCB0eXBlIFNsaWRlIH0gZnJvbSAiQC9saWIvZm9yamEvc2xpZGVzIjsKCmV4cG9ydCBmdW5jdGlvbiBQcmVzZW50YXRpb25EaWFsb2coewogIG9wZW4sCiAgb25PcGVuQ2hhbmdlLAogIC8qKiBIVE1MIGRlIGxhIHZpc3RhIHByZXZpYSAoZWwgYnVuZGxlIHlhIGlueWVjdGFkbywgc2luIG1lZGlkb3JlcykuICovCiAgaHRtbCwKfTogewogIG9wZW46IGJvb2xlYW47CiAgb25PcGVuQ2hhbmdlOiAodjogYm9vbGVhbikgPT4gdm9pZDsKICBodG1sOiBzdHJpbmc7Cn0pIHsKICBjb25zdCBzbGlkZXMgPSB1c2VNZW1vPFNsaWRlW10+KCgpID0+IChvcGVuID8gc2xpZGVzRnJvbUh0bWwoaHRtbCkgOiBbXSksIFtvcGVuLCBodG1sXSk7CiAgY29uc3QgW2N1cnJlbnQsIHNldEN1cnJlbnRdID0gdXNlU3RhdGUoMCk7CiAgY29uc3QgW3Nob3dRciwgc2V0U2hvd1FyXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBbZnVsbHNjcmVlbiwgc2V0RnVsbHNjcmVlbl0gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgY29udGFpbmVyUmVmID0gdXNlUmVmPEhUTUxEaXZFbGVtZW50PihudWxsKTsKCiAgLy8gcmVzZXQgYWwgYWJyaXIKICB1c2VFZmZlY3QoKCkgPT4gewogICAgaWYgKG9wZW4pIHsKICAgICAgc2V0Q3VycmVudCgwKTsKICAgICAgc2V0U2hvd1FyKGZhbHNlKTsKICAgIH0KICB9LCBbb3Blbl0pOwoKICBjb25zdCBnbyA9IHVzZUNhbGxiYWNrKAogICAgKGRlbHRhOiBudW1iZXIpID0+IHsKICAgICAgc2V0Q3VycmVudCgoYykgPT4gewogICAgICAgIGNvbnN0IG5leHQgPSBjICsgZGVsdGE7CiAgICAgICAgaWYgKG5leHQgPCAwKSByZXR1cm4gMDsKICAgICAgICBpZiAobmV4dCA+PSBzbGlkZXMubGVuZ3RoKSByZXR1cm4gc2xpZGVzLmxlbmd0aCAtIDE7CiAgICAgICAgcmV0dXJuIG5leHQ7CiAgICAgIH0pOwogICAgfSwKICAgIFtzbGlkZXMubGVuZ3RoXQogICk7CgogIC8vIHRlY2xhZG86IOKGkCDihpIgRXNwYWNpbyBFc2MKICB1c2VFZmZlY3QoKCkgPT4gewogICAgaWYgKCFvcGVuKSByZXR1cm47CiAgICBjb25zdCBvbktleSA9IChlOiBLZXlib2FyZEV2ZW50KSA9PiB7CiAgICAgIGlmIChlLmtleSA9PT0gIkFycm93TGVmdCIgfHwgZS5rZXkgPT09ICJBcnJvd1VwIikgewogICAgICAgIGUucHJldmVudERlZmF1bHQoKTsKICAgICAgICBnbygtMSk7CiAgICAgIH0gZWxzZSBpZiAoZS5rZXkgPT09ICJBcnJvd1JpZ2h0IiB8fCBlLmtleSA9PT0gIkFycm93RG93biIgfHwgZS5rZXkgPT09ICIgIikgewogICAgICAgIGUucHJldmVudERlZmF1bHQoKTsKICAgICAgICBnbygxKTsKICAgICAgfSBlbHNlIGlmIChlLmtleSA9PT0gImYiIHx8IGUua2V5ID09PSAiRiIpIHsKICAgICAgICBzZXRGdWxsc2NyZWVuKChmKSA9PiAhZik7CiAgICAgIH0KICAgIH07CiAgICB3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcigia2V5ZG93biIsIG9uS2V5KTsKICAgIHJldHVybiAoKSA9PiB3aW5kb3cucmVtb3ZlRXZlbnRMaXN0ZW5lcigia2V5ZG93biIsIG9uS2V5KTsKICB9LCBbb3BlbiwgZ29dKTsKCiAgLy8gTGVlID9zbGlkZT1OIGFsIGFicmlyc2UgKG1hbmRvIHBvciBRUik6IHNpIGxhIFVSTCBkZWwgZGnDoWxvZ28gbGxldmEKICAvLyBlc2UgcGFyw6FtZXRybywgc2FsdGEgYSBlc2EgZGlhcG9zaXRpdmEuIEVsIFFSIGRlIGRlYmFqbyBsbyBnZW5lcmEuCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGlmICghb3BlbikgcmV0dXJuOwogICAgY29uc3QgdSA9IG5ldyBVUkwod2luZG93LmxvY2F0aW9uLmhyZWYpOwogICAgY29uc3QgbiA9IHBhcnNlSW50KHUuc2VhcmNoUGFyYW1zLmdldCgic2xpZGUiKSA/PyAiIiwgMTApOwogICAgaWYgKCFOdW1iZXIuaXNOYU4obikgJiYgbiA+PSAxICYmIG4gPD0gc2xpZGVzLmxlbmd0aCkgewogICAgICBzZXRDdXJyZW50KG4gLSAxKTsKICAgIH0KICB9LCBbb3Blbiwgc2xpZGVzLmxlbmd0aF0pOwoKICBjb25zdCBzbGlkZSA9IHNsaWRlc1tjdXJyZW50XTsKCiAgLy8gUVIgY29uIGVsIG7Dum1lcm8gZGUgZGlhcG9zaXRpdmEgYWN0dWFsOiB1bmEgVVJMIGFic29sdXRhIGNvbiA/c2xpZGU9Ti4KICAvLyBVc2Ftb3MgbGEgQVBJIHDDumJsaWNhIGRlIGdvcXIgKHNpbiBjbGF2ZSkgcGFyYSBubyBhcnJhc3RyYXIgZGVwZW5kZW5jaWFzOwogIC8vIHNpIGVsIHVzdWFyaW8gbm8gcXVpZXJlIHNhbGlyLCBubyBsYSBwaWRlIChib3TDs24gZXhwbMOtY2l0bykuCiAgY29uc3QgcXJVcmwgPSB1c2VNZW1vKCgpID0+IHsKICAgIGlmICghb3BlbiB8fCAhc2xpZGUpIHJldHVybiAiIjsKICAgIGNvbnN0IHUgPSBuZXcgVVJMKHdpbmRvdy5sb2NhdGlvbi5ocmVmKTsKICAgIHUuc2VhcmNoUGFyYW1zLnNldCgic2xpZGUiLCBTdHJpbmcoc2xpZGUuaW5kZXgpKTsKICAgIHJldHVybiB1LnRvU3RyaW5nKCk7CiAgfSwgW29wZW4sIHNsaWRlXSk7CgogIGlmICghb3BlbiB8fCAhc2xpZGUpIHJldHVybiBudWxsOwoKICByZXR1cm4gKAogICAgPERpYWxvZyBvcGVuPXtvcGVufSBvbk9wZW5DaGFuZ2U9e29uT3BlbkNoYW5nZX0+CiAgICAgIDxEaWFsb2dDb250ZW50CiAgICAgICAgY2xhc3NOYW1lPXtjbigKICAgICAgICAgICJmbGV4IGgtZnVsbCBtYXgtaC1zY3JlZW4gdy1mdWxsIG1heC13LXNjcmVlbiBmbGV4LWNvbCBnYXAtMCBvdmVyZmxvdy1oaWRkZW4gcm91bmRlZC1ub25lIGJvcmRlci1ub25lIHAtMCIsCiAgICAgICAgICBmdWxsc2NyZWVuICYmICJiZy1ibGFjayIKICAgICAgICApfQogICAgICAgIHJlZj17Y29udGFpbmVyUmVmfQogICAgICA+CiAgICAgICAgPERpYWxvZ1RpdGxlIGNsYXNzTmFtZT0ic3Itb25seSI+CiAgICAgICAgICBQcmVzZW50YWNpw7NuIMK3IERpYXBvc2l0aXZhIHtzbGlkZS5pbmRleH0gZGUge3NsaWRlcy5sZW5ndGh9OiB7c2xpZGUudGl0bGV9CiAgICAgICAgPC9EaWFsb2dUaXRsZT4KCiAgICAgICAgey8qIEJhcnJhIHN1cGVyaW9yICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGgtMTAgc2hyaW5rLTAgaXRlbXMtY2VudGVyIGdhcC0yIGJvcmRlci1iIGJvcmRlci13aGl0ZS8xMCBiZy1ibGFjay80MCBweC0zIHRleHQtd2hpdGUvODAgYmFja2Ryb3AtYmx1ciI+CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtbW9ubyB0ZXh0LVsxMXB4XSB0ZXh0LXdoaXRlLzYwIj4KICAgICAgICAgICAge3NsaWRlLmluZGV4fSAvIHtzbGlkZXMubGVuZ3RofQogICAgICAgICAgPC9zcGFuPgogICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJ0cnVuY2F0ZSB0ZXh0LVsxMnB4XSBmb250LW1lZGl1bSI+e3NsaWRlLnRpdGxlfTwvc3Bhbj4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4LTEiIC8+CiAgICAgICAgICA8QnV0dG9uCiAgICAgICAgICAgIHZhcmlhbnQ9Imdob3N0IgogICAgICAgICAgICBzaXplPSJzbSIKICAgICAgICAgICAgY2xhc3NOYW1lPSJoLTcgdGV4dC13aGl0ZS83MCBob3Zlcjp0ZXh0LXdoaXRlIGhvdmVyOmJnLXdoaXRlLzEwIgogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRTaG93UXIoKHYpID0+ICF2KX0KICAgICAgICAgICAgdGl0bGU9Ik1hbmRvIHBvciBRUiIKICAgICAgICAgID4KICAgICAgICAgICAgPFFyQ29kZSBjbGFzc05hbWU9InNpemUtMy41IiAvPiBRUgogICAgICAgICAgPC9CdXR0b24+CiAgICAgICAgICA8QnV0dG9uCiAgICAgICAgICAgIHZhcmlhbnQ9Imdob3N0IgogICAgICAgICAgICBzaXplPSJzbSIKICAgICAgICAgICAgY2xhc3NOYW1lPSJoLTcgdGV4dC13aGl0ZS83MCBob3Zlcjp0ZXh0LXdoaXRlIGhvdmVyOmJnLXdoaXRlLzEwIgogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRGdWxsc2NyZWVuKChmKSA9PiAhZil9CiAgICAgICAgICAgIHRpdGxlPSJQYW50YWxsYSBjb21wbGV0YSAoRikiCiAgICAgICAgICA+CiAgICAgICAgICAgIHtmdWxsc2NyZWVuID8gPE1pbmltaXplIGNsYXNzTmFtZT0ic2l6ZS0zLjUiIC8+IDogPE1heGltaXplIGNsYXNzTmFtZT0ic2l6ZS0zLjUiIC8+fQogICAgICAgICAgPC9CdXR0b24+CiAgICAgICAgICA8QnV0dG9uCiAgICAgICAgICAgIHZhcmlhbnQ9Imdob3N0IgogICAgICAgICAgICBzaXplPSJzbSIKICAgICAgICAgICAgY2xhc3NOYW1lPSJoLTcgdGV4dC13aGl0ZS83MCBob3Zlcjp0ZXh0LXdoaXRlIGhvdmVyOmJnLXdoaXRlLzEwIgogICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBvbk9wZW5DaGFuZ2UoZmFsc2UpfQogICAgICAgICAgICB0aXRsZT0iU2FsaXIgKEVzYykiCiAgICAgICAgICA+CiAgICAgICAgICAgIDxYIGNsYXNzTmFtZT0ic2l6ZS0zLjUiIC8+CiAgICAgICAgICA8L0J1dHRvbj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIEN1ZXJwbzogaWZyYW1lICsgUVIgZmxvdGFudGUgKi99CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InJlbGF0aXZlIGZsZXgtMSBvdmVyZmxvdy1oaWRkZW4gYmctYmxhY2siPgogICAgICAgICAgPGlmcmFtZQogICAgICAgICAgICBrZXk9e3NsaWRlLmluZGV4fQogICAgICAgICAgICB0aXRsZT17YERpYXBvc2l0aXZhICR7c2xpZGUuaW5kZXh9YH0KICAgICAgICAgICAgc3JjRG9jPXtzbGlkZS5odG1sfQogICAgICAgICAgICBjbGFzc05hbWU9InNpemUtZnVsbCBib3JkZXItMCBiZy13aGl0ZSIKICAgICAgICAgICAgc2FuZGJveD0iYWxsb3ctc2NyaXB0cyBhbGxvdy1wb3B1cHMiCiAgICAgICAgICAvPgogICAgICAgICAge3Nob3dRciAmJiAoCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJhYnNvbHV0ZSByaWdodC00IHRvcC00IHJvdW5kZWQtMnhsIGJvcmRlciBib3JkZXItd2hpdGUvMTUgYmctYmxhY2svODAgcC0zIHRleHQtd2hpdGUgc2hhZG93LXhsIGJhY2tkcm9wLWJsdXIiPgogICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ibWItMiB0ZXh0LWNlbnRlciB0ZXh0LVsxMHB4XSB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXIgdGV4dC13aGl0ZS82MCI+CiAgICAgICAgICAgICAgICBBcHVudGEgY29uIGVsIG3Ds3ZpbAogICAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgICA8aW1nCiAgICAgICAgICAgICAgICBzcmM9e2BodHRwczovL2FwaS5xcnNlcnZlci5jb20vdjEvY3JlYXRlLXFyLWNvZGUvP3NpemU9MTgweDE4MCZkYXRhPSR7ZW5jb2RlVVJJQ29tcG9uZW50KHFyVXJsKX1gfQogICAgICAgICAgICAgICAgYWx0PSJRUiBkZWwgbWFuZG8iCiAgICAgICAgICAgICAgICBjbGFzc05hbWU9InNpemUtNDQgcm91bmRlZC1sZyBiZy13aGl0ZSBwLTIiCiAgICAgICAgICAgICAgICB3aWR0aD17MTgwfQogICAgICAgICAgICAgICAgaGVpZ2h0PXsxODB9CiAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9Im10LTIgdGV4dC1jZW50ZXIgdGV4dC1bMTBweF0gdGV4dC13aGl0ZS81MCI+CiAgICAgICAgICAgICAgICBMbGV2YSBhIGVzdGEgZGlhcG9zaXRpdmEKICAgICAgICAgICAgICA8L3A+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgKX0KICAgICAgICA8L2Rpdj4KCiAgICAgICAgey8qIEJhcnJhIGluZmVyaW9yIGRlIG5hdmVnYWNpw7NuICovfQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGgtMTIgc2hyaW5rLTAgaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBib3JkZXItdCBib3JkZXItd2hpdGUvMTAgYmctYmxhY2svNDAgcHgtNCB0ZXh0LXdoaXRlLzgwIGJhY2tkcm9wLWJsdXIiPgogICAgICAgICAgPEJ1dHRvbgogICAgICAgICAgICB2YXJpYW50PSJnaG9zdCIKICAgICAgICAgICAgc2l6ZT0ic20iCiAgICAgICAgICAgIGNsYXNzTmFtZT0iaC04IHRleHQtd2hpdGUvNzAgaG92ZXI6dGV4dC13aGl0ZSBob3ZlcjpiZy13aGl0ZS8xMCIKICAgICAgICAgICAgZGlzYWJsZWQ9e2N1cnJlbnQgPT09IDB9CiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGdvKC0xKX0KICAgICAgICAgID4KICAgICAgICAgICAgPENoZXZyb25MZWZ0IGNsYXNzTmFtZT0ic2l6ZS00IiAvPiBBbnRlcmlvcgogICAgICAgICAgPC9CdXR0b24+CgogICAgICAgICAgey8qIEJhcnJhIGRlIHByb2dyZXNvICovfQogICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC0xIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMSBweC00Ij4KICAgICAgICAgICAge3NsaWRlcy5tYXAoKHMsIGkpID0+ICgKICAgICAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgICAgICBrZXk9e3MuaW5kZXh9CiAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRDdXJyZW50KGkpfQogICAgICAgICAgICAgICAgYXJpYS1sYWJlbD17YElyIGEgbGEgZGlhcG9zaXRpdmEgJHtzLmluZGV4fWB9CiAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2NuKAogICAgICAgICAgICAgICAgICAiaC0xLjUgcm91bmRlZC1mdWxsIHRyYW5zaXRpb24tYWxsIiwKICAgICAgICAgICAgICAgICAgaSA9PT0gY3VycmVudCA/ICJ3LTggYmctZm9yamEtY3lhbiIgOiAidy0xLjUgYmctd2hpdGUvMjUgaG92ZXI6Ymctd2hpdGUvNDAiCiAgICAgICAgICAgICAgICApfQogICAgICAgICAgICAgIC8+CiAgICAgICAgICAgICkpfQogICAgICAgICAgPC9kaXY+CgogICAgICAgICAgPEJ1dHRvbgogICAgICAgICAgICB2YXJpYW50PSJnaG9zdCIKICAgICAgICAgICAgc2l6ZT0ic20iCiAgICAgICAgICAgIGNsYXNzTmFtZT0iaC04IHRleHQtd2hpdGUvNzAgaG92ZXI6dGV4dC13aGl0ZSBob3ZlcjpiZy13aGl0ZS8xMCIKICAgICAgICAgICAgZGlzYWJsZWQ9e2N1cnJlbnQgPj0gc2xpZGVzLmxlbmd0aCAtIDF9CiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGdvKDEpfQogICAgICAgICAgPgogICAgICAgICAgICBTaWd1aWVudGUgPENoZXZyb25SaWdodCBjbGFzc05hbWU9InNpemUtNCIgLz4KICAgICAgICAgIDwvQnV0dG9uPgogICAgICAgIDwvZGl2PgogICAgICA8L0RpYWxvZ0NvbnRlbnQ+CiAgICA8L0RpYWxvZz4KICApOwp9Cg==
+"use client";
+/** Forja IA — Diálogo de presentación (U6, PLAN-V7).
+ *
+ * Convierte el HTML de la vista previa en diapositivas (una por
+ * `<section>` o por `<h2>`) y las muestra a pantalla completa dentro
+ * de un diálogo. Flechas izquierda/derecha, teclado y controles en
+ * pantalla. Un QR opcional con el número de diapositiva actual para
+ * que un móvil sirva de mando (sin servidor: el QR solo lleva un
+ * `?slide=N` que el propio diálogo lee al abrirse).
+ */
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Maximize,
+  Minimize,
+    QrCode,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { slidesFromHtml, type Slide } from "@/lib/forja/slides";
+
+export function PresentationDialog({
+  open,
+  onOpenChange,
+  /** HTML de la vista previa (el bundle ya inyectado, sin medidores). */
+  html,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  html: string;
+}) {
+  const slides = useMemo<Slide[]>(() => (open ? slidesFromHtml(html) : []), [open, html]);
+  const [current, setCurrent] = useState(0);
+  const [showQr, setShowQr] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // reset al abrir
+  useEffect(() => {
+    if (open) {
+      setCurrent(0);
+      setShowQr(false);
+    }
+  }, [open]);
+
+  const go = useCallback(
+    (delta: number) => {
+      setCurrent((c) => {
+        const next = c + delta;
+        if (next < 0) return 0;
+        if (next >= slides.length) return slides.length - 1;
+        return next;
+      });
+    },
+    [slides.length]
+  );
+
+  // teclado: ← → Espacio Esc
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        go(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " ") {
+        e.preventDefault();
+        go(1);
+      } else if (e.key === "f" || e.key === "F") {
+        setFullscreen((f) => !f);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, go]);
+
+  // Lee ?slide=N al abrirse (mando por QR): si la URL del diálogo lleva
+  // ese parámetro, salta a esa diapositiva. El QR de debajo lo genera.
+  useEffect(() => {
+    if (!open) return;
+    const u = new URL(window.location.href);
+    const n = parseInt(u.searchParams.get("slide") ?? "", 10);
+    if (!Number.isNaN(n) && n >= 1 && n <= slides.length) {
+      setCurrent(n - 1);
+    }
+  }, [open, slides.length]);
+
+  const slide = slides[current];
+
+  // QR con el número de diapositiva actual: una URL absoluta con ?slide=N.
+  // Usamos la API pública de goqr (sin clave) para no arrastrar dependencias;
+  // si el usuario no quiere salir, no la pide (botón explícito).
+  const qrUrl = useMemo(() => {
+    if (!open || !slide) return "";
+    const u = new URL(window.location.href);
+    u.searchParams.set("slide", String(slide.index));
+    return u.toString();
+  }, [open, slide]);
+
+  if (!open || !slide) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={cn(
+          "flex h-full max-h-screen w-full max-w-screen flex-col gap-0 overflow-hidden rounded-none border-none p-0",
+          fullscreen && "bg-black"
+        )}
+        ref={containerRef}
+      >
+        <DialogTitle className="sr-only">
+          Presentación · Diapositiva {slide.index} de {slides.length}: {slide.title}
+        </DialogTitle>
+
+        {/* Barra superior */}
+        <div className="flex h-10 shrink-0 items-center gap-2 border-b border-white/10 bg-black/40 px-3 text-white/80 backdrop-blur">
+          <span className="font-mono text-[11px] text-white/60">
+            {slide.index} / {slides.length}
+          </span>
+          <span className="truncate text-[12px] font-medium">{slide.title}</span>
+          <div className="flex-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-white/70 hover:text-white hover:bg-white/10"
+            onClick={() => setShowQr((v) => !v)}
+            title="Mando por QR"
+          >
+            <QrCode className="size-3.5" /> QR
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-white/70 hover:text-white hover:bg-white/10"
+            onClick={() => setFullscreen((f) => !f)}
+            title="Pantalla completa (F)"
+          >
+            {fullscreen ? <Minimize className="size-3.5" /> : <Maximize className="size-3.5" />}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-white/70 hover:text-white hover:bg-white/10"
+            onClick={() => onOpenChange(false)}
+            title="Salir (Esc)"
+          >
+            <X className="size-3.5" />
+          </Button>
+        </div>
+
+        {/* Cuerpo: iframe + QR flotante */}
+        <div className="relative flex-1 overflow-hidden bg-black">
+          <iframe
+            key={slide.index}
+            title={`Diapositiva ${slide.index}`}
+            srcDoc={slide.html}
+            className="size-full border-0 bg-white"
+            sandbox="allow-scripts allow-popups"
+          />
+          {showQr && (
+            <div className="absolute right-4 top-4 rounded-2xl border border-white/15 bg-black/80 p-3 text-white shadow-xl backdrop-blur">
+              <p className="mb-2 text-center text-[10px] uppercase tracking-wider text-white/60">
+                Apunta con el móvil
+              </p>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrUrl)}`}
+                alt="QR del mando"
+                className="size-44 rounded-lg bg-white p-2"
+                width={180}
+                height={180}
+              />
+              <p className="mt-2 text-center text-[10px] text-white/50">
+                Lleva a esta diapositiva
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Barra inferior de navegación */}
+        <div className="flex h-12 shrink-0 items-center justify-between border-t border-white/10 bg-black/40 px-4 text-white/80 backdrop-blur">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-white/70 hover:text-white hover:bg-white/10"
+            disabled={current === 0}
+            onClick={() => go(-1)}
+          >
+            <ChevronLeft className="size-4" /> Anterior
+          </Button>
+
+          {/* Barra de progreso */}
+          <div className="flex flex-1 items-center justify-center gap-1 px-4">
+            {slides.map((s, i) => (
+              <button
+                key={s.index}
+                onClick={() => setCurrent(i)}
+                aria-label={`Ir a la diapositiva ${s.index}`}
+                className={cn(
+                  "h-1.5 rounded-full transition-all",
+                  i === current ? "w-8 bg-forja-cyan" : "w-1.5 bg-white/25 hover:bg-white/40"
+                )}
+              />
+            ))}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-white/70 hover:text-white hover:bg-white/10"
+            disabled={current >= slides.length - 1}
+            onClick={() => go(1)}
+          >
+            Siguiente <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

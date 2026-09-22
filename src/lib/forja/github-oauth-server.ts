@@ -1,1 +1,274 @@
-LyoqIEZvcmphIElBIOKAlCBPQXV0aCBkZSBHaXRIdWIgZW4gZWwgc2Vydmlkb3IgKGNvb2tpZXMsIGludGVyY2FtYmlvLCBIVE1MKS4KICogTm8gaW1wb3J0YXIgZGVzZGUgY29tcG9uZW50ZXMgZGUgY2xpZW50ZS4gKi8KaW1wb3J0IHsgY3JlYXRlSGFzaCwgcmFuZG9tQnl0ZXMgfSBmcm9tICJub2RlOmNyeXB0byI7CmltcG9ydCB7CiAgR0hfQVBQX0NPT0tJRSwKICBHSF9PQVVUSF9NU0csCiAgR0hfU1RBVEVfQ09PS0lFLAogIGdpdGh1YkF1dGhvcml6ZVVybCwKICBwYXJzZUFwcENyZWRzSnNvbiwKICBwYXJzZU9BdXRoVG9rZW5SZXNwb25zZSwKICB0eXBlIEFwcENyZWRzLAogIHR5cGUgT0F1dGhUb2tlblJlc3VsdCwKfSBmcm9tICIuL2dpdGh1Yi1vYXV0aCI7CgpleHBvcnQgZnVuY3Rpb24gYXBwT3JpZ2luKHJlcTogUmVxdWVzdCk6IHN0cmluZyB7CiAgY29uc3QgaG9zdCA9IHJlcS5oZWFkZXJzLmdldCgieC1mb3J3YXJkZWQtaG9zdCIpIHx8IHJlcS5oZWFkZXJzLmdldCgiaG9zdCIpIHx8ICJsb2NhbGhvc3Q6MzAwMCI7CiAgY29uc3QgeGYgPSByZXEuaGVhZGVycy5nZXQoIngtZm9yd2FyZGVkLXByb3RvIik7CiAgY29uc3QgcHJvdG8gPSB4ZiB8fCAoaG9zdC5zdGFydHNXaXRoKCJsb2NhbGhvc3QiKSB8fCBob3N0LnN0YXJ0c1dpdGgoIjEyNy4wLjAuMSIpID8gImh0dHAiIDogImh0dHBzIik7CiAgcmV0dXJuIGAke3Byb3RvfTovLyR7aG9zdH1gOwp9CgpleHBvcnQgZnVuY3Rpb24gcmVhZENvb2tpZShyZXE6IFJlcXVlc3QsIG5hbWU6IHN0cmluZyk6IHN0cmluZyB8IG51bGwgewogIGNvbnN0IGhlYWRlciA9IHJlcS5oZWFkZXJzLmdldCgiY29va2llIikgPz8gIiI7CiAgZm9yIChjb25zdCBwYXJ0IG9mIGhlYWRlci5zcGxpdCgiOyIpKSB7CiAgICBjb25zdCBpID0gcGFydC5pbmRleE9mKCI9Iik7CiAgICBpZiAoaSA9PT0gLTEpIGNvbnRpbnVlOwogICAgaWYgKHBhcnQuc2xpY2UoMCwgaSkudHJpbSgpICE9PSBuYW1lKSBjb250aW51ZTsKICAgIHRyeSB7CiAgICAgIHJldHVybiBkZWNvZGVVUklDb21wb25lbnQocGFydC5zbGljZShpICsgMSkudHJpbSgpKTsKICAgIH0gY2F0Y2ggewogICAgICByZXR1cm4gcGFydC5zbGljZShpICsgMSkudHJpbSgpOwogICAgfQogIH0KICByZXR1cm4gbnVsbDsKfQoKZXhwb3J0IGZ1bmN0aW9uIGNvb2tpZUhlYWRlcihuYW1lOiBzdHJpbmcsIHZhbHVlOiBzdHJpbmcsIG9yaWdpbjogc3RyaW5nLCBtYXhBZ2U6IG51bWJlcik6IHN0cmluZyB7CiAgY29uc3Qgc2VjdXJlID0gb3JpZ2luLnN0YXJ0c1dpdGgoImh0dHBzIikgPyAiOyBTZWN1cmUiIDogIiI7CiAgcmV0dXJuIGAke25hbWV9PSR7ZW5jb2RlVVJJQ29tcG9uZW50KHZhbHVlKX07IFBhdGg9LzsgSHR0cE9ubHk7IFNhbWVTaXRlPUxheDsgTWF4LUFnZT0ke21heEFnZX0ke3NlY3VyZX1gOwp9CgovKiogVmlkYSDDunRpbCBkZSBsYSBjb29raWUgY29uIGxhcyBjcmVkZW5jaWFsZXMgZGUgbGEgR2l0SHViIEFwcDogMTIgaG9yYXMuCiAqICBBbnRlcyBlcmFuIDMwIGTDrWFzOiB1biB0b2tlbiBkZSBpbnN0YWxhY2nDs24gbm8gY2FkdWNhLCBwZXJvIGRlamFyIGxhCiAqICBjcmVkZW5jaWFsIChjbGllbnQgc2VjcmV0IGluY2x1aWRvKSB1bmEgc2VtYW5hIGVudGVyYSBlbiB1bmEgY29va2llIGRlCiAqICBuYXZlZ2Fkb3IgZXJhIHZlbnRhbmEgZGUgc29icmEuIDEyIGggY3VicmUgdW5hIGpvcm5hZGEgZGUgdHJhYmFqbzsgc2kKICogIGNhZHVjYSwgcmVjb25lY3RhciBsYSBBcHAgc29uIGRvcyBjbGljcyB5IG5vIGhheSBkYXRvcyBxdWUgcGVyZGVyLiAqLwpleHBvcnQgY29uc3QgR0hfQVBQX0NPT0tJRV9NQVhfQUdFID0gNjAgKiA2MCAqIDEyOwoKCmV4cG9ydCBmdW5jdGlvbiBlbnZDcmVkcygpOiBBcHBDcmVkcyB8IG51bGwgewogIGNvbnN0IGNsaWVudElkID0gKHByb2Nlc3MuZW52LkdJVEhVQl9DTElFTlRfSUQgPz8gIiIpLnRyaW0oKTsKICBjb25zdCBjbGllbnRTZWNyZXQgPSAocHJvY2Vzcy5lbnYuR0lUSFVCX0NMSUVOVF9TRUNSRVQgPz8gIiIpLnRyaW0oKTsKICBpZiAoIWNsaWVudElkIHx8ICFjbGllbnRTZWNyZXQpIHJldHVybiBudWxsOwogIHJldHVybiB7IGNsaWVudElkLCBjbGllbnRTZWNyZXQgfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGNyZWRzRnJvbShyZXE6IFJlcXVlc3QpOiBBcHBDcmVkcyB8IG51bGwgewogIHJldHVybiBlbnZDcmVkcygpIHx8IHBhcnNlQXBwQ3JlZHNKc29uKHJlYWRDb29raWUocmVxLCBHSF9BUFBfQ09PS0lFKSA/PyAiIik7Cn0KCmV4cG9ydCBmdW5jdGlvbiBuZXdQa2NlKCk6IHsgc3RhdGU6IHN0cmluZzsgdmVyaWZpZXI6IHN0cmluZzsgY2hhbGxlbmdlOiBzdHJpbmcgfSB7CiAgY29uc3Qgc3RhdGUgPSByYW5kb21CeXRlcygxNikudG9TdHJpbmcoImJhc2U2NHVybCIpOwogIGNvbnN0IHZlcmlmaWVyID0gcmFuZG9tQnl0ZXMoMzIpLnRvU3RyaW5nKCJiYXNlNjR1cmwiKTsKICBjb25zdCBjaGFsbGVuZ2UgPSBjcmVhdGVIYXNoKCJzaGEyNTYiKS51cGRhdGUodmVyaWZpZXIpLmRpZ2VzdCgiYmFzZTY0dXJsIik7CiAgcmV0dXJuIHsgc3RhdGUsIHZlcmlmaWVyLCBjaGFsbGVuZ2UgfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIHBhY2tTdGF0ZShzdGF0ZTogc3RyaW5nLCB2ZXJpZmllcjogc3RyaW5nKTogc3RyaW5nIHsKICByZXR1cm4gYCR7c3RhdGV9LiR7dmVyaWZpZXJ9YDsKfQoKZXhwb3J0IGZ1bmN0aW9uIHVucGFja1N0YXRlKHJhdzogc3RyaW5nIHwgbnVsbCk6IHsgc3RhdGU6IHN0cmluZzsgdmVyaWZpZXI6IHN0cmluZyB9IHwgbnVsbCB7CiAgaWYgKCFyYXcpIHJldHVybiBudWxsOwogIGNvbnN0IGkgPSByYXcuaW5kZXhPZigiLiIpOwogIGlmIChpIDwgOCkgcmV0dXJuIG51bGw7CiAgcmV0dXJuIHsgc3RhdGU6IHJhdy5zbGljZSgwLCBpKSwgdmVyaWZpZXI6IHJhdy5zbGljZShpICsgMSkgfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGF1dGhvcml6ZVJlZGlyZWN0KGNyZWRzOiBBcHBDcmVkcywgb3JpZ2luOiBzdHJpbmcsIHBhY2tlZDogc3RyaW5nKTogc3RyaW5nIHsKICBjb25zdCB1ID0gdW5wYWNrU3RhdGUocGFja2VkKTsKICBpZiAoIXUpIHRocm93IG5ldyBFcnJvcigic3RhdGUgaW50ZXJubyBubyB2w6FsaWRvIik7CiAgcmV0dXJuIGdpdGh1YkF1dGhvcml6ZVVybCh7CiAgICBjbGllbnRJZDogY3JlZHMuY2xpZW50SWQsCiAgICByZWRpcmVjdFVyaTogYCR7b3JpZ2lufS9hcGkvZ2l0aHViL29hdXRoL2NhbGxiYWNrYCwKICAgIHN0YXRlOiB1LnN0YXRlLAogICAgY2hhbGxlbmdlOiBjcmVhdGVIYXNoKCJzaGEyNTYiKS51cGRhdGUodS52ZXJpZmllcikuZGlnZXN0KCJiYXNlNjR1cmwiKSwKICB9KTsKfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIGV4Y2hhbmdlR2l0aHViQ29kZShvcHRzOiB7CiAgY3JlZHM6IEFwcENyZWRzOwogIGNvZGU6IHN0cmluZzsKICByZWRpcmVjdFVyaTogc3RyaW5nOwogIHZlcmlmaWVyPzogc3RyaW5nOwp9KTogUHJvbWlzZTxPQXV0aFRva2VuUmVzdWx0PiB7CiAgY29uc3QgYm9keSA9IG5ldyBVUkxTZWFyY2hQYXJhbXMoewogICAgY2xpZW50X2lkOiBvcHRzLmNyZWRzLmNsaWVudElkLAogICAgY2xpZW50X3NlY3JldDogb3B0cy5jcmVkcy5jbGllbnRTZWNyZXQsCiAgICBjb2RlOiBvcHRzLmNvZGUsCiAgICByZWRpcmVjdF91cmk6IG9wdHMucmVkaXJlY3RVcmksCiAgfSk7CiAgaWYgKG9wdHMudmVyaWZpZXIpIGJvZHkuc2V0KCJjb2RlX3ZlcmlmaWVyIiwgb3B0cy52ZXJpZmllcik7CiAgY29uc3QgcmVzID0gYXdhaXQgZmV0Y2goImh0dHBzOi8vZ2l0aHViLmNvbS9sb2dpbi9vYXV0aC9hY2Nlc3NfdG9rZW4iLCB7CiAgICBtZXRob2Q6ICJQT1NUIiwKICAgIGhlYWRlcnM6IHsKICAgICAgQWNjZXB0OiAiYXBwbGljYXRpb24vanNvbiIsCiAgICAgICJDb250ZW50LVR5cGUiOiAiYXBwbGljYXRpb24veC13d3ctZm9ybS11cmxlbmNvZGVkIiwKICAgICAgIlVzZXItQWdlbnQiOiAiZm9yamEtaWEiLAogICAgfSwKICAgIGJvZHksCiAgICBzaWduYWw6IEFib3J0U2lnbmFsLnRpbWVvdXQoMjAwMDApLAogIH0pOwogIGNvbnN0IHRleHQgPSBhd2FpdCByZXMudGV4dCgpOwogIHJldHVybiBwYXJzZU9BdXRoVG9rZW5SZXNwb25zZSh0ZXh0LCByZXMuaGVhZGVycy5nZXQoImNvbnRlbnQtdHlwZSIpID8/ICIiKTsKfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIGdpdGh1YlVzZXIodG9rZW46IHN0cmluZyk6IFByb21pc2U8eyBsb2dpbjogc3RyaW5nOyBuYW1lOiBzdHJpbmc7IGF2YXRhcjogc3RyaW5nIH0+IHsKICBjb25zdCByZXMgPSBhd2FpdCBmZXRjaCgiaHR0cHM6Ly9hcGkuZ2l0aHViLmNvbS91c2VyIiwgewogICAgaGVhZGVyczogewogICAgICBBY2NlcHQ6ICJhcHBsaWNhdGlvbi92bmQuZ2l0aHViK2pzb24iLAogICAgICBBdXRob3JpemF0aW9uOiBgQmVhcmVyICR7dG9rZW59YCwKICAgICAgIlVzZXItQWdlbnQiOiAiZm9yamEtaWEiLAogICAgICAiWC1HaXRIdWItQXBpLVZlcnNpb24iOiAiMjAyMi0xMS0yOCIsCiAgICB9LAogICAgc2lnbmFsOiBBYm9ydFNpZ25hbC50aW1lb3V0KDE1MDAwKSwKICB9KTsKICBpZiAoIXJlcy5vaykgdGhyb3cgbmV3IEVycm9yKCJObyBzZSBwdWRvIGxlZXIgdHUgdXN1YXJpbyBkZSBHaXRIdWIiKTsKICBjb25zdCBqID0gKGF3YWl0IHJlcy5qc29uKCkpIGFzIHsgbG9naW4/OiBzdHJpbmc7IG5hbWU/OiBzdHJpbmc7IGF2YXRhcl91cmw/OiBzdHJpbmcgfTsKICBjb25zdCBsb2dpbiA9IGoubG9naW4gPz8gIiI7CiAgcmV0dXJuIHsKICAgIGxvZ2luLAogICAgbmFtZTogai5uYW1lIHx8IGxvZ2luLAogICAgYXZhdGFyOiBqLmF2YXRhcl91cmwgfHwgKGxvZ2luID8gYGh0dHBzOi8vZ2l0aHViLmNvbS8ke2xvZ2lufS5wbmc/c2l6ZT02NGAgOiAiIiksCiAgfTsKfQoKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHN0YXJ0RGV2aWNlRmxvdyhjcmVkczogQXBwQ3JlZHMpOiBQcm9taXNlPHsKICBkZXZpY2VfY29kZTogc3RyaW5nOwogIHVzZXJfY29kZTogc3RyaW5nOwogIHZlcmlmaWNhdGlvbl91cmk6IHN0cmluZzsKICBleHBpcmVzX2luOiBudW1iZXI7CiAgaW50ZXJ2YWw6IG51bWJlcjsKfT4gewogIGNvbnN0IGJvZHkgPSBuZXcgVVJMU2VhcmNoUGFyYW1zKHsgY2xpZW50X2lkOiBjcmVkcy5jbGllbnRJZCwgc2NvcGU6ICJyZXBvIiB9KTsKICBjb25zdCByZXMgPSBhd2FpdCBmZXRjaCgiaHR0cHM6Ly9naXRodWIuY29tL2xvZ2luL2RldmljZS9jb2RlIiwgewogICAgbWV0aG9kOiAiUE9TVCIsCiAgICBoZWFkZXJzOiB7CiAgICAgIEFjY2VwdDogImFwcGxpY2F0aW9uL2pzb24iLAogICAgICAiQ29udGVudC1UeXBlIjogImFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZCIsCiAgICAgICJVc2VyLUFnZW50IjogImZvcmphLWlhIiwKICAgIH0sCiAgICBib2R5LAogICAgc2lnbmFsOiBBYm9ydFNpZ25hbC50aW1lb3V0KDE1MDAwKSwKICB9KTsKICBjb25zdCB0ZXh0ID0gYXdhaXQgcmVzLnRleHQoKTsKICBjb25zdCBwYXJzZWQgPSBwYXJzZU9BdXRoVG9rZW5SZXNwb25zZSh0ZXh0LCByZXMuaGVhZGVycy5nZXQoImNvbnRlbnQtdHlwZSIpID8/ICIiKSBhcyBPQXV0aFRva2VuUmVzdWx0ICYgewogICAgZGV2aWNlX2NvZGU/OiBzdHJpbmc7CiAgICB1c2VyX2NvZGU/OiBzdHJpbmc7CiAgICB2ZXJpZmljYXRpb25fdXJpPzogc3RyaW5nOwogICAgZXhwaXJlc19pbj86IG51bWJlcjsKICAgIGludGVydmFsPzogbnVtYmVyOwogIH07CiAgbGV0IGV4dHJhOiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPiA9IHt9OwogIHRyeSB7CiAgICBleHRyYSA9IEpTT04ucGFyc2UodGV4dCkgYXMgUmVjb3JkPHN0cmluZywgdW5rbm93bj47CiAgfSBjYXRjaCB7CiAgICBjb25zdCBwID0gbmV3IFVSTFNlYXJjaFBhcmFtcyh0ZXh0KTsKICAgIGV4dHJhID0gewogICAgICBkZXZpY2VfY29kZTogcC5nZXQoImRldmljZV9jb2RlIiksCiAgICAgIHVzZXJfY29kZTogcC5nZXQoInVzZXJfY29kZSIpLAogICAgICB2ZXJpZmljYXRpb25fdXJpOiBwLmdldCgidmVyaWZpY2F0aW9uX3VyaSIpLAogICAgICBleHBpcmVzX2luOiBOdW1iZXIocC5nZXQoImV4cGlyZXNfaW4iKSA/PyA5MDApLAogICAgICBpbnRlcnZhbDogTnVtYmVyKHAuZ2V0KCJpbnRlcnZhbCIpID8/IDUpLAogICAgfTsKICB9CiAgY29uc3QgZGV2aWNlX2NvZGUgPSBTdHJpbmcoZXh0cmEuZGV2aWNlX2NvZGUgPz8gIiIpOwogIGNvbnN0IHVzZXJfY29kZSA9IFN0cmluZyhleHRyYS51c2VyX2NvZGUgPz8gIiIpOwogIGlmICghZGV2aWNlX2NvZGUgfHwgIXVzZXJfY29kZSkgewogICAgdGhyb3cgbmV3IEVycm9yKHBhcnNlZC5lcnJvcl9kZXNjcmlwdGlvbiB8fCBwYXJzZWQuZXJyb3IgfHwgIkdpdEh1YiBubyBpbmljacOzIGVsIGZsdWpvIGRlIGRpc3Bvc2l0aXZvIik7CiAgfQogIHJldHVybiB7CiAgICBkZXZpY2VfY29kZSwKICAgIHVzZXJfY29kZSwKICAgIHZlcmlmaWNhdGlvbl91cmk6IFN0cmluZyhleHRyYS52ZXJpZmljYXRpb25fdXJpID8/ICJodHRwczovL2dpdGh1Yi5jb20vbG9naW4vZGV2aWNlIiksCiAgICBleHBpcmVzX2luOiBOdW1iZXIoZXh0cmEuZXhwaXJlc19pbiA/PyA5MDApLAogICAgaW50ZXJ2YWw6IE51bWJlcihleHRyYS5pbnRlcnZhbCA/PyA1KSwKICB9Owp9CgpleHBvcnQgYXN5bmMgZnVuY3Rpb24gcG9sbERldmljZUZsb3coY3JlZHM6IEFwcENyZWRzLCBkZXZpY2VDb2RlOiBzdHJpbmcpOiBQcm9taXNlPE9BdXRoVG9rZW5SZXN1bHQ+IHsKICBjb25zdCBib2R5ID0gbmV3IFVSTFNlYXJjaFBhcmFtcyh7CiAgICBjbGllbnRfaWQ6IGNyZWRzLmNsaWVudElkLAogICAgZGV2aWNlX2NvZGU6IGRldmljZUNvZGUsCiAgICBncmFudF90eXBlOiAidXJuOmlldGY6cGFyYW1zOm9hdXRoOmdyYW50LXR5cGU6ZGV2aWNlX2NvZGUiLAogIH0pOwogIGlmIChjcmVkcy5jbGllbnRTZWNyZXQpIGJvZHkuc2V0KCJjbGllbnRfc2VjcmV0IiwgY3JlZHMuY2xpZW50U2VjcmV0KTsKICBjb25zdCByZXMgPSBhd2FpdCBmZXRjaCgiaHR0cHM6Ly9naXRodWIuY29tL2xvZ2luL29hdXRoL2FjY2Vzc190b2tlbiIsIHsKICAgIG1ldGhvZDogIlBPU1QiLAogICAgaGVhZGVyczogewogICAgICBBY2NlcHQ6ICJhcHBsaWNhdGlvbi9qc29uIiwKICAgICAgIkNvbnRlbnQtVHlwZSI6ICJhcHBsaWNhdGlvbi94LXd3dy1mb3JtLXVybGVuY29kZWQiLAogICAgICAiVXNlci1BZ2VudCI6ICJmb3JqYS1pYSIsCiAgICB9LAogICAgYm9keSwKICAgIHNpZ25hbDogQWJvcnRTaWduYWwudGltZW91dCgxNTAwMCksCiAgfSk7CiAgY29uc3QgdGV4dCA9IGF3YWl0IHJlcy50ZXh0KCk7CiAgcmV0dXJuIHBhcnNlT0F1dGhUb2tlblJlc3BvbnNlKHRleHQsIHJlcy5oZWFkZXJzLmdldCgiY29udGVudC10eXBlIikgPz8gIiIpOwp9CgpleHBvcnQgZnVuY3Rpb24gb2F1dGhSZXN1bHRIdG1sKAogIG9yaWdpbjogc3RyaW5nLAogIHBheWxvYWQ6IHsKICAgIHRva2VuPzogc3RyaW5nOwogICAgbG9naW4/OiBzdHJpbmc7CiAgICBuYW1lPzogc3RyaW5nOwogICAgYXZhdGFyPzogc3RyaW5nOwogICAgZXJyb3I/OiBzdHJpbmc7CiAgfQopOiBzdHJpbmcgewogIGNvbnN0IGpzb24gPSBKU09OLnN0cmluZ2lmeSh7IHR5cGU6IEdIX09BVVRIX01TRywgLi4ucGF5bG9hZCB9KTsKICBjb25zdCBvayA9ICFwYXlsb2FkLmVycm9yICYmICEhcGF5bG9hZC50b2tlbjsKICByZXR1cm4gYDwhZG9jdHlwZSBodG1sPgo8aHRtbCBsYW5nPSJlcyI+CjxoZWFkPgogIDxtZXRhIGNoYXJzZXQ9InV0Zi04Ii8+CiAgPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xIi8+CiAgPHRpdGxlPiR7b2sgPyAiR2l0SHViIGNvbmVjdGFkbyIgOiAiR2l0SHViIn0gwrcgRm9yamE8L3RpdGxlPgogIDxzdHlsZT4KICAgIDpyb290IHsgY29sb3Itc2NoZW1lOiBkYXJrOyB9CiAgICBib2R5IHsgbWFyZ2luOjA7IG1pbi1oZWlnaHQ6MTAwdmg7IGRpc3BsYXk6Z3JpZDsgcGxhY2UtaXRlbXM6Y2VudGVyOwogICAgICBmb250LWZhbWlseTogdWktc2Fucy1zZXJpZiwgc3lzdGVtLXVpLCBzYW5zLXNlcmlmOyBiYWNrZ3JvdW5kOiMwYjBiMTI7IGNvbG9yOiNlZWU7IH0KICAgIC5jIHsgdGV4dC1hbGlnbjpjZW50ZXI7IG1heC13aWR0aDoyMnJlbTsgcGFkZGluZzoxLjVyZW07IH0KICAgIHAgeyBvcGFjaXR5Oi43MjsgZm9udC1zaXplOi45cmVtOyBsaW5lLWhlaWdodDoxLjQ1OyB9CiAgPC9zdHlsZT4KPC9oZWFkPgo8Ym9keT4KICA8ZGl2IGNsYXNzPSJjIj4KICAgIDxwPiR7b2sgPyAiQ3VlbnRhIGNvbmVjdGFkYS4gUHVlZGVzIGNlcnJhciBlc3RhIHZlbnRhbmEuIiA6IHBheWxvYWQuZXJyb3IgPyBlc2NhcGVIdG1sKHBheWxvYWQuZXJyb3IpIDogIlZvbHZpZW5kbyBhIEZvcmph4oCmIn08L3A+CiAgPC9kaXY+CiAgPHNjcmlwdD4KICAoZnVuY3Rpb24gKCkgewogICAgdmFyIHBheWxvYWQgPSAke2pzb259OwogICAgdHJ5IHsKICAgICAgaWYgKHdpbmRvdy5vcGVuZXIgJiYgIXdpbmRvdy5vcGVuZXIuY2xvc2VkKSB7CiAgICAgICAgd2luZG93Lm9wZW5lci5wb3N0TWVzc2FnZShwYXlsb2FkLCAke0pTT04uc3RyaW5naWZ5KG9yaWdpbil9KTsKICAgICAgICB3aW5kb3cuY2xvc2UoKTsKICAgICAgICByZXR1cm47CiAgICAgIH0KICAgIH0gY2F0Y2ggKGUpIHt9CiAgICB0cnkgewogICAgICBpZiAocGF5bG9hZC50b2tlbikgewogICAgICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCJmb3JqYS1naXRodWItdG9rZW4iLCBwYXlsb2FkLnRva2VuKTsKICAgICAgICBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgiZm9yamEtZ2l0aHViLWFjY291bnQiLCBKU09OLnN0cmluZ2lmeSh7CiAgICAgICAgICBsb2dpbjogcGF5bG9hZC5sb2dpbiB8fCAiIiwKICAgICAgICAgIG5hbWU6IHBheWxvYWQubmFtZSB8fCAiIiwKICAgICAgICAgIGF2YXRhcjogcGF5bG9hZC5hdmF0YXIgfHwgIiIsCiAgICAgICAgICBzb3VyY2U6ICJvYXV0aCIKICAgICAgICB9KSk7CiAgICAgICAgdHJ5IHsgd2luZG93LmRpc3BhdGNoRXZlbnQobmV3IEV2ZW50KCJmb3JqYS1naXRodWItYWNjb3VudCIpKTsgfSBjYXRjaCAoZTIpIHt9CiAgICAgIH0KICAgIH0gY2F0Y2ggKGUpIHt9CiAgICBsb2NhdGlvbi5yZXBsYWNlKCR7SlNPTi5zdHJpbmdpZnkob3JpZ2luICsgIi8iKX0pOwogIH0pKCk7CiAgPC9zY3JpcHQ+CjwvYm9keT4KPC9odG1sPmA7Cn0KCmZ1bmN0aW9uIGVzY2FwZUh0bWwoczogc3RyaW5nKTogc3RyaW5nIHsKICByZXR1cm4gcy5yZXBsYWNlKC9bJjw+IiddL2csIChjKSA9PiAoeyAiJiI6ICImYW1wOyIsICI8IjogIiZsdDsiLCAiPiI6ICImZ3Q7IiwgJyInOiAiJnF1b3Q7IiwgIiciOiAiJiMzOTsiIH1bY10hKSk7Cn0KCmV4cG9ydCB7IEdIX0FQUF9DT09LSUUsIEdIX1NUQVRFX0NPT0tJRSB9Owo=
+/** Forja IA — OAuth de GitHub en el servidor (cookies, intercambio, HTML).
+ * No importar desde componentes de cliente. */
+import { createHash, randomBytes } from "node:crypto";
+import {
+  GH_APP_COOKIE,
+  GH_OAUTH_MSG,
+  GH_STATE_COOKIE,
+  githubAuthorizeUrl,
+  parseAppCredsJson,
+  parseOAuthTokenResponse,
+  type AppCreds,
+  type OAuthTokenResult,
+} from "./github-oauth";
+
+export function appOrigin(req: Request): string {
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost:3000";
+  const xf = req.headers.get("x-forwarded-proto");
+  const proto = xf || (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
+  return `${proto}://${host}`;
+}
+
+export function readCookie(req: Request, name: string): string | null {
+  const header = req.headers.get("cookie") ?? "";
+  for (const part of header.split(";")) {
+    const i = part.indexOf("=");
+    if (i === -1) continue;
+    if (part.slice(0, i).trim() !== name) continue;
+    try {
+      return decodeURIComponent(part.slice(i + 1).trim());
+    } catch {
+      return part.slice(i + 1).trim();
+    }
+  }
+  return null;
+}
+
+export function cookieHeader(name: string, value: string, origin: string, maxAge: number): string {
+  const secure = origin.startsWith("https") ? "; Secure" : "";
+  return `${name}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
+}
+
+/** Vida útil de la cookie con las credenciales de la GitHub App: 12 horas.
+ *  Antes eran 30 días: un token de instalación no caduca, pero dejar la
+ *  credencial (client secret incluido) una semana entera en una cookie de
+ *  navegador era ventana de sobra. 12 h cubre una jornada de trabajo; si
+ *  caduca, reconectar la App son dos clics y no hay datos que perder. */
+export const GH_APP_COOKIE_MAX_AGE = 60 * 60 * 12;
+
+
+export function envCreds(): AppCreds | null {
+  const clientId = (process.env.GITHUB_CLIENT_ID ?? "").trim();
+  const clientSecret = (process.env.GITHUB_CLIENT_SECRET ?? "").trim();
+  if (!clientId || !clientSecret) return null;
+  return { clientId, clientSecret };
+}
+
+export function credsFrom(req: Request): AppCreds | null {
+  return envCreds() || parseAppCredsJson(readCookie(req, GH_APP_COOKIE) ?? "");
+}
+
+export function newPkce(): { state: string; verifier: string; challenge: string } {
+  const state = randomBytes(16).toString("base64url");
+  const verifier = randomBytes(32).toString("base64url");
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  return { state, verifier, challenge };
+}
+
+export function packState(state: string, verifier: string): string {
+  return `${state}.${verifier}`;
+}
+
+export function unpackState(raw: string | null): { state: string; verifier: string } | null {
+  if (!raw) return null;
+  const i = raw.indexOf(".");
+  if (i < 8) return null;
+  return { state: raw.slice(0, i), verifier: raw.slice(i + 1) };
+}
+
+export function authorizeRedirect(creds: AppCreds, origin: string, packed: string): string {
+  const u = unpackState(packed);
+  if (!u) throw new Error("state interno no válido");
+  return githubAuthorizeUrl({
+    clientId: creds.clientId,
+    redirectUri: `${origin}/api/github/oauth/callback`,
+    state: u.state,
+    challenge: createHash("sha256").update(u.verifier).digest("base64url"),
+  });
+}
+
+export async function exchangeGithubCode(opts: {
+  creds: AppCreds;
+  code: string;
+  redirectUri: string;
+  verifier?: string;
+}): Promise<OAuthTokenResult> {
+  const body = new URLSearchParams({
+    client_id: opts.creds.clientId,
+    client_secret: opts.creds.clientSecret,
+    code: opts.code,
+    redirect_uri: opts.redirectUri,
+  });
+  if (opts.verifier) body.set("code_verifier", opts.verifier);
+  const res = await fetch("https://github.com/login/oauth/access_token", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "forja-ia",
+    },
+    body,
+    signal: AbortSignal.timeout(20000),
+  });
+  const text = await res.text();
+  return parseOAuthTokenResponse(text, res.headers.get("content-type") ?? "");
+}
+
+export async function githubUser(token: string): Promise<{ login: string; name: string; avatar: string }> {
+  const res = await fetch("https://api.github.com/user", {
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${token}`,
+      "User-Agent": "forja-ia",
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) throw new Error("No se pudo leer tu usuario de GitHub");
+  const j = (await res.json()) as { login?: string; name?: string; avatar_url?: string };
+  const login = j.login ?? "";
+  return {
+    login,
+    name: j.name || login,
+    avatar: j.avatar_url || (login ? `https://github.com/${login}.png?size=64` : ""),
+  };
+}
+
+export async function startDeviceFlow(creds: AppCreds): Promise<{
+  device_code: string;
+  user_code: string;
+  verification_uri: string;
+  expires_in: number;
+  interval: number;
+}> {
+  const body = new URLSearchParams({ client_id: creds.clientId, scope: "repo" });
+  const res = await fetch("https://github.com/login/device/code", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "forja-ia",
+    },
+    body,
+    signal: AbortSignal.timeout(15000),
+  });
+  const text = await res.text();
+  const parsed = parseOAuthTokenResponse(text, res.headers.get("content-type") ?? "") as OAuthTokenResult & {
+    device_code?: string;
+    user_code?: string;
+    verification_uri?: string;
+    expires_in?: number;
+    interval?: number;
+  };
+  let extra: Record<string, unknown> = {};
+  try {
+    extra = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    const p = new URLSearchParams(text);
+    extra = {
+      device_code: p.get("device_code"),
+      user_code: p.get("user_code"),
+      verification_uri: p.get("verification_uri"),
+      expires_in: Number(p.get("expires_in") ?? 900),
+      interval: Number(p.get("interval") ?? 5),
+    };
+  }
+  const device_code = String(extra.device_code ?? "");
+  const user_code = String(extra.user_code ?? "");
+  if (!device_code || !user_code) {
+    throw new Error(parsed.error_description || parsed.error || "GitHub no inició el flujo de dispositivo");
+  }
+  return {
+    device_code,
+    user_code,
+    verification_uri: String(extra.verification_uri ?? "https://github.com/login/device"),
+    expires_in: Number(extra.expires_in ?? 900),
+    interval: Number(extra.interval ?? 5),
+  };
+}
+
+export async function pollDeviceFlow(creds: AppCreds, deviceCode: string): Promise<OAuthTokenResult> {
+  const body = new URLSearchParams({
+    client_id: creds.clientId,
+    device_code: deviceCode,
+    grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+  });
+  if (creds.clientSecret) body.set("client_secret", creds.clientSecret);
+  const res = await fetch("https://github.com/login/oauth/access_token", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "forja-ia",
+    },
+    body,
+    signal: AbortSignal.timeout(15000),
+  });
+  const text = await res.text();
+  return parseOAuthTokenResponse(text, res.headers.get("content-type") ?? "");
+}
+
+export function oauthResultHtml(
+  origin: string,
+  payload: {
+    token?: string;
+    login?: string;
+    name?: string;
+    avatar?: string;
+    error?: string;
+  }
+): string {
+  const json = JSON.stringify({ type: GH_OAUTH_MSG, ...payload });
+  const ok = !payload.error && !!payload.token;
+  return `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>${ok ? "GitHub conectado" : "GitHub"} · Forja</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center;
+      font-family: ui-sans-serif, system-ui, sans-serif; background:#0b0b12; color:#eee; }
+    .c { text-align:center; max-width:22rem; padding:1.5rem; }
+    p { opacity:.72; font-size:.9rem; line-height:1.45; }
+  </style>
+</head>
+<body>
+  <div class="c">
+    <p>${ok ? "Cuenta conectada. Puedes cerrar esta ventana." : payload.error ? escapeHtml(payload.error) : "Volviendo a Forja…"}</p>
+  </div>
+  <script>
+  (function () {
+    var payload = ${json};
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage(payload, ${JSON.stringify(origin)});
+        window.close();
+        return;
+      }
+    } catch (e) {}
+    try {
+      if (payload.token) {
+        localStorage.setItem("forja-github-token", payload.token);
+        localStorage.setItem("forja-github-account", JSON.stringify({
+          login: payload.login || "",
+          name: payload.name || "",
+          avatar: payload.avatar || "",
+          source: "oauth"
+        }));
+        try { window.dispatchEvent(new Event("forja-github-account")); } catch (e2) {}
+      }
+    } catch (e) {}
+    location.replace(${JSON.stringify(origin + "/")});
+  })();
+  </script>
+</body>
+</html>`;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+}
+
+export { GH_APP_COOKIE, GH_STATE_COOKIE };

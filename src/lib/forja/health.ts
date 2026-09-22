@@ -1,1 +1,253 @@
-InVzZSBjbGllbnQiOwovKiogRm9yamEgSUEg4oCUIFNhbHVkIGRlIG1vZGVsb3M6IGNpcmN1aXQgYnJlYWtlciBsaWdlcm8gKyBMS0dQIChpbnNwaXJhZG8gZW4gT21uaVJvdXRlKS4KICoKICogQ3VhdHJvIGlkZWFzIHRvbWFkYXMgZGVsIHJvdXRlciB5IGFkYXB0YWRhcyBhbCBuYXZlZ2Fkb3I6CiAqICAxLiBDb29sZG93biBwb3IgbW9kZWxvOiB0cmFzIHVuIDQyOS81eHggZWwgbW9kZWxvIHNlIMKrZW5mcsOtYcK7IHVub3Mgc2VndW5kb3MgeSBlbAogKiAgICAgZmFpbG92ZXIvQXV0byBsbyBzYWx0YW4gYXV0b23DoXRpY2FtZW50ZSAoUmV0cnktQWZ0ZXIgc2UgcmVzcGV0YSBzaSBsbGVnYSkuCiAqICAyLiBCYWNrb2ZmIGV4cG9uZW5jaWFsOiBjYWRhIGZhbGxvIGNvbnNlY3V0aXZvIGR1cGxpY2EgZWwgZW5mcmlhbWllbnRvIChjb24gdG9wZSkuCiAqICAzLiBMS0dQIChMYXN0LUtub3duLUdvb2QgUGF0aCk6IHNlIHJlY3VlcmRhIGVsIMO6bHRpbW8gbW9kZWxvIHF1ZSByZXNwb25kacOzIGJpZW4KICogICAgIHkgQXV0byBsbyBwb25lIGVsIHByaW1lcm8gZGUgbGEgY2FkZW5hLgogKiAgNC4gQ29vbGRvd24gUE9SIFBST1ZFRURPUiBjdWFuZG8gZWwgY29ydGUgZXMgZGUgY3VvdGEgKDQyOS80MDIpOiBsYXMgY3VvdGFzCiAqICAgICBncmF0dWl0YXMgc29uIGNhc2kgc2llbXByZSBwb3IgcHJvdmVlZG9yLiBTaSBHcm9xIHRlIGNvcnRhLCB0ZSBjb3J0YSBjb24KICogICAgIFRPRE9TIHN1cyBtb2RlbG9zOiBzaW4gZXN0bywgZWwgZmFpbG92ZXIgaWJhIGRhbmRvIHR1bWJvcyBkZSBtb2RlbG8gZW4KICogICAgIG1vZGVsbyBkZW50cm8gZGVsIHByb3ZlZWRvciBhZ290YWRvLCBnYXN0YW5kbyByZWludGVudG9zIHkgNDI5IGFkaWNpb25hbGVzLgogKiAgICAgVW4gw6l4aXRvIGRlIGN1YWxxdWllciBtb2RlbG8gZGVsIHByb3ZlZWRvciBsZXZhbnRhIGVsIGVuZnJpYW1pZW50by4KICoKICogUGVyc2lzdGVuY2lhIHByb3BpYSAoYGZvcmphLWhlYWx0aC12MWApIHBhcmEgbm8gdG9jYXIgZWwgc3RvcmUgcHJpbmNpcGFsIG5pIGxhIGLDs3ZlZGEuCiAqLwppbXBvcnQgeyBjcmVhdGUgfSBmcm9tICJ6dXN0YW5kIjsKaW1wb3J0IHsgcGVyc2lzdCwgY3JlYXRlSlNPTlN0b3JhZ2UgfSBmcm9tICJ6dXN0YW5kL21pZGRsZXdhcmUiOwoKZXhwb3J0IGludGVyZmFjZSBIZWFsdGhFbnRyeSB7CiAgLyoqIGVwb2NoIG1zIGhhc3RhIGVsIHF1ZSBlbCBtb2RlbG8gZXN0w6EgZW4gY29vbGRvd24gKDAgPSBzaW4gY29vbGRvd24pICovCiAgdW50aWw6IG51bWJlcjsKICAvKiogZmFsbG9zIGNvbnNlY3V0aXZvcyAocGFyYSBlbCBiYWNrb2ZmKSAqLwogIGNvbnNlY3V0aXZlOiBudW1iZXI7CiAgLyoqIMO6bHRpbW8gY8OzZGlnbyBIVFRQIHZpc3RvICgwID0gcmVkKSAqLwogIGxhc3RTdGF0dXM6IG51bWJlcjsKICAvKiogbW90aXZvIGNvcnRvIHBhcmEgZWwgYmFkZ2UgKi8KICByZWFzb24/OiBzdHJpbmc7Cn0KCmludGVyZmFjZSBIZWFsdGhTdGF0ZSB7CiAgZW50cmllczogUmVjb3JkPHN0cmluZywgSGVhbHRoRW50cnk+OwogIC8qKiBlbmZyaWFtaWVudG8gYSBuaXZlbCBkZSBwcm92ZWVkb3IgKGN1b3RhKTogbGEgY2xhdmUgZXMgZWwgcHJvdmlkZXJJZCAqLwogIHByb3ZpZGVyRW50cmllczogUmVjb3JkPHN0cmluZywgSGVhbHRoRW50cnk+OwogIGxhc3RHb29kOiB7IGtleTogc3RyaW5nOyBhdDogbnVtYmVyIH0gfCBudWxsOwogIHJlY29yZFN1Y2Nlc3M6IChtb2RlbEtleTogc3RyaW5nKSA9PiB2b2lkOwogIHJlY29yZEZhaWx1cmU6IChtb2RlbEtleTogc3RyaW5nLCBzdGF0dXM6IG51bWJlciwgcmV0cnlBZnRlck1zPzogbnVtYmVyKSA9PiB2b2lkOwogIC8qKiBmYWxsbyBkZSBjdW90YSBkZWwgUFJPVkVFRE9SIGVudGVybyAoNDI5LzQwMiksIGNvbiBzdSBwcm9waW8gYmFja29mZiAqLwogIHJlY29yZFByb3ZpZGVyRmFpbHVyZTogKAogICAgcHJvdmlkZXJJZDogc3RyaW5nLAogICAgc3RhdHVzOiBudW1iZXIsCiAgICByZXRyeUFmdGVyTXM/OiBudW1iZXIKICApID0+IHZvaWQ7CiAgLyoqIHVuIMOpeGl0byBkZSBjdWFscXVpZXIgbW9kZWxvIGRlbCBwcm92ZWVkb3IgbGV2YW50YSBzdSBlbmZyaWFtaWVudG8gKi8KICByZWNvcmRQcm92aWRlclN1Y2Nlc3M6IChwcm92aWRlcklkOiBzdHJpbmcpID0+IHZvaWQ7CiAgLyoqIGxpbXBpYSBzb2xvIGxhcyBlbnRyYWRhcyBjYWR1Y2FkYXMgKGhvdXNla2VlcGluZyBsaWdlcm8pICovCiAgcHJ1bmU6ICgpID0+IHZvaWQ7CiAgY2xlYXJBbGw6ICgpID0+IHZvaWQ7Cn0KCmNvbnN0IENBUF9NUyA9IDE1ICogNjBfMDAwOyAvLyB0b3BlIGRlIGVuZnJpYW1pZW50bzogMTUgbWluCgovKiogRW5mcmlhbWllbnRvIGJhc2Ugc2Vnw7puIGVsIHRpcG8gZGUgZmFsbG8gKG1zKSAqLwpmdW5jdGlvbiBiYXNlQ29vbGRvd24oc3RhdHVzOiBudW1iZXIpOiBudW1iZXIgewogIGlmIChzdGF0dXMgPT09IDQyOSkgcmV0dXJuIDYwXzAwMDsgLy8gbMOtbWl0ZSBkZSBwZXRpY2lvbmVzCiAgaWYgKHN0YXR1cyA9PT0gNDAyKSByZXR1cm4gNSAqIDYwXzAwMDsgLy8gY3VvdGEvc2FsZG8gYWdvdGFkbwogIGlmIChzdGF0dXMgPT09IDQwMSB8fCBzdGF0dXMgPT09IDQwMykgcmV0dXJuIDA7IC8vIGNsYXZlIGludsOhbGlkYTogbm8gZXMgdHJhbnNpdG9yaW8KICBpZiAoc3RhdHVzID09PSAwKSByZXR1cm4gMTVfMDAwOyAvLyByZWQgY2HDrWRhCiAgaWYgKHN0YXR1cyA+PSA1MDAgfHwgc3RhdHVzID09PSA0MDgpIHJldHVybiAxNV8wMDA7IC8vIHByb3ZlZWRvciBjYcOtZG8KICByZXR1cm4gNV8wMDA7IC8vIG90cm8gNHh4Cn0KCi8qKiBFc3RhZG9zIHF1ZSBkZWxhdGFuIGN1b3RhIGRlIFBST1ZFRURPUiBhZ290YWRhICg0MjkgbMOtbWl0ZSwgNDAyIHNhbGRvKSAqLwpleHBvcnQgZnVuY3Rpb24gZXNGYWxsb0RlQ3VvdGEoc3RhdHVzOiBudW1iZXIpOiBib29sZWFuIHsKICByZXR1cm4gc3RhdHVzID09PSA0MjkgfHwgc3RhdHVzID09PSA0MDI7Cn0KCmV4cG9ydCBjb25zdCB1c2VIZWFsdGggPSBjcmVhdGU8SGVhbHRoU3RhdGU+KCkoCiAgcGVyc2lzdCgKICAgIChzZXQsIF9nZXQpID0+ICh7CiAgICAgIGVudHJpZXM6IHt9LAogICAgICBwcm92aWRlckVudHJpZXM6IHt9LAogICAgICBsYXN0R29vZDogbnVsbCwKCiAgICAgIHJlY29yZFN1Y2Nlc3M6IChtb2RlbEtleSkgPT4KICAgICAgICBzZXQoKHN0KSA9PiB7CiAgICAgICAgICBjb25zdCB7IFttb2RlbEtleV06IF9kcm9wLCAuLi5yZXN0IH0gPSBzdC5lbnRyaWVzOwogICAgICAgICAgLy8gZWwgcHJvdmVlZG9yIGRlbCBtb2RlbG8gZXhpdG9zbyBkZWrDsyBkZSBlc3RhciBhZ290YWRvOiBzZSBsZXZhbnRhIHN1IGVuZnJpYW1pZW50bwogICAgICAgICAgY29uc3QgcGlkID0gbW9kZWxLZXkuc2xpY2UoMCwgbW9kZWxLZXkuaW5kZXhPZigiOjoiKSk7CiAgICAgICAgICBjb25zdCB7IFtwaWRdOiBfZHJvcFAsIC4uLnJlc3RQIH0gPSBzdC5wcm92aWRlckVudHJpZXM7CiAgICAgICAgICBjb25zdCBwcm92aWRlckVudHJpZXMgPQogICAgICAgICAgICBwaWQgJiYgX2Ryb3BQID8gcmVzdFAgOiBzdC5wcm92aWRlckVudHJpZXM7CiAgICAgICAgICByZXR1cm4geyBlbnRyaWVzOiByZXN0LCBwcm92aWRlckVudHJpZXMsIGxhc3RHb29kOiB7IGtleTogbW9kZWxLZXksIGF0OiBEYXRlLm5vdygpIH0gfTsKICAgICAgICB9KSwKCiAgICAgIHJlY29yZEZhaWx1cmU6IChtb2RlbEtleSwgc3RhdHVzLCByZXRyeUFmdGVyTXMpID0+CiAgICAgICAgc2V0KChzdCkgPT4gewogICAgICAgICAgY29uc3QgcHJldiA9IHN0LmVudHJpZXNbbW9kZWxLZXldOwogICAgICAgICAgY29uc3QgY29uc2VjdXRpdmUgPSAocHJldj8uY29uc2VjdXRpdmUgPz8gMCkgKyAxOwogICAgICAgICAgbGV0IGJhc2UgPSBiYXNlQ29vbGRvd24oc3RhdHVzKTsKICAgICAgICAgIGlmIChzdGF0dXMgPT09IDQyOSAmJiByZXRyeUFmdGVyTXMgJiYgcmV0cnlBZnRlck1zID4gMCkgewogICAgICAgICAgICAvLyBSZXRyeS1BZnRlciBkZWwgcHJvdmVlZG9yIG1hbmRhIGVuIGVsIHByaW1lciBlbmZyaWFtaWVudG8KICAgICAgICAgICAgYmFzZSA9IE1hdGgubWF4KGJhc2UsIHJldHJ5QWZ0ZXJNcyk7CiAgICAgICAgICB9CiAgICAgICAgICBpZiAoYmFzZSA9PT0gMCkgewogICAgICAgICAgICAvLyA0MDEvNDAzOiBtYXJjYW1vcyBlbCBtb3Rpdm8gcGVybyBzaW4gY29vbGRvd24gKGVsIHVzdWFyaW8gZGViZSBhcnJlZ2xhciBsYSBjbGF2ZSkKICAgICAgICAgICAgcmV0dXJuIHsKICAgICAgICAgICAgICBlbnRyaWVzOiB7CiAgICAgICAgICAgICAgICAuLi5zdC5lbnRyaWVzLAogICAgICAgICAgICAgICAgW21vZGVsS2V5XTogewogICAgICAgICAgICAgICAgICB1bnRpbDogMCwKICAgICAgICAgICAgICAgICAgY29uc2VjdXRpdmUsCiAgICAgICAgICAgICAgICAgIGxhc3RTdGF0dXM6IHN0YXR1cywKICAgICAgICAgICAgICAgICAgcmVhc29uOiAiY2xhdmUgaW52w6FsaWRhIiwKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICBsYXN0R29vZDogc3QubGFzdEdvb2Q/LmtleSA9PT0gbW9kZWxLZXkgPyBudWxsIDogc3QubGFzdEdvb2QsCiAgICAgICAgICAgIH07CiAgICAgICAgICB9CiAgICAgICAgICBjb25zdCBiYWNrb2ZmID0gTWF0aC5taW4oQ0FQX01TLCBiYXNlICogTWF0aC5wb3coMiwgY29uc2VjdXRpdmUgLSAxKSk7CiAgICAgICAgICBjb25zdCByZWFzb24gPQogICAgICAgICAgICBzdGF0dXMgPT09IDQyOQogICAgICAgICAgICAgID8gImzDrW1pdGUgZGUgcGV0aWNpb25lcyIKICAgICAgICAgICAgICA6IHN0YXR1cyA9PT0gNDAyCiAgICAgICAgICAgICAgICA/ICJjdW90YSBhZ290YWRhIgogICAgICAgICAgICAgICAgOiBzdGF0dXMgPT09IDAKICAgICAgICAgICAgICAgICAgPyAic2luIGNvbmV4acOzbiIKICAgICAgICAgICAgICAgICAgOiBzdGF0dXMgPj0gNTAwCiAgICAgICAgICAgICAgICAgICAgPyAiZXJyb3IgZGVsIHByb3ZlZWRvciIKICAgICAgICAgICAgICAgICAgICA6IGBlcnJvciAke3N0YXR1c31gOwogICAgICAgICAgcmV0dXJuIHsKICAgICAgICAgICAgZW50cmllczogewogICAgICAgICAgICAgIC4uLnN0LmVudHJpZXMsCiAgICAgICAgICAgICAgW21vZGVsS2V5XTogewogICAgICAgICAgICAgICAgdW50aWw6IERhdGUubm93KCkgKyBiYWNrb2ZmLAogICAgICAgICAgICAgICAgY29uc2VjdXRpdmUsCiAgICAgICAgICAgICAgICBsYXN0U3RhdHVzOiBzdGF0dXMsCiAgICAgICAgICAgICAgICByZWFzb24sCiAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgfSwKICAgICAgICAgICAgLy8gdW4gNDI5LzQwMiB0YW1iacOpbiBhcHVudGEgYWwgcHJvdmVlZG9yOiBsYXMgY3VvdGFzIGdyYXRpcyBzb24gc3V5YXMKICAgICAgICAgICAgLi4uKGVzRmFsbG9EZUN1b3RhKHN0YXR1cykKICAgICAgICAgICAgICA/IHsgcHJvdmlkZXJFbnRyaWVzOiBlc2NhbGFyQVByb3ZlZWRvcihzdC5wcm92aWRlckVudHJpZXMsIG1vZGVsS2V5LCBzdGF0dXMsIHJldHJ5QWZ0ZXJNcykgfQogICAgICAgICAgICAgIDoge30pLAogICAgICAgICAgfTsKICAgICAgICB9KSwKCiAgICAgIHJlY29yZFByb3ZpZGVyRmFpbHVyZTogKHByb3ZpZGVySWQsIHN0YXR1cywgcmV0cnlBZnRlck1zKSA9PgogICAgICAgIHNldCgoc3QpID0+ICh7CiAgICAgICAgICBwcm92aWRlckVudHJpZXM6IGVzY2FsYXJBUHJvdmVlZG9yKHN0LnByb3ZpZGVyRW50cmllcywgYCR7cHJvdmlkZXJJZH06OmAsIHN0YXR1cywgcmV0cnlBZnRlck1zKSwKICAgICAgICB9KSksCgogICAgICByZWNvcmRQcm92aWRlclN1Y2Nlc3M6IChwcm92aWRlcklkKSA9PgogICAgICAgIHNldCgoc3QpID0+IHsKICAgICAgICAgIGNvbnN0IHsgW3Byb3ZpZGVySWRdOiBfZHJvcCwgLi4ucmVzdCB9ID0gc3QucHJvdmlkZXJFbnRyaWVzOwogICAgICAgICAgcmV0dXJuIF9kcm9wID8geyBwcm92aWRlckVudHJpZXM6IHJlc3QgfSA6IHt9OwogICAgICAgIH0pLAoKICAgICAgcHJ1bmU6ICgpID0+CiAgICAgICAgc2V0KChzdCkgPT4gewogICAgICAgICAgY29uc3Qgbm93ID0gRGF0ZS5ub3coKTsKICAgICAgICAgIGNvbnN0IG91dDogUmVjb3JkPHN0cmluZywgSGVhbHRoRW50cnk+ID0ge307CiAgICAgICAgICBsZXQgY2hhbmdlZCA9IGZhbHNlOwogICAgICAgICAgZm9yIChjb25zdCBbaywgZV0gb2YgT2JqZWN0LmVudHJpZXMoc3QuZW50cmllcykpIHsKICAgICAgICAgICAgaWYgKGUudW50aWwgPiBub3cpIG91dFtrXSA9IGU7CiAgICAgICAgICAgIGVsc2UgY2hhbmdlZCA9IHRydWU7CiAgICAgICAgICB9CiAgICAgICAgICBjb25zdCBwT3V0OiBSZWNvcmQ8c3RyaW5nLCBIZWFsdGhFbnRyeT4gPSB7fTsKICAgICAgICAgIGZvciAoY29uc3QgW2ssIGVdIG9mIE9iamVjdC5lbnRyaWVzKHN0LnByb3ZpZGVyRW50cmllcykpIHsKICAgICAgICAgICAgaWYgKGUudW50aWwgPiBub3cpIHBPdXRba10gPSBlOwogICAgICAgICAgICBlbHNlIGNoYW5nZWQgPSB0cnVlOwogICAgICAgICAgfQogICAgICAgICAgcmV0dXJuIGNoYW5nZWQgPyB7IGVudHJpZXM6IG91dCwgcHJvdmlkZXJFbnRyaWVzOiBwT3V0IH0gOiB7fTsKICAgICAgICB9KSwKCiAgICAgIGNsZWFyQWxsOiAoKSA9PiBzZXQoeyBlbnRyaWVzOiB7fSwgcHJvdmlkZXJFbnRyaWVzOiB7fSwgbGFzdEdvb2Q6IG51bGwgfSksCiAgICB9KSwKICAgIHsKICAgICAgbmFtZTogImZvcmphLWhlYWx0aC12MSIsCiAgICAgIHN0b3JhZ2U6IGNyZWF0ZUpTT05TdG9yYWdlKCgpID0+IGxvY2FsU3RvcmFnZSksCiAgICAgIHBhcnRpYWxpemU6IChzdCkgPT4gKHsKICAgICAgICBlbnRyaWVzOiBzdC5lbnRyaWVzLAogICAgICAgIHByb3ZpZGVyRW50cmllczogc3QucHJvdmlkZXJFbnRyaWVzLAogICAgICAgIGxhc3RHb29kOiBzdC5sYXN0R29vZCwKICAgICAgfSksCiAgICB9CiAgKQopOwoKLyoqIE1hcmNhIG8gYWdyYXZhIGVsIGVuZnJpYW1pZW50byBkZWwgcHJvdmVlZG9yIHNhY2FkbyBkZSB1biBtb2RlbEtleSBgcGlkOjptaWRgLiAqLwpmdW5jdGlvbiBlc2NhbGFyQVByb3ZlZWRvcigKICBwcmV2OiBSZWNvcmQ8c3RyaW5nLCBIZWFsdGhFbnRyeT4sCiAgbW9kZWxLZXk6IHN0cmluZywKICBzdGF0dXM6IG51bWJlciwKICByZXRyeUFmdGVyTXM/OiBudW1iZXIKKTogUmVjb3JkPHN0cmluZywgSGVhbHRoRW50cnk+IHsKICBjb25zdCBwaWQgPSBtb2RlbEtleS5zbGljZSgwLCBtb2RlbEtleS5pbmRleE9mKCI6OiIpKTsKICBpZiAoIXBpZCkgcmV0dXJuIHByZXY7CiAgY29uc3QgZSA9IHByZXZbcGlkXTsKICBjb25zdCBjb25zZWN1dGl2ZSA9IChlPy5jb25zZWN1dGl2ZSA/PyAwKSArIDE7CiAgbGV0IGJhc2UgPSBzdGF0dXMgPT09IDQwMiA/IDUgKiA2MF8wMDAgOiA2MF8wMDA7IC8vIDQwMiA9IHNhbGRvIGFnb3RhZG86IG3DoXMgbGFyZ28KICBpZiAoc3RhdHVzID09PSA0MjkgJiYgcmV0cnlBZnRlck1zICYmIHJldHJ5QWZ0ZXJNcyA+IGJhc2UpIGJhc2UgPSByZXRyeUFmdGVyTXM7CiAgY29uc3QgYmFja29mZiA9IE1hdGgubWluKENBUF9NUywgYmFzZSAqIE1hdGgucG93KDIsIGNvbnNlY3V0aXZlIC0gMSkpOwogIHJldHVybiB7CiAgICAuLi5wcmV2LAogICAgW3BpZF06IHsKICAgICAgdW50aWw6IERhdGUubm93KCkgKyBiYWNrb2ZmLAogICAgICBjb25zZWN1dGl2ZSwKICAgICAgbGFzdFN0YXR1czogc3RhdHVzLAogICAgICByZWFzb246IHN0YXR1cyA9PT0gNDAyID8gImN1b3RhIGRlbCBwcm92ZWVkb3IgYWdvdGFkYSIgOiAiY3VvdGEgZGVsIHByb3ZlZWRvciIsCiAgICB9LAogIH07Cn0KCi8qKiDCv0VzdMOhIGVzdGUgbW9kZWxvIGVuIGNvb2xkb3duPyBEZXZ1ZWx2ZSBsb3MgbXMgcmVzdGFudGVzICgwID0gZGlzcG9uaWJsZSkuICovCmV4cG9ydCBmdW5jdGlvbiBjb29sZG93blJlbWFpbmluZyhlbnRyeTogSGVhbHRoRW50cnkgfCB1bmRlZmluZWQsIG5vdyA9IERhdGUubm93KCkpOiBudW1iZXIgewogIGlmICghZW50cnk/LnVudGlsKSByZXR1cm4gMDsKICByZXR1cm4gTWF0aC5tYXgoMCwgZW50cnkudW50aWwgLSBub3cpOwp9CgovKiogwr9Fc3TDoSBlbCBQUk9WRUVET1IgZW50ZXJvIGVuZnJpw6FuZG9zZSBwb3IgY3VvdGE/IChtcyByZXN0YW50ZXMsIDAgPSBsaWJyZSkgKi8KZXhwb3J0IGZ1bmN0aW9uIHByb3ZpZGVyQ29vbGRvd25SZW1haW5pbmcoCiAgZW50cnk6IEhlYWx0aEVudHJ5IHwgdW5kZWZpbmVkLAogIG5vdyA9IERhdGUubm93KCkKKTogbnVtYmVyIHsKICByZXR1cm4gY29vbGRvd25SZW1haW5pbmcoZW50cnksIG5vdyk7Cn0KCi8qKiBQcmVkaWNhZG8gbGlzdG8gcGFyYSBsYXMgY2FkZW5hcyBBdXRvL2ZhaWxvdmVyOiBibG9xdWVhIHNpIGVsIG1vZGVsbyBPIHN1CiAqIHByb3ZlZWRvciBlc3TDoW4gZW5mcmnDoW5kb3NlLiBFcyBsYSBxdWUgZXZpdGEgZGFyIHR1bWJvcyBkZW50cm8gZGVsIHByb3ZlZWRvcgogKiBhZ290YWRvLiAqLwpleHBvcnQgZnVuY3Rpb24gaXNCbG9ja2VkUHJvdmlkZXJBd2FyZSgKICBlbnRyaWVzOiBSZWNvcmQ8c3RyaW5nLCBIZWFsdGhFbnRyeT4sCiAgcHJvdmlkZXJFbnRyaWVzOiBSZWNvcmQ8c3RyaW5nLCBIZWFsdGhFbnRyeT4sCiAgcHJvdmlkZXJJZDogc3RyaW5nLAogIG1vZGVsSWQ6IHN0cmluZywKICBtYWtlS2V5OiAocDogc3RyaW5nLCBtOiBzdHJpbmcpID0+IHN0cmluZywKICBub3cgPSBEYXRlLm5vdygpCik6IGJvb2xlYW4gewogIGlmIChjb29sZG93blJlbWFpbmluZyhlbnRyaWVzW21ha2VLZXkocHJvdmlkZXJJZCwgbW9kZWxJZCldLCBub3cpID4gMCkgcmV0dXJuIHRydWU7CiAgcmV0dXJuIHByb3ZpZGVyQ29vbGRvd25SZW1haW5pbmcocHJvdmlkZXJFbnRyaWVzW3Byb3ZpZGVySWRdLCBub3cpID4gMDsKfQoKLyoqIEV4dHJhZSBlbCBjw7NkaWdvIEhUVFAgZGUgdW4gZXJyb3IgKFByb3ZpZGVyRXJyb3IgbyBlbCBmb3JtYXRvIMKrUHJvdmVlZG9yIDQyOTog4oCmwrspICovCmV4cG9ydCBmdW5jdGlvbiBzdGF0dXNGcm9tRXJyb3IoZXJyOiB1bmtub3duKTogbnVtYmVyIHsKICBpZiAoZXJyICYmIHR5cGVvZiBlcnIgPT09ICJvYmplY3QiICYmICJzdGF0dXMiIGluIGVycikgewogICAgY29uc3QgcyA9IChlcnIgYXMgeyBzdGF0dXM/OiB1bmtub3duIH0pLnN0YXR1czsKICAgIGlmICh0eXBlb2YgcyA9PT0gIm51bWJlciIgJiYgcyA+IDApIHJldHVybiBzOwogIH0KICBjb25zdCBtc2cgPSBlcnIgaW5zdGFuY2VvZiBFcnJvciA/IGVyci5tZXNzYWdlIDogU3RyaW5nKGVyciA/PyAiIik7CiAgY29uc3QgbSA9IG1zZy5tYXRjaCgvXGIoXGR7M30pXGIvKTsKICByZXR1cm4gbSA/IE51bWJlcihtWzFdKSA6IDA7Cn0KCi8qKiBFeHRyYWUgUmV0cnktQWZ0ZXIgZW4gbXMgc2kgZWwgZXJyb3IgbG8gdHJhZSAoY2FiZWNlcmEgZGVsIHByb3ZlZWRvcikgKi8KZXhwb3J0IGZ1bmN0aW9uIHJldHJ5QWZ0ZXJGcm9tRXJyb3IoZXJyOiB1bmtub3duKTogbnVtYmVyIHwgdW5kZWZpbmVkIHsKICBpZiAoZXJyICYmIHR5cGVvZiBlcnIgPT09ICJvYmplY3QiICYmICJyZXRyeUFmdGVyTXMiIGluIGVycikgewogICAgY29uc3QgdiA9IChlcnIgYXMgeyByZXRyeUFmdGVyTXM/OiB1bmtub3duIH0pLnJldHJ5QWZ0ZXJNczsKICAgIGlmICh0eXBlb2YgdiA9PT0gIm51bWJlciIgJiYgdiA+IDApIHJldHVybiB2OwogIH0KICByZXR1cm4gdW5kZWZpbmVkOwp9Cg==
+"use client";
+/** Forja IA — Salud de modelos: circuit breaker ligero + LKGP (inspirado en OmniRoute).
+ *
+ * Cuatro ideas tomadas del router y adaptadas al navegador:
+ *  1. Cooldown por modelo: tras un 429/5xx el modelo se «enfría» unos segundos y el
+ *     failover/Auto lo saltan automáticamente (Retry-After se respeta si llega).
+ *  2. Backoff exponencial: cada fallo consecutivo duplica el enfriamiento (con tope).
+ *  3. LKGP (Last-Known-Good Path): se recuerda el último modelo que respondió bien
+ *     y Auto lo pone el primero de la cadena.
+ *  4. Cooldown POR PROVEEDOR cuando el corte es de cuota (429/402): las cuotas
+ *     gratuitas son casi siempre por proveedor. Si Groq te corta, te corta con
+ *     TODOS sus modelos: sin esto, el failover iba dando tumbos de modelo en
+ *     modelo dentro del proveedor agotado, gastando reintentos y 429 adicionales.
+ *     Un éxito de cualquier modelo del proveedor levanta el enfriamiento.
+ *
+ * Persistencia propia (`forja-health-v1`) para no tocar el store principal ni la bóveda.
+ */
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+
+export interface HealthEntry {
+  /** epoch ms hasta el que el modelo está en cooldown (0 = sin cooldown) */
+  until: number;
+  /** fallos consecutivos (para el backoff) */
+  consecutive: number;
+  /** último código HTTP visto (0 = red) */
+  lastStatus: number;
+  /** motivo corto para el badge */
+  reason?: string;
+}
+
+interface HealthState {
+  entries: Record<string, HealthEntry>;
+  /** enfriamiento a nivel de proveedor (cuota): la clave es el providerId */
+  providerEntries: Record<string, HealthEntry>;
+  lastGood: { key: string; at: number } | null;
+  recordSuccess: (modelKey: string) => void;
+  recordFailure: (modelKey: string, status: number, retryAfterMs?: number) => void;
+  /** fallo de cuota del PROVEEDOR entero (429/402), con su propio backoff */
+  recordProviderFailure: (
+    providerId: string,
+    status: number,
+    retryAfterMs?: number
+  ) => void;
+  /** un éxito de cualquier modelo del proveedor levanta su enfriamiento */
+  recordProviderSuccess: (providerId: string) => void;
+  /** limpia solo las entradas caducadas (housekeeping ligero) */
+  prune: () => void;
+  clearAll: () => void;
+}
+
+const CAP_MS = 15 * 60_000; // tope de enfriamiento: 15 min
+
+/** Enfriamiento base según el tipo de fallo (ms) */
+function baseCooldown(status: number): number {
+  if (status === 429) return 60_000; // límite de peticiones
+  if (status === 402) return 5 * 60_000; // cuota/saldo agotado
+  if (status === 401 || status === 403) return 0; // clave inválida: no es transitorio
+  if (status === 0) return 15_000; // red caída
+  if (status >= 500 || status === 408) return 15_000; // proveedor caído
+  return 5_000; // otro 4xx
+}
+
+/** Estados que delatan cuota de PROVEEDOR agotada (429 límite, 402 saldo) */
+export function esFalloDeCuota(status: number): boolean {
+  return status === 429 || status === 402;
+}
+
+export const useHealth = create<HealthState>()(
+  persist(
+    (set, _get) => ({
+      entries: {},
+      providerEntries: {},
+      lastGood: null,
+
+      recordSuccess: (modelKey) =>
+        set((st) => {
+          const { [modelKey]: _drop, ...rest } = st.entries;
+          // el proveedor del modelo exitoso dejó de estar agotado: se levanta su enfriamiento
+          const pid = modelKey.slice(0, modelKey.indexOf("::"));
+          const { [pid]: _dropP, ...restP } = st.providerEntries;
+          const providerEntries =
+            pid && _dropP ? restP : st.providerEntries;
+          return { entries: rest, providerEntries, lastGood: { key: modelKey, at: Date.now() } };
+        }),
+
+      recordFailure: (modelKey, status, retryAfterMs) =>
+        set((st) => {
+          const prev = st.entries[modelKey];
+          const consecutive = (prev?.consecutive ?? 0) + 1;
+          let base = baseCooldown(status);
+          if (status === 429 && retryAfterMs && retryAfterMs > 0) {
+            // Retry-After del proveedor manda en el primer enfriamiento
+            base = Math.max(base, retryAfterMs);
+          }
+          if (base === 0) {
+            // 401/403: marcamos el motivo pero sin cooldown (el usuario debe arreglar la clave)
+            return {
+              entries: {
+                ...st.entries,
+                [modelKey]: {
+                  until: 0,
+                  consecutive,
+                  lastStatus: status,
+                  reason: "clave inválida",
+                },
+              },
+              lastGood: st.lastGood?.key === modelKey ? null : st.lastGood,
+            };
+          }
+          const backoff = Math.min(CAP_MS, base * Math.pow(2, consecutive - 1));
+          const reason =
+            status === 429
+              ? "límite de peticiones"
+              : status === 402
+                ? "cuota agotada"
+                : status === 0
+                  ? "sin conexión"
+                  : status >= 500
+                    ? "error del proveedor"
+                    : `error ${status}`;
+          return {
+            entries: {
+              ...st.entries,
+              [modelKey]: {
+                until: Date.now() + backoff,
+                consecutive,
+                lastStatus: status,
+                reason,
+              },
+            },
+            // un 429/402 también apunta al proveedor: las cuotas gratis son suyas
+            ...(esFalloDeCuota(status)
+              ? { providerEntries: escalarAProveedor(st.providerEntries, modelKey, status, retryAfterMs) }
+              : {}),
+          };
+        }),
+
+      recordProviderFailure: (providerId, status, retryAfterMs) =>
+        set((st) => ({
+          providerEntries: escalarAProveedor(st.providerEntries, `${providerId}::`, status, retryAfterMs),
+        })),
+
+      recordProviderSuccess: (providerId) =>
+        set((st) => {
+          const { [providerId]: _drop, ...rest } = st.providerEntries;
+          return _drop ? { providerEntries: rest } : {};
+        }),
+
+      prune: () =>
+        set((st) => {
+          const now = Date.now();
+          const out: Record<string, HealthEntry> = {};
+          let changed = false;
+          for (const [k, e] of Object.entries(st.entries)) {
+            if (e.until > now) out[k] = e;
+            else changed = true;
+          }
+          const pOut: Record<string, HealthEntry> = {};
+          for (const [k, e] of Object.entries(st.providerEntries)) {
+            if (e.until > now) pOut[k] = e;
+            else changed = true;
+          }
+          return changed ? { entries: out, providerEntries: pOut } : {};
+        }),
+
+      clearAll: () => set({ entries: {}, providerEntries: {}, lastGood: null }),
+    }),
+    {
+      name: "forja-health-v1",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (st) => ({
+        entries: st.entries,
+        providerEntries: st.providerEntries,
+        lastGood: st.lastGood,
+      }),
+    }
+  )
+);
+
+/** Marca o agrava el enfriamiento del proveedor sacado de un modelKey `pid::mid`. */
+function escalarAProveedor(
+  prev: Record<string, HealthEntry>,
+  modelKey: string,
+  status: number,
+  retryAfterMs?: number
+): Record<string, HealthEntry> {
+  const pid = modelKey.slice(0, modelKey.indexOf("::"));
+  if (!pid) return prev;
+  const e = prev[pid];
+  const consecutive = (e?.consecutive ?? 0) + 1;
+  let base = status === 402 ? 5 * 60_000 : 60_000; // 402 = saldo agotado: más largo
+  if (status === 429 && retryAfterMs && retryAfterMs > base) base = retryAfterMs;
+  const backoff = Math.min(CAP_MS, base * Math.pow(2, consecutive - 1));
+  return {
+    ...prev,
+    [pid]: {
+      until: Date.now() + backoff,
+      consecutive,
+      lastStatus: status,
+      reason: status === 402 ? "cuota del proveedor agotada" : "cuota del proveedor",
+    },
+  };
+}
+
+/** ¿Está este modelo en cooldown? Devuelve los ms restantes (0 = disponible). */
+export function cooldownRemaining(entry: HealthEntry | undefined, now = Date.now()): number {
+  if (!entry?.until) return 0;
+  return Math.max(0, entry.until - now);
+}
+
+/** ¿Está el PROVEEDOR entero enfriándose por cuota? (ms restantes, 0 = libre) */
+export function providerCooldownRemaining(
+  entry: HealthEntry | undefined,
+  now = Date.now()
+): number {
+  return cooldownRemaining(entry, now);
+}
+
+/** Predicado listo para las cadenas Auto/failover: bloquea si el modelo O su
+ * proveedor están enfriándose. Es la que evita dar tumbos dentro del proveedor
+ * agotado. */
+export function isBlockedProviderAware(
+  entries: Record<string, HealthEntry>,
+  providerEntries: Record<string, HealthEntry>,
+  providerId: string,
+  modelId: string,
+  makeKey: (p: string, m: string) => string,
+  now = Date.now()
+): boolean {
+  if (cooldownRemaining(entries[makeKey(providerId, modelId)], now) > 0) return true;
+  return providerCooldownRemaining(providerEntries[providerId], now) > 0;
+}
+
+/** Extrae el código HTTP de un error (ProviderError o el formato «Proveedor 429: …») */
+export function statusFromError(err: unknown): number {
+  if (err && typeof err === "object" && "status" in err) {
+    const s = (err as { status?: unknown }).status;
+    if (typeof s === "number" && s > 0) return s;
+  }
+  const msg = err instanceof Error ? err.message : String(err ?? "");
+  const m = msg.match(/\b(\d{3})\b/);
+  return m ? Number(m[1]) : 0;
+}
+
+/** Extrae Retry-After en ms si el error lo trae (cabecera del proveedor) */
+export function retryAfterFromError(err: unknown): number | undefined {
+  if (err && typeof err === "object" && "retryAfterMs" in err) {
+    const v = (err as { retryAfterMs?: unknown }).retryAfterMs;
+    if (typeof v === "number" && v > 0) return v;
+  }
+  return undefined;
+}

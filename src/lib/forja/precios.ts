@@ -1,1 +1,251 @@
-LyoqIEZvcmphIElBIOKAlCBEZSB0b2tlbnMgYSBkaW5lcm8sIHkgc29sbyBjdWFuZG8gc2UgcHVlZGUgZGUgdmVyZGFkLgogKgogKiBEdXJhbnRlIG11Y2hhcyB2ZXJzaW9uZXMgZXN0YSBhcHAgc2UgbmVnw7MgYSBlbnNlw7FhciB1biBpbXBvcnRlLCB5IGxhIHJhesOzbgogKiBlc2NyaXRhIGVyYSDCq2xvcyBwcmVjaW9zIG5vIHNlIHB1ZWRlbiBzYWJlciBkZXNkZSBlbCBuYXZlZ2Fkb3LCuy4gRXJhIGZhbHNhOgogKiBubyBzZSBwdWVkZW4gKmFkaXZpbmFyKiwgcXVlIGVzIG90cmEgY29zYS4gRXhpc3RlbiBjYXTDoWxvZ29zIHDDumJsaWNvcyBxdWUgbG9zCiAqIG1hbnRpZW5lbiBhbCBkw61hLCB5IHVubyBkZSBlbGxvcyDigJRlbCBkZSBMaXRlTExN4oCUIGN1YnJlICoqbG9zIDE3IG1vZGVsb3MgcXVlCiAqIEZvcmphIGN1ZW50YSBjb21vIGRlIHBhZ28sIGxvcyAxNyoqLiBDb21wcm9iYWRvLCBubyBzdXB1ZXN0by4KICoKICogQXPDrSBxdWUgYWhvcmEgc8OtIGhheSBpbXBvcnRlcy4gQ29uIHVuYSByZWdsYSBxdWUgbm8gc2Ugc2FsdGEgbnVuY2E6CiAqCiAqICAgKipEaW5lcm8gPSAodG9rZW5zIHF1ZSBkaWpvIGVsIHByb3ZlZWRvcikgw5cgKHByZWNpbyBmZWNoYWRvIGRlbCBjYXTDoWxvZ28pLioqCiAqCiAqIExhcyBkb3MgbWl0YWRlcyB0aWVuZW4gcXVlIGV4aXN0aXIuIFNpIGZhbHRhIHVuYSwgbm8gaGF5IGltcG9ydGU6IGhheSDCq3NpbgogKiBkYXRvwrssIHkgc2UgZGljZSBjdcOhbCBkZSBsYXMgZG9zIGZhbHRhLiBFbiBjb25jcmV0bzoKICoKICogIMK3ICoqTnVuY2Egc2UgbXVsdGlwbGljYSBudWVzdHJhIGVzdGltYWNpw7NuIGRlIGNhcmFjdGVyZXMgw7cgNC4qKiBFc2UgbsO6bWVybwogKiAgICBzaXJ2ZSBwYXJhIGhhY2Vyc2UgdW5hIGlkZWEgZGVsIHRhbWHDsW8gZGUgdW4gcHJvbXB0OyBtdWx0aXBsaWNhZG8gcG9yIHVuCiAqICAgIHByZWNpbyBzZSBjb252aWVydGUgZW4gdW5hIGZhY3R1cmEgaW52ZW50YWRhIGNvbiBwaW50YSBkZSBleGFjdGEuCiAqICDCtyAqKk51bmNhIHNlIHJlbGxlbmEgdW4gbW9kZWxvIHF1ZSBubyBlc3TDoSBlbiBlbCBjYXTDoWxvZ28uKiogTmkgY29uIGVsCiAqICAgIHByZWNpbyBkZSB1biBtb2RlbG8gwqtwYXJlY2lkb8K7LCBuaSBjb24gbGEgbWVkaWEgZGVsIHByb3ZlZWRvci4KICogIMK3ICoqTGEgZmVjaGEgdmlhamEgY29uIGVsIG7Dum1lcm8uKiogVW4gcHJlY2lvIGRlIGhhY2Ugb2NobyBtZXNlcyBlbiBwYW50YWxsYQogKiAgICBzaW4gZGVjaXIgZGUgY3XDoW5kbyBlcywgZXMgcGVvciBxdWUgbm8gZW5zZcOxYXIgbmFkYS4KICoKICogTGEgdGFibGEgc2UgcmVnZW5lcmEgY29uIGBucG0gcnVuIHByZWNpb3NgICh2ZXIgYHNjcmlwdHMvcHJlY2lvcy5tanNgKSB5IHNlCiAqIHB1ZWRlIHJlZnJlc2NhciBlbiBjYWxpZW50ZSBkZXNkZSBgL2FwaS9wcmVjaW9zYC4gQXF1w60gbm8gaGF5IG5pIHVuIG7Dum1lcm8KICogZXNjcml0byBhIG1hbm8uCiAqLwppbXBvcnQgeyBQUkVDSU9TLCB0eXBlIFByZWNpb1Rva2VuIH0gZnJvbSAiLi9wcmVjaW9zLWRhdG9zIjsKaW1wb3J0IHR5cGUgeyBVc29Qcm92ZWVkb3IgfSBmcm9tICIuL2NhY2hlLXByb21wdCI7CgpleHBvcnQgeyBQUkVDSU9TX0ZFQ0hBLCBQUkVDSU9TX0ZVRU5URSwgUFJFQ0lPU19GVUVOVEVfTk9NQlJFIH0gZnJvbSAiLi9wcmVjaW9zLWRhdG9zIjsKZXhwb3J0IHR5cGUgeyBQcmVjaW9Ub2tlbiB9IGZyb20gIi4vcHJlY2lvcy1kYXRvcyI7CgpleHBvcnQgdHlwZSBUYWJsYVByZWNpb3MgPSBSZWNvcmQ8c3RyaW5nLCBQcmVjaW9Ub2tlbj47CgovKiogQSBwYXJ0aXIgZGUgY3XDoW50b3MgZMOtYXMgbGEgaW5zdGFudMOhbmVhIGRlamEgZGUgc2VyIGRlIGZpYXIuCiAqCiAqIE5vIGVzIHF1ZSBhIGxvcyA0NSBkw61hcyBlbCBwcmVjaW8gZXN0w6kgbWFsOiBlcyBxdWUgYSBsb3MgNDUgZMOtYXMgeWEgbm8gc2UKICogcHVlZGUgYWZpcm1hciBxdWUgZXN0w6kgYmllbi4gUGFzYWRvIGVzbyBsYSBhcHAgc2lndWUgZW5zZcOxYW5kbyBlbCBuw7ptZXJvCiAqIHBlcm8gYXZpc2EgZGUgcXVlIGVzIHZpZWpvLCBxdWUgZXMgZGlzdGludG8gZGUgZXNjb25kZXJsby4gKi8KZXhwb3J0IGNvbnN0IERJQVNfUEFSQV9BVklTQVIgPSA0NTsKCi8qKiBOb3JtYWxpemEgdW4gaWQgZGUgbW9kZWxvIHBhcmEgcG9kZXIgY29tcGFyYXJsby4KICoKICogTG9zIG1pc21vcyBtb2RlbG9zIGFwYXJlY2VuIGVzY3JpdG9zIGRlIGZvcm1hcyBkaXN0aW50YXMgc2Vnw7puIHBvciBkw7NuZGUKICogcGFzZW46IGNvbiBlbCBwcm92ZWVkb3IgZGVsYW50ZSAoYGFudGhyb3BpYy9jbGF1ZGUtb3B1cy01YCksIGNvbiBzdWZpam9zIGRlCiAqIGZlY2hhIChgLTIwMjUwOTI5YCksIGVuIG1hecO6c2N1bGFzLCBvIGNvbiBlbCBzdWZpam8gZGUgZ3JhdGlzIGRlIGNhZGEKICogcGFzYXJlbGEgKGA6ZnJlZWAsIGAtZnJlZWApLiAqLwpmdW5jdGlvbiBwZWxhcihpZDogc3RyaW5nKTogc3RyaW5nIHsKICByZXR1cm4gaWQKICAgIC50cmltKCkKICAgIC50b0xvd2VyQ2FzZSgpCiAgICAucmVwbGFjZSgvOmZyZWUkLywgIiIpCiAgICAucmVwbGFjZSgvLWZyZWUkLywgIiIpOwp9CgovKiogTG9zIGNhbmRpZGF0b3MgY29uIGxvcyBxdWUgYnVzY2FyIHVuIG1vZGVsbyBlbiBsYSB0YWJsYSwgZW4gb3JkZW4gZGUgbWVub3MKICogYSBtw6FzIHBlcm1pc2l2by4gRWwgb3JkZW4gaW1wb3J0YTogcHJpbWVybyBsbyBleGFjdG8uICovCmZ1bmN0aW9uIGNhbmRpZGF0b3MocHJvdmlkZXJJZDogc3RyaW5nLCBtb2RlbElkOiBzdHJpbmcpOiBzdHJpbmdbXSB7CiAgY29uc3QgbSA9IHBlbGFyKG1vZGVsSWQpOwogIGNvbnN0IHNpbkZlY2hhID0gbS5yZXBsYWNlKC8tMjBcZHs2fSQvLCAiIik7CiAgY29uc3QgdWx0aW1vID0gbS5pbmNsdWRlcygiLyIpID8gbS5zbGljZShtLmxhc3RJbmRleE9mKCIvIikgKyAxKSA6IG07CiAgcmV0dXJuIFsuLi5uZXcgU2V0KFttLCBgJHtwcm92aWRlcklkfS8ke219YCwgc2luRmVjaGEsIGAke3Byb3ZpZGVySWR9LyR7c2luRmVjaGF9YCwgdWx0aW1vXSldOwp9CgpleHBvcnQgaW50ZXJmYWNlIFByZWNpb0VuY29udHJhZG8gewogIHByZWNpbzogUHJlY2lvVG9rZW47CiAgLyoqIGNvbiBxdcOpIGNsYXZlIGRlbCBjYXTDoWxvZ28gc2UgZW5jb250csOzOiBzZSBlbnNlw7FhIHBhcmEgcXVlIHNlIHB1ZWRhCiAgICogY29tcHJvYmFyIHF1ZSBubyBzZSBoYSBjb2dpZG8gZWwgcHJlY2lvIGRlIG90cm8gbW9kZWxvICovCiAgY2xhdmU6IHN0cmluZzsKICAvKiogdHJ1ZSBzaSBodWJvIHF1ZSBxdWl0YXIgZWwgc3VmaWpvIGRlIGZlY2hhIG8gZWwgcHJlZmlqbyBkZWwgcHJvdmVlZG9yICovCiAgYXByb3hpbWFkYTogYm9vbGVhbjsKfQoKLyoqIEJ1c2NhIGVsIHByZWNpbyBkZSB1biBtb2RlbG8uIGBudWxsYCBzaSBubyBlc3TDoTogbm8gc2UgaW52ZW50YSB1bm8gcGFyZWNpZG8uCiAqCiAqIExhIGNvaW5jaWRlbmNpYSBzZSBoYWNlIGNvbnRyYSBlbCBpZCBkZWwgbW9kZWxvLCBubyBjb250cmEgZWwgcHJvdmVlZG9yIGNvbgogKiBlbCBxdWUgbG8gbGxhbWFzOiBlbCBtaXNtbyBtb2RlbG8gc2VydmlkbyBwb3IgZG9zIHBhc2FyZWxhcyBwdWVkZSBjb3N0YXIKICogZGlzdGludG8sIHkgZW4gZXNlIGNhc28gbG8gaG9uZXN0byBlcyBubyBhZmlybWFyIGVsIHByZWNpbyBkZSB1bmEgY3VhbmRvCiAqIGVzdMOhcyB1c2FuZG8gbGEgb3RyYS4gUG9yIGVzbyB1bmEgY29pbmNpZGVuY2lhIHNvbG8gY3VlbnRhIHNpIGVsIHByb3ZlZWRvcgogKiBkZWwgY2F0w6Fsb2dvIGVzIGVsIG1pc21vLCBzYWx2byBlbiBsYXMgcGFzYXJlbGFzIHF1ZSByZXZlbmRlbiBkZSB0b2RvCiAqIChkb25kZSBlbCBwcmVjaW8gZGVsIGNhdMOhbG9nbyBlcyBlbCBkZWwgbW9kZWxvLCBubyBlbCBkZSBsYSBwYXNhcmVsYSkuCiAqLwpleHBvcnQgZnVuY3Rpb24gYnVzY2FyUHJlY2lvKAogIHByb3ZpZGVySWQ6IHN0cmluZywKICBtb2RlbElkOiBzdHJpbmcsCiAgdGFibGE6IFRhYmxhUHJlY2lvcyA9IFBSRUNJT1MKKTogUHJlY2lvRW5jb250cmFkbyB8IG51bGwgewogIGNvbnN0IGNhbmRzID0gY2FuZGlkYXRvcyhwcm92aWRlcklkLCBtb2RlbElkKTsKICBmb3IgKGNvbnN0IFtpLCBjXSBvZiBjYW5kcy5lbnRyaWVzKCkpIHsKICAgIGNvbnN0IHAgPSB0YWJsYVtjXTsKICAgIGlmICghcCkgY29udGludWU7CiAgICBpZiAocC5wICE9PSBwcm92aWRlcklkKSBjb250aW51ZTsKICAgIHJldHVybiB7IHByZWNpbzogcCwgY2xhdmU6IGMsIGFwcm94aW1hZGE6IGkgPiAxIH07CiAgfQogIHJldHVybiBudWxsOwp9CgpleHBvcnQgaW50ZXJmYWNlIENvc3RlIHsKICAvKiogZMOzbGFyZXMgZGUgbG9zIHRva2VucyBkZSBlbnRyYWRhIG51ZXZvcyAqLwogIGVudHJhZGE6IG51bWJlcjsKICAvKiogZMOzbGFyZXMgZGUgbG9zIHRva2VucyBnZW5lcmFkb3MgKi8KICBzYWxpZGE6IG51bWJlcjsKICAvKiogZMOzbGFyZXMgZGUgbG8gc2VydmlkbyBkZXNkZSBsYSBjYWNow6kgKG11Y2hvIG3DoXMgYmFyYXRvKSAqLwogIGNhY2hlOiBudW1iZXI7CiAgLyoqIGTDs2xhcmVzIGRlIGVzY3JpYmlyIGxhIGNhY2jDqSAqLwogIGNhY2hlRXNjcml0bzogbnVtYmVyOwogIHRvdGFsOiBudW1iZXI7CiAgLyoqIGxvIHF1ZSBoYWJyw61hIGNvc3RhZG8gc2luIGNhY2jDqSwgcGFyYSBwb2RlciBkZWNpciBjdcOhbnRvIGFob3Jyw7MgKi8KICBzaW5DYWNoZTogbnVtYmVyOwp9CgovKiogTG8gcXVlIGNvc3TDsyB1bmEgbGxhbWFkYS4gYG51bGxgIHNpIGZhbHRhIGN1YWxxdWllcmEgZGUgbGFzIGRvcyBtaXRhZGVzLgogKgogKiBTZSBleGlnZSBxdWUgZWwgcHJvdmVlZG9yIGhheWEgZGljaG8gbG9zIHRva2VuczogYHVzby5lbnRyYWRhYCBvCiAqIGB1c28uc2FsaWRhYC4gQ29uIGBudWxsYCBlbiBsb3MgZG9zIG5vIGhheSBuYWRhIHF1ZSBtdWx0aXBsaWNhciwgeSBkZXZvbHZlcgogKiAwIHNlcsOtYSBhZmlybWFyIHF1ZSBmdWUgZ3JhdGlzLgogKi8KZXhwb3J0IGZ1bmN0aW9uIGNvc3RlRGUodXNvOiBVc29Qcm92ZWVkb3IgfCBudWxsLCBwcmVjaW86IFByZWNpb1Rva2VuIHwgbnVsbCk6IENvc3RlIHwgbnVsbCB7CiAgaWYgKCF1c28gfHwgIXByZWNpbykgcmV0dXJuIG51bGw7CiAgaWYgKHVzby5lbnRyYWRhID09IG51bGwgJiYgdXNvLnNhbGlkYSA9PSBudWxsKSByZXR1cm4gbnVsbDsKCiAgY29uc3QgY2luID0gcHJlY2lvLmluOwogIGNvbnN0IGNvdXQgPSBwcmVjaW8ub3V0ID8/IDA7CiAgLy8gU2luIHByZWNpbyBkZSBjYWNow6kgZGVjbGFyYWRvIG5vIHNlIHN1cG9uZSB1biBkZXNjdWVudG86IHNlIGNvYnJhIGNvbW8KICAvLyBlbnRyYWRhIG5vcm1hbCwgcXVlIGVzIGxvIGNvbnNlcnZhZG9yIOKAlG51bmNhIGVuc2XDsWEgdW4gZ2FzdG8gbWVub3IgZGVsIHF1ZQogIC8vIHB1ZG8gc2VyLgogIGNvbnN0IGNjciA9IHByZWNpby5jciA/PyBjaW47CiAgY29uc3QgY2N3ID0gcHJlY2lvLmN3ID8/IGNpbjsKCiAgY29uc3QgZW50cmFkYSA9ICh1c28uZW50cmFkYSA/PyAwKSAqIGNpbjsKICBjb25zdCBzYWxpZGEgPSAodXNvLnNhbGlkYSA/PyAwKSAqIGNvdXQ7CiAgY29uc3QgY2FjaGUgPSAodXNvLmNhY2hlTGVpZG8gPz8gMCkgKiBjY3I7CiAgY29uc3QgY2FjaGVFc2NyaXRvID0gKHVzby5jYWNoZUVzY3JpdG8gPz8gMCkgKiBjY3c7CiAgY29uc3QgdG90YWwgPSBlbnRyYWRhICsgc2FsaWRhICsgY2FjaGUgKyBjYWNoZUVzY3JpdG87CiAgLy8gc2luIGNhY2jDqSwgdG9kbyBsbyBxdWUgZW50csOzIGhhYnLDrWEgc2lkbyBlbnRyYWRhIG51ZXZhCiAgY29uc3Qgc2luQ2FjaGUgPQogICAgKCh1c28uZW50cmFkYSA/PyAwKSArICh1c28uY2FjaGVMZWlkbyA/PyAwKSArICh1c28uY2FjaGVFc2NyaXRvID8/IDApKSAqIGNpbiArIHNhbGlkYTsKCiAgcmV0dXJuIHsgZW50cmFkYSwgc2FsaWRhLCBjYWNoZSwgY2FjaGVFc2NyaXRvLCB0b3RhbCwgc2luQ2FjaGUgfTsKfQoKLyoqIExvIHF1ZSBsYSBjYWNow6kgYWhvcnLDsyBlbiBkaW5lcm8uIGBudWxsYCBzaSBubyBodWJvIGNhY2jDqSBvIG5vIGhheSBwcmVjaW8uICovCmV4cG9ydCBmdW5jdGlvbiBhaG9ycm9FbkRpbmVybyhjOiBDb3N0ZSB8IG51bGwpOiBudW1iZXIgfCBudWxsIHsKICBpZiAoIWMpIHJldHVybiBudWxsOwogIGNvbnN0IGRpZiA9IGMuc2luQ2FjaGUgLSBjLnRvdGFsOwogIHJldHVybiBkaWYgPiAwID8gZGlmIDogbnVsbDsKfQoKLyoqIFVuIGltcG9ydGUsIGVzY3JpdG8gcGFyYSBxdWUgbm8gZW5nYcOxZS4KICoKICogTG9zIGltcG9ydGVzIGRlIHVuYSBsbGFtYWRhIHN1ZWx0YSBzb24gZGltaW51dG9zIOKAlGPDqW50aW1vcyBkZSBjw6ludGltb+KAlCwgeQogKiByZWRvbmRlYXJsb3MgYSBkb3MgZGVjaW1hbGVzIGxvcyBjb252aWVydGUgdG9kb3MgZW4gwqswLDAwICTCuywgcXVlIHNlIGxlZQogKiBjb21vIMKrZXN0byBlcyBncmF0aXPCuy4gUG9yIGVzbyBsb3MgcGVxdWXDsW9zIGxsZXZhbiBtw6FzIGRlY2ltYWxlcyB5IGxvcyBtdXkKICogcGVxdWXDsW9zIHNlIGRpY2VuIGNvbiB1biDCqzzCuy4KICovCmV4cG9ydCBmdW5jdGlvbiBmbXREaW5lcm8odXNkOiBudW1iZXIgfCBudWxsIHwgdW5kZWZpbmVkKTogc3RyaW5nIHsKICBpZiAodXNkID09IG51bGwgfHwgIU51bWJlci5pc0Zpbml0ZSh1c2QpKSByZXR1cm4gInNpbiBkYXRvIjsKICBpZiAodXNkID09PSAwKSByZXR1cm4gIjAgJCI7CiAgaWYgKHVzZCA8IDAuMDAwMSkgcmV0dXJuICI8IDAsMDAwMSAkIjsKICBjb25zdCBkZWMgPSB1c2QgPCAwLjAxID8gNCA6IHVzZCA8IDEgPyAzIDogMjsKICByZXR1cm4gYCR7dXNkLnRvRml4ZWQoZGVjKS5yZXBsYWNlKCIuIiwgIiwiKX0gJGA7Cn0KCi8qKiBEw61hcyBkZXNkZSBsYSBpbnN0YW50w6FuZWEgZGUgcHJlY2lvcy4gKi8KZXhwb3J0IGZ1bmN0aW9uIGRpYXNEZXNkZShmZWNoYTogc3RyaW5nLCBhaG9yYTogbnVtYmVyKTogbnVtYmVyIHsKICBjb25zdCB0ID0gRGF0ZS5wYXJzZShgJHtmZWNoYX1UMDA6MDA6MDBaYCk7CiAgaWYgKCFOdW1iZXIuaXNGaW5pdGUodCkpIHJldHVybiBOdW1iZXIuUE9TSVRJVkVfSU5GSU5JVFk7CiAgcmV0dXJuIE1hdGguZmxvb3IoKGFob3JhIC0gdCkgLyA4Nl80MDBfMDAwKTsKfQoKLyoqIMK/SGF5IHF1ZSBhdmlzYXIgZGUgcXVlIGxvcyBwcmVjaW9zIHNvbiB2aWVqb3M/ICovCmV4cG9ydCBmdW5jdGlvbiBwcmVjaW9zVmllam9zKGZlY2hhOiBzdHJpbmcsIGFob3JhOiBudW1iZXIpOiBib29sZWFuIHsKICByZXR1cm4gZGlhc0Rlc2RlKGZlY2hhLCBhaG9yYSkgPiBESUFTX1BBUkFfQVZJU0FSOwp9CgovKiogTGEgY29sZXRpbGxhIHF1ZSBhY29tcGHDsWEgU0lFTVBSRSBhIHVuIGltcG9ydGUuIFNpbiBlc3RvLCB1biBuw7ptZXJvIGVuCiAqIHBhbnRhbGxhIHBhcmVjZSB1bmEgZmFjdHVyYTsgY29uIGVzdG8sIGVzIHVuYSBlc3RpbWFjacOzbiBjb24gZnVlbnRlLiAqLwpleHBvcnQgZnVuY3Rpb24gcGllRGVQcmVjaW9zKGZlY2hhOiBzdHJpbmcsIGFob3JhOiBudW1iZXIpOiBzdHJpbmcgewogIGNvbnN0IGQgPSBkaWFzRGVzZGUoZmVjaGEsIGFob3JhKTsKICBjb25zdCBiYXNlID0gYFByZWNpb3MgZGVsIGNhdMOhbG9nbyBww7pibGljbyBkZSBMaXRlTExNLCBpbnN0YW50w6FuZWEgZGVsICR7ZmVjaGF9YDsKICBpZiAoIU51bWJlci5pc0Zpbml0ZShkKSkgcmV0dXJuIGAke2Jhc2V9LmA7CiAgaWYgKGQgPiBESUFTX1BBUkFfQVZJU0FSKSB7CiAgICByZXR1cm4gYCR7YmFzZX0g4oCUIGhhY2UgJHtkfSBkw61hcy4gUHVlZGUgaGFiZXIgY2FtYmlhZG86IHZ1ZWx2ZSBhIGdlbmVyYXJsYSBjb24gwqtucG0gcnVuIHByZWNpb3PCuy5gOwogIH0KICByZXR1cm4gYCR7YmFzZX0uIEVzIHVuYSBlc3RpbWFjacOzbiBjb24gZnVlbnRlLCBubyB0dSBmYWN0dXJhLmA7Cn0KCi8qKiBQb3IgcXXDqSBubyBoYXkgaW1wb3J0ZS4gU2UgZW5zZcOxYSBlbiB2ZXogZGVsIG7Dum1lcm8sIHBhcmEgcXVlIHNlIHNlcGEgcXXDqQogKiBmYWx0YSBlbiB2ZXogZGUgcGVuc2FyIHF1ZSBsYSBhcHAgbm8gc2FiZSBoYWNlcmxvLiAqLwpleHBvcnQgZnVuY3Rpb24gbW90aXZvU2luQ29zdGUodXNvOiBVc29Qcm92ZWVkb3IgfCBudWxsLCBwcmVjaW86IFByZWNpb1Rva2VuIHwgbnVsbCk6IHN0cmluZyB7CiAgaWYgKCFwcmVjaW8gJiYgKCF1c28gfHwgKHVzby5lbnRyYWRhID09IG51bGwgJiYgdXNvLnNhbGlkYSA9PSBudWxsKSkpIHsKICAgIHJldHVybiAic2luIGRhdG86IG5pIGVsIHByb3ZlZWRvciBkaWpvIGxvcyB0b2tlbnMgbmkgZXN0ZSBtb2RlbG8gZXN0w6EgZW4gZWwgY2F0w6Fsb2dvIGRlIHByZWNpb3MiOwogIH0KICBpZiAoIXByZWNpbykgcmV0dXJuICJzaW4gZGF0bzogZXN0ZSBtb2RlbG8gbm8gZXN0w6EgZW4gZWwgY2F0w6Fsb2dvIGRlIHByZWNpb3MiOwogIHJldHVybiAic2luIGRhdG86IHR1IHByb3ZlZWRvciBubyBkaWpvIGN1w6FudG9zIHRva2VucyBnYXN0w7MiOwp9CgovKiogRWwgY29zdGUgZGUgYWxnbyBxdWUgeWEgc2Ugc2FiZSBjb24gcXXDqSBtb2RlbG8gc2UgaGl6by4KICoKICogRXMgZWwgcHVudG8gZGUgdW5pw7NuIGRlIGxhcyBkb3MgbWl0YWRlczogbG9zIHRva2VucyBkZWwgcHJvdmVlZG9yIHBvciB1bgogKiBsYWRvLCBlbCBwcmVjaW8gZmVjaGFkbyBwb3IgZWwgb3Ryby4gRGV2dWVsdmUgdGFtYmnDqW4gUE9SIFFVw4kgbm8gaGF5IGltcG9ydGUKICogY3VhbmRvIG5vIGxvIGhheSwgcXVlIGVzIGxvIHF1ZSBjb252aWVydGUgdW4gaHVlY28gZW4gdW5hIGV4cGxpY2FjacOzbi4KICovCmV4cG9ydCBpbnRlcmZhY2UgQ29zdGVDb25Nb3Rpdm8gewogIGNvc3RlOiBDb3N0ZSB8IG51bGw7CiAgLyoqIHJlbGxlbmFkbyBzb2xvIGN1YW5kbyBgY29zdGVgIGVzIG51bGwgKi8KICBtb3Rpdm86IHN0cmluZyB8IG51bGw7CiAgLyoqIGxhIGNsYXZlIGRlbCBjYXTDoWxvZ28gY29uIGxhIHF1ZSBzZSBjYWxjdWzDsywgcGFyYSBwb2RlciBjb21wcm9iYXJsbyAqLwogIGNsYXZlOiBzdHJpbmcgfCBudWxsOwp9CgpleHBvcnQgZnVuY3Rpb24gY29zdGVEZU1vZGVsbygKICBwcm92aWRlcklkOiBzdHJpbmcsCiAgbW9kZWxJZDogc3RyaW5nLAogIHVzbzogVXNvUHJvdmVlZG9yIHwgbnVsbCwKICB0YWJsYTogVGFibGFQcmVjaW9zID0gUFJFQ0lPUwopOiBDb3N0ZUNvbk1vdGl2byB7CiAgY29uc3QgZW5jb250cmFkbyA9IGJ1c2NhclByZWNpbyhwcm92aWRlcklkLCBtb2RlbElkLCB0YWJsYSk7CiAgY29uc3QgY29zdGUgPSBjb3N0ZURlKHVzbywgZW5jb250cmFkbz8ucHJlY2lvID8/IG51bGwpOwogIGlmIChjb3N0ZSkgcmV0dXJuIHsgY29zdGUsIG1vdGl2bzogbnVsbCwgY2xhdmU6IGVuY29udHJhZG8/LmNsYXZlID8/IG51bGwgfTsKICByZXR1cm4gewogICAgY29zdGU6IG51bGwsCiAgICBtb3Rpdm86IG1vdGl2b1NpbkNvc3RlKHVzbywgZW5jb250cmFkbz8ucHJlY2lvID8/IG51bGwpLAogICAgY2xhdmU6IGVuY29udHJhZG8/LmNsYXZlID8/IG51bGwsCiAgfTsKfQoKLyoqIFN1bWEgZGUgY29zdGVzLCBwYXJhIGxvcyB0b3RhbGVzLiBgbnVsbGAgc2kgbm8gc2UgcHVkbyBjYWxjdWxhciBuaW5ndW5vOgogKiBzdW1hciBzb2xvIGxvcyBxdWUgc2Ugc2Fiw61hbiB5IGVuc2XDsWFybG8gY29tbyB0b3RhbCBtZW50aXLDrWEgcG9yIGRlZmVjdG8uICovCmV4cG9ydCBmdW5jdGlvbiBzdW1hQ29zdGVzKGNvc3RlczogcmVhZG9ubHkgKENvc3RlIHwgbnVsbClbXSk6IENvc3RlIHwgbnVsbCB7CiAgY29uc3QgdmFsaWRvcyA9IGNvc3Rlcy5maWx0ZXIoKGMpOiBjIGlzIENvc3RlID0+IGMgIT0gbnVsbCk7CiAgaWYgKHZhbGlkb3MubGVuZ3RoID09PSAwKSByZXR1cm4gbnVsbDsKICByZXR1cm4gdmFsaWRvcy5yZWR1Y2UoKGEsIGMpID0+ICh7CiAgICBlbnRyYWRhOiBhLmVudHJhZGEgKyBjLmVudHJhZGEsCiAgICBzYWxpZGE6IGEuc2FsaWRhICsgYy5zYWxpZGEsCiAgICBjYWNoZTogYS5jYWNoZSArIGMuY2FjaGUsCiAgICBjYWNoZUVzY3JpdG86IGEuY2FjaGVFc2NyaXRvICsgYy5jYWNoZUVzY3JpdG8sCiAgICB0b3RhbDogYS50b3RhbCArIGMudG90YWwsCiAgICBzaW5DYWNoZTogYS5zaW5DYWNoZSArIGMuc2luQ2FjaGUsCiAgfSkpOwp9CgovKiogwr9FbCB0b3RhbCBkZSBhcnJpYmEgY3VicmUgVE9ETyBsbyBnYXN0YWRvLCBvIHNvbG8gdW5hIHBhcnRlPwogKgogKiBTaSBkZSBkaWV6IG1vZGVsb3Mgc29sbyB0cmVzIHRlbsOtYW4gcHJlY2lvLCBlbCB0b3RhbCBlcyBkZSB0cmVzLCB5IGRlY2lybG8KICogwqt0b3RhbMK7IGEgc2VjYXMgc2UgbGVlIGNvbW8gZWwgZ2FzdG8gZW50ZXJvLiBFc3RvIGRldnVlbHZlIGN1w6FudG9zIHF1ZWRhcm9uCiAqIGZ1ZXJhIHBhcmEgcG9kZXIgZXNjcmliaXJsbyBhbCBsYWRvLiAqLwpleHBvcnQgZnVuY3Rpb24gY3VhbnRvc1NpblByZWNpbyhjb3N0ZXM6IHJlYWRvbmx5IChDb3N0ZSB8IG51bGwpW10pOiBudW1iZXIgewogIHJldHVybiBjb3N0ZXMuZmlsdGVyKChjKSA9PiBjID09IG51bGwpLmxlbmd0aDsKfQo=
+/** Forja IA — De tokens a dinero, y solo cuando se puede de verdad.
+ *
+ * Durante muchas versiones esta app se negó a enseñar un importe, y la razón
+ * escrita era «los precios no se pueden saber desde el navegador». Era falsa:
+ * no se pueden *adivinar*, que es otra cosa. Existen catálogos públicos que los
+ * mantienen al día, y uno de ellos —el de LiteLLM— cubre **los 17 modelos que
+ * Forja cuenta como de pago, los 17**. Comprobado, no supuesto.
+ *
+ * Así que ahora sí hay importes. Con una regla que no se salta nunca:
+ *
+ *   **Dinero = (tokens que dijo el proveedor) × (precio fechado del catálogo).**
+ *
+ * Las dos mitades tienen que existir. Si falta una, no hay importe: hay «sin
+ * dato», y se dice cuál de las dos falta. En concreto:
+ *
+ *  · **Nunca se multiplica nuestra estimación de caracteres ÷ 4.** Ese número
+ *    sirve para hacerse una idea del tamaño de un prompt; multiplicado por un
+ *    precio se convierte en una factura inventada con pinta de exacta.
+ *  · **Nunca se rellena un modelo que no está en el catálogo.** Ni con el
+ *    precio de un modelo «parecido», ni con la media del proveedor.
+ *  · **La fecha viaja con el número.** Un precio de hace ocho meses en pantalla
+ *    sin decir de cuándo es, es peor que no enseñar nada.
+ *
+ * La tabla se regenera con `npm run precios` (ver `scripts/precios.mjs`) y se
+ * puede refrescar en caliente desde `/api/precios`. Aquí no hay ni un número
+ * escrito a mano.
+ */
+import { PRECIOS, type PrecioToken } from "./precios-datos";
+import type { UsoProveedor } from "./cache-prompt";
+
+export { PRECIOS_FECHA, PRECIOS_FUENTE, PRECIOS_FUENTE_NOMBRE } from "./precios-datos";
+export type { PrecioToken } from "./precios-datos";
+
+export type TablaPrecios = Record<string, PrecioToken>;
+
+/** A partir de cuántos días la instantánea deja de ser de fiar.
+ *
+ * No es que a los 45 días el precio esté mal: es que a los 45 días ya no se
+ * puede afirmar que esté bien. Pasado eso la app sigue enseñando el número
+ * pero avisa de que es viejo, que es distinto de esconderlo. */
+export const DIAS_PARA_AVISAR = 45;
+
+/** Normaliza un id de modelo para poder compararlo.
+ *
+ * Los mismos modelos aparecen escritos de formas distintas según por dónde
+ * pasen: con el proveedor delante (`anthropic/claude-opus-5`), con sufijos de
+ * fecha (`-20250929`), en mayúsculas, o con el sufijo de gratis de cada
+ * pasarela (`:free`, `-free`). */
+function pelar(id: string): string {
+  return id
+    .trim()
+    .toLowerCase()
+    .replace(/:free$/, "")
+    .replace(/-free$/, "");
+}
+
+/** Los candidatos con los que buscar un modelo en la tabla, en orden de menos
+ * a más permisivo. El orden importa: primero lo exacto. */
+function candidatos(providerId: string, modelId: string): string[] {
+  const m = pelar(modelId);
+  const sinFecha = m.replace(/-20\d{6}$/, "");
+  const ultimo = m.includes("/") ? m.slice(m.lastIndexOf("/") + 1) : m;
+  return [...new Set([m, `${providerId}/${m}`, sinFecha, `${providerId}/${sinFecha}`, ultimo])];
+}
+
+export interface PrecioEncontrado {
+  precio: PrecioToken;
+  /** con qué clave del catálogo se encontró: se enseña para que se pueda
+   * comprobar que no se ha cogido el precio de otro modelo */
+  clave: string;
+  /** true si hubo que quitar el sufijo de fecha o el prefijo del proveedor */
+  aproximada: boolean;
+}
+
+/** Busca el precio de un modelo. `null` si no está: no se inventa uno parecido.
+ *
+ * La coincidencia se hace contra el id del modelo, no contra el proveedor con
+ * el que lo llamas: el mismo modelo servido por dos pasarelas puede costar
+ * distinto, y en ese caso lo honesto es no afirmar el precio de una cuando
+ * estás usando la otra. Por eso una coincidencia solo cuenta si el proveedor
+ * del catálogo es el mismo, salvo en las pasarelas que revenden de todo
+ * (donde el precio del catálogo es el del modelo, no el de la pasarela).
+ */
+export function buscarPrecio(
+  providerId: string,
+  modelId: string,
+  tabla: TablaPrecios = PRECIOS
+): PrecioEncontrado | null {
+  const cands = candidatos(providerId, modelId);
+  for (const [i, c] of cands.entries()) {
+    const p = tabla[c];
+    if (!p) continue;
+    if (p.p !== providerId) continue;
+    return { precio: p, clave: c, aproximada: i > 1 };
+  }
+  return null;
+}
+
+export interface Coste {
+  /** dólares de los tokens de entrada nuevos */
+  entrada: number;
+  /** dólares de los tokens generados */
+  salida: number;
+  /** dólares de lo servido desde la caché (mucho más barato) */
+  cache: number;
+  /** dólares de escribir la caché */
+  cacheEscrito: number;
+  total: number;
+  /** lo que habría costado sin caché, para poder decir cuánto ahorró */
+  sinCache: number;
+}
+
+/** Lo que costó una llamada. `null` si falta cualquiera de las dos mitades.
+ *
+ * Se exige que el proveedor haya dicho los tokens: `uso.entrada` o
+ * `uso.salida`. Con `null` en los dos no hay nada que multiplicar, y devolver
+ * 0 sería afirmar que fue gratis.
+ */
+export function costeDe(uso: UsoProveedor | null, precio: PrecioToken | null): Coste | null {
+  if (!uso || !precio) return null;
+  if (uso.entrada == null && uso.salida == null) return null;
+
+  const cin = precio.in;
+  const cout = precio.out ?? 0;
+  // Sin precio de caché declarado no se supone un descuento: se cobra como
+  // entrada normal, que es lo conservador —nunca enseña un gasto menor del que
+  // pudo ser.
+  const ccr = precio.cr ?? cin;
+  const ccw = precio.cw ?? cin;
+
+  const entrada = (uso.entrada ?? 0) * cin;
+  const salida = (uso.salida ?? 0) * cout;
+  const cache = (uso.cacheLeido ?? 0) * ccr;
+  const cacheEscrito = (uso.cacheEscrito ?? 0) * ccw;
+  const total = entrada + salida + cache + cacheEscrito;
+  // sin caché, todo lo que entró habría sido entrada nueva
+  const sinCache =
+    ((uso.entrada ?? 0) + (uso.cacheLeido ?? 0) + (uso.cacheEscrito ?? 0)) * cin + salida;
+
+  return { entrada, salida, cache, cacheEscrito, total, sinCache };
+}
+
+/** Lo que la caché ahorró en dinero. `null` si no hubo caché o no hay precio. */
+export function ahorroEnDinero(c: Coste | null): number | null {
+  if (!c) return null;
+  const dif = c.sinCache - c.total;
+  return dif > 0 ? dif : null;
+}
+
+/** Un importe, escrito para que no engañe.
+ *
+ * Los importes de una llamada suelta son diminutos —céntimos de céntimo—, y
+ * redondearlos a dos decimales los convierte todos en «0,00 $», que se lee
+ * como «esto es gratis». Por eso los pequeños llevan más decimales y los muy
+ * pequeños se dicen con un «<».
+ */
+export function fmtDinero(usd: number | null | undefined): string {
+  if (usd == null || !Number.isFinite(usd)) return "sin dato";
+  if (usd === 0) return "0 $";
+  if (usd < 0.0001) return "< 0,0001 $";
+  const dec = usd < 0.01 ? 4 : usd < 1 ? 3 : 2;
+  return `${usd.toFixed(dec).replace(".", ",")} $`;
+}
+
+/** Días desde la instantánea de precios. */
+export function diasDesde(fecha: string, ahora: number): number {
+  const t = Date.parse(`${fecha}T00:00:00Z`);
+  if (!Number.isFinite(t)) return Number.POSITIVE_INFINITY;
+  return Math.floor((ahora - t) / 86_400_000);
+}
+
+/** ¿Hay que avisar de que los precios son viejos? */
+export function preciosViejos(fecha: string, ahora: number): boolean {
+  return diasDesde(fecha, ahora) > DIAS_PARA_AVISAR;
+}
+
+/** La coletilla que acompaña SIEMPRE a un importe. Sin esto, un número en
+ * pantalla parece una factura; con esto, es una estimación con fuente. */
+export function pieDePrecios(fecha: string, ahora: number): string {
+  const d = diasDesde(fecha, ahora);
+  const base = `Precios del catálogo público de LiteLLM, instantánea del ${fecha}`;
+  if (!Number.isFinite(d)) return `${base}.`;
+  if (d > DIAS_PARA_AVISAR) {
+    return `${base} — hace ${d} días. Puede haber cambiado: vuelve a generarla con «npm run precios».`;
+  }
+  return `${base}. Es una estimación con fuente, no tu factura.`;
+}
+
+/** Por qué no hay importe. Se enseña en vez del número, para que se sepa qué
+ * falta en vez de pensar que la app no sabe hacerlo. */
+export function motivoSinCoste(uso: UsoProveedor | null, precio: PrecioToken | null): string {
+  if (!precio && (!uso || (uso.entrada == null && uso.salida == null))) {
+    return "sin dato: ni el proveedor dijo los tokens ni este modelo está en el catálogo de precios";
+  }
+  if (!precio) return "sin dato: este modelo no está en el catálogo de precios";
+  return "sin dato: tu proveedor no dijo cuántos tokens gastó";
+}
+
+/** El coste de algo que ya se sabe con qué modelo se hizo.
+ *
+ * Es el punto de unión de las dos mitades: los tokens del proveedor por un
+ * lado, el precio fechado por el otro. Devuelve también POR QUÉ no hay importe
+ * cuando no lo hay, que es lo que convierte un hueco en una explicación.
+ */
+export interface CosteConMotivo {
+  coste: Coste | null;
+  /** rellenado solo cuando `coste` es null */
+  motivo: string | null;
+  /** la clave del catálogo con la que se calculó, para poder comprobarlo */
+  clave: string | null;
+}
+
+export function costeDeModelo(
+  providerId: string,
+  modelId: string,
+  uso: UsoProveedor | null,
+  tabla: TablaPrecios = PRECIOS
+): CosteConMotivo {
+  const encontrado = buscarPrecio(providerId, modelId, tabla);
+  const coste = costeDe(uso, encontrado?.precio ?? null);
+  if (coste) return { coste, motivo: null, clave: encontrado?.clave ?? null };
+  return {
+    coste: null,
+    motivo: motivoSinCoste(uso, encontrado?.precio ?? null),
+    clave: encontrado?.clave ?? null,
+  };
+}
+
+/** Suma de costes, para los totales. `null` si no se pudo calcular ninguno:
+ * sumar solo los que se sabían y enseñarlo como total mentiría por defecto. */
+export function sumaCostes(costes: readonly (Coste | null)[]): Coste | null {
+  const validos = costes.filter((c): c is Coste => c != null);
+  if (validos.length === 0) return null;
+  return validos.reduce((a, c) => ({
+    entrada: a.entrada + c.entrada,
+    salida: a.salida + c.salida,
+    cache: a.cache + c.cache,
+    cacheEscrito: a.cacheEscrito + c.cacheEscrito,
+    total: a.total + c.total,
+    sinCache: a.sinCache + c.sinCache,
+  }));
+}
+
+/** ¿El total de arriba cubre TODO lo gastado, o solo una parte?
+ *
+ * Si de diez modelos solo tres tenían precio, el total es de tres, y decirlo
+ * «total» a secas se lee como el gasto entero. Esto devuelve cuántos quedaron
+ * fuera para poder escribirlo al lado. */
+export function cuantosSinPrecio(costes: readonly (Coste | null)[]): number {
+  return costes.filter((c) => c == null).length;
+}

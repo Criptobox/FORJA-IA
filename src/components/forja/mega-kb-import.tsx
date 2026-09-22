@@ -1,1 +1,276 @@
-InVzZSBjbGllbnQiOwoKaW1wb3J0IHsgdXNlRWZmZWN0LCB1c2VNZW1vLCB1c2VSZWYsIHVzZVN0YXRlIH0gZnJvbSAicmVhY3QiOwppbXBvcnQgeyBDaGVjaywgQ2hldnJvblJpZ2h0LCBGaWxlQ29kZTIsIEZvbGRlciwgTG9hZGVyMiwgUmVmcmVzaEN3LCBVcGxvYWRDbG91ZCB9IGZyb20gImx1Y2lkZS1yZWFjdCI7CmltcG9ydCB7IHRvYXN0IH0gZnJvbSAic29ubmVyIjsKaW1wb3J0IHsgY3JlYXRlTWVnYVByb3ZpZGVyLCBtZWdhQ29ubmVjdGlvblN0YXRlIH0gZnJvbSAiQC9saWIvZm9yamEvbWVnYS1wcm92aWRlciI7CmltcG9ydCB0eXBlIHsgU3RvcmFnZUl0ZW0gfSBmcm9tICJAL2xpYi9mb3JqYS9zdG9yYWdlLXByb3ZpZGVycyI7CmltcG9ydCB7IGtiRmluZEJ5SGFzaCwga2JIYXNoQnl0ZXMsIGtiVXBzZXJ0UmVzb3VyY2UgfSBmcm9tICJAL2xpYi9mb3JqYS9rYi1pbmRleCI7CmltcG9ydCB7IGFuYWx5emVaaXBSZXBvc2l0b3J5IH0gZnJvbSAiQC9saWIvZm9yamEva2ItcmVwby1hbmFseXplciI7CmltcG9ydCB7IGtiU2F2ZVByb2plY3RNYW5pZmVzdCB9IGZyb20gIkAvbGliL2ZvcmphL2tiLXByb2plY3RzIjsKCmZ1bmN0aW9uIGZvcm1hdEJ5dGVzKGJ5dGVzPzogbnVtYmVyKTogc3RyaW5nIHsKICBpZiAoIWJ5dGVzKSByZXR1cm4gIuKAlCI7CiAgaWYgKGJ5dGVzIDwgMTAyNCkgcmV0dXJuIGAke2J5dGVzfSBCYDsKICBpZiAoYnl0ZXMgPCAxMDI0ICogMTAyNCkgcmV0dXJuIGAkeyhieXRlcyAvIDEwMjQpLnRvRml4ZWQoMSl9IEtCYDsKICBpZiAoYnl0ZXMgPCAxMDI0ICogMTAyNCAqIDEwMjQpIHJldHVybiBgJHsoYnl0ZXMgLyAxMDI0IC8gMTAyNCkudG9GaXhlZCgxKX0gTUJgOwogIHJldHVybiBgJHsoYnl0ZXMgLyAxMDI0IC8gMTAyNCAvIDEwMjQpLnRvRml4ZWQoMSl9IEdCYDsKfQoKZXhwb3J0IGZ1bmN0aW9uIHJvbGVGb3JQYXRoKHBhdGg6IHN0cmluZyk6IHsgY2F0ZWdvcnk6IHN0cmluZzsgdGFnczogc3RyaW5nW107IHRlY2hub2xvZ3k6IHN0cmluZyB9IHsKICBjb25zdCBsb3dlciA9IHBhdGgudG9Mb3dlckNhc2UoKTsKICBjb25zdCB0YWdzID0gWyJtZWdhIiwgImNvZGlnbyJdOwogIC8vIExhIHRlY25vbG9nw61hIGRldGVjdGFkYSBhcXXDrSB0YW1iacOpbiBhbGltZW50YSBgdGVjaG5vbG9neWAg4oCUIGRlamFybG8KICAvLyB2YWPDrW8gKGNvbW8gZW4gbGEgdmVyc2nDs24gcmVjaWJpZGEpIHJvbXDDrWEgY3VhbHF1aWVyIGLDunNxdWVkYSBvIGZpbHRybwogIC8vIHBvciB0ZWNub2xvZ8OtYSBzb2JyZSB1biByZWN1cnNvIGltcG9ydGFkbyBkZSBNRUdBLCBhdW5xdWUgbGEgZXRpcXVldGEKICAvLyB5YSBsYSBub21icmFyYS4KICBsZXQgdGVjaG5vbG9neSA9ICIiOwogIGlmICgvXC50c3g/JC8udGVzdChsb3dlcikpIHsgdGFncy5wdXNoKCJ0eXBlc2NyaXB0IiwgInJlYWN0Iik7IHRlY2hub2xvZ3kgPSAiVHlwZVNjcmlwdCI7IH0KICBlbHNlIGlmICgvXC5qc3g/JC8udGVzdChsb3dlcikpIHsgdGFncy5wdXNoKCJqYXZhc2NyaXB0Iik7IHRlY2hub2xvZ3kgPSAiSmF2YVNjcmlwdCI7IH0KICBlbHNlIGlmICgvXC4oY3NzfHNjc3N8c2FzcykkLy50ZXN0KGxvd2VyKSkgeyB0YWdzLnB1c2goImVzdGlsb3MiKTsgdGVjaG5vbG9neSA9ICJDU1MiOyB9CiAgZWxzZSBpZiAoL1wuKHZ1ZSkkLy50ZXN0KGxvd2VyKSkgeyB0YWdzLnB1c2goInZ1ZSIpOyB0ZWNobm9sb2d5ID0gIlZ1ZSI7IH0KICBlbHNlIGlmICgvXC4oc3ZlbHRlKSQvLnRlc3QobG93ZXIpKSB7IHRhZ3MucHVzaCgic3ZlbHRlIik7IHRlY2hub2xvZ3kgPSAiU3ZlbHRlIjsgfQogIGVsc2UgaWYgKC9cLihhc3RybykkLy50ZXN0KGxvd2VyKSkgeyB0YWdzLnB1c2goImFzdHJvIik7IHRlY2hub2xvZ3kgPSAiQXN0cm8iOyB9CiAgZWxzZSBpZiAoL1wuKHB5KSQvLnRlc3QobG93ZXIpKSB7IHRhZ3MucHVzaCgicHl0aG9uIik7IHRlY2hub2xvZ3kgPSAiUHl0aG9uIjsgfQogIGVsc2UgaWYgKC9cLihnbykkLy50ZXN0KGxvd2VyKSkgeyB0YWdzLnB1c2goImdvIik7IHRlY2hub2xvZ3kgPSAiR28iOyB9CiAgZWxzZSBpZiAoL1wuKHJzKSQvLnRlc3QobG93ZXIpKSB7IHRhZ3MucHVzaCgicnVzdCIpOyB0ZWNobm9sb2d5ID0gIlJ1c3QiOyB9CiAgZWxzZSBpZiAoL1wuanNvbiQvLnRlc3QobG93ZXIpKSB7IHRhZ3MucHVzaCgianNvbiIpOyB9CiAgZWxzZSBpZiAoL1wubWQkLy50ZXN0KGxvd2VyKSkgeyB0YWdzLnB1c2goImRvY3VtZW50YWNpb24iKTsgfQogIGVsc2UgdGFncy5wdXNoKCJyZWN1cnNvIik7CgogIGlmIChsb3dlci5pbmNsdWRlcygiY29tcG9uZW50IikpIHJldHVybiB7IGNhdGVnb3J5OiAiY29tcG9uZW50ZXMiLCB0YWdzLCB0ZWNobm9sb2d5IH07CiAgaWYgKGxvd2VyLmluY2x1ZGVzKCJ0ZW1wbGF0ZSIpIHx8IGxvd2VyLmluY2x1ZGVzKCJzdGFydGVyIikpIHJldHVybiB7IGNhdGVnb3J5OiAidGVtcGxhdGVzIiwgdGFncywgdGVjaG5vbG9neSB9OwogIGlmIChsb3dlci5pbmNsdWRlcygicmVjaXBlIikgfHwgbG93ZXIuaW5jbHVkZXMoImZvcmphIikpIHJldHVybiB7IGNhdGVnb3J5OiAiZm9yamEtcmVjaXBlcyIsIHRhZ3MsIHRlY2hub2xvZ3kgfTsKICBpZiAobG93ZXIuaW5jbHVkZXMoInJlcG8iKSB8fCBsb3dlci5pbmNsdWRlcygicHJvamVjdCIpKSByZXR1cm4geyBjYXRlZ29yeTogInJlcG9zaXRvcmlvcyIsIHRhZ3MsIHRlY2hub2xvZ3kgfTsKICBpZiAoL1wudHN4PyQvLnRlc3QobG93ZXIpIHx8IC9cLmpzeD8kLy50ZXN0KGxvd2VyKSkgcmV0dXJuIHsgY2F0ZWdvcnk6ICJjb2RpZ28iLCB0YWdzLCB0ZWNobm9sb2d5IH07CiAgcmV0dXJuIHsgY2F0ZWdvcnk6ICJyZWN1cnNvcy1jb2RlIiwgdGFncywgdGVjaG5vbG9neSB9Owp9Cgphc3luYyBmdW5jdGlvbiBieXRlc1RvRmlsZShieXRlczogVWludDhBcnJheSwgbmFtZTogc3RyaW5nLCBtaW1lVHlwZSA9ICJhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0iKTogUHJvbWlzZTxGaWxlPiB7CiAgY29uc3QgY29weSA9IGJ5dGVzLnNsaWNlKCkuYnVmZmVyIGFzIEFycmF5QnVmZmVyOwogIHJldHVybiBuZXcgRmlsZShbY29weV0sIG5hbWUsIHsgdHlwZTogbWltZVR5cGUgfSk7Cn0KCmFzeW5jIGZ1bmN0aW9uIGNvbGxlY3RGaWxlcyhwcm92aWRlcjogUmV0dXJuVHlwZTx0eXBlb2YgY3JlYXRlTWVnYVByb3ZpZGVyPiwgZm9sZGVySWQ6IHN0cmluZyB8IHVuZGVmaW5lZCwgcHJlZml4OiBzdHJpbmcpOiBQcm9taXNlPEFycmF5PHsgaXRlbTogU3RvcmFnZUl0ZW07IHBhdGg6IHN0cmluZyB9Pj4gewogIGNvbnN0IGl0ZW1zID0gYXdhaXQgcHJvdmlkZXIubGlzdChmb2xkZXJJZCk7CiAgY29uc3Qgb3V0OiBBcnJheTx7IGl0ZW06IFN0b3JhZ2VJdGVtOyBwYXRoOiBzdHJpbmcgfT4gPSBbXTsKICBmb3IgKGNvbnN0IGl0ZW0gb2YgaXRlbXMpIHsKICAgIGNvbnN0IHBhdGggPSBwcmVmaXggPyBgJHtwcmVmaXh9LyR7aXRlbS5uYW1lfWAgOiBpdGVtLm5hbWU7CiAgICBpZiAoaXRlbS5raW5kID09PSAiZm9sZGVyIikgb3V0LnB1c2goLi4uKGF3YWl0IGNvbGxlY3RGaWxlcyhwcm92aWRlciwgaXRlbS5pZCwgcGF0aCkpKTsKICAgIGVsc2Ugb3V0LnB1c2goeyBpdGVtLCBwYXRoIH0pOwogIH0KICByZXR1cm4gb3V0Owp9CgpleHBvcnQgZnVuY3Rpb24gTWVnYUtCSW1wb3J0KHsgb25JbXBvcnRlZCB9OiB7IG9uSW1wb3J0ZWQ/OiAoKSA9PiB2b2lkIH0pIHsKICBjb25zdCBbY29ubmVjdGVkLCBzZXRDb25uZWN0ZWRdID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtpdGVtcywgc2V0SXRlbXNdID0gdXNlU3RhdGU8U3RvcmFnZUl0ZW1bXT4oW10pOwogIGNvbnN0IFtmb2xkZXJJZCwgc2V0Rm9sZGVySWRdID0gdXNlU3RhdGU8c3RyaW5nIHwgdW5kZWZpbmVkPigpOwogIGNvbnN0IFtwYXRoLCBzZXRQYXRoXSA9IHVzZVN0YXRlPHN0cmluZ1tdPihbXSk7CiAgY29uc3QgW3NlbGVjdGVkLCBzZXRTZWxlY3RlZF0gPSB1c2VTdGF0ZTxTZXQ8c3RyaW5nPj4obmV3IFNldCgpKTsKICBjb25zdCBbYnVzeSwgc2V0QnVzeV0gPSB1c2VTdGF0ZShmYWxzZSk7CiAgY29uc3QgW3N0YXR1cywgc2V0U3RhdHVzXSA9IHVzZVN0YXRlKCIiKTsKCiAgY29uc3QgcHJvdmlkZXIgPSB1c2VNZW1vKCgpID0+IGNyZWF0ZU1lZ2FQcm92aWRlcigpLCBbXSk7CgogIGNvbnN0IHJlZnJlc2ggPSBhc3luYyAobmV4dEZvbGRlcklkID0gZm9sZGVySWQpID0+IHsKICAgIGNvbnN0IHN0YXRlID0gbWVnYUNvbm5lY3Rpb25TdGF0ZSgpOwogICAgc2V0Q29ubmVjdGVkKHN0YXRlLmNvbm5lY3RlZCk7CiAgICBpZiAoIXN0YXRlLmNvbm5lY3RlZCkgewogICAgICBzZXRJdGVtcyhbXSk7CiAgICAgIHJldHVybjsKICAgIH0KICAgIHRyeSB7CiAgICAgIHNldEl0ZW1zKGF3YWl0IHByb3ZpZGVyLmxpc3QobmV4dEZvbGRlcklkKSk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHRvYXN0LmVycm9yKGUgaW5zdGFuY2VvZiBFcnJvciA/IGUubWVzc2FnZSA6IFN0cmluZyhlKSk7CiAgICB9CiAgfTsKCiAgY29uc3QgY29ubmVjdGVkUmVmID0gdXNlUmVmKGZhbHNlKTsKICB1c2VFZmZlY3QoKCkgPT4gewogICAgdm9pZCByZWZyZXNoKCk7CiAgICBjb25uZWN0ZWRSZWYuY3VycmVudCA9IG1lZ2FDb25uZWN0aW9uU3RhdGUoKS5jb25uZWN0ZWQ7CiAgICAvLyBFbCBsb2dpbiBwYXNhIHBvciBgTWVnYVBhbmVsYCwgdW4gY29tcG9uZW50ZSBhcGFydGUgc2luIGVzdGFkbwogICAgLy8gY29tcGFydGlkbyDigJQgZXN0ZSBzb25kZW8gZXMgbG8gw7puaWNvIHF1ZSBlbnRlcmEgYSBlc3RlIHBhbmVsIGRlIHF1ZQogICAgLy8gbGEgY29uZXhpw7NuIGNhbWJpw7MuIERldGVjdGFyIGVsIGNhbWJpbyBubyBiYXN0YWJhICh2ZXJzacOzbiByZWNpYmlkYSk6CiAgICAvLyBoYWPDrWEgZmFsdGEgdGFtYmnDqW4gdm9sdmVyIGEgcGVkaXIgZWwgbGlzdGFkbywgbyBsYSBjYXJwZXRhIHNlCiAgICAvLyBxdWVkYWJhIHZhY8OtYSBlbiBwYW50YWxsYSBhdW5xdWUgTUVHQSB5YSB0dXZpZXJhIHNlc2nDs24uCiAgICBjb25zdCB0aW1lciA9IHdpbmRvdy5zZXRJbnRlcnZhbCgoKSA9PiB7CiAgICAgIGNvbnN0IG5vd0Nvbm5lY3RlZCA9IG1lZ2FDb25uZWN0aW9uU3RhdGUoKS5jb25uZWN0ZWQ7CiAgICAgIGlmIChub3dDb25uZWN0ZWQgIT09IGNvbm5lY3RlZFJlZi5jdXJyZW50KSB7CiAgICAgICAgY29ubmVjdGVkUmVmLmN1cnJlbnQgPSBub3dDb25uZWN0ZWQ7CiAgICAgICAgdm9pZCByZWZyZXNoKCk7CiAgICAgIH0KICAgIH0sIDEwMDApOwogICAgcmV0dXJuICgpID0+IHdpbmRvdy5jbGVhckludGVydmFsKHRpbWVyKTsKICB9LCBbXSk7CgogIGNvbnN0IG9wZW5Gb2xkZXIgPSBhc3luYyAoaXRlbTogU3RvcmFnZUl0ZW0pID0+IHsKICAgIHNldEZvbGRlcklkKGl0ZW0uaWQpOwogICAgc2V0UGF0aCgocHJldikgPT4gWy4uLnByZXYsIGl0ZW0ubmFtZV0pOwogICAgc2V0U2VsZWN0ZWQobmV3IFNldCgpKTsKICAgIGF3YWl0IHJlZnJlc2goaXRlbS5pZCk7CiAgfTsKCiAgY29uc3QgZ29Sb290ID0gYXN5bmMgKCkgPT4gewogICAgc2V0Rm9sZGVySWQodW5kZWZpbmVkKTsKICAgIHNldFBhdGgoW10pOwogICAgc2V0U2VsZWN0ZWQobmV3IFNldCgpKTsKICAgIGF3YWl0IHJlZnJlc2godW5kZWZpbmVkKTsKICB9OwoKICBjb25zdCB0b2dnbGUgPSAoaWQ6IHN0cmluZykgPT4gewogICAgc2V0U2VsZWN0ZWQoKHByZXYpID0+IHsKICAgICAgY29uc3QgbmV4dCA9IG5ldyBTZXQocHJldik7CiAgICAgIGlmIChuZXh0LmhhcyhpZCkpIG5leHQuZGVsZXRlKGlkKTsKICAgICAgZWxzZSBuZXh0LmFkZChpZCk7CiAgICAgIHJldHVybiBuZXh0OwogICAgfSk7CiAgfTsKCiAgY29uc3QgaW1wb3J0U2VsZWN0aW9uID0gYXN5bmMgKHJlY3Vyc2l2ZTogYm9vbGVhbikgPT4gewogICAgaWYgKCFjb25uZWN0ZWQgfHwgYnVzeSkgcmV0dXJuOwogICAgY29uc3QgY2hvc2VuID0gaXRlbXMuZmlsdGVyKChpdGVtKSA9PiBzZWxlY3RlZC5oYXMoaXRlbS5pZCkpOwogICAgaWYgKCFjaG9zZW4ubGVuZ3RoKSByZXR1cm47CiAgICBzZXRCdXN5KHRydWUpOwogICAgbGV0IGltcG9ydGVkID0gMDsKICAgIGxldCBza2lwcGVkID0gMDsKICAgIHRyeSB7CiAgICAgIGNvbnN0IGFsbDogQXJyYXk8eyBpdGVtOiBTdG9yYWdlSXRlbTsgcGF0aDogc3RyaW5nIH0+ID0gW107CiAgICAgIGZvciAoY29uc3QgaXRlbSBvZiBjaG9zZW4pIHsKICAgICAgICBpZiAoaXRlbS5raW5kID09PSAiZm9sZGVyIikgewogICAgICAgICAgaWYgKCFyZWN1cnNpdmUpIGNvbnRpbnVlOwogICAgICAgICAgYWxsLnB1c2goLi4uKGF3YWl0IGNvbGxlY3RGaWxlcyhwcm92aWRlciwgaXRlbS5pZCwgWy4uLnBhdGgsIGl0ZW0ubmFtZV0uam9pbigiLyIpKSkpOwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICBhbGwucHVzaCh7IGl0ZW0sIHBhdGg6IFsuLi5wYXRoLCBpdGVtLm5hbWVdLmpvaW4oIi8iKSB9KTsKICAgICAgICB9CiAgICAgIH0KCiAgICAgIGZvciAoY29uc3QgZW50cnkgb2YgYWxsKSB7CiAgICAgICAgc2V0U3RhdHVzKGBJbmRleGFuZG8gJHtlbnRyeS5wYXRofWApOwogICAgICAgIGNvbnN0IG1ldGEgPSByb2xlRm9yUGF0aChlbnRyeS5wYXRoKTsKICAgICAgICBsZXQgaGFzaDogc3RyaW5nIHwgdW5kZWZpbmVkOwogICAgICAgIGxldCBwcm9qZWN0TWFuaWZlc3RJZDogc3RyaW5nIHwgdW5kZWZpbmVkOwogICAgICAgIGNvbnN0IHNpemUgPSBlbnRyeS5pdGVtLnNpemVCeXRlcyA/PyAwOwogICAgICAgIC8vIE5vIGRlc2NhcmdhbW9zIGFyY2hpdm9zIGVub3JtZXMgc29sbyBwYXJhIGNvbnN0cnVpciBlbCDDrW5kaWNlLiBFc3RvIHBlcm1pdGUKICAgICAgICAvLyB0cmFiYWphciBjb24gYmlibGlvdGVjYXMgTUVHQSBkZSBkZWNlbmFzIGRlIEdCIHNpbiBjb252ZXJ0aXIgbGEgaW5kZXhhY2nDs24KICAgICAgICAvLyBlbiB1bmEgZGVzY2FyZ2EgbWFzaXZhLiBMb3MgYXJjaGl2b3MgcGVxdWXDsW9zIHPDrSByZWNpYmVuIGhhc2ggZXhhY3RvLgogICAgICAgIGlmIChzaXplIDw9IDggKiAxMDI0ICogMTAyNCkgewogICAgICAgICAgY29uc3QgYnl0ZXMgPSBhd2FpdCBwcm92aWRlci5yZWFkKGVudHJ5Lml0ZW0uaWQpOwogICAgICAgICAgaGFzaCA9IGF3YWl0IGtiSGFzaEJ5dGVzKGJ5dGVzKTsKICAgICAgICAgIGlmIChrYkZpbmRCeUhhc2goaGFzaCkpIHsKICAgICAgICAgICAgc2tpcHBlZCsrOwogICAgICAgICAgICBjb250aW51ZTsKICAgICAgICAgIH0KICAgICAgICAgIGlmICgvXC56aXAkL2kudGVzdChlbnRyeS5pdGVtLm5hbWUpICYmIHNpemUgPD0gMTAwICogMTAyNCAqIDEwMjQpIHsKICAgICAgICAgICAgdHJ5IHsKICAgICAgICAgICAgICBjb25zdCBmaWxlID0gYXdhaXQgYnl0ZXNUb0ZpbGUoYnl0ZXMsIGVudHJ5Lml0ZW0ubmFtZSwgImFwcGxpY2F0aW9uL3ppcCIpOwogICAgICAgICAgICAgIGNvbnN0IGFuYWx5c2lzID0gYXdhaXQgYW5hbHl6ZVppcFJlcG9zaXRvcnkoZmlsZSk7CiAgICAgICAgICAgICAga2JTYXZlUHJvamVjdE1hbmlmZXN0KGFuYWx5c2lzKTsKICAgICAgICAgICAgICBwcm9qZWN0TWFuaWZlc3RJZCA9IGFuYWx5c2lzLmlkOwogICAgICAgICAgICB9IGNhdGNoIHsKICAgICAgICAgICAgICAvLyBFbCBaSVAgcXVlZGEgaW5kZXhhZG8gYXVucXVlIGVsIGFuw6FsaXNpcyBlc3RydWN0dXJhbCBubyBwdWVkYSBjb21wbGV0YXJzZS4KICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0KICAgICAgICBrYlVwc2VydFJlc291cmNlKHsKICAgICAgICAgIGlkOiBgbWVnYToke2VudHJ5Lml0ZW0uaWR9YCwKICAgICAgICAgIG5hbWU6IGVudHJ5Lml0ZW0ubmFtZSwKICAgICAgICAgIG1pbWVUeXBlOiBlbnRyeS5pdGVtLm1pbWVUeXBlIHx8ICJhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0iLAogICAgICAgICAgc2l6ZUJ5dGVzOiBlbnRyeS5pdGVtLnNpemVCeXRlcyA/PyAwLAogICAgICAgICAgYWNjb3VudEVtYWlsOiBtZWdhQ29ubmVjdGlvblN0YXRlKCkuZW1haWwgfHwgIk1FR0EiLAogICAgICAgICAgd2ViVmlld0xpbms6IGVudHJ5Lml0ZW0ud2ViVXJsIHx8ICIiLAogICAgICAgICAgY2F0ZWdvcnk6IG1ldGEuY2F0ZWdvcnksCiAgICAgICAgICB0YWdzOiBBcnJheS5mcm9tKG5ldyBTZXQoWy4uLm1ldGEudGFncywgLi4ucGF0aC5tYXAoKHBhcnQpID0+IHBhcnQudG9Mb3dlckNhc2UoKSkuZmlsdGVyKChwYXJ0KSA9PiBwYXJ0Lmxlbmd0aCA+IDIpXSkpLAogICAgICAgICAgdGVjaG5vbG9neTogbWV0YS50ZWNobm9sb2d5LAogICAgICAgICAgbGljZW5zZTogIiIsCiAgICAgICAgICBzdGF0dXM6ICJjbGFzaWZpY2FkbyIsCiAgICAgICAgICBpbmRleGVkQXQ6IG5ldyBEYXRlKCkudG9JU09TdHJpbmcoKSwKICAgICAgICAgIGNvbnRlbnRIYXNoOiBoYXNoLAogICAgICAgICAgcmVsYXRpdmVQYXRoOiBlbnRyeS5wYXRoLAogICAgICAgICAgc291cmNlS2luZDogIm1lZ2EiLAogICAgICAgICAgc291cmNlUHJvdmlkZXI6ICJtZWdhIiwKICAgICAgICAgIHJlbW90ZUlkOiBlbnRyeS5pdGVtLmlkLAogICAgICAgICAgcHJvamVjdE1hbmlmZXN0SWQsCiAgICAgICAgfSk7CiAgICAgICAgaW1wb3J0ZWQrKzsKICAgICAgfQogICAgICBzZXRTZWxlY3RlZChuZXcgU2V0KCkpOwogICAgICBzZXRTdGF0dXMoYExpc3RvOiAke2ltcG9ydGVkfSBpbmRleGFkbyhzKSwgJHtza2lwcGVkfSB5YSBleGlzdMOtYShuKS5gKTsKICAgICAgb25JbXBvcnRlZD8uKCk7CiAgICAgIHRvYXN0LnN1Y2Nlc3MoYE1FR0E6ICR7aW1wb3J0ZWR9IHJlY3Vyc28ocykgaW5kZXhhZG8ocykuYCk7CiAgICB9IGNhdGNoIChlKSB7CiAgICAgIHRvYXN0LmVycm9yKGUgaW5zdGFuY2VvZiBFcnJvciA/IGUubWVzc2FnZSA6IFN0cmluZyhlKSk7CiAgICAgIHNldFN0YXR1cygiTGEgaW5kZXhhY2nDs24gc2UgZGV0dXZvIHBvciB1biBlcnJvci4iKTsKICAgIH0gZmluYWxseSB7CiAgICAgIHNldEJ1c3koZmFsc2UpOwogICAgfQogIH07CgogIGlmICghY29ubmVjdGVkKSB7CiAgICByZXR1cm4gKAogICAgICA8ZGl2IGNsYXNzTmFtZT0icm91bmRlZC14bCBib3JkZXIgYm9yZGVyLWJvcmRlci82MCBiZy1jYXJkLzMwIHAtMyB0ZXh0LVsxMXB4XSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPgogICAgICAgIENvbmVjdGEgTUVHQSBhcnJpYmEgcGFyYSBleHBsb3JhciBlIGluZGV4YXIgc3UgYmlibGlvdGVjYSBkZSBjw7NkaWdvLgogICAgICA8L2Rpdj4KICAgICk7CiAgfQoKICBjb25zdCBmaWxlcyA9IGl0ZW1zLmZpbHRlcigoaXRlbSkgPT4gaXRlbS5raW5kID09PSAiZmlsZSIpOwogIGNvbnN0IGZvbGRlcnMgPSBpdGVtcy5maWx0ZXIoKGl0ZW0pID0+IGl0ZW0ua2luZCA9PT0gImZvbGRlciIpOwoKICByZXR1cm4gKAogICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMi41IHJvdW5kZWQteGwgYm9yZGVyIGJvcmRlci1ib3JkZXIvNjAgYmctY2FyZC8yMCBwLTMiPgogICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgIDxVcGxvYWRDbG91ZCBjbGFzc05hbWU9InNpemUtNCB0ZXh0LWZvcmphLXZpb2xldCIgLz4KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ibWluLXctMCBmbGV4LTEiPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIGZvbnQtc2VtaWJvbGQiPkluZGV4YXIgZGVzZGUgTUVHQTwvcD4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0idHJ1bmNhdGUgdGV4dC1bMTAuNXB4XSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPntwYXRoLmxlbmd0aCA/IGBNRUdBIC8gJHtwYXRoLmpvaW4oIiAvICIpfWAgOiAiTUVHQSAvIHJhw616In08L3A+CiAgICAgICAgPC9kaXY+CiAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIG9uQ2xpY2s9eygpID0+IHZvaWQgcmVmcmVzaCgpfSBkaXNhYmxlZD17YnVzeX0gY2xhc3NOYW1lPSJyb3VuZGVkLW1kIHAtMS41IGhvdmVyOmJnLW11dGVkIiB0aXRsZT0iQWN0dWFsaXphciI+CiAgICAgICAgICA8UmVmcmVzaEN3IGNsYXNzTmFtZT0ic2l6ZS0zLjUiIC8+CiAgICAgICAgPC9idXR0b24+CiAgICAgIDwvZGl2PgoKICAgICAge3BhdGgubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIG9uQ2xpY2s9eygpID0+IHZvaWQgZ29Sb290KCl9IGNsYXNzTmFtZT0idGV4dC1bMTAuNXB4XSB0ZXh0LWZvcmphLXZpb2xldCBob3Zlcjp1bmRlcmxpbmUiPgogICAgICAgICAg4oaQIFZvbHZlciBhIHJhw616CiAgICAgICAgPC9idXR0b24+CiAgICAgICl9CgogICAgICA8ZGl2IGNsYXNzTmFtZT0ibWF4LWgtNTIgc3BhY2UteS0xIG92ZXJmbG93LXktYXV0byByb3VuZGVkLWxnIGJvcmRlciBib3JkZXItYm9yZGVyLzUwIHAtMS41Ij4KICAgICAgICB7Zm9sZGVycy5tYXAoKGl0ZW0pID0+ICgKICAgICAgICAgIDxidXR0b24ga2V5PXtpdGVtLmlkfSB0eXBlPSJidXR0b24iIG9uQ2xpY2s9eygpID0+IHRvZ2dsZShpdGVtLmlkKX0gb25Eb3VibGVDbGljaz17KCkgPT4gdm9pZCBvcGVuRm9sZGVyKGl0ZW0pfSBjbGFzc05hbWU9ImZsZXggdy1mdWxsIGl0ZW1zLWNlbnRlciBnYXAtMiByb3VuZGVkLW1kIHB4LTIgcHktMS41IHRleHQtbGVmdCB0ZXh0LVsxMXB4XSBob3ZlcjpiZy1tdXRlZCI+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YGZsZXggc2l6ZS00IHNocmluay0wIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciByb3VuZGVkIGJvcmRlciAke3NlbGVjdGVkLmhhcyhpdGVtLmlkKSA/ICJib3JkZXItZm9yamEtdmlvbGV0IGJnLWZvcmphLXZpb2xldCB0ZXh0LXdoaXRlIiA6ICJib3JkZXItYm9yZGVyIn1gfT4KICAgICAgICAgICAgICB7c2VsZWN0ZWQuaGFzKGl0ZW0uaWQpID8gPENoZWNrIGNsYXNzTmFtZT0ic2l6ZS0zIiAvPiA6IDxGb2xkZXIgY2xhc3NOYW1lPSJzaXplLTIuNSB0ZXh0LWFtYmVyLTUwMCIgLz59CiAgICAgICAgICAgIDwvc3Bhbj4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJtaW4tdy0wIGZsZXgtMSB0cnVuY2F0ZSI+e2l0ZW0ubmFtZX08L3NwYW4+CiAgICAgICAgICAgIDxDaGV2cm9uUmlnaHQgY2xhc3NOYW1lPSJzaXplLTMgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIiAvPgogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgKSl9CiAgICAgICAge2ZpbGVzLm1hcCgoaXRlbSkgPT4gKAogICAgICAgICAgPGJ1dHRvbiBrZXk9e2l0ZW0uaWR9IHR5cGU9ImJ1dHRvbiIgb25DbGljaz17KCkgPT4gdG9nZ2xlKGl0ZW0uaWQpfSBjbGFzc05hbWU9ImZsZXggdy1mdWxsIGl0ZW1zLWNlbnRlciBnYXAtMiByb3VuZGVkLW1kIHB4LTIgcHktMS41IHRleHQtbGVmdCB0ZXh0LVsxMXB4XSBob3ZlcjpiZy1tdXRlZCI+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YGZsZXggc2l6ZS00IHNocmluay0wIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciByb3VuZGVkIGJvcmRlciAke3NlbGVjdGVkLmhhcyhpdGVtLmlkKSA/ICJib3JkZXItZm9yamEtdmlvbGV0IGJnLWZvcmphLXZpb2xldCB0ZXh0LXdoaXRlIiA6ICJib3JkZXItYm9yZGVyIn1gfT4KICAgICAgICAgICAgICB7c2VsZWN0ZWQuaGFzKGl0ZW0uaWQpID8gPENoZWNrIGNsYXNzTmFtZT0ic2l6ZS0zIiAvPiA6IDxGaWxlQ29kZTIgY2xhc3NOYW1lPSJzaXplLTIuNSB0ZXh0LW11dGVkLWZvcmVncm91bmQiIC8+fQogICAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0ibWluLXctMCBmbGV4LTEgdHJ1bmNhdGUiPntpdGVtLm5hbWV9PC9zcGFuPgogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InNocmluay0wIHRleHQtWzkuNXB4XSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPntmb3JtYXRCeXRlcyhpdGVtLnNpemVCeXRlcyl9PC9zcGFuPgogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgKSl9CiAgICAgICAgeyFmb2xkZXJzLmxlbmd0aCAmJiAhZmlsZXMubGVuZ3RoICYmIDxwIGNsYXNzTmFtZT0icC0zIHRleHQtY2VudGVyIHRleHQtWzEwLjVweF0gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj5Fc3RhIGNhcnBldGEgZXN0w6EgdmFjw61hLjwvcD59CiAgICAgIDwvZGl2PgoKICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggZmxleC13cmFwIGdhcC0xLjUiPgogICAgICAgIDxidXR0b24gdHlwZT0iYnV0dG9uIiBkaXNhYmxlZD17YnVzeSB8fCBzZWxlY3RlZC5zaXplID09PSAwfSBvbkNsaWNrPXsoKSA9PiB2b2lkIGltcG9ydFNlbGVjdGlvbihmYWxzZSl9IGNsYXNzTmFtZT0icm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLWJvcmRlci83MCBweC0yLjUgcHktMS41IHRleHQtWzEwLjVweF0gZm9udC1tZWRpdW0gZGlzYWJsZWQ6b3BhY2l0eS00MCI+CiAgICAgICAgICBJbmRleGFyIHNlbGVjY2lvbmFkb3MKICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8YnV0dG9uIHR5cGU9ImJ1dHRvbiIgZGlzYWJsZWQ9e2J1c3kgfHwgc2VsZWN0ZWQuc2l6ZSA9PT0gMH0gb25DbGljaz17KCkgPT4gdm9pZCBpbXBvcnRTZWxlY3Rpb24odHJ1ZSl9IGNsYXNzTmFtZT0icm91bmRlZC1sZyBiZy1mb3JqYS12aW9sZXQgcHgtMi41IHB5LTEuNSB0ZXh0LVsxMC41cHhdIGZvbnQtbWVkaXVtIHRleHQtd2hpdGUgZGlzYWJsZWQ6b3BhY2l0eS00MCI+CiAgICAgICAgICBJbmRleGFyIGNhcnBldGFzIGNvbXBsZXRhcwogICAgICAgIDwvYnV0dG9uPgogICAgICAgIHtidXN5ICYmIDxMb2FkZXIyIGNsYXNzTmFtZT0ibWwtMSBtdC0xIHNpemUtMy41IGFuaW1hdGUtc3BpbiB0ZXh0LWZvcmphLXZpb2xldCIgLz59CiAgICAgIDwvZGl2PgogICAgICB7c3RhdHVzICYmIDxwIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj57c3RhdHVzfTwvcD59CiAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1bOS41cHhdIHRleHQtbXV0ZWQtZm9yZWdyb3VuZC84MCI+RWwgw61uZGljZSBndWFyZGEgbWV0YWRhdG9zOyBlbCBjw7NkaWdvIHBlcm1hbmVjZSBlbiBNRUdBIHkgc2UgcmVjdXBlcmEgY3VhbmRvIEZvcmphIGxvIG5lY2VzaXRhLjwvcD4KICAgIDwvZGl2PgogICk7Cn0K
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, ChevronRight, FileCode2, Folder, Loader2, RefreshCw, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
+import { createMegaProvider, megaConnectionState } from "@/lib/forja/mega-provider";
+import type { StorageItem } from "@/lib/forja/storage-providers";
+import { kbFindByHash, kbHashBytes, kbUpsertResource } from "@/lib/forja/kb-index";
+import { analyzeZipRepository } from "@/lib/forja/kb-repo-analyzer";
+import { kbSaveProjectManifest } from "@/lib/forja/kb-projects";
+
+function formatBytes(bytes?: number): string {
+  if (!bytes) return "—";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+}
+
+export function roleForPath(path: string): { category: string; tags: string[]; technology: string } {
+  const lower = path.toLowerCase();
+  const tags = ["mega", "codigo"];
+  // La tecnología detectada aquí también alimenta `technology` — dejarlo
+  // vacío (como en la versión recibida) rompía cualquier búsqueda o filtro
+  // por tecnología sobre un recurso importado de MEGA, aunque la etiqueta
+  // ya la nombrara.
+  let technology = "";
+  if (/\.tsx?$/.test(lower)) { tags.push("typescript", "react"); technology = "TypeScript"; }
+  else if (/\.jsx?$/.test(lower)) { tags.push("javascript"); technology = "JavaScript"; }
+  else if (/\.(css|scss|sass)$/.test(lower)) { tags.push("estilos"); technology = "CSS"; }
+  else if (/\.(vue)$/.test(lower)) { tags.push("vue"); technology = "Vue"; }
+  else if (/\.(svelte)$/.test(lower)) { tags.push("svelte"); technology = "Svelte"; }
+  else if (/\.(astro)$/.test(lower)) { tags.push("astro"); technology = "Astro"; }
+  else if (/\.(py)$/.test(lower)) { tags.push("python"); technology = "Python"; }
+  else if (/\.(go)$/.test(lower)) { tags.push("go"); technology = "Go"; }
+  else if (/\.(rs)$/.test(lower)) { tags.push("rust"); technology = "Rust"; }
+  else if (/\.json$/.test(lower)) { tags.push("json"); }
+  else if (/\.md$/.test(lower)) { tags.push("documentacion"); }
+  else tags.push("recurso");
+
+  if (lower.includes("component")) return { category: "componentes", tags, technology };
+  if (lower.includes("template") || lower.includes("starter")) return { category: "templates", tags, technology };
+  if (lower.includes("recipe") || lower.includes("forja")) return { category: "forja-recipes", tags, technology };
+  if (lower.includes("repo") || lower.includes("project")) return { category: "repositorios", tags, technology };
+  if (/\.tsx?$/.test(lower) || /\.jsx?$/.test(lower)) return { category: "codigo", tags, technology };
+  return { category: "recursos-code", tags, technology };
+}
+
+async function bytesToFile(bytes: Uint8Array, name: string, mimeType = "application/octet-stream"): Promise<File> {
+  const copy = bytes.slice().buffer as ArrayBuffer;
+  return new File([copy], name, { type: mimeType });
+}
+
+async function collectFiles(provider: ReturnType<typeof createMegaProvider>, folderId: string | undefined, prefix: string): Promise<Array<{ item: StorageItem; path: string }>> {
+  const items = await provider.list(folderId);
+  const out: Array<{ item: StorageItem; path: string }> = [];
+  for (const item of items) {
+    const path = prefix ? `${prefix}/${item.name}` : item.name;
+    if (item.kind === "folder") out.push(...(await collectFiles(provider, item.id, path)));
+    else out.push({ item, path });
+  }
+  return out;
+}
+
+export function MegaKBImport({ onImported }: { onImported?: () => void }) {
+  const [connected, setConnected] = useState(false);
+  const [items, setItems] = useState<StorageItem[]>([]);
+  const [folderId, setFolderId] = useState<string | undefined>();
+  const [path, setPath] = useState<string[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState("");
+
+  const provider = useMemo(() => createMegaProvider(), []);
+
+  const refresh = async (nextFolderId = folderId) => {
+    const state = megaConnectionState();
+    setConnected(state.connected);
+    if (!state.connected) {
+      setItems([]);
+      return;
+    }
+    try {
+      setItems(await provider.list(nextFolderId));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const connectedRef = useRef(false);
+  useEffect(() => {
+    void refresh();
+    connectedRef.current = megaConnectionState().connected;
+    // El login pasa por `MegaPanel`, un componente aparte sin estado
+    // compartido — este sondeo es lo único que entera a este panel de que
+    // la conexión cambió. Detectar el cambio no bastaba (versión recibida):
+    // hacía falta también volver a pedir el listado, o la carpeta se
+    // quedaba vacía en pantalla aunque MEGA ya tuviera sesión.
+    const timer = window.setInterval(() => {
+      const nowConnected = megaConnectionState().connected;
+      if (nowConnected !== connectedRef.current) {
+        connectedRef.current = nowConnected;
+        void refresh();
+      }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const openFolder = async (item: StorageItem) => {
+    setFolderId(item.id);
+    setPath((prev) => [...prev, item.name]);
+    setSelected(new Set());
+    await refresh(item.id);
+  };
+
+  const goRoot = async () => {
+    setFolderId(undefined);
+    setPath([]);
+    setSelected(new Set());
+    await refresh(undefined);
+  };
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const importSelection = async (recursive: boolean) => {
+    if (!connected || busy) return;
+    const chosen = items.filter((item) => selected.has(item.id));
+    if (!chosen.length) return;
+    setBusy(true);
+    let imported = 0;
+    let skipped = 0;
+    try {
+      const all: Array<{ item: StorageItem; path: string }> = [];
+      for (const item of chosen) {
+        if (item.kind === "folder") {
+          if (!recursive) continue;
+          all.push(...(await collectFiles(provider, item.id, [...path, item.name].join("/"))));
+        } else {
+          all.push({ item, path: [...path, item.name].join("/") });
+        }
+      }
+
+      for (const entry of all) {
+        setStatus(`Indexando ${entry.path}`);
+        const meta = roleForPath(entry.path);
+        let hash: string | undefined;
+        let projectManifestId: string | undefined;
+        const size = entry.item.sizeBytes ?? 0;
+        // No descargamos archivos enormes solo para construir el índice. Esto permite
+        // trabajar con bibliotecas MEGA de decenas de GB sin convertir la indexación
+        // en una descarga masiva. Los archivos pequeños sí reciben hash exacto.
+        if (size <= 8 * 1024 * 1024) {
+          const bytes = await provider.read(entry.item.id);
+          hash = await kbHashBytes(bytes);
+          if (kbFindByHash(hash)) {
+            skipped++;
+            continue;
+          }
+          if (/\.zip$/i.test(entry.item.name) && size <= 100 * 1024 * 1024) {
+            try {
+              const file = await bytesToFile(bytes, entry.item.name, "application/zip");
+              const analysis = await analyzeZipRepository(file);
+              kbSaveProjectManifest(analysis);
+              projectManifestId = analysis.id;
+            } catch {
+              // El ZIP queda indexado aunque el análisis estructural no pueda completarse.
+            }
+          }
+        }
+        kbUpsertResource({
+          id: `mega:${entry.item.id}`,
+          name: entry.item.name,
+          mimeType: entry.item.mimeType || "application/octet-stream",
+          sizeBytes: entry.item.sizeBytes ?? 0,
+          accountEmail: megaConnectionState().email || "MEGA",
+          webViewLink: entry.item.webUrl || "",
+          category: meta.category,
+          tags: Array.from(new Set([...meta.tags, ...path.map((part) => part.toLowerCase()).filter((part) => part.length > 2)])),
+          technology: meta.technology,
+          license: "",
+          status: "clasificado",
+          indexedAt: new Date().toISOString(),
+          contentHash: hash,
+          relativePath: entry.path,
+          sourceKind: "mega",
+          sourceProvider: "mega",
+          remoteId: entry.item.id,
+          projectManifestId,
+        });
+        imported++;
+      }
+      setSelected(new Set());
+      setStatus(`Listo: ${imported} indexado(s), ${skipped} ya existía(n).`);
+      onImported?.();
+      toast.success(`MEGA: ${imported} recurso(s) indexado(s).`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e));
+      setStatus("La indexación se detuvo por un error.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!connected) {
+    return (
+      <div className="rounded-xl border border-border/60 bg-card/30 p-3 text-[11px] text-muted-foreground">
+        Conecta MEGA arriba para explorar e indexar su biblioteca de código.
+      </div>
+    );
+  }
+
+  const files = items.filter((item) => item.kind === "file");
+  const folders = items.filter((item) => item.kind === "folder");
+
+  return (
+    <div className="space-y-2.5 rounded-xl border border-border/60 bg-card/20 p-3">
+      <div className="flex items-center gap-2">
+        <UploadCloud className="size-4 text-forja-violet" />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold">Indexar desde MEGA</p>
+          <p className="truncate text-[10.5px] text-muted-foreground">{path.length ? `MEGA / ${path.join(" / ")}` : "MEGA / raíz"}</p>
+        </div>
+        <button type="button" onClick={() => void refresh()} disabled={busy} className="rounded-md p-1.5 hover:bg-muted" title="Actualizar">
+          <RefreshCw className="size-3.5" />
+        </button>
+      </div>
+
+      {path.length > 0 && (
+        <button type="button" onClick={() => void goRoot()} className="text-[10.5px] text-forja-violet hover:underline">
+          ← Volver a raíz
+        </button>
+      )}
+
+      <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-border/50 p-1.5">
+        {folders.map((item) => (
+          <button key={item.id} type="button" onClick={() => toggle(item.id)} onDoubleClick={() => void openFolder(item)} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] hover:bg-muted">
+            <span className={`flex size-4 shrink-0 items-center justify-center rounded border ${selected.has(item.id) ? "border-forja-violet bg-forja-violet text-white" : "border-border"}`}>
+              {selected.has(item.id) ? <Check className="size-3" /> : <Folder className="size-2.5 text-amber-500" />}
+            </span>
+            <span className="min-w-0 flex-1 truncate">{item.name}</span>
+            <ChevronRight className="size-3 text-muted-foreground" />
+          </button>
+        ))}
+        {files.map((item) => (
+          <button key={item.id} type="button" onClick={() => toggle(item.id)} className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[11px] hover:bg-muted">
+            <span className={`flex size-4 shrink-0 items-center justify-center rounded border ${selected.has(item.id) ? "border-forja-violet bg-forja-violet text-white" : "border-border"}`}>
+              {selected.has(item.id) ? <Check className="size-3" /> : <FileCode2 className="size-2.5 text-muted-foreground" />}
+            </span>
+            <span className="min-w-0 flex-1 truncate">{item.name}</span>
+            <span className="shrink-0 text-[9.5px] text-muted-foreground">{formatBytes(item.sizeBytes)}</span>
+          </button>
+        ))}
+        {!folders.length && !files.length && <p className="p-3 text-center text-[10.5px] text-muted-foreground">Esta carpeta está vacía.</p>}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        <button type="button" disabled={busy || selected.size === 0} onClick={() => void importSelection(false)} className="rounded-lg border border-border/70 px-2.5 py-1.5 text-[10.5px] font-medium disabled:opacity-40">
+          Indexar seleccionados
+        </button>
+        <button type="button" disabled={busy || selected.size === 0} onClick={() => void importSelection(true)} className="rounded-lg bg-forja-violet px-2.5 py-1.5 text-[10.5px] font-medium text-white disabled:opacity-40">
+          Indexar carpetas completas
+        </button>
+        {busy && <Loader2 className="ml-1 mt-1 size-3.5 animate-spin text-forja-violet" />}
+      </div>
+      {status && <p className="text-[10px] text-muted-foreground">{status}</p>}
+      <p className="text-[9.5px] text-muted-foreground/80">El índice guarda metadatos; el código permanece en MEGA y se recupera cuando Forja lo necesita.</p>
+    </div>
+  );
+}

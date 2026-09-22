@@ -1,1 +1,97 @@
-LyoqIEZvcmphIElBIOKAlCBBdmlzYXIgZGUgcXVlIGVsIG1vZGVsbyBxdWUgdXNhcyB5YSBlc3TDoSByZXRpcmFkby4KICoKICogTGFzIGxpc3RhcyBkZSBtb2RlbG9zIHF1ZSB0cmFlIGxhIGFwcCBzb24gdW5hIGZvdG8sIHkgbGFzIGZvdG9zIGVudmVqZWNlbi4KICogQ3VhbmRvIGVzdG8gc2UgZXNjcmliacOzLCBGb3JqYSBvZnJlY8OtYSBvY2hvIG1vZGVsb3MgcXVlIHN1cyBwcm92ZWVkb3JlcyB5YQogKiBoYWLDrWFuIHJldGlyYWRvIOKAlGBwaXh0cmFsLTEyYi0yNDA5YCBkZXNkZSBkaWNpZW1icmUgZGUgMjAyNSwgbG9zIGBncm9rLTNgCiAqIGRlc2RlIGZlYnJlcm/igJQgeSBubyBvZnJlY8OtYSBlbCBHZW1pbmkgbcOhcyBudWV2by4gTmFkaWUgc2UgZW50ZXJhYmEgaGFzdGEKICogcXVlIHVuYSBwZXRpY2nDs24gdm9sdsOtYSBjb24gdW4gNDA0IHkgcGFyZWPDrWEgY3VscGEgZGUgbGEgY2xhdmUuCiAqCiAqIEVzdG8gbG8gaGFjZSB2aXNpYmxlLiBMYSB0YWJsYSBsYSBnZW5lcmEgYG5wbSBydW4gbW9kZWxvc2AgZGVzZGUgZWwgY2F0w6Fsb2dvCiAqIHDDumJsaWNvIGRlIExpdGVMTE0sIHF1ZSBwdWJsaWNhIGBkZXByZWNhdGlvbl9kYXRlYCBwb3IgbW9kZWxvLCB5IHZpZW5lIGNvbgogKiBzdSBmZWNoYTogbG8gcXVlIHNlIGVuc2XDsWEgZXMgwqtzZWfDum4gdW5hIGZvdG8gZGVsIGTDrWEgWMK7LCBubyB1bmEgdmVyZGFkCiAqIGV0ZXJuYS4KICoKICog4oCU4oCU4oCUIExvIHF1ZSBOTyBoYWNlIOKAlOKAlOKAlAogKgogKiBObyBibG9xdWVhLiBVbiBtb2RlbG8gbWFyY2FkbyBjb21vIHJldGlyYWRvIHB1ZWRlIHNlZ3VpciByZXNwb25kaWVuZG8KICogc2VtYW5hcyDigJRsb3MgcHJvdmVlZG9yZXMgbm8gYXBhZ2FuIGEgbWVkaWFub2NoZeKAlCB5IHVuIGNhdMOhbG9nbyBkZSB0ZXJjZXJvcwogKiBwdWVkZSBlcXVpdm9jYXJzZS4gU2UgYXZpc2EgeSBzZSBkZWphIHBhc2FyOiBsYSBhcHAgbm8gc2FiZSBtw6FzIHF1ZSB0dQogKiBwcm92ZWVkb3Igc29icmUgbG8gcXVlIHR1IHByb3ZlZWRvciBzaXJ2ZS4KICovCmltcG9ydCB7IFJFVElSQURPUyB9IGZyb20gIi4vbW9kZWxvcy1kYXRvcyI7CgpleHBvcnQgeyBNT0RFTE9TX0ZFQ0hBLCBNT0RFTE9TX0ZVRU5URSB9IGZyb20gIi4vbW9kZWxvcy1kYXRvcyI7CgpleHBvcnQgdHlwZSBUYWJsYVJldGlyYWRvcyA9IFJlY29yZDxzdHJpbmcsIFJlY29yZDxzdHJpbmcsIHN0cmluZz4+OwoKLyoqIFF1aXRhIGVsIHN1ZmlqbyBkZSBncmF0aXMgeSBlbCBwcmVmaWpvIGRlbCBwcm92ZWVkb3I6IGVsIGNhdMOhbG9nbyBndWFyZGEKICogZWwgaWQgcGVsYWRvIHkgbGFzIHBhc2FyZWxhcyBsbyBkZWNvcmFuIGRlIGZvcm1hcyBkaXN0aW50YXMuICovCmZ1bmN0aW9uIHBlbGFyKG1vZGVsSWQ6IHN0cmluZyk6IHN0cmluZyB7CiAgY29uc3Qgc2luU3VmaWpvID0gbW9kZWxJZC50cmltKCkudG9Mb3dlckNhc2UoKS5yZXBsYWNlKC86ZnJlZSQvLCAiIikucmVwbGFjZSgvLWZyZWUkLywgIiIpOwogIHJldHVybiBzaW5TdWZpam8uaW5jbHVkZXMoIi8iKSA/IHNpblN1Zmlqby5zbGljZShzaW5TdWZpam8ubGFzdEluZGV4T2YoIi8iKSArIDEpIDogc2luU3VmaWpvOwp9CgovKiogRWwgZMOtYSBlbiBxdWUgZWwgcHJvdmVlZG9yIHJldGlyYSAobyByZXRpcsOzKSBlc3RlIG1vZGVsby4gYG51bGxgIHNpIGVsCiAqIGNhdMOhbG9nbyBubyBkaWNlIG5hZGEg4oCUIHF1ZSBOTyBzaWduaWZpY2Egwqtlc3TDoSB2aXZvwrssIHNpZ25pZmljYSBxdWUgbm8gc2UKICogc2FiZSwgeSBwb3IgZXNvIHF1aWVuIHBpbnRhIG5vIGVzY3JpYmUgbmFkYSBlbiBlc2UgY2Fzby4gKi8KZXhwb3J0IGZ1bmN0aW9uIHJldGlyYWRvRWwoCiAgcHJvdmlkZXJJZDogc3RyaW5nLAogIG1vZGVsSWQ6IHN0cmluZywKICB0YWJsYTogVGFibGFSZXRpcmFkb3MgPSBSRVRJUkFET1MKKTogc3RyaW5nIHwgbnVsbCB7CiAgY29uc3QgZGVsUHJvdmVlZG9yID0gdGFibGFbcHJvdmlkZXJJZF07CiAgaWYgKCFkZWxQcm92ZWVkb3IpIHJldHVybiBudWxsOwogIHJldHVybiBkZWxQcm92ZWVkb3JbcGVsYXIobW9kZWxJZCldID8/IGRlbFByb3ZlZWRvclttb2RlbElkXSA/PyBudWxsOwp9CgpleHBvcnQgdHlwZSBFc3RhZG9Nb2RlbG8gPSAidml2byIgfCAic2UtcmV0aXJhIiB8ICJyZXRpcmFkbyI7CgovKiogRXN0YWRvIGRlIHVuIG1vZGVsbyByZXNwZWN0byBhIGhveS4KICoKICogwqtzZS1yZXRpcmHCuyBlcyB1bmEgZmVjaGEgZW4gZWwgZnV0dXJvOiBlbnRlcmFyc2UgY29uIGFudGVsYWNpw7NuIGVzIGp1c3RvIGVsCiAqIGZhdm9yIHF1ZSBoYWNlIGVzdGEgdGFibGEsIHkgYXZpc2FyIHNvbG8gY3VhbmRvIHlhIGVzdMOhIG11ZXJ0byBsbGVnYSB0YXJkZQogKiBwYXJhIG1vdmVyIHVuIHByb3llY3RvLiAqLwpleHBvcnQgZnVuY3Rpb24gZXN0YWRvTW9kZWxvKAogIHByb3ZpZGVySWQ6IHN0cmluZywKICBtb2RlbElkOiBzdHJpbmcsCiAgaG95OiBzdHJpbmcsCiAgdGFibGE6IFRhYmxhUmV0aXJhZG9zID0gUkVUSVJBRE9TCik6IHsgZXN0YWRvOiBFc3RhZG9Nb2RlbG87IGZlY2hhOiBzdHJpbmcgfCBudWxsIH0gewogIGNvbnN0IGZlY2hhID0gcmV0aXJhZG9FbChwcm92aWRlcklkLCBtb2RlbElkLCB0YWJsYSk7CiAgaWYgKCFmZWNoYSkgcmV0dXJuIHsgZXN0YWRvOiAidml2byIsIGZlY2hhOiBudWxsIH07CiAgcmV0dXJuIHsgZXN0YWRvOiBmZWNoYSA8PSBob3kgPyAicmV0aXJhZG8iIDogInNlLXJldGlyYSIsIGZlY2hhIH07Cn0KCi8qKiBMYSBmcmFzZSBxdWUgc2UgZW5zZcOxYS4gYG51bGxgIGN1YW5kbyBubyBoYXkgbmFkYSBxdWUgZGVjaXI6IHVuIGF2aXNvIHF1ZQogKiBzYWxlIHNpZW1wcmUgc2UgZGVqYSBkZSBsZWVyIGVuIGRvcyBkw61hcy4gKi8KZXhwb3J0IGZ1bmN0aW9uIGF2aXNvTW9kZWxvKAogIHByb3ZpZGVySWQ6IHN0cmluZywKICBtb2RlbElkOiBzdHJpbmcsCiAgaG95OiBzdHJpbmcsCiAgdGFibGE6IFRhYmxhUmV0aXJhZG9zID0gUkVUSVJBRE9TCik6IHN0cmluZyB8IG51bGwgewogIGNvbnN0IHsgZXN0YWRvLCBmZWNoYSB9ID0gZXN0YWRvTW9kZWxvKHByb3ZpZGVySWQsIG1vZGVsSWQsIGhveSwgdGFibGEpOwogIGlmIChlc3RhZG8gPT09ICJ2aXZvIiB8fCAhZmVjaGEpIHJldHVybiBudWxsOwogIGlmIChlc3RhZG8gPT09ICJyZXRpcmFkbyIpIHsKICAgIHJldHVybiBgwqske21vZGVsSWR9wrsgY29uc3RhIGNvbW8gcmV0aXJhZG8gZWwgJHtmZWNoYX0uIFB1ZWRlIHNlZ3VpciByZXNwb25kaWVuZG8gdW5vcyBkw61hcywgcGVybyBjb252aWVuZSBjYW1iaWFybG8uYDsKICB9CiAgcmV0dXJuIGDCqyR7bW9kZWxJZH3CuyB0aWVuZSByZXRpcmFkYSBhbnVuY2lhZGEgcGFyYSBlbCAke2ZlY2hhfS5gOwp9CgovKiogQ3XDoW50b3MgZGUgdW5hIGxpc3RhIGVzdMOhbiByZXRpcmFkb3MuIFBhcmEgcG9kZXIgZGVjaXJsbyBlbiB1biBzaXRpbwogKiAoQWp1c3Rlcykgc2luIHJlY29ycmVyIGxhIGxpc3RhIGEgb2pvLiAqLwpleHBvcnQgZnVuY3Rpb24gY3VhbnRvc1JldGlyYWRvcygKICBwcm92aWRlcklkOiBzdHJpbmcsCiAgbW9kZWxvczogcmVhZG9ubHkgc3RyaW5nW10sCiAgaG95OiBzdHJpbmcsCiAgdGFibGE6IFRhYmxhUmV0aXJhZG9zID0gUkVUSVJBRE9TCik6IG51bWJlciB7CiAgcmV0dXJuIG1vZGVsb3MuZmlsdGVyKChtKSA9PiBlc3RhZG9Nb2RlbG8ocHJvdmlkZXJJZCwgbSwgaG95LCB0YWJsYSkuZXN0YWRvID09PSAicmV0aXJhZG8iKS5sZW5ndGg7Cn0KCi8qKiBFbCBkw61hIGRlIGxhIGZvdG8sIGVuIGTDrWFzLiBQYXJhIGRlY2lyIMKrZXN0YSBsaXN0YSBzZSBjb21wcm9iw7MgaGFjZSBOwrsuICovCmV4cG9ydCBmdW5jdGlvbiBkaWFzRGVMYUZvdG8oZmVjaGE6IHN0cmluZywgYWhvcmE6IG51bWJlcik6IG51bWJlciB7CiAgY29uc3QgdCA9IERhdGUucGFyc2UoYCR7ZmVjaGF9VDAwOjAwOjAwWmApOwogIGlmICghTnVtYmVyLmlzRmluaXRlKHQpKSByZXR1cm4gTnVtYmVyLlBPU0lUSVZFX0lORklOSVRZOwogIHJldHVybiBNYXRoLm1heCgwLCBNYXRoLmZsb29yKChhaG9yYSAtIHQpIC8gODZfNDAwXzAwMCkpOwp9Cg==
+/** Forja IA — Avisar de que el modelo que usas ya está retirado.
+ *
+ * Las listas de modelos que trae la app son una foto, y las fotos envejecen.
+ * Cuando esto se escribió, Forja ofrecía ocho modelos que sus proveedores ya
+ * habían retirado —`pixtral-12b-2409` desde diciembre de 2025, los `grok-3`
+ * desde febrero— y no ofrecía el Gemini más nuevo. Nadie se enteraba hasta
+ * que una petición volvía con un 404 y parecía culpa de la clave.
+ *
+ * Esto lo hace visible. La tabla la genera `npm run modelos` desde el catálogo
+ * público de LiteLLM, que publica `deprecation_date` por modelo, y viene con
+ * su fecha: lo que se enseña es «según una foto del día X», no una verdad
+ * eterna.
+ *
+ * ——— Lo que NO hace ———
+ *
+ * No bloquea. Un modelo marcado como retirado puede seguir respondiendo
+ * semanas —los proveedores no apagan a medianoche— y un catálogo de terceros
+ * puede equivocarse. Se avisa y se deja pasar: la app no sabe más que tu
+ * proveedor sobre lo que tu proveedor sirve.
+ */
+import { RETIRADOS } from "./modelos-datos";
+
+export { MODELOS_FECHA, MODELOS_FUENTE } from "./modelos-datos";
+
+export type TablaRetirados = Record<string, Record<string, string>>;
+
+/** Quita el sufijo de gratis y el prefijo del proveedor: el catálogo guarda
+ * el id pelado y las pasarelas lo decoran de formas distintas. */
+function pelar(modelId: string): string {
+  const sinSufijo = modelId.trim().toLowerCase().replace(/:free$/, "").replace(/-free$/, "");
+  return sinSufijo.includes("/") ? sinSufijo.slice(sinSufijo.lastIndexOf("/") + 1) : sinSufijo;
+}
+
+/** El día en que el proveedor retira (o retiró) este modelo. `null` si el
+ * catálogo no dice nada — que NO significa «está vivo», significa que no se
+ * sabe, y por eso quien pinta no escribe nada en ese caso. */
+export function retiradoEl(
+  providerId: string,
+  modelId: string,
+  tabla: TablaRetirados = RETIRADOS
+): string | null {
+  const delProveedor = tabla[providerId];
+  if (!delProveedor) return null;
+  return delProveedor[pelar(modelId)] ?? delProveedor[modelId] ?? null;
+}
+
+export type EstadoModelo = "vivo" | "se-retira" | "retirado";
+
+/** Estado de un modelo respecto a hoy.
+ *
+ * «se-retira» es una fecha en el futuro: enterarse con antelación es justo el
+ * favor que hace esta tabla, y avisar solo cuando ya está muerto llega tarde
+ * para mover un proyecto. */
+export function estadoModelo(
+  providerId: string,
+  modelId: string,
+  hoy: string,
+  tabla: TablaRetirados = RETIRADOS
+): { estado: EstadoModelo; fecha: string | null } {
+  const fecha = retiradoEl(providerId, modelId, tabla);
+  if (!fecha) return { estado: "vivo", fecha: null };
+  return { estado: fecha <= hoy ? "retirado" : "se-retira", fecha };
+}
+
+/** La frase que se enseña. `null` cuando no hay nada que decir: un aviso que
+ * sale siempre se deja de leer en dos días. */
+export function avisoModelo(
+  providerId: string,
+  modelId: string,
+  hoy: string,
+  tabla: TablaRetirados = RETIRADOS
+): string | null {
+  const { estado, fecha } = estadoModelo(providerId, modelId, hoy, tabla);
+  if (estado === "vivo" || !fecha) return null;
+  if (estado === "retirado") {
+    return `«${modelId}» consta como retirado el ${fecha}. Puede seguir respondiendo unos días, pero conviene cambiarlo.`;
+  }
+  return `«${modelId}» tiene retirada anunciada para el ${fecha}.`;
+}
+
+/** Cuántos de una lista están retirados. Para poder decirlo en un sitio
+ * (Ajustes) sin recorrer la lista a ojo. */
+export function cuantosRetirados(
+  providerId: string,
+  modelos: readonly string[],
+  hoy: string,
+  tabla: TablaRetirados = RETIRADOS
+): number {
+  return modelos.filter((m) => estadoModelo(providerId, m, hoy, tabla).estado === "retirado").length;
+}
+
+/** El día de la foto, en días. Para decir «esta lista se comprobó hace N». */
+export function diasDeLaFoto(fecha: string, ahora: number): number {
+  const t = Date.parse(`${fecha}T00:00:00Z`);
+  if (!Number.isFinite(t)) return Number.POSITIVE_INFINITY;
+  return Math.max(0, Math.floor((ahora - t) / 86_400_000));
+}

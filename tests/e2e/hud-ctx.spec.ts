@@ -1,1 +1,121 @@
-aW1wb3J0IHsgZXhwZWN0LCB0ZXN0IH0gZnJvbSAiLi9maXh0dXJlcyI7CgovKiogRTJFIGRlbCBIVUQgZGUgY29udGV4dG8gZGVsIGNvbXBvc2l0b3IgKHYzLjMyLCBQTEFOLVY3IGlkZWEgRDQpLgogKgogKiBSZWdsYSBkZSBsYSBjYXNhOiBzaSBlbCB1c3VhcmlvIGxvIHZlLCBoYXkgdW4gRTJFIHF1ZSBsbyBhYnJlIHkgbG8gdXNhLgogKiBFbCBIVUQgYXBhcmVjZSBjb24gbGEgY29udmVyc2FjacOzbiBlbXBlemFkYTsgdW5hIHNlbWlsbGEgY29uIG1lbnNhamVzCiAqIGxhcmdvcyBsbyBkZWphIHBvciBlbmNpbWEgZGVsIHVtYnJhbCBkZSBhdmlzbyBzaW4gZXNwZXJhciBhIHF1ZSBuYWRpZQogKiBlc2NyaWJhIHVuYSBjb252ZXJzYWNpw7NuIGVudGVyYSBhIG1hbm8uICovCmltcG9ydCB0eXBlIHsgTG9jYXRvciwgUGFnZSB9IGZyb20gIkBwbGF5d3JpZ2h0L3Rlc3QiOwoKY29uc3QgSFVEID0gKHBhZ2U6IFBhZ2UpOiBMb2NhdG9yID0+IHBhZ2UubG9jYXRvcignW2FyaWEtbGFiZWxePSJDb250ZXh0byBlc3RpbWFkbyJdJyk7CgovKiogU2VtaWxsYTogcHJvdmVlZG9yIG1vY2sgKyB1bmEgc2VzacOzbiBjb24gdW4gbWVuc2FqZSBMQVJHTyAoNjBrIGNoYXJzCiAqIOKJiCAxNWsgdG9rZW5zIOKJiCA0NyAlIGRlIGxhIHZlbnRhbmEgcG9yIGRlZmVjdG8gZGUgMzJrKS4gQ29uIGRvcwogKiBtZW5zYWplcyBsbGVnYW1vcyBhbCBhdmlzbyAoPjgwICUpIHNpbiBkZXBlbmRlciBkZSB0aWVtcG9zIGRlIHJlZC4gKi8KYXN5bmMgZnVuY3Rpb24gc2VtaWxsYXIocGFnZTogUGFnZSwgY2hhcnM6IG51bWJlcikgewogIGF3YWl0IHBhZ2UuYWRkSW5pdFNjcmlwdCgobGFyZ286IG51bWJlcikgPT4gewogICAgY29uc3Qgbm93ID0gRGF0ZS5ub3coKTsKICAgIGNvbnN0IHNlZWQgPSB7CiAgICAgIHN0YXRlOiB7CiAgICAgICAgc2Vzc2lvbnM6IFsKICAgICAgICAgIHsKICAgICAgICAgICAgaWQ6ICJzLWh1ZCIsCiAgICAgICAgICAgIHRpdGxlOiAiY29udmVyc2FjacOzbiBsYXJnYSIsCiAgICAgICAgICAgIG1vZGVsS2V5OiAiY3VzdG9tOjptb2NrLW1pbmktZnJlZSIsCiAgICAgICAgICAgIGNyZWF0ZWRBdDogbm93LAogICAgICAgICAgICB1cGRhdGVkQXQ6IG5vdywKICAgICAgICAgICAgbWVzc2FnZXM6IFsKICAgICAgICAgICAgICB7IGlkOiAibTEiLCByb2xlOiAidXNlciIsIGNvbnRlbnQ6ICJjIi5yZXBlYXQobGFyZ28pLCBjcmVhdGVkQXQ6IG5vdyB9LAogICAgICAgICAgICAgIHsgaWQ6ICJtMiIsIHJvbGU6ICJhc3Npc3RhbnQiLCBjb250ZW50OiAiciIucmVwZWF0KGxhcmdvKSwgY3JlYXRlZEF0OiBub3cgfSwKICAgICAgICAgICAgXSwKICAgICAgICAgIH0sCiAgICAgICAgXSwKICAgICAgICBhY3RpdmVTZXNzaW9uSWQ6ICJzLWh1ZCIsCiAgICAgICAgb25ib2FyZGluZ0RvbmU6IHRydWUsCiAgICAgICAgZmF2b3JpdGVzOiBbXSwKICAgICAgICByYWRhclNlZW5JZHM6IFtdLAogICAgICAgIHNldHRpbmdzOiB7CiAgICAgICAgICBkZWZhdWx0TW9kZWxLZXk6ICJjdXN0b206Om1vY2stbWluaS1mcmVlIiwKICAgICAgICAgIHN5c3RlbVByb21wdDogIkVyZXMgRm9yamEgSUEgKHRlc3QpLiIsCiAgICAgICAgICB0ZW1wZXJhdHVyZTogMC43LAogICAgICAgICAgbWF4VG9rZW5zOiBudWxsLAogICAgICAgICAgc3RyZWFtOiB0cnVlLAogICAgICAgICAgY29udGV4dFdpbmRvdzogMTAsCiAgICAgICAgICBzZW5kS2V5T25Qcm94eTogdHJ1ZSwKICAgICAgICAgIG9ubHlGcmVlOiBmYWxzZSwKICAgICAgICAgIGFnZW50TW9kZTogZmFsc2UsCiAgICAgICAgICBhZ2VudE1heExvb3BzOiAzLAogICAgICAgICAgYWNjZW50OiAidmlvbGV0YSIsCiAgICAgICAgICBhY2NlbnRDdXN0b206ICIjOGI1Y2Y2IiwKICAgICAgICAgIGF1dG9TcGVhazogZmFsc2UsCiAgICAgICAgICBhY2Nlc3NDb2RlOiAiIiwKICAgICAgICB9LAogICAgICAgIHByb3ZpZGVyczogewogICAgICAgICAgY3VzdG9tOiB7CiAgICAgICAgICAgIGFwaUtleTogInRlc3Qta2V5LTEyMyIsCiAgICAgICAgICAgIGJhc2VVcmw6ICIvYXBpL21vY2stbGxtIiwKICAgICAgICAgICAgZW5hYmxlZDogdHJ1ZSwKICAgICAgICAgICAgbW9kZWxzOiBbIm1vY2stbWluaS1mcmVlIiwgIm1vY2stYmlnLWZyZWUiXSwKICAgICAgICAgICAgdXNlUHJveHk6IGZhbHNlLAogICAgICAgICAgfSwKICAgICAgICB9LAogICAgICAgIHZlcnNpb246IDEsCiAgICAgIH0sCiAgICAgIHZlcnNpb246IDAsCiAgICB9OwogICAgbG9jYWxTdG9yYWdlLnNldEl0ZW0oImZvcmphLWFpLXYxIiwgSlNPTi5zdHJpbmdpZnkoc2VlZCkpOwogIH0sIGNoYXJzKTsKfQoKdGVzdC5kZXNjcmliZSgiSFVEIGRlIGNvbnRleHRvIiwgKCkgPT4gewogIHRlc3QoImNvbiBjb252ZXJzYWNpw7NuIGVtcGV6YWRhLCBlbCBtZWRpZG9yIGFwYXJlY2UgY29uIGVsIHBvcmNlbnRhamUiLCBhc3luYyAoeyBwYWdlIH0pID0+IHsKICAgIGF3YWl0IHNlbWlsbGFyKHBhZ2UsIDEwXzAwMCk7IC8vIDIgbWVuc2FqZXMgw5cgMiw1ayB0b2tlbnMgPSA1ayDiiYggMTYgJQogICAgYXdhaXQgcGFnZS5nb3RvKCIvIik7CiAgICBjb25zdCBodWQgPSBIVUQocGFnZSk7CiAgICBhd2FpdCBleHBlY3QoaHVkKS50b0JlVmlzaWJsZSh7IHRpbWVvdXQ6IDMwXzAwMCB9KTsKICAgIGF3YWl0IGV4cGVjdChodWQpLnRvQ29udGFpblRleHQoL2N0eCDiiYhcZCsoWy4sXVxkKyk/ayDCtyBcZCsoWy4sXVxkKyk/JS8pOwogIH0pOwoKICB0ZXN0KCJ1bmEgY29udmVyc2FjacOzbiBxdWUgbGxlbmEgbGEgdmVudGFuYSBhdmlzYSAow6FtYmFyKSBzaW4gaW52ZW50YXIgZGF0b3MiLCBhc3luYyAoeyBwYWdlIH0pID0+IHsKICAgIGF3YWl0IHNlbWlsbGFyKHBhZ2UsIDYwXzAwMCk7IC8vIDIgw5cgMTVrIHRva2VucyA9IDMwayDiiYggOTQgJSDihpIgYXZpc28KICAgIGF3YWl0IHBhZ2UuZ290bygiLyIpOwogICAgY29uc3QgaHVkID0gSFVEKHBhZ2UpOwogICAgYXdhaXQgZXhwZWN0KGh1ZCkudG9CZVZpc2libGUoeyB0aW1lb3V0OiAzMF8wMDAgfSk7CiAgICAvLyBlbCB0ZXh0byBkZWwgYXZpc28gdmlhamEgZW4gZWwgdGl0bGUgZGVsIG1lZGlkb3I6IGVzIGxhIHBhcnRlIGhvbmVzdGEKICAgIGNvbnN0IHRpdHVsbyA9IGF3YWl0IGh1ZC5nZXRBdHRyaWJ1dGUoInRpdGxlIik7CiAgICBleHBlY3QodGl0dWxvKS50b0NvbnRhaW4oImVzdGltYWNpw7NuIGxvY2FsIik7CiAgICBleHBlY3QodGl0dWxvKS50b0NvbnRhaW4oInZlbnRhbmEgZGUgcmVmZXJlbmNpYSIpOwogIH0pOwoKICB0ZXN0KCJlbiB1bmEgY29udmVyc2FjacOzbiB2YWPDrWEgbm8gc2UgcGludGEgKG5vIGhheSBuYWRhIHF1ZSBtZWRpcikiLCBhc3luYyAoeyBwYWdlIH0pID0+IHsKICAgIGF3YWl0IHBhZ2UuYWRkSW5pdFNjcmlwdCgoKSA9PiB7CiAgICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCJmb3JqYS1wcmV2aWV3LWRlbW8iLCAiMSIpOwogICAgICBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgKICAgICAgICAiZm9yamEtYWktdjEiLAogICAgICAgIEpTT04uc3RyaW5naWZ5KHsKICAgICAgICAgIHN0YXRlOiB7CiAgICAgICAgICAgIHNlc3Npb25zOiBbXSwKICAgICAgICAgICAgYWN0aXZlU2Vzc2lvbklkOiBudWxsLAogICAgICAgICAgICBvbmJvYXJkaW5nRG9uZTogdHJ1ZSwKICAgICAgICAgICAgc2V0dGluZ3M6IHsgb25seUZyZWU6IGZhbHNlLCBhZ2VudE1vZGU6IGZhbHNlIH0sCiAgICAgICAgICAgIHByb3ZpZGVyczogewogICAgICAgICAgICAgIGN1c3RvbTogewogICAgICAgICAgICAgICAgYXBpS2V5OiAiayIsCiAgICAgICAgICAgICAgICBiYXNlVXJsOiAiL2FwaS9tb2NrLWxsbSIsCiAgICAgICAgICAgICAgICBlbmFibGVkOiB0cnVlLAogICAgICAgICAgICAgICAgbW9kZWxzOiBbIm1vY2stbWluaS1mcmVlIl0sCiAgICAgICAgICAgICAgICB1c2VQcm94eTogZmFsc2UsCiAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgfSwKICAgICAgICAgICAgdmVyc2lvbjogMSwKICAgICAgICAgIH0sCiAgICAgICAgICB2ZXJzaW9uOiAwLAogICAgICAgIH0pCiAgICAgICk7CiAgICB9KTsKICAgIGF3YWl0IHBhZ2UuZ290bygiLyIpOwogICAgYXdhaXQgZXhwZWN0KHBhZ2UuZ2V0QnlSb2xlKCJ0ZXh0Ym94IikuZmlyc3QoKSkudG9CZVZpc2libGUoeyB0aW1lb3V0OiAzMF8wMDAgfSk7CiAgICBhd2FpdCBleHBlY3QoSFVEKHBhZ2UpKS50b0hhdmVDb3VudCgwKTsKICB9KTsKfSk7Cg==
+import { expect, test } from "./fixtures";
+
+/** E2E del HUD de contexto del compositor (v3.32, PLAN-V7 idea D4).
+ *
+ * Regla de la casa: si el usuario lo ve, hay un E2E que lo abre y lo usa.
+ * El HUD aparece con la conversación empezada; una semilla con mensajes
+ * largos lo deja por encima del umbral de aviso sin esperar a que nadie
+ * escriba una conversación entera a mano. */
+import type { Locator, Page } from "@playwright/test";
+
+const HUD = (page: Page): Locator => page.locator('[aria-label^="Contexto estimado"]');
+
+/** Semilla: proveedor mock + una sesión con un mensaje LARGO (60k chars
+ * ≈ 15k tokens ≈ 47 % de la ventana por defecto de 32k). Con dos
+ * mensajes llegamos al aviso (>80 %) sin depender de tiempos de red. */
+async function semillar(page: Page, chars: number) {
+  await page.addInitScript((largo: number) => {
+    const now = Date.now();
+    const seed = {
+      state: {
+        sessions: [
+          {
+            id: "s-hud",
+            title: "conversación larga",
+            modelKey: "custom::mock-mini-free",
+            createdAt: now,
+            updatedAt: now,
+            messages: [
+              { id: "m1", role: "user", content: "c".repeat(largo), createdAt: now },
+              { id: "m2", role: "assistant", content: "r".repeat(largo), createdAt: now },
+            ],
+          },
+        ],
+        activeSessionId: "s-hud",
+        onboardingDone: true,
+        favorites: [],
+        radarSeenIds: [],
+        settings: {
+          defaultModelKey: "custom::mock-mini-free",
+          systemPrompt: "Eres Forja IA (test).",
+          temperature: 0.7,
+          maxTokens: null,
+          stream: true,
+          contextWindow: 10,
+          sendKeyOnProxy: true,
+          onlyFree: false,
+          agentMode: false,
+          agentMaxLoops: 3,
+          accent: "violeta",
+          accentCustom: "#8b5cf6",
+          autoSpeak: false,
+          accessCode: "",
+        },
+        providers: {
+          custom: {
+            apiKey: "test-key-123",
+            baseUrl: "/api/mock-llm",
+            enabled: true,
+            models: ["mock-mini-free", "mock-big-free"],
+            useProxy: false,
+          },
+        },
+        version: 1,
+      },
+      version: 0,
+    };
+    localStorage.setItem("forja-ai-v1", JSON.stringify(seed));
+  }, chars);
+}
+
+test.describe("HUD de contexto", () => {
+  test("con conversación empezada, el medidor aparece con el porcentaje", async ({ page }) => {
+    await semillar(page, 10_000); // 2 mensajes × 2,5k tokens = 5k ≈ 16 %
+    await page.goto("/");
+    const hud = HUD(page);
+    await expect(hud).toBeVisible({ timeout: 30_000 });
+    await expect(hud).toContainText(/ctx ≈\d+([.,]\d+)?k · \d+([.,]\d+)?%/);
+  });
+
+  test("una conversación que llena la ventana avisa (ámbar) sin inventar datos", async ({ page }) => {
+    await semillar(page, 60_000); // 2 × 15k tokens = 30k ≈ 94 % → aviso
+    await page.goto("/");
+    const hud = HUD(page);
+    await expect(hud).toBeVisible({ timeout: 30_000 });
+    // el texto del aviso viaja en el title del medidor: es la parte honesta
+    const titulo = await hud.getAttribute("title");
+    expect(titulo).toContain("estimación local");
+    expect(titulo).toContain("ventana de referencia");
+  });
+
+  test("en una conversación vacía no se pinta (no hay nada que medir)", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem("forja-preview-demo", "1");
+      localStorage.setItem(
+        "forja-ai-v1",
+        JSON.stringify({
+          state: {
+            sessions: [],
+            activeSessionId: null,
+            onboardingDone: true,
+            settings: { onlyFree: false, agentMode: false },
+            providers: {
+              custom: {
+                apiKey: "k",
+                baseUrl: "/api/mock-llm",
+                enabled: true,
+                models: ["mock-mini-free"],
+                useProxy: false,
+              },
+            },
+            version: 1,
+          },
+          version: 0,
+        })
+      );
+    });
+    await page.goto("/");
+    await expect(page.getByRole("textbox").first()).toBeVisible({ timeout: 30_000 });
+    await expect(HUD(page)).toHaveCount(0);
+  });
+});

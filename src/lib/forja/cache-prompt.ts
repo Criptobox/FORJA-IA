@@ -1,1 +1,267 @@
-LyoqIEZvcmphIElBIOKAlCBQdW50b3MgZGUgY2FjaMOpIGVuIGxhIHBldGljacOzbiwgeSBlbCB1c28gUkVBTCBxdWUgZGV2dWVsdmUgZWwgcHJvdmVlZG9yLgogKgogKiDigJTigJTigJQgRWwgcHJvYmxlbWEg4oCU4oCU4oCUCiAqCiAqIFVuIGNsaWVudGUgZGUgY2hhdCByZWVudsOtYSB0b2RhIGxhIGNvbnZlcnNhY2nDs24gZW4gY2FkYSB0dXJuby4gQ29uIGNsYXZlcwogKiBncmF0aXMgZXNvIHNvbG8gZ2FzdGEgY3VvdGE7IGNvbiB1bmEgZGUgcGFnbyBzZSBwYWdhIGVudGVyYSBjYWRhIHZlei4gWSBlbAogKiBwcm9tcHQgZGUgRm9yamEgbm8gZXMgY29ydG86IG1hcGEgZGVsIHByb3llY3RvLCBub3RhcywgcmVnbGFzIMKrbm8gdG9jYXLCuywKICogc2tpbGxzIHkgTiBtZW5zYWplcyBkZSBoaXN0b3JpYWwgdmlhamFuIGVuIHRvZG9zIGxvcyB0dXJub3MuCiAqCiAqIEFudGhyb3BpYyAoeSBvdHJvcykgY29icmFuIG11Y2hvIG1lbm9zIHBvciBsYSBwYXJ0ZSBkZWwgcHJvbXB0IHF1ZSB5YSB2aWVyb24KICogaGFjZSBwb2NvLCBzaSBzZSBsZXMgZGljZSBkw7NuZGUgY29ydGFyLiBFc28gZXMgbG8gcXVlIGhhY2UgZXN0ZSBtw7NkdWxvOgogKiBtYXJjYXIgbG9zIGNvcnRlcy4gTm8gZXMgdW5hIG9wdGltaXphY2nDs24gZGUgbcOhcyBvIG1lbm9zIHRleHRvIOKAlCBlcyBlbCBtaXNtbwogKiB0ZXh0bywgYSBvdHJvIHByZWNpby4KICoKICog4oCU4oCU4oCUIEPDs21vIGZ1bmNpb25hLCB5IHBvciBxdcOpIGVsIG9yZGVuIGltcG9ydGEg4oCU4oCU4oCUCiAqCiAqIExhIGNhY2jDqSBlcyBwb3IgUFJFRklKTyBFWEFDVE86IHNlIHJldXRpbGl6YSBtaWVudHJhcyBsb3MgYnl0ZXMgYW50ZXJpb3JlcwogKiBhbCBjb3J0ZSBzZWFuIGlkw6ludGljb3MuIFVuIHNvbG8gY2Fyw6FjdGVyIGRpc3RpbnRvIGFsIHByaW5jaXBpbyBpbnZhbGlkYQogKiB0b2RvIGxvIHF1ZSB2aWVuZSBkZXRyw6FzLiBEZSBhaMOtIGRvcyBkZWNpc2lvbmVzIGRlIGVzdGEgY2FzYToKICoKICogIMK3ICoqRWwgY29ydGUgZGVsIHNpc3RlbWEgdmEgYWwgZmluYWwgZGVsIHByb21wdCBkZSBzaXN0ZW1hKiosIHF1ZSBlbiBGb3JqYQogKiAgICBubyBsbGV2YSBuaSBmZWNoYSBuaSBob3JhIG5pIG5hZGEgcXVlIGNhbWJpZSBzb2xvIChjb21wcm9iYWRvOiBsYXMgcGllemFzCiAqICAgIHNlIG1vbnRhbiBlbiBgcHJvbXB0LWFjdHVhbC50c2AgeSBuaW5ndW5hIGVzIHZvbMOhdGlsKS4KICogIMK3ICoqQ29tcHJpbWlyIGVsIGhpc3RvcmlhbCB5IGNhY2hlYXJsbyBzb24gaW5jb21wYXRpYmxlcy4qKiBMYSBjb21wcmVzacOzbgogKiAgICByZWVzY3JpYmUgbG9zIG1lbnNhamVzIHZpZWpvcywgYXPDrSBxdWUgZWwgcHJlZmlqbyBjYW1iaWEgeSBsYSBjYWNow6kgbnVuY2EKICogICAgYWNpZXJ0YS4gQWhvcnJhciB1biBwdcOxYWRvIGRlIGNhcmFjdGVyZXMgcGFyYSBwZXJkZXIgZWwgZGVzY3VlbnRvIGRlbAogKiAgICBwcmVmaWpvIGVudGVybyBlcyB1biBtYWwgbmVnb2NpbywgeSBwb3IgZXNvIGBtb2RvRWZlY3Rpdm8oKWAgYXBhZ2EgbGEKICogICAgY29tcHJlc2nDs24gZW4gbG9zIHByb3RvY29sb3MgcXVlIHPDrSBzYWJlbiBjYWNoZWFyLgogKgogKiDigJTigJTigJQgTG8gcXVlIE5PIHNlIHByb21ldGUg4oCU4oCU4oCUCiAqCiAqIE1hcmNhciB1biBjb3J0ZSBubyBnYXJhbnRpemEgcXVlIHNlIGNhY2hlZTogcG9yIGRlYmFqbyBkZSB1biBtw61uaW1vIGRlCiAqIHRva2VucyAoZGVwZW5kZSBkZWwgbW9kZWxvKSBlbCBwcm92ZWVkb3IgbG8gaWdub3JhIGVuIHNpbGVuY2lvLCB5IGxhIGNhY2jDqQogKiBjYWR1Y2EgZW4gbWludXRvcy4gUG9yIGVzbyBsbyBxdWUgc2UgZW5zZcOxYSBlbiBwYW50YWxsYSBOTyBlcyBsbyBxdWUKICogcGVkaW1vcywgc2lubyBsbyBxdWUgZWwgcHJvdmVlZG9yIGRpY2UgcXVlIGhpem8g4oCUIGBsZWVyVXNvKClgIGRlIGFxdcOtIGFiYWpvLgogKiBTaSBlbCBwcm92ZWVkb3Igbm8gbG8gZGljZSwgZXMgwqtzaW4gZGF0b8K7LgogKi8KaW1wb3J0IHR5cGUgeyBQcm92aWRlclByb3RvY29sIH0gZnJvbSAiLi90eXBlcyI7CgovKiogTGEgbWFyY2EgZGUgY29ydGUgZGUgQW50aHJvcGljLiBgZXBoZW1lcmFsYCBlcyBsYSDDum5pY2EgcXVlIGV4aXN0ZSBob3kuICovCmV4cG9ydCBjb25zdCBNQVJDQV9DQUNIRSA9IHsgdHlwZTogImVwaGVtZXJhbCIgfSBhcyBjb25zdDsKCi8qKiDCv0VzdGUgcHJvdG9jb2xvIGFkbWl0ZSBtYXJjYXIgY29ydGVzIGRlIGNhY2jDqSBlbiBsYSBwZXRpY2nDs24/CiAqCiAqIFNvbG8gQW50aHJvcGljLCB5IGEgcHJvcMOzc2l0bzogT3BlbkFJIGNhY2hlYSBwb3Igc3UgY3VlbnRhIHNpbiBxdWUgc2UgbG8KICogcGlkYXMgeSBHZW1pbmkgdGllbmUgc3UgcHJvcGlvIG1lY2FuaXNtbywgY29uIG90cmEgZm9ybWEuIE1hcmNhciBkb25kZSBubwogKiB0b2NhIHNlcsOtYSBtYW5kYXIgY2FtcG9zIHF1ZSBlbCBwcm92ZWVkb3Igbm8gZW50aWVuZGUuICovCmV4cG9ydCBmdW5jdGlvbiBhZG1pdGVDb3J0ZXMocHJvdG9jb2xvOiBQcm92aWRlclByb3RvY29sKTogYm9vbGVhbiB7CiAgcmV0dXJuIHByb3RvY29sbyA9PT0gImFudGhyb3BpYyI7Cn0KCmV4cG9ydCBpbnRlcmZhY2UgQmxvcXVlU2lzdGVtYSB7CiAgdHlwZTogInRleHQiOwogIHRleHQ6IHN0cmluZzsKICBjYWNoZV9jb250cm9sPzogdHlwZW9mIE1BUkNBX0NBQ0hFOwp9CgovKiogRWwgcHJvbXB0IGRlIHNpc3RlbWEgY29tbyB1biBibG9xdWUgY29uIGVsIGNvcnRlIGFsIGZpbmFsLgogKgogKiBEZXZ1ZWx2ZSBgbnVsbGAgc2kgbm8gaGF5IHByb21wdDogdW4gYmxvcXVlIGRlIHRleHRvIHZhY8OtbyBlcyB1biBlcnJvciBkZQogKiBsYSBBUEksIG5vIHVuIGNhc28gYm9yZGUgc2lsZW5jaW9zby4gKi8KZXhwb3J0IGZ1bmN0aW9uIHNpc3RlbWFDYWNoZWFibGUoc3lzdGVtOiBzdHJpbmcgfCB1bmRlZmluZWQgfCBudWxsKTogQmxvcXVlU2lzdGVtYVtdIHwgbnVsbCB7CiAgY29uc3QgdCA9IChzeXN0ZW0gPz8gIiIpLnRyaW0oKTsKICBpZiAoIXQpIHJldHVybiBudWxsOwogIHJldHVybiBbeyB0eXBlOiAidGV4dCIsIHRleHQ6IHQsIGNhY2hlX2NvbnRyb2w6IE1BUkNBX0NBQ0hFIH1dOwp9CgovKiogQ3XDoW50b3MgY29ydGVzIHB1ZWRlIGxsZXZhciB1bmEgcGV0aWNpw7NuIGRlIEFudGhyb3BpYywgZW4gdG90YWwuICovCmV4cG9ydCBjb25zdCBNQVhfQ09SVEVTID0gNDsKCi8qKiBRdcOpIG1lbnNhamVzIGRlbCBoaXN0b3JpYWwgbGxldmFuIGNvcnRlLgogKgogKiBEb3MsIHkgbm8gbcOhczoKICogIMK3ICoqZWwgw7psdGltbyoqIOKAlCBwYXJhIHF1ZSBlbCB0dXJubyBzaWd1aWVudGUgZW5jdWVudHJlIFRPRE8gZXN0byBlbiBjYWNow6k7CiAqICDCtyAqKnVubyBhbnRlcmlvcioqIOKAlCByZWQgZGUgc2VndXJpZGFkOiBsYSBjYWNow6kgY2FkdWNhIGVuIG1pbnV0b3MsIHkgc2kgbGEKICogICAgZGVsIMO6bHRpbW8gdHVybm8geWEgZXhwaXLDsywgZXN0YSBvdHJhIHB1ZWRlIHNlZ3VpciB2aXZhIHkgc2FsdmFyIGxhIG1heW9yCiAqICAgIHBhcnRlIGRlbCBwcmVmaWpvLgogKgogKiBDb24gZWwgY29ydGUgZGVsIHNpc3RlbWEgc29uIHRyZXMgZGUgbG9zIGN1YXRybyBxdWUgcGVybWl0ZSBsYSBBUEkuIEVsCiAqIGN1YXJ0byBzZSBkZWphIGxpYnJlIGEgcHJvcMOzc2l0bzogZ2FzdGFybG9zIHRvZG9zIGFxdcOtIGltcGVkaXLDrWEgbWFyY2FyIG5hZGEKICogbcOhcyBhZGVsYW50ZSBzaW4gcm9tcGVyIGVzdG8uCiAqLwpleHBvcnQgZnVuY3Rpb24gY29ydGVzRGVIaXN0b3JpYWwobjogbnVtYmVyKTogbnVtYmVyW10gewogIGlmIChuIDw9IDApIHJldHVybiBbXTsKICBpZiAobiA9PT0gMSkgcmV0dXJuIFswXTsKICAvLyBkb3MgbWVuc2FqZXMgYXRyw6FzID0gZWwgdHVybm8gYW50ZXJpb3IgZW4gdW5hIGNvbnZlcnNhY2nDs24gbm9ybWFsCiAgY29uc3QgYW50ZXJpb3IgPSBNYXRoLm1heCgwLCBuIC0gMyk7CiAgcmV0dXJuIGFudGVyaW9yID09PSBuIC0gMSA/IFtuIC0gMV0gOiBbYW50ZXJpb3IsIG4gLSAxXTsKfQoKLyoqIEHDsWFkZSBlbCBjb3J0ZSBhbCBjb250ZW5pZG8gZGUgdW4gbWVuc2FqZS4KICoKICogRWwgY29udGVuaWRvIGRlIEFudGhyb3BpYyBwdWVkZSBzZXIgdW5hIGNhZGVuYSBvIHVuYSBsaXN0YSBkZSBibG9xdWVzLiBFbAogKiBjb3J0ZSBzb2xvIGV4aXN0ZSBlbiBsb3MgYmxvcXVlcywgYXPDrSBxdWUgdW5hIGNhZGVuYSBzZSBlbnZ1ZWx2ZS4gU2UgbWFyY2EKICogZWwgw5pMVElNTyBibG9xdWU6IGVsIGNvcnRlIGluY2x1eWUgdG9kbyBsbyBhbnRlcmlvci4gKi8KZXhwb3J0IGZ1bmN0aW9uIGNvbkNvcnRlKGNvbnRlbmlkbzogc3RyaW5nIHwgdW5rbm93bltdKTogdW5rbm93bltdIHsKICBjb25zdCBibG9xdWVzOiB1bmtub3duW10gPSB0eXBlb2YgY29udGVuaWRvID09PSAic3RyaW5nIgogICAgPyBbeyB0eXBlOiAidGV4dCIsIHRleHQ6IGNvbnRlbmlkbyB9XQogICAgOiBbLi4uY29udGVuaWRvXTsKICBpZiAoYmxvcXVlcy5sZW5ndGggPT09IDApIHJldHVybiBibG9xdWVzOwogIGNvbnN0IHVsdGltbyA9IGJsb3F1ZXNbYmxvcXVlcy5sZW5ndGggLSAxXTsKICBpZiAodHlwZW9mIHVsdGltbyAhPT0gIm9iamVjdCIgfHwgdWx0aW1vID09PSBudWxsKSByZXR1cm4gYmxvcXVlczsKICBibG9xdWVzW2Jsb3F1ZXMubGVuZ3RoIC0gMV0gPSB7IC4uLih1bHRpbW8gYXMgb2JqZWN0KSwgY2FjaGVfY29udHJvbDogTUFSQ0FfQ0FDSEUgfTsKICByZXR1cm4gYmxvcXVlczsKfQoKLyoqIE1vZG8gZGUgY29tcHJlc2nDs24gcXVlIGRlIHZlcmRhZCBzZSBhcGxpY2EsIHkgcG9yIHF1w6kuCiAqCiAqIENvbXByaW1pciByZWVzY3JpYmUgZWwgaGlzdG9yaWFsOyBsYSBjYWNow6kgZXhpZ2UgcXVlIGVsIGhpc3RvcmlhbCBubyBjYW1iaWUuCiAqIERvbmRlIGhheSBjYWNow6ksIGxhIGNhY2jDqSBnYW5hOiBlbCBkZXNjdWVudG8gZGVsIHByZWZpam8gKHVuYSBmcmFjY2nDs24gZGVsCiAqIHByZWNpbyBkZSBlbnRyYWRhKSBlcyBtdWNobyBtYXlvciBxdWUgbG8gcXVlIHNlIGFob3JyYSByZWNvcnRhbmRvIGVzcGFjaW9zLgogKi8KZXhwb3J0IGZ1bmN0aW9uIG1vZG9FZmVjdGl2bzxNIGV4dGVuZHMgc3RyaW5nPigKICBtb2RvOiBNLAogIHByb3RvY29sbzogUHJvdmlkZXJQcm90b2NvbAopOiB7IG1vZG86IE0gfCAib2ZmIjsgbW90aXZvOiBzdHJpbmcgfCBudWxsIH0gewogIGlmIChtb2RvID09PSAib2ZmIiB8fCAhYWRtaXRlQ29ydGVzKHByb3RvY29sbykpIHJldHVybiB7IG1vZG8sIG1vdGl2bzogbnVsbCB9OwogIHJldHVybiB7CiAgICBtb2RvOiAib2ZmIiwKICAgIG1vdGl2bzoKICAgICAgIkxhIGNvbXByZXNpw7NuIHF1ZWRhIGFwYWdhZGEgY29uIEFudGhyb3BpYzogcmVlc2NyaWJpciBlbCBoaXN0b3JpYWwgIiArCiAgICAgICJyb21wZXLDrWEgbGEgY2FjaMOpIGRlbCBwcm9tcHQsIHF1ZSBhaG9ycmEgbXVjaG8gbcOhcy4iLAogIH07Cn0KCi8qKiBMbyBxdWUgZWwgcHJvdmVlZG9yIGRpY2UgcXVlIGdhc3TDsy4gYG51bGxgIGVuIGNhZGEgY2FtcG8gcXVlIG5vIHJlcG9ydGU6CiAqIHVuIGNlcm8gaW52ZW50YWRvIGFxdcOtIGFjYWJhcsOtYSBwaW50YWRvIGNvbW8gdW4gZGF0byBtZWRpZG8uICovCmV4cG9ydCBpbnRlcmZhY2UgVXNvUHJvdmVlZG9yIHsKICBlbnRyYWRhOiBudW1iZXIgfCBudWxsOwogIHNhbGlkYTogbnVtYmVyIHwgbnVsbDsKICAvKiogdG9rZW5zIHNlcnZpZG9zIERFU0RFIGxhIGNhY2jDqSAobG9zIGJhcmF0b3MpICovCiAgY2FjaGVMZWlkbzogbnVtYmVyIHwgbnVsbDsKICAvKiogdG9rZW5zIGVzY3JpdG9zIGEgbGEgY2FjaMOpIChzZSBwYWdhbiB1biBwb2NvIG3DoXMgY2Fyb3MsIHVuYSB2ZXopICovCiAgY2FjaGVFc2NyaXRvOiBudW1iZXIgfCBudWxsOwp9Cgpjb25zdCBfVkFDSU86IFVzb1Byb3ZlZWRvciA9IHsgZW50cmFkYTogbnVsbCwgc2FsaWRhOiBudWxsLCBjYWNoZUxlaWRvOiBudWxsLCBjYWNoZUVzY3JpdG86IG51bGwgfTsKCmZ1bmN0aW9uIG51bSh2OiB1bmtub3duKTogbnVtYmVyIHwgbnVsbCB7CiAgcmV0dXJuIHR5cGVvZiB2ID09PSAibnVtYmVyIiAmJiBOdW1iZXIuaXNGaW5pdGUodikgJiYgdiA+PSAwID8gdiA6IG51bGw7Cn0KCi8qKiBMZWUgZWwgdXNvIGRlIGxhIHJlc3B1ZXN0YSwgc2VhIGRlbCBwcm90b2NvbG8gcXVlIHNlYS4KICoKICogRGV2dWVsdmUgYG51bGxgIHNpIGVsIHByb3ZlZWRvciBubyBtYW5kw7MgbmFkYSBkZSBlc3RvIOKAlHF1ZSBlcyBsbyBub3JtYWwgZW4KICogZWwgc3RyZWFtaW5nIGRlIE9wZW5BSSBzaSBubyBzZSBsZSBwaWRl4oCULCB5IGVudG9uY2VzIGxhIHBhbnRhbGxhIGRpY2UgwqtzaW4KICogZGF0b8K7IGVuIHZleiBkZSBlbnNlw7FhciBjZXJvcy4KICovCmV4cG9ydCBmdW5jdGlvbiBsZWVyVXNvKHByb3RvY29sbzogUHJvdmlkZXJQcm90b2NvbCwganNvbjogdW5rbm93bik6IFVzb1Byb3ZlZWRvciB8IG51bGwgewogIGlmICh0eXBlb2YganNvbiAhPT0gIm9iamVjdCIgfHwganNvbiA9PT0gbnVsbCkgcmV0dXJuIG51bGw7CiAgY29uc3QgaiA9IGpzb24gYXMgUmVjb3JkPHN0cmluZywgdW5rbm93bj47CgogIGlmIChwcm90b2NvbG8gPT09ICJhbnRocm9waWMiKSB7CiAgICAvLyBuby1zdHJlYW1pbmc6IGB1c2FnZWAgYXJyaWJhLiBzdHJlYW1pbmc6IHZpZW5lIGVuIGBtZXNzYWdlX3N0YXJ0YAogICAgLy8gZGVudHJvIGRlIGBtZXNzYWdlLnVzYWdlYCwgeSBlbCBgbWVzc2FnZV9kZWx0YWAgZmluYWwgdHJhZSBsYSBzYWxpZGEuCiAgICBjb25zdCBkaXJlY3RvID0gai51c2FnZSBhcyBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPiB8IHVuZGVmaW5lZDsKICAgIGNvbnN0IGVuTWVuc2FqZSA9IChqLm1lc3NhZ2UgYXMgUmVjb3JkPHN0cmluZywgdW5rbm93bj4gfCB1bmRlZmluZWQpPy51c2FnZSBhcwogICAgICB8IFJlY29yZDxzdHJpbmcsIHVua25vd24+CiAgICAgIHwgdW5kZWZpbmVkOwogICAgY29uc3QgdSA9IGRpcmVjdG8gPz8gZW5NZW5zYWplOwogICAgaWYgKCF1KSByZXR1cm4gbnVsbDsKICAgIGNvbnN0IG91dDogVXNvUHJvdmVlZG9yID0gewogICAgICBlbnRyYWRhOiBudW0odS5pbnB1dF90b2tlbnMpLAogICAgICBzYWxpZGE6IG51bSh1Lm91dHB1dF90b2tlbnMpLAogICAgICBjYWNoZUxlaWRvOiBudW0odS5jYWNoZV9yZWFkX2lucHV0X3Rva2VucyksCiAgICAgIGNhY2hlRXNjcml0bzogbnVtKHUuY2FjaGVfY3JlYXRpb25faW5wdXRfdG9rZW5zKSwKICAgIH07CiAgICByZXR1cm4gaGF5VXNvKG91dCkgPyBvdXQgOiBudWxsOwogIH0KCiAgaWYgKHByb3RvY29sbyA9PT0gImdlbWluaSIpIHsKICAgIGNvbnN0IHUgPSBqLnVzYWdlTWV0YWRhdGEgYXMgUmVjb3JkPHN0cmluZywgdW5rbm93bj4gfCB1bmRlZmluZWQ7CiAgICBpZiAoIXUpIHJldHVybiBudWxsOwogICAgY29uc3Qgb3V0OiBVc29Qcm92ZWVkb3IgPSB7CiAgICAgIGVudHJhZGE6IG51bSh1LnByb21wdFRva2VuQ291bnQpLAogICAgICBzYWxpZGE6IG51bSh1LmNhbmRpZGF0ZXNUb2tlbkNvdW50KSwKICAgICAgY2FjaGVMZWlkbzogbnVtKHUuY2FjaGVkQ29udGVudFRva2VuQ291bnQpLAogICAgICBjYWNoZUVzY3JpdG86IG51bGwsCiAgICB9OwogICAgcmV0dXJuIGhheVVzbyhvdXQpID8gb3V0IDogbnVsbDsKICB9CgogIGNvbnN0IHUgPSBqLnVzYWdlIGFzIFJlY29yZDxzdHJpbmcsIHVua25vd24+IHwgdW5kZWZpbmVkOwogIGlmICghdSkgcmV0dXJuIG51bGw7CiAgY29uc3QgZGV0YWxsZXMgPSB1LnByb21wdF90b2tlbnNfZGV0YWlscyBhcyBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPiB8IHVuZGVmaW5lZDsKICBjb25zdCBvdXQ6IFVzb1Byb3ZlZWRvciA9IHsKICAgIGVudHJhZGE6IG51bSh1LnByb21wdF90b2tlbnMpLAogICAgc2FsaWRhOiBudW0odS5jb21wbGV0aW9uX3Rva2VucyksCiAgICAvLyBPcGVuQUkgY2FjaGVhIHBvciBzdSBjdWVudGEgeSBsbyByZXBvcnRhIGFxdcOtIGN1YW5kbyBvY3VycmUKICAgIGNhY2hlTGVpZG86IG51bShkZXRhbGxlcz8uY2FjaGVkX3Rva2VucyksCiAgICBjYWNoZUVzY3JpdG86IG51bGwsCiAgfTsKICByZXR1cm4gaGF5VXNvKG91dCkgPyBvdXQgOiBudWxsOwp9CgovKiogwr9UcmFlIGFsZ28gcXVlIGVuc2XDsWFyPyAqLwpleHBvcnQgZnVuY3Rpb24gaGF5VXNvKHU6IFVzb1Byb3ZlZWRvciB8IG51bGwgfCB1bmRlZmluZWQpOiBib29sZWFuIHsKICBpZiAoIXUpIHJldHVybiBmYWxzZTsKICByZXR1cm4gdS5lbnRyYWRhICE9IG51bGwgfHwgdS5zYWxpZGEgIT0gbnVsbCB8fCB1LmNhY2hlTGVpZG8gIT0gbnVsbCB8fCB1LmNhY2hlRXNjcml0byAhPSBudWxsOwp9CgovKiogSnVudGEgZG9zIGxlY3R1cmFzIGRlbCBtaXNtbyB0dXJuby4KICoKICogRW4gc3RyZWFtaW5nLCBBbnRocm9waWMgbWFuZGEgbGEgZW50cmFkYSBhbCBwcmluY2lwaW8geSBsYSBzYWxpZGEgYWwgZmluYWw6CiAqIHF1ZWRhcnNlIGNvbiBsYSDDumx0aW1hIHBlcmRlcsOtYSBsYSBlbnRyYWRhLCBxdWUgZXMganVzdG8gbGEgcXVlIGRpY2Ugc2kgbGEKICogY2FjaMOpIGFjZXJ0w7MuIEdhbmEgZWwgdmFsb3IgcXVlIEVYSVNURTsgc2kgbG9zIGRvcyBleGlzdGVuLCBlbCBtYXlvciDigJRlbAogKiBgbWVzc2FnZV9kZWx0YWAgZmluYWwgdHJhZSBlbCB0b3RhbCBhY3VtdWxhZG8uICovCmV4cG9ydCBmdW5jdGlvbiBmdW5kaXJVc28oYTogVXNvUHJvdmVlZG9yIHwgbnVsbCwgYjogVXNvUHJvdmVlZG9yIHwgbnVsbCk6IFVzb1Byb3ZlZWRvciB8IG51bGwgewogIGlmICghYSkgcmV0dXJuIGI7CiAgaWYgKCFiKSByZXR1cm4gYTsKICBjb25zdCBtYXlvciA9ICh4OiBudW1iZXIgfCBudWxsLCB5OiBudW1iZXIgfCBudWxsKSA9PgogICAgeCA9PSBudWxsID8geSA6IHkgPT0gbnVsbCA/IHggOiBNYXRoLm1heCh4LCB5KTsKICByZXR1cm4gewogICAgZW50cmFkYTogbWF5b3IoYS5lbnRyYWRhLCBiLmVudHJhZGEpLAogICAgc2FsaWRhOiBtYXlvcihhLnNhbGlkYSwgYi5zYWxpZGEpLAogICAgY2FjaGVMZWlkbzogbWF5b3IoYS5jYWNoZUxlaWRvLCBiLmNhY2hlTGVpZG8pLAogICAgY2FjaGVFc2NyaXRvOiBtYXlvcihhLmNhY2hlRXNjcml0bywgYi5jYWNoZUVzY3JpdG8pLAogIH07Cn0KCi8qKiBTdW1hIGRvcyBsZWN0dXJhcyBkZSBMTEFNQURBUyBESVNUSU5UQVMgZGVsIG1pc21vIHR1cm5vLgogKgogKiBObyBlcyBsbyBtaXNtbyBxdWUgYGZ1bmRpclVzb2A6IGFow60gc2UganVudGFuIHRyb3pvcyBkZSB1bmEgc29sYSByZXNwdWVzdGEKICogKEFudGhyb3BpYyBtYW5kYSBsYSBlbnRyYWRhIGFsIGVtcGV6YXIgeSBsYSBzYWxpZGEgYWwgYWNhYmFyKSB5IGdhbmEgZWwKICogbWF5b3I7IGFxdcOtIHNvbiBsbGFtYWRhcyBkZSB2ZXJkYWQgZGlzdGludGFzIOKAlGNhZGEgdnVlbHRhIGRlbCBidWNsZSBkZWwKICogYWdlbnRlIGVzIHVuYeKAlCB5IGxvIHF1ZSBjb3JyZXNwb25kZSBlcyBzdW1hcmxhcy4gQ29uZnVuZGlybGFzIGhhcsOtYSBxdWUgdW4KICogYWdlbnRlIGRlIHNlaXMgdnVlbHRhcyByZXBvcnRhcmEgZWwgZ2FzdG8gZGUgdW5hLgogKgogKiBgbnVsbGAgKyBuw7ptZXJvID0gZWwgbsO6bWVybzogdW4gY2FtcG8gcXVlIHVuIHByb3ZlZWRvciBubyByZXBvcnRhIG5vIHB1ZWRlCiAqIGNvbnZlcnRpciBlbiBjZXJvIGxvIHF1ZSBvdHJvIHPDrSByZXBvcnTDsy4gKi8KZXhwb3J0IGZ1bmN0aW9uIHN1bWFyVXNvKGE6IFVzb1Byb3ZlZWRvciB8IG51bGwsIGI6IFVzb1Byb3ZlZWRvciB8IG51bGwpOiBVc29Qcm92ZWVkb3IgfCBudWxsIHsKICBpZiAoIWEpIHJldHVybiBiOwogIGlmICghYikgcmV0dXJuIGE7CiAgY29uc3Qgc3VtYSA9ICh4OiBudW1iZXIgfCBudWxsLCB5OiBudW1iZXIgfCBudWxsKSA9PgogICAgeCA9PSBudWxsID8geSA6IHkgPT0gbnVsbCA/IHggOiB4ICsgeTsKICByZXR1cm4gewogICAgZW50cmFkYTogc3VtYShhLmVudHJhZGEsIGIuZW50cmFkYSksCiAgICBzYWxpZGE6IHN1bWEoYS5zYWxpZGEsIGIuc2FsaWRhKSwKICAgIGNhY2hlTGVpZG86IHN1bWEoYS5jYWNoZUxlaWRvLCBiLmNhY2hlTGVpZG8pLAogICAgY2FjaGVFc2NyaXRvOiBzdW1hKGEuY2FjaGVFc2NyaXRvLCBiLmNhY2hlRXNjcml0byksCiAgfTsKfQoKLyoqIFF1w6kgcGFydGUgZGVsIHByb21wdCB2aW5vIGRlIGxhIGNhY2jDqSwgZW4gdGFudG8gcG9yIGNpZW50by4KICoKICogYG51bGxgIGN1YW5kbyBubyBzZSBwdWVkZSBzYWJlcjogc2luIGVudHJhZGEgbmkgY2FjaMOpIHJlcG9ydGFkYXMgbm8gaGF5CiAqIGRlbm9taW5hZG9yLCB5IHVuIDAgJSBhaMOtIHNlIGxlZXLDrWEgY29tbyDCq2xhIGNhY2jDqSBubyBhY2VydMOzwrsgY3VhbmRvIGxvCiAqIGNpZXJ0byBlcyBxdWUgbm8gc2Ugc2FiZS4gKi8KZXhwb3J0IGZ1bmN0aW9uIGFjaWVydG9EZUNhY2hlKHU6IFVzb1Byb3ZlZWRvciB8IG51bGwpOiBudW1iZXIgfCBudWxsIHsKICBpZiAoIXUpIHJldHVybiBudWxsOwogIGNvbnN0IGxlaWRvID0gdS5jYWNoZUxlaWRvOwogIGlmIChsZWlkbyA9PSBudWxsKSByZXR1cm4gbnVsbDsKICBjb25zdCBudWV2byA9IHUuZW50cmFkYSA/PyAwOwogIGNvbnN0IHRvdGFsID0gbGVpZG8gKyBudWV2bzsKICBpZiAodG90YWwgPD0gMCkgcmV0dXJuIG51bGw7CiAgcmV0dXJuIE1hdGgucm91bmQoKGxlaWRvIC8gdG90YWwpICogMTAwKTsKfQoKLyoqIEVsIHJlc3VtZW4gZGUgdW5hIGzDrW5lYSwgcGFyYSBlbCBjaGlwIGRlbCBtZW5zYWplLiBgbnVsbGAgc2kgbm8gaGF5IGRhdG8uICovCmV4cG9ydCBmdW5jdGlvbiBsaW5lYVVzbyh1OiBVc29Qcm92ZWVkb3IgfCBudWxsKTogc3RyaW5nIHwgbnVsbCB7CiAgaWYgKCFoYXlVc28odSkgfHwgIXUpIHJldHVybiBudWxsOwogIGNvbnN0IHRyb3pvczogc3RyaW5nW10gPSBbXTsKICBpZiAodS5lbnRyYWRhICE9IG51bGwpIHRyb3pvcy5wdXNoKGAke3UuZW50cmFkYX0gZW50cmFkYWApOwogIGlmICh1LmNhY2hlTGVpZG8gIT0gbnVsbCAmJiB1LmNhY2hlTGVpZG8gPiAwKSB0cm96b3MucHVzaChgJHt1LmNhY2hlTGVpZG99IGRlIGNhY2jDqWApOwogIGlmICh1LnNhbGlkYSAhPSBudWxsKSB0cm96b3MucHVzaChgJHt1LnNhbGlkYX0gc2FsaWRhYCk7CiAgcmV0dXJuIHRyb3pvcy5sZW5ndGggPyB0cm96b3Muam9pbigiIMK3ICIpIDogbnVsbDsKfQo=
+/** Forja IA — Puntos de caché en la petición, y el uso REAL que devuelve el proveedor.
+ *
+ * ——— El problema ———
+ *
+ * Un cliente de chat reenvía toda la conversación en cada turno. Con claves
+ * gratis eso solo gasta cuota; con una de pago se paga entera cada vez. Y el
+ * prompt de Forja no es corto: mapa del proyecto, notas, reglas «no tocar»,
+ * skills y N mensajes de historial viajan en todos los turnos.
+ *
+ * Anthropic (y otros) cobran mucho menos por la parte del prompt que ya vieron
+ * hace poco, si se les dice dónde cortar. Eso es lo que hace este módulo:
+ * marcar los cortes. No es una optimización de más o menos texto — es el mismo
+ * texto, a otro precio.
+ *
+ * ——— Cómo funciona, y por qué el orden importa ———
+ *
+ * La caché es por PREFIJO EXACTO: se reutiliza mientras los bytes anteriores
+ * al corte sean idénticos. Un solo carácter distinto al principio invalida
+ * todo lo que viene detrás. De ahí dos decisiones de esta casa:
+ *
+ *  · **El corte del sistema va al final del prompt de sistema**, que en Forja
+ *    no lleva ni fecha ni hora ni nada que cambie solo (comprobado: las piezas
+ *    se montan en `prompt-actual.ts` y ninguna es volátil).
+ *  · **Comprimir el historial y cachearlo son incompatibles.** La compresión
+ *    reescribe los mensajes viejos, así que el prefijo cambia y la caché nunca
+ *    acierta. Ahorrar un puñado de caracteres para perder el descuento del
+ *    prefijo entero es un mal negocio, y por eso `modoEfectivo()` apaga la
+ *    compresión en los protocolos que sí saben cachear.
+ *
+ * ——— Lo que NO se promete ———
+ *
+ * Marcar un corte no garantiza que se cachee: por debajo de un mínimo de
+ * tokens (depende del modelo) el proveedor lo ignora en silencio, y la caché
+ * caduca en minutos. Por eso lo que se enseña en pantalla NO es lo que
+ * pedimos, sino lo que el proveedor dice que hizo — `leerUso()` de aquí abajo.
+ * Si el proveedor no lo dice, es «sin dato».
+ */
+import type { ProviderProtocol } from "./types";
+
+/** La marca de corte de Anthropic. `ephemeral` es la única que existe hoy. */
+export const MARCA_CACHE = { type: "ephemeral" } as const;
+
+/** ¿Este protocolo admite marcar cortes de caché en la petición?
+ *
+ * Solo Anthropic, y a propósito: OpenAI cachea por su cuenta sin que se lo
+ * pidas y Gemini tiene su propio mecanismo, con otra forma. Marcar donde no
+ * toca sería mandar campos que el proveedor no entiende. */
+export function admiteCortes(protocolo: ProviderProtocol): boolean {
+  return protocolo === "anthropic";
+}
+
+export interface BloqueSistema {
+  type: "text";
+  text: string;
+  cache_control?: typeof MARCA_CACHE;
+}
+
+/** El prompt de sistema como un bloque con el corte al final.
+ *
+ * Devuelve `null` si no hay prompt: un bloque de texto vacío es un error de
+ * la API, no un caso borde silencioso. */
+export function sistemaCacheable(system: string | undefined | null): BloqueSistema[] | null {
+  const t = (system ?? "").trim();
+  if (!t) return null;
+  return [{ type: "text", text: t, cache_control: MARCA_CACHE }];
+}
+
+/** Cuántos cortes puede llevar una petición de Anthropic, en total. */
+export const MAX_CORTES = 4;
+
+/** Qué mensajes del historial llevan corte.
+ *
+ * Dos, y no más:
+ *  · **el último** — para que el turno siguiente encuentre TODO esto en caché;
+ *  · **uno anterior** — red de seguridad: la caché caduca en minutos, y si la
+ *    del último turno ya expiró, esta otra puede seguir viva y salvar la mayor
+ *    parte del prefijo.
+ *
+ * Con el corte del sistema son tres de los cuatro que permite la API. El
+ * cuarto se deja libre a propósito: gastarlos todos aquí impediría marcar nada
+ * más adelante sin romper esto.
+ */
+export function cortesDeHistorial(n: number): number[] {
+  if (n <= 0) return [];
+  if (n === 1) return [0];
+  // dos mensajes atrás = el turno anterior en una conversación normal
+  const anterior = Math.max(0, n - 3);
+  return anterior === n - 1 ? [n - 1] : [anterior, n - 1];
+}
+
+/** Añade el corte al contenido de un mensaje.
+ *
+ * El contenido de Anthropic puede ser una cadena o una lista de bloques. El
+ * corte solo existe en los bloques, así que una cadena se envuelve. Se marca
+ * el ÚLTIMO bloque: el corte incluye todo lo anterior. */
+export function conCorte(contenido: string | unknown[]): unknown[] {
+  const bloques: unknown[] = typeof contenido === "string"
+    ? [{ type: "text", text: contenido }]
+    : [...contenido];
+  if (bloques.length === 0) return bloques;
+  const ultimo = bloques[bloques.length - 1];
+  if (typeof ultimo !== "object" || ultimo === null) return bloques;
+  bloques[bloques.length - 1] = { ...(ultimo as object), cache_control: MARCA_CACHE };
+  return bloques;
+}
+
+/** Modo de compresión que de verdad se aplica, y por qué.
+ *
+ * Comprimir reescribe el historial; la caché exige que el historial no cambie.
+ * Donde hay caché, la caché gana: el descuento del prefijo (una fracción del
+ * precio de entrada) es mucho mayor que lo que se ahorra recortando espacios.
+ */
+export function modoEfectivo<M extends string>(
+  modo: M,
+  protocolo: ProviderProtocol
+): { modo: M | "off"; motivo: string | null } {
+  if (modo === "off" || !admiteCortes(protocolo)) return { modo, motivo: null };
+  return {
+    modo: "off",
+    motivo:
+      "La compresión queda apagada con Anthropic: reescribir el historial " +
+      "rompería la caché del prompt, que ahorra mucho más.",
+  };
+}
+
+/** Lo que el proveedor dice que gastó. `null` en cada campo que no reporte:
+ * un cero inventado aquí acabaría pintado como un dato medido. */
+export interface UsoProveedor {
+  entrada: number | null;
+  salida: number | null;
+  /** tokens servidos DESDE la caché (los baratos) */
+  cacheLeido: number | null;
+  /** tokens escritos a la caché (se pagan un poco más caros, una vez) */
+  cacheEscrito: number | null;
+}
+
+const _VACIO: UsoProveedor = { entrada: null, salida: null, cacheLeido: null, cacheEscrito: null };
+
+function num(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
+}
+
+/** Lee el uso de la respuesta, sea del protocolo que sea.
+ *
+ * Devuelve `null` si el proveedor no mandó nada de esto —que es lo normal en
+ * el streaming de OpenAI si no se le pide—, y entonces la pantalla dice «sin
+ * dato» en vez de enseñar ceros.
+ */
+export function leerUso(protocolo: ProviderProtocol, json: unknown): UsoProveedor | null {
+  if (typeof json !== "object" || json === null) return null;
+  const j = json as Record<string, unknown>;
+
+  if (protocolo === "anthropic") {
+    // no-streaming: `usage` arriba. streaming: viene en `message_start`
+    // dentro de `message.usage`, y el `message_delta` final trae la salida.
+    const directo = j.usage as Record<string, unknown> | undefined;
+    const enMensaje = (j.message as Record<string, unknown> | undefined)?.usage as
+      | Record<string, unknown>
+      | undefined;
+    const u = directo ?? enMensaje;
+    if (!u) return null;
+    const out: UsoProveedor = {
+      entrada: num(u.input_tokens),
+      salida: num(u.output_tokens),
+      cacheLeido: num(u.cache_read_input_tokens),
+      cacheEscrito: num(u.cache_creation_input_tokens),
+    };
+    return hayUso(out) ? out : null;
+  }
+
+  if (protocolo === "gemini") {
+    const u = j.usageMetadata as Record<string, unknown> | undefined;
+    if (!u) return null;
+    const out: UsoProveedor = {
+      entrada: num(u.promptTokenCount),
+      salida: num(u.candidatesTokenCount),
+      cacheLeido: num(u.cachedContentTokenCount),
+      cacheEscrito: null,
+    };
+    return hayUso(out) ? out : null;
+  }
+
+  const u = j.usage as Record<string, unknown> | undefined;
+  if (!u) return null;
+  const detalles = u.prompt_tokens_details as Record<string, unknown> | undefined;
+  const out: UsoProveedor = {
+    entrada: num(u.prompt_tokens),
+    salida: num(u.completion_tokens),
+    // OpenAI cachea por su cuenta y lo reporta aquí cuando ocurre
+    cacheLeido: num(detalles?.cached_tokens),
+    cacheEscrito: null,
+  };
+  return hayUso(out) ? out : null;
+}
+
+/** ¿Trae algo que enseñar? */
+export function hayUso(u: UsoProveedor | null | undefined): boolean {
+  if (!u) return false;
+  return u.entrada != null || u.salida != null || u.cacheLeido != null || u.cacheEscrito != null;
+}
+
+/** Junta dos lecturas del mismo turno.
+ *
+ * En streaming, Anthropic manda la entrada al principio y la salida al final:
+ * quedarse con la última perdería la entrada, que es justo la que dice si la
+ * caché acertó. Gana el valor que EXISTE; si los dos existen, el mayor —el
+ * `message_delta` final trae el total acumulado. */
+export function fundirUso(a: UsoProveedor | null, b: UsoProveedor | null): UsoProveedor | null {
+  if (!a) return b;
+  if (!b) return a;
+  const mayor = (x: number | null, y: number | null) =>
+    x == null ? y : y == null ? x : Math.max(x, y);
+  return {
+    entrada: mayor(a.entrada, b.entrada),
+    salida: mayor(a.salida, b.salida),
+    cacheLeido: mayor(a.cacheLeido, b.cacheLeido),
+    cacheEscrito: mayor(a.cacheEscrito, b.cacheEscrito),
+  };
+}
+
+/** Suma dos lecturas de LLAMADAS DISTINTAS del mismo turno.
+ *
+ * No es lo mismo que `fundirUso`: ahí se juntan trozos de una sola respuesta
+ * (Anthropic manda la entrada al empezar y la salida al acabar) y gana el
+ * mayor; aquí son llamadas de verdad distintas —cada vuelta del bucle del
+ * agente es una— y lo que corresponde es sumarlas. Confundirlas haría que un
+ * agente de seis vueltas reportara el gasto de una.
+ *
+ * `null` + número = el número: un campo que un proveedor no reporta no puede
+ * convertir en cero lo que otro sí reportó. */
+export function sumarUso(a: UsoProveedor | null, b: UsoProveedor | null): UsoProveedor | null {
+  if (!a) return b;
+  if (!b) return a;
+  const suma = (x: number | null, y: number | null) =>
+    x == null ? y : y == null ? x : x + y;
+  return {
+    entrada: suma(a.entrada, b.entrada),
+    salida: suma(a.salida, b.salida),
+    cacheLeido: suma(a.cacheLeido, b.cacheLeido),
+    cacheEscrito: suma(a.cacheEscrito, b.cacheEscrito),
+  };
+}
+
+/** Qué parte del prompt vino de la caché, en tanto por ciento.
+ *
+ * `null` cuando no se puede saber: sin entrada ni caché reportadas no hay
+ * denominador, y un 0 % ahí se leería como «la caché no acertó» cuando lo
+ * cierto es que no se sabe. */
+export function aciertoDeCache(u: UsoProveedor | null): number | null {
+  if (!u) return null;
+  const leido = u.cacheLeido;
+  if (leido == null) return null;
+  const nuevo = u.entrada ?? 0;
+  const total = leido + nuevo;
+  if (total <= 0) return null;
+  return Math.round((leido / total) * 100);
+}
+
+/** El resumen de una línea, para el chip del mensaje. `null` si no hay dato. */
+export function lineaUso(u: UsoProveedor | null): string | null {
+  if (!hayUso(u) || !u) return null;
+  const trozos: string[] = [];
+  if (u.entrada != null) trozos.push(`${u.entrada} entrada`);
+  if (u.cacheLeido != null && u.cacheLeido > 0) trozos.push(`${u.cacheLeido} de caché`);
+  if (u.salida != null) trozos.push(`${u.salida} salida`);
+  return trozos.length ? trozos.join(" · ") : null;
+}

@@ -1,1 +1,297 @@
-aW1wb3J0IHsgZGVzY3JpYmUsIGl0LCBleHBlY3QgfSBmcm9tICJ2aXRlc3QiOwppbXBvcnQgZmMgZnJvbSAiZmFzdC1jaGVjayI7CmltcG9ydCB7CiAgT0ZFUlRBU19CQVNFLAogIAogIGRpYXNEZXNkZVZlcmlmaWNhY2lvbiwKICBkaWFzUmVzdGFudGVzLAogIGVzdGFkb09mZXJ0YSwKICBmaWx0cmFyT2ZlcnRhcywKICBmdXNpb25hck9mZXJ0YXMsCiAgbm92ZWRhZGVzT2ZlcnRhcywKICByZXN1bWVuT2ZlcnRhcywKICB2YWxpZGFyT2ZlcnRhcywKICB2ZXJpZmljYWNpb25WaWVqYSwKICB0eXBlIE9mZXJ0YSwKfSBmcm9tICIuLi8uLi9zcmMvbGliL2ZvcmphL29mZXJ0YXMiOwppbXBvcnQgeyBzdW1hckRpYXMgfSBmcm9tICIuLi8uLi9zcmMvbGliL2ZvcmphL3JlcGFzbyI7CgpmdW5jdGlvbiBvZmVydGEocGFyOiBQYXJ0aWFsPE9mZXJ0YT4gPSB7fSk6IE9mZXJ0YSB7CiAgcmV0dXJuIHsKICAgIGlkOiBwYXIuaWQgPz8gIm9mLXBydWViYSIsCiAgICBwcm92ZWVkb3I6IHBhci5wcm92ZWVkb3IgPz8gIlByb3ZlZWRvciIsCiAgICB0aXR1bG86IHBhci50aXR1bG8gPz8gIlBsYW4gZ3JhdHVpdG8gY29uIGN1b3RhcyBkaWFyaWFzIiwKICAgIHRpcG86IHBhci50aXBvID8/ICJncmF0aXMiLAogICAgdmFsb3I6IHBhci52YWxvciA/PyAiR3JhdGlzIiwKICAgIGRlc2NyaXBjaW9uOiBwYXIuZGVzY3JpcGNpb24gPz8gIlVzbyBsaW1pdGFkbyBzaW4gdGFyamV0YSIsCiAgICB1cmw6IHBhci51cmwgPz8gImh0dHBzOi8vcHJvdmVlZG9yLmV4YW1wbGUvb2ZlcnRhIiwKICAgIHRlcm1pbmE6IHBhci50ZXJtaW5hID8/IG51bGwsCiAgICB2ZXJpZmljYWRvOiBwYXIudmVyaWZpY2FkbyA/PyAiMjAyNi0wOS0wNiIsCiAgfTsKfQoKZGVzY3JpYmUoImRpYXNSZXN0YW50ZXMgLyBlc3RhZG9PZmVydGEiLCAoKSA9PiB7CiAgY29uc3QgSE9ZID0gIjIwMjYtMDMtMTUiOwoKICBpdCgiY3VlbnRhIGTDrWFzIGhhY2lhIGRlbGFudGUgeSBoYWNpYSBhdHLDoXMgY29uIGTDrWFzIGVudGVyb3MiLCAoKSA9PiB7CiAgICBleHBlY3QoZGlhc1Jlc3RhbnRlcygiMjAyNi0wMy0xNSIsIEhPWSkpLnRvQmUoMCk7CiAgICBleHBlY3QoZGlhc1Jlc3RhbnRlcygiMjAyNi0wMy0yMCIsIEhPWSkpLnRvQmUoNSk7CiAgICBleHBlY3QoZGlhc1Jlc3RhbnRlcygiMjAyNi0wMy0xMiIsIEhPWSkpLnRvQmUoLTMpOwogIH0pOwoKICBpdCgic2luIGZlY2hhIGRlIGZpbiBlcyBvZmVydGEgcGVybWFuZW50ZTogc2llbXByZSB2aWdlbnRlIiwgKCkgPT4gewogICAgZXhwZWN0KGVzdGFkb09mZXJ0YShvZmVydGEoeyB0ZXJtaW5hOiBudWxsIH0pLCBIT1ksIDMpKS50b0JlKCJ2aWdlbnRlIik7CiAgfSk7CgogIGl0KCJwb3IgZXhwaXJhciBzb2xvIGN1YW5kbyBmYWx0YSBkZW50cm8gZGVsIG1hcmdlbiBkZSBhdmlzbyIsICgpID0+IHsKICAgIGV4cGVjdChlc3RhZG9PZmVydGEob2ZlcnRhKHsgdGVybWluYTogIjIwMjYtMDMtMjUiIH0pLCBIT1ksIDMpKS50b0JlKCJ2aWdlbnRlIik7CiAgICAvLyBlbCBsw61taXRlIGVzIGluY2x1c2l2bzogZmFsdGFyIGV4YWN0YW1lbnRlIGxvcyBkw61hcyBkZSBhdmlzbyB5YSBhdmlzYQogICAgZXhwZWN0KGVzdGFkb09mZXJ0YShvZmVydGEoeyB0ZXJtaW5hOiAiMjAyNi0wMy0xOCIgfSksIEhPWSwgMykpLnRvQmUoInBvckV4cGlyYXIiKTsKICAgIGV4cGVjdChlc3RhZG9PZmVydGEob2ZlcnRhKHsgdGVybWluYTogIjIwMjYtMDMtMTYiIH0pLCBIT1ksIDMpKS50b0JlKCJwb3JFeHBpcmFyIik7CiAgfSk7CgogIGl0KCJlbCBkw61hIG1pc21vIGRlbCB2ZW5jaW1pZW50byBhw7puIGF2aXNhOyBlbCBkw61hIHNpZ3VpZW50ZSBjYWR1Y8OzIiwgKCkgPT4gewogICAgZXhwZWN0KGVzdGFkb09mZXJ0YShvZmVydGEoeyB0ZXJtaW5hOiBIT1kgfSksIEhPWSwgMykpLnRvQmUoInBvckV4cGlyYXIiKTsKICAgIGV4cGVjdChlc3RhZG9PZmVydGEob2ZlcnRhKHsgdGVybWluYTogIjIwMjYtMDMtMTQiIH0pLCBIT1ksIDMpKS50b0JlKCJjYWR1Y2FkYSIpOwogIH0pOwp9KTsKCmRlc2NyaWJlKCJub3ZlZGFkZXNPZmVydGFzIiwgKCkgPT4gewogIGNvbnN0IEhPWSA9ICIyMDI2LTAzLTE1IjsKICBjb25zdCBBID0gb2ZlcnRhKHsgaWQ6ICJvZi1hIiwgdGl0dWxvOiAiT2ZlcnRhIGNvbm9jaWRhIiB9KTsKICBjb25zdCBCID0gb2ZlcnRhKHsgaWQ6ICJvZi1iIiwgdGl0dWxvOiAiT2ZlcnRhIHJlY2nDqW4gY2F6YWRhIiB9KTsKICBjb25zdCBDID0gb2ZlcnRhKHsgaWQ6ICJvZi1jIiwgdGl0dWxvOiAiQ2FzaSBmdWVyYSIsIHRlcm1pbmE6ICIyMDI2LTAzLTE3IiB9KTsKICBjb25zdCBDQURVQ0FEQSA9IG9mZXJ0YSh7IGlkOiAib2YtZCIsIHRpdHVsbzogIllhIHNlIGZ1ZSIsIHRlcm1pbmE6ICIyMDI2LTAzLTEwIiB9KTsKCiAgaXQoIm1hcmNhIGNvbW8gbnVldmFzIHNvbG8gbGFzIHF1ZSBubyBlc3RhYmFuIGNvbm9jaWRhcyIsICgpID0+IHsKICAgIGNvbnN0IHsgbnVldmFzIH0gPSBub3ZlZGFkZXNPZmVydGFzKG5ldyBTZXQoWyJvZi1hIl0pLCBuZXcgU2V0KCksIFtBLCBCXSwgSE9ZLCAzKTsKICAgIGV4cGVjdChudWV2YXMubWFwKChvKSA9PiBvLmlkKSkudG9FcXVhbChbIm9mLWIiXSk7CiAgfSk7CgogIGl0KCJsYXMgY2FkdWNhZGFzIG5vIHNlIGFudW5jaWFuIGNvbW8gbnVldmFzIiwgKCkgPT4gewogICAgY29uc3QgeyBudWV2YXMgfSA9IG5vdmVkYWRlc09mZXJ0YXMobmV3IFNldCgpLCBuZXcgU2V0KCksIFtDQURVQ0FEQV0sIEhPWSwgMyk7CiAgICBleHBlY3QobnVldmFzKS50b0VxdWFsKFtdKTsKICB9KTsKCiAgaXQoInBvckV4cGlyYXIgZW50cmEgZGVudHJvIGRlbCBtYXJnZW4geSBubyByZXBpdGUgc2kgeWEgYXZpc8OzIiwgKCkgPT4gewogICAgY29uc3QgcHJpbWVyYSA9IG5vdmVkYWRlc09mZXJ0YXMobmV3IFNldChbIm9mLWEiXSksIG5ldyBTZXQoKSwgW0EsIENdLCBIT1ksIDMpOwogICAgZXhwZWN0KHByaW1lcmEucG9yRXhwaXJhci5tYXAoKG8pID0+IG8uaWQpKS50b0VxdWFsKFsib2YtYyJdKTsKICAgIGNvbnN0IHJlcGV0aWRhID0gbm92ZWRhZGVzT2ZlcnRhcyhuZXcgU2V0KFsib2YtYSJdKSwgbmV3IFNldChbIm9mLWMiXSksIFtBLCBDXSwgSE9ZLCAzKTsKICAgIGV4cGVjdChyZXBldGlkYS5wb3JFeHBpcmFyKS50b0VxdWFsKFtdKTsKICB9KTsKCiAgaXQoImVsIG1hcmdlbiBkZSBhdmlzbyBlcyBpbmNsdXNpdm8gcG9yIGFtYm9zIGV4dHJlbW9zIiwgKCkgPT4gewogICAgY29uc3QgbGltaXRlID0gbm92ZWRhZGVzT2ZlcnRhcyhuZXcgU2V0KCksIG5ldyBTZXQoKSwgW29mZXJ0YSh7IGlkOiAib2YtZSIsIHRlcm1pbmE6ICIyMDI2LTAzLTE4IiB9KV0sIEhPWSwgMyk7CiAgICBleHBlY3QobGltaXRlLnBvckV4cGlyYXIpLnRvSGF2ZUxlbmd0aCgxKTsKICAgIGNvbnN0IGZ1ZXJhID0gbm92ZWRhZGVzT2ZlcnRhcyhuZXcgU2V0KCksIG5ldyBTZXQoKSwgW29mZXJ0YSh7IGlkOiAib2YtZiIsIHRlcm1pbmE6ICIyMDI2LTAzLTE5IiB9KV0sIEhPWSwgMyk7CiAgICBleHBlY3QoZnVlcmEucG9yRXhwaXJhcikudG9IYXZlTGVuZ3RoKDApOwogIH0pOwp9KTsKCmRlc2NyaWJlKCJ2YWxpZGFyT2ZlcnRhcyAoZnVlbnRlIGV4dGVybmEpIiwgKCkgPT4gewogIGl0KCJhY2VwdGEgbG8gY29ycmVjdG8geSByZWNvcnRhIGVzcGFjaW9zIiwgKCkgPT4gewogICAgY29uc3QgciA9IHZhbGlkYXJPZmVydGFzKFsKICAgICAgewogICAgICAgIGlkOiAiIG9mLXggIiwKICAgICAgICBwcm92ZWVkb3I6ICIgQW50aHJvcGljICIsCiAgICAgICAgdGl0dWxvOiAiIENyw6lkaXRvIGRlIHBydWViYSAiLAogICAgICAgIHRpcG86ICJjcmVkaXRvcyIsCiAgICAgICAgdmFsb3I6ICIgNSAkICIsCiAgICAgICAgZGVzY3JpcGNpb246ICIgQWwgdmVyaWZpY2FyIGVsIHRlbMOpZm9ubyAiLAogICAgICAgIHVybDogIiBodHRwczovL2NvbnNvbGUuYW50aHJvcGljLmNvbSAiLAogICAgICAgIHRlcm1pbmE6IG51bGwsCiAgICAgICAgdmVyaWZpY2FkbzogIjIwMjYtMDktMDYiLAogICAgICB9LAogICAgXSk7CiAgICBleHBlY3QocikudG9IYXZlTGVuZ3RoKDEpOwogICAgZXhwZWN0KHJbMF0uaWQpLnRvQmUoIm9mLXgiKTsKICAgIGV4cGVjdChyWzBdLnByb3ZlZWRvcikudG9CZSgiQW50aHJvcGljIik7CiAgICBleHBlY3QoclswXS51cmwpLnRvQmUoImh0dHBzOi8vY29uc29sZS5hbnRocm9waWMuY29tIik7CiAgfSk7CgogIGl0KCJkZXNjYXJ0YSBlbnRyYWRhcyBzaW4gaWQsIHTDrXR1bG8sIHByb3ZlZWRvciBvIHVybCBodHRwKHMpIiwgKCkgPT4gewogICAgY29uc3QgciA9IHZhbGlkYXJPZmVydGFzKFsKICAgICAgeyB0aXR1bG86ICJzaW4gaWQiLCBwcm92ZWVkb3I6ICJYIiwgdGlwbzogImdyYXRpcyIsIHZhbG9yOiAiIiwgZGVzY3JpcGNpb246ICIiLCB1cmw6ICJodHRwczovL3guZXhhbXBsZSIgfSwKICAgICAgeyBpZDogImEiLCB0aXR1bG86ICIiLCBwcm92ZWVkb3I6ICJYIiwgdGlwbzogImdyYXRpcyIsIHZhbG9yOiAiIiwgZGVzY3JpcGNpb246ICIiLCB1cmw6ICJodHRwczovL3guZXhhbXBsZSIgfSwKICAgICAgeyBpZDogImIiLCB0aXR1bG86ICJUIiwgcHJvdmVlZG9yOiAiIiwgdGlwbzogImdyYXRpcyIsIHZhbG9yOiAiIiwgZGVzY3JpcGNpb246ICIiLCB1cmw6ICJodHRwczovL3guZXhhbXBsZSIgfSwKICAgICAgeyBpZDogImMiLCB0aXR1bG86ICJUIiwgcHJvdmVlZG9yOiAiWCIsIHRpcG86ICJncmF0aXMiLCB2YWxvcjogIiIsIGRlc2NyaXBjaW9uOiAiIiwgdXJsOiAiamF2YXNjcmlwdDphbGVydCgxKSIgfSwKICAgICAgeyBpZDogImQiLCB0aXR1bG86ICJUIiwgcHJvdmVlZG9yOiAiWCIsIHRpcG86ICJncmF0aXMiLCB2YWxvcjogIiIsIGRlc2NyaXBjaW9uOiAiIiwgdXJsOiAiZnRwOi8veC5leGFtcGxlIiB9LAogICAgXSk7CiAgICBleHBlY3QocikudG9FcXVhbChbXSk7CiAgfSk7CgogIGl0KCJkZXNjYXJ0YSB0aXBvcyBkZXNjb25vY2lkb3M6IGVsIHRpcG8gc2UgbXVlc3RyYSBlbiBwYW50YWxsYSB5IG5vIHNlIGludmVudGEiLCAoKSA9PiB7CiAgICBjb25zdCByID0gdmFsaWRhck9mZXJ0YXMoWwogICAgICB7IGlkOiAiYSIsIHRpdHVsbzogIlQiLCBwcm92ZWVkb3I6ICJYIiwgdGlwbzogIm1hZ2lhIiwgdmFsb3I6ICIiLCBkZXNjcmlwY2lvbjogIiIsIHVybDogImh0dHBzOi8veC5leGFtcGxlIiB9LAogICAgXSk7CiAgICBleHBlY3QocikudG9FcXVhbChbXSk7CiAgfSk7CgogIGl0KCJ1bmEgZmVjaGEgZGUgZmluIHF1ZSBubyBzZWEgWVlZWS1NTS1ERCBzZSBpZ25vcmEgKHF1ZWRhIHBlcm1hbmVudGUpIiwgKCkgPT4gewogICAgY29uc3QgciA9IHZhbGlkYXJPZmVydGFzKFsKICAgICAgeyBpZDogImEiLCB0aXR1bG86ICJUIiwgcHJvdmVlZG9yOiAiWCIsIHRpcG86ICJkaWFzIiwgdmFsb3I6ICI3IGTDrWFzIiwgZGVzY3JpcGNpb246ICIiLCB1cmw6ICJodHRwczovL3guZXhhbXBsZSIsIHRlcm1pbmE6ICJtYcOxYW5hIiB9LAogICAgXSk7CiAgICBleHBlY3QoclswXS50ZXJtaW5hKS50b0JlTnVsbCgpOwogIH0pOwoKICBpdCgicmVjb3J0YSBkZXNjcmlwY2lvbmVzIGtpbG9tw6l0cmljYXMgeSBkZWR1cGxpY2EgcG9yIGlkIChnYW5hIGxhIHByaW1lcmEpIiwgKCkgPT4gewogICAgY29uc3QgbGFyZ2EgPSAibSIucmVwZWF0KDYwMCk7CiAgICBjb25zdCByID0gdmFsaWRhck9mZXJ0YXMoWwogICAgICB7IGlkOiAiZHVwIiwgdGl0dWxvOiAicHJpbWVyYSIsIHByb3ZlZWRvcjogIlgiLCB0aXBvOiAiZ3JhdGlzIiwgdmFsb3I6ICJHcmF0aXMiLCBkZXNjcmlwY2lvbjogbGFyZ2EsIHVybDogImh0dHBzOi8veC5leGFtcGxlIiB9LAogICAgICB7IGlkOiAiZHVwIiwgdGl0dWxvOiAic2VndW5kYSIsIHByb3ZlZWRvcjogIlkiLCB0aXBvOiAiZ3JhdGlzIiwgdmFsb3I6ICJHcmF0aXMiLCBkZXNjcmlwY2lvbjogImNvcnRhIiwgdXJsOiAiaHR0cHM6Ly95LmV4YW1wbGUiIH0sCiAgICBdKTsKICAgIGV4cGVjdChyKS50b0hhdmVMZW5ndGgoMSk7CiAgICBleHBlY3QoclswXS50aXR1bG8pLnRvQmUoInByaW1lcmEiKTsKICAgIGV4cGVjdChyWzBdLmRlc2NyaXBjaW9uLmxlbmd0aCkudG9CZUxlc3NUaGFuT3JFcXVhbCg1MDEpOyAvLyA1MDAgKyDCq+KApsK7CiAgICBleHBlY3QoclswXS5kZXNjcmlwY2lvbi5lbmRzV2l0aCgi4oCmIikpLnRvQmUodHJ1ZSk7CiAgfSk7CgogIGl0KCJubyByZXZpZW50YSBjb24gYmFzdXJhOiBuby1hcnJheSwgb2JqZXRvcyByYXJvcyBvIG51bGwiLCAoKSA9PiB7CiAgICBleHBlY3QodmFsaWRhck9mZXJ0YXMobnVsbCkpLnRvRXF1YWwoW10pOwogICAgZXhwZWN0KHZhbGlkYXJPZmVydGFzKCJvZmVydGFzIikpLnRvRXF1YWwoW10pOwogICAgZXhwZWN0KHZhbGlkYXJPZmVydGFzKFtudWxsLCA0MiwgIngiLCB7fV0pKS50b0VxdWFsKFtdKTsKICB9KTsKfSk7CgpkZXNjcmliZSgiZnVzaW9uYXJPZmVydGFzIiwgKCkgPT4gewogIGNvbnN0IGJhc2UgPSBbCiAgICBvZmVydGEoeyBpZDogIm9mLTEiLCB0aXR1bG86ICJCYXNlIHVubyIgfSksCiAgICBvZmVydGEoeyBpZDogIm9mLTIiLCB0aXR1bG86ICJCYXNlIGRvcyIgfSksCiAgXTsKCiAgaXQoImxhIGZ1ZW50ZSBwaXNhIGEgbGEgYmFzZSBwb3IgaWQgY29uc2VydmFuZG8gbGEgcG9zaWNpw7NuIiwgKCkgPT4gewogICAgY29uc3QgciA9IGZ1c2lvbmFyT2ZlcnRhcyhiYXNlLCBbb2ZlcnRhKHsgaWQ6ICJvZi0xIiwgdGl0dWxvOiAiUGlzYWRhIiwgdmFsb3I6ICJNZWpvcmFkYSIgfSldKTsKICAgIGV4cGVjdChyLm1hcCgobykgPT4gby5pZCkpLnRvRXF1YWwoWyJvZi0xIiwgIm9mLTIiXSk7CiAgICBleHBlY3QoclswXS50aXR1bG8pLnRvQmUoIlBpc2FkYSIpOwogIH0pOwoKICBpdCgibGFzIG9mZXJ0YXMgbnVldmFzIGRlIGxhIGZ1ZW50ZSBzZSBhw7FhZGVuIGFsIGZpbmFsIiwgKCkgPT4gewogICAgY29uc3QgciA9IGZ1c2lvbmFyT2ZlcnRhcyhiYXNlLCBbb2ZlcnRhKHsgaWQ6ICJvZi05IiwgdGl0dWxvOiAiRXh0cmEiIH0pXSk7CiAgICBleHBlY3Qoci5tYXAoKG8pID0+IG8uaWQpKS50b0VxdWFsKFsib2YtMSIsICJvZi0yIiwgIm9mLTkiXSk7CiAgfSk7Cn0pOwoKZGVzY3JpYmUoImZpbHRyYXJPZmVydGFzIC8gcmVzdW1lbk9mZXJ0YXMiLCAoKSA9PiB7CiAgY29uc3QgSE9ZID0gIjIwMjYtMDMtMTUiOwogIGNvbnN0IGxpc3RhID0gWwogICAgb2ZlcnRhKHsgaWQ6ICJvZi0xIiwgcHJvdmVlZG9yOiAiR3JvcSIsIHRpdHVsbzogIkFQSSBncmF0dWl0YSIsIHRpcG86ICJncmF0aXMiIH0pLAogICAgb2ZlcnRhKHsgaWQ6ICJvZi0yIiwgcHJvdmVlZG9yOiAiV2luZHN1cmYiLCB0aXR1bG86ICI3IGTDrWFzIGRlIFBybyIsIHRpcG86ICJkaWFzIiwgdGVybWluYTogIjIwMjYtMDMtMTYiIH0pLAogICAgb2ZlcnRhKHsgaWQ6ICJvZi0zIiwgcHJvdmVlZG9yOiAiVG9nZXRoZXIiLCB0aXR1bG86ICJDcsOpZGl0byBpbmljaWFsIiwgdGlwbzogImNyZWRpdG9zIiB9KSwKICAgIG9mZXJ0YSh7IGlkOiAib2YtNCIsIHByb3ZlZWRvcjogIlZpZWphIiwgdGl0dWxvOiAiVGVybWluYWRhIiwgdGlwbzogImdyYXRpcyIsIHRlcm1pbmE6ICIyMDI2LTAzLTAxIiB9KSwKICBdOwogIGNvbnN0IGZhdm9yaXRhcyA9IG5ldyBTZXQoWyJvZi0zIl0pOwoKICBpdCgic2llbXByZSBleGNsdXllIGxhcyBjYWR1Y2FkYXMiLCAoKSA9PiB7CiAgICBjb25zdCByID0gZmlsdHJhck9mZXJ0YXMobGlzdGEsIHsgY29uc3VsdGE6ICIiLCB0aXBvOiAidG9kYXMiLCBmYXZvcml0YXMsIGhveTogSE9ZLCBkaWFzQXZpc286IDMgfSk7CiAgICBleHBlY3Qoci5tYXAoKG8pID0+IG8uaWQpKS50b0VxdWFsKFsib2YtMSIsICJvZi0yIiwgIm9mLTMiXSk7CiAgfSk7CgogIGl0KCJidXNjYSBzaW4gdGlsZGVzIG5pIG1hecO6c2N1bGFzIGVuIHByb3ZlZWRvciwgdMOtdHVsbyB5IGRlc2NyaXBjacOzbiIsICgpID0+IHsKICAgIGNvbnN0IHIgPSBmaWx0cmFyT2ZlcnRhcyhsaXN0YSwgeyBjb25zdWx0YTogIkFQSSBHUkFUVUlUQSIsIHRpcG86ICJ0b2RhcyIsIGZhdm9yaXRhcywgaG95OiBIT1ksIGRpYXNBdmlzbzogMyB9KTsKICAgIGV4cGVjdChyLm1hcCgobykgPT4gby5pZCkpLnRvRXF1YWwoWyJvZi0xIl0pOwogICAgY29uc3QgY29uVGlsZGUgPSBmaWx0cmFyT2ZlcnRhcyhsaXN0YSwgeyBjb25zdWx0YTogImNyZWRpdG8iLCB0aXBvOiAidG9kYXMiLCBmYXZvcml0YXMsIGhveTogSE9ZLCBkaWFzQXZpc286IDMgfSk7CiAgICBleHBlY3QoY29uVGlsZGUubWFwKChvKSA9PiBvLmlkKSkudG9FcXVhbChbIm9mLTMiXSk7CiAgfSk7CgogIGl0KCJmaWx0cmEgcG9yIHRpcG8geSBwb3IgZmF2b3JpdGFzIiwgKCkgPT4gewogICAgY29uc3QgcG9yVGlwbyA9IGZpbHRyYXJPZmVydGFzKGxpc3RhLCB7IGNvbnN1bHRhOiAiIiwgdGlwbzogImRpYXMiLCBmYXZvcml0YXMsIGhveTogSE9ZLCBkaWFzQXZpc286IDMgfSk7CiAgICBleHBlY3QocG9yVGlwby5tYXAoKG8pID0+IG8uaWQpKS50b0VxdWFsKFsib2YtMiJdKTsKICAgIGNvbnN0IHBvckZhdiA9IGZpbHRyYXJPZmVydGFzKGxpc3RhLCB7IGNvbnN1bHRhOiAiIiwgdGlwbzogImZhdm9yaXRhcyIsIGZhdm9yaXRhcywgaG95OiBIT1ksIGRpYXNBdmlzbzogMyB9KTsKICAgIGV4cGVjdChwb3JGYXYubWFwKChvKSA9PiBvLmlkKSkudG9FcXVhbChbIm9mLTMiXSk7CiAgfSk7CgogIGl0KCJlbCByZXN1bWVuIHNlcGFyYSB2aWdlbnRlcyBkZSBwb3IgZXhwaXJhciB5IGN1ZW50YSBmYXZvcml0YXMiLCAoKSA9PiB7CiAgICBjb25zdCByID0gcmVzdW1lbk9mZXJ0YXMobGlzdGEsIEhPWSwgMywgZmF2b3JpdGFzKTsKICAgIGV4cGVjdChyKS50b0VxdWFsKHsgdmlnZW50ZXM6IDIsIHBvckV4cGlyYXI6IDEsIGZhdm9yaXRhczogMSB9KTsKICB9KTsKfSk7CgpkZXNjcmliZSgiY2F0w6Fsb2dvIGJhc2UiLCAoKSA9PiB7CiAgaXQoImVzIGhvbmVzdG86IGlkcyDDum5pY29zLCBodHRwcywgc2luIGNhbXBvcyB2YWPDrW9zIHkgY29uIGZlY2hhIGRlIHZlcmlmaWNhY2nDs24gY29tw7puIiwgKCkgPT4gewogICAgY29uc3QgaWRzID0gbmV3IFNldChPRkVSVEFTX0JBU0UubWFwKChvKSA9PiBvLmlkKSk7CiAgICBleHBlY3QoaWRzLnNpemUpLnRvQmUoT0ZFUlRBU19CQVNFLmxlbmd0aCk7CiAgICBleHBlY3QoT0ZFUlRBU19CQVNFLmxlbmd0aCkudG9CZUdyZWF0ZXJUaGFuT3JFcXVhbCgxMCk7CiAgICBmb3IgKGNvbnN0IG8gb2YgT0ZFUlRBU19CQVNFKSB7CiAgICAgIGV4cGVjdChvLnVybC5zdGFydHNXaXRoKCJodHRwczovLyIpKS50b0JlKHRydWUpOwogICAgICBleHBlY3Qoby5wcm92ZWVkb3IubGVuZ3RoKS50b0JlR3JlYXRlclRoYW4oMCk7CiAgICAgIGV4cGVjdChvLnRpdHVsby5sZW5ndGgpLnRvQmVHcmVhdGVyVGhhbigwKTsKICAgICAgZXhwZWN0KG8uZGVzY3JpcGNpb24ubGVuZ3RoKS50b0JlR3JlYXRlclRoYW4oMCk7CiAgICAgIGV4cGVjdChvLnZhbG9yLmxlbmd0aCkudG9CZUdyZWF0ZXJUaGFuKDApOwogICAgICAvLyBBbnRlcyBlc3RhIGzDrW5lYSBFWElHw41BIHF1ZSB0b2RhcyBsbGV2YXJhbiBsYSBtaXNtYSBmZWNoYSwgcXVlIGVzCiAgICAgIC8vIGp1c3RvIGVsIHNlbGxvIGZhbHNvIHF1ZSBzZSBoYSBxdWl0YWRvOiBvIGhheSB1bmEgZmVjaGEgcmVhbCBkZQogICAgICAvLyBjdWFuZG8gc2UgbWlyw7MgZXNhIG9mZXJ0YSwgbyBubyBoYXkgbmluZ3VuYSB5IHNlIGRpY2UuCiAgICAgIGlmIChvLnZlcmlmaWNhZG8gIT09IG51bGwpIGV4cGVjdChvLnZlcmlmaWNhZG8pLnRvTWF0Y2goL15cZHs0fS1cZHsyfS1cZHsyfSQvKTsKICAgICAgaWYgKG8udGVybWluYSkgZXhwZWN0KG8udGVybWluYSkudG9NYXRjaCgvXlxkezR9LVxkezJ9LVxkezJ9JC8pOwogICAgfQogIH0pOwoKICBpdCgibG9zIHRpcG9zIGRlbCBjYXTDoWxvZ28gc29uIHNvbG8gbG9zIGNpbmNvIHByZXZpc3RvcyIsICgpID0+IHsKICAgIGNvbnN0IHZhbGlkb3MgPSBuZXcgU2V0KFsiZ3JhdGlzIiwgImRpYXMiLCAiZGVzY3VlbnRvIiwgImNyZWRpdG9zIiwgImVzdHVkaWFudGVzIl0pOwogICAgZm9yIChjb25zdCBvIG9mIE9GRVJUQVNfQkFTRSkgZXhwZWN0KHZhbGlkb3MuaGFzKG8udGlwbykpLnRvQmUodHJ1ZSk7CiAgfSk7Cn0pOwoKZGVzY3JpYmUoInByb3BpZWRhZDogZWwgZXN0YWRvIHNvbG8gZGVwZW5kZSBkZSBsb3MgZMOtYXMgcXVlIGZhbHRhbiIsICgpID0+IHsKICBpdCgiY3VhbHF1aWVyIGZlY2hhIGRlbnRybyBkZWwgbWFyZ2VuIGF2aXNhIHkgZnVlcmEgbm8iLCAoKSA9PiB7CiAgICBmYy5hc3NlcnQoCiAgICAgIGZjLnByb3BlcnR5KGZjLmludGVnZXIoeyBtaW46IDAsIG1heDogMzY1IH0pLCBmYy5pbnRlZ2VyKHsgbWluOiAwLCBtYXg6IDE0IH0pLCAoZmFsdGFuLCBhdmlzbykgPT4gewogICAgICAgIGNvbnN0IGhveSA9ICIyMDI2LTAzLTE1IjsKICAgICAgICBjb25zdCBvID0gb2ZlcnRhKHsgdGVybWluYTogc3VtYXJEaWFzKGhveSwgZmFsdGFuKSB9KTsKICAgICAgICBleHBlY3QoZXN0YWRvT2ZlcnRhKG8sIGhveSwgYXZpc28pKS50b0JlKGZhbHRhbiA8PSBhdmlzbyA/ICJwb3JFeHBpcmFyIiA6ICJ2aWdlbnRlIik7CiAgICAgIH0pCiAgICApOwogIH0pOwp9KTsKCi8qKiDigJTigJTigJQgTGEgZmVjaGEgZGUgdmVyaWZpY2FjacOzbiBubyBwdWVkZSBwb25lcnNlIHNvbGEg4oCU4oCU4oCUCiAqCiAqIEFudGVzIFRPREFTIGxhcyBlbnRyYWRhcyBoZXJlZGFiYW4gYE9GRVJUQVNfVkVSSUZJQ0FET2AsIHkgdW5hIGZ1ZW50ZSBwcm9waWEKICogc2luIGZlY2hhIHNlIHNlbGxhYmEgY29uIGxhIG51ZXN0cmEuIEFsIHB1YmxpY2FyIHVuYSB2ZXJzacOzbiwgY2F0b3JjZQogKiBvZmVydGFzIHBhc2FiYW4gYSBkZWNpciDCq3ZlcmlmaWNhZG8gaG95wrsgc2luIHF1ZSBuYWRpZSBodWJpZXJhIG1pcmFkbwogKiBuaW5ndW5hOiB1biBzZWxsbyBkZSBmcmVzY3VyYSBmYWxzbywgcXVlIGVzIHBlb3IgcXVlIG5vIHBvbmVyIGZlY2hhLgogKi8KZGVzY3JpYmUoImxhIHZlcmlmaWNhY2nDs24gbm8gc2UgaW52ZW50YSIsICgpID0+IHsKICBpdCgidW5hIG9mZXJ0YSBkZSBmdWVyYSBTSU4gZmVjaGEgc2UgcXVlZGEgc2luIHNlbGxvLCBubyBjb24gZWwgbnVlc3RybyIsICgpID0+IHsKICAgIGNvbnN0IFtvXSA9IHZhbGlkYXJPZmVydGFzKFsKICAgICAgewogICAgICAgIGlkOiAieCIsCiAgICAgICAgcHJvdmVlZG9yOiAiUCIsCiAgICAgICAgdGl0dWxvOiAiVCIsCiAgICAgICAgdGlwbzogImdyYXRpcyIsCiAgICAgICAgdmFsb3I6ICJHcmF0aXMiLAogICAgICAgIGRlc2NyaXBjaW9uOiAiZCIsCiAgICAgICAgdXJsOiAiaHR0cHM6Ly9lamVtcGxvLmNvbSIsCiAgICAgIH0sCiAgICBdKTsKICAgIGV4cGVjdChvLnZlcmlmaWNhZG8pLnRvQmVOdWxsKCk7CiAgfSk7CgogIGl0KCJzaSB0cmFlIGZlY2hhIHByb3BpYSwgc2UgcmVzcGV0YSIsICgpID0+IHsKICAgIGNvbnN0IFtvXSA9IHZhbGlkYXJPZmVydGFzKFsKICAgICAgewogICAgICAgIGlkOiAieCIsCiAgICAgICAgcHJvdmVlZG9yOiAiUCIsCiAgICAgICAgdGl0dWxvOiAiVCIsCiAgICAgICAgdGlwbzogImdyYXRpcyIsCiAgICAgICAgdmFsb3I6ICJHcmF0aXMiLAogICAgICAgIGRlc2NyaXBjaW9uOiAiZCIsCiAgICAgICAgdXJsOiAiaHR0cHM6Ly9lamVtcGxvLmNvbSIsCiAgICAgICAgdmVyaWZpY2FkbzogIjIwMjYtMDEtMTUiLAogICAgICB9LAogICAgXSk7CiAgICBleHBlY3Qoby52ZXJpZmljYWRvKS50b0JlKCIyMDI2LTAxLTE1Iik7CiAgfSk7CgogIGl0KCJsYSBlZGFkIHNlIGN1ZW50YSBlbiBkw61hcyB5IGF2aXNhIGN1YW5kbyB5YSBlcyB2aWVqYSIsICgpID0+IHsKICAgIGV4cGVjdChkaWFzRGVzZGVWZXJpZmljYWNpb24oIjIwMjYtMDktMDEiLCAiMjAyNi0wOS0wNiIpKS50b0JlKDUpOwogICAgZXhwZWN0KHZlcmlmaWNhY2lvblZpZWphKCIyMDI2LTA5LTAxIiwgIjIwMjYtMDktMDYiKSkudG9CZShmYWxzZSk7CiAgICBleHBlY3QodmVyaWZpY2FjaW9uVmllamEoIjIwMjYtMDEtMDEiLCAiMjAyNi0wOS0wNiIpKS50b0JlKHRydWUpOwogIH0pOwoKICBpdCgibGEgb2ZlcnRhIHF1ZSBuYWRpZSBwdWRvIGNvbXByb2JhciB2YSBtYXJjYWRhLCBubyBtYXF1aWxsYWRhIiwgKCkgPT4gewogICAgY29uc3QgZ2xtID0gT0ZFUlRBU19CQVNFLmZpbmQoKG8pID0+IG8uaWQgPT09ICJvZi16YWktY29kaW5nLXBsYW4iKTsKICAgIGV4cGVjdChnbG0sICJaLmFpIHRpZW5lIHF1ZSBlc3RhciBlbiBlbCBjYXTDoWxvZ28iKS50b0JlVHJ1dGh5KCk7CiAgICBleHBlY3QoZ2xtIS52ZXJpZmljYWRvLCAic2luIGNvbXByb2JhciA9IHNpbiBmZWNoYSIpLnRvQmVOdWxsKCk7CiAgICBleHBlY3QoZ2xtIS5kZXNjcmlwY2lvbikudG9NYXRjaCgvbm8gc2UgaGEgcG9kaWRvIGNvbXByb2Jhci9pKTsKICB9KTsKfSk7Cg==
+import { describe, it, expect } from "vitest";
+import fc from "fast-check";
+import {
+  OFERTAS_BASE,
+  
+  diasDesdeVerificacion,
+  diasRestantes,
+  estadoOferta,
+  filtrarOfertas,
+  fusionarOfertas,
+  novedadesOfertas,
+  resumenOfertas,
+  validarOfertas,
+  verificacionVieja,
+  type Oferta,
+} from "../../src/lib/forja/ofertas";
+import { sumarDias } from "../../src/lib/forja/repaso";
+
+function oferta(par: Partial<Oferta> = {}): Oferta {
+  return {
+    id: par.id ?? "of-prueba",
+    proveedor: par.proveedor ?? "Proveedor",
+    titulo: par.titulo ?? "Plan gratuito con cuotas diarias",
+    tipo: par.tipo ?? "gratis",
+    valor: par.valor ?? "Gratis",
+    descripcion: par.descripcion ?? "Uso limitado sin tarjeta",
+    url: par.url ?? "https://proveedor.example/oferta",
+    termina: par.termina ?? null,
+    verificado: par.verificado ?? "2026-09-06",
+  };
+}
+
+describe("diasRestantes / estadoOferta", () => {
+  const HOY = "2026-03-15";
+
+  it("cuenta días hacia delante y hacia atrás con días enteros", () => {
+    expect(diasRestantes("2026-03-15", HOY)).toBe(0);
+    expect(diasRestantes("2026-03-20", HOY)).toBe(5);
+    expect(diasRestantes("2026-03-12", HOY)).toBe(-3);
+  });
+
+  it("sin fecha de fin es oferta permanente: siempre vigente", () => {
+    expect(estadoOferta(oferta({ termina: null }), HOY, 3)).toBe("vigente");
+  });
+
+  it("por expirar solo cuando falta dentro del margen de aviso", () => {
+    expect(estadoOferta(oferta({ termina: "2026-03-25" }), HOY, 3)).toBe("vigente");
+    // el límite es inclusivo: faltar exactamente los días de aviso ya avisa
+    expect(estadoOferta(oferta({ termina: "2026-03-18" }), HOY, 3)).toBe("porExpirar");
+    expect(estadoOferta(oferta({ termina: "2026-03-16" }), HOY, 3)).toBe("porExpirar");
+  });
+
+  it("el día mismo del vencimiento aún avisa; el día siguiente caducó", () => {
+    expect(estadoOferta(oferta({ termina: HOY }), HOY, 3)).toBe("porExpirar");
+    expect(estadoOferta(oferta({ termina: "2026-03-14" }), HOY, 3)).toBe("caducada");
+  });
+});
+
+describe("novedadesOfertas", () => {
+  const HOY = "2026-03-15";
+  const A = oferta({ id: "of-a", titulo: "Oferta conocida" });
+  const B = oferta({ id: "of-b", titulo: "Oferta recién cazada" });
+  const C = oferta({ id: "of-c", titulo: "Casi fuera", termina: "2026-03-17" });
+  const CADUCADA = oferta({ id: "of-d", titulo: "Ya se fue", termina: "2026-03-10" });
+
+  it("marca como nuevas solo las que no estaban conocidas", () => {
+    const { nuevas } = novedadesOfertas(new Set(["of-a"]), new Set(), [A, B], HOY, 3);
+    expect(nuevas.map((o) => o.id)).toEqual(["of-b"]);
+  });
+
+  it("las caducadas no se anuncian como nuevas", () => {
+    const { nuevas } = novedadesOfertas(new Set(), new Set(), [CADUCADA], HOY, 3);
+    expect(nuevas).toEqual([]);
+  });
+
+  it("porExpirar entra dentro del margen y no repite si ya avisó", () => {
+    const primera = novedadesOfertas(new Set(["of-a"]), new Set(), [A, C], HOY, 3);
+    expect(primera.porExpirar.map((o) => o.id)).toEqual(["of-c"]);
+    const repetida = novedadesOfertas(new Set(["of-a"]), new Set(["of-c"]), [A, C], HOY, 3);
+    expect(repetida.porExpirar).toEqual([]);
+  });
+
+  it("el margen de aviso es inclusivo por ambos extremos", () => {
+    const limite = novedadesOfertas(new Set(), new Set(), [oferta({ id: "of-e", termina: "2026-03-18" })], HOY, 3);
+    expect(limite.porExpirar).toHaveLength(1);
+    const fuera = novedadesOfertas(new Set(), new Set(), [oferta({ id: "of-f", termina: "2026-03-19" })], HOY, 3);
+    expect(fuera.porExpirar).toHaveLength(0);
+  });
+});
+
+describe("validarOfertas (fuente externa)", () => {
+  it("acepta lo correcto y recorta espacios", () => {
+    const r = validarOfertas([
+      {
+        id: " of-x ",
+        proveedor: " Anthropic ",
+        titulo: " Crédito de prueba ",
+        tipo: "creditos",
+        valor: " 5 $ ",
+        descripcion: " Al verificar el teléfono ",
+        url: " https://console.anthropic.com ",
+        termina: null,
+        verificado: "2026-09-06",
+      },
+    ]);
+    expect(r).toHaveLength(1);
+    expect(r[0].id).toBe("of-x");
+    expect(r[0].proveedor).toBe("Anthropic");
+    expect(r[0].url).toBe("https://console.anthropic.com");
+  });
+
+  it("descarta entradas sin id, título, proveedor o url http(s)", () => {
+    const r = validarOfertas([
+      { titulo: "sin id", proveedor: "X", tipo: "gratis", valor: "", descripcion: "", url: "https://x.example" },
+      { id: "a", titulo: "", proveedor: "X", tipo: "gratis", valor: "", descripcion: "", url: "https://x.example" },
+      { id: "b", titulo: "T", proveedor: "", tipo: "gratis", valor: "", descripcion: "", url: "https://x.example" },
+      { id: "c", titulo: "T", proveedor: "X", tipo: "gratis", valor: "", descripcion: "", url: "javascript:alert(1)" },
+      { id: "d", titulo: "T", proveedor: "X", tipo: "gratis", valor: "", descripcion: "", url: "ftp://x.example" },
+    ]);
+    expect(r).toEqual([]);
+  });
+
+  it("descarta tipos desconocidos: el tipo se muestra en pantalla y no se inventa", () => {
+    const r = validarOfertas([
+      { id: "a", titulo: "T", proveedor: "X", tipo: "magia", valor: "", descripcion: "", url: "https://x.example" },
+    ]);
+    expect(r).toEqual([]);
+  });
+
+  it("una fecha de fin que no sea YYYY-MM-DD se ignora (queda permanente)", () => {
+    const r = validarOfertas([
+      { id: "a", titulo: "T", proveedor: "X", tipo: "dias", valor: "7 días", descripcion: "", url: "https://x.example", termina: "mañana" },
+    ]);
+    expect(r[0].termina).toBeNull();
+  });
+
+  it("recorta descripciones kilométricas y deduplica por id (gana la primera)", () => {
+    const larga = "m".repeat(600);
+    const r = validarOfertas([
+      { id: "dup", titulo: "primera", proveedor: "X", tipo: "gratis", valor: "Gratis", descripcion: larga, url: "https://x.example" },
+      { id: "dup", titulo: "segunda", proveedor: "Y", tipo: "gratis", valor: "Gratis", descripcion: "corta", url: "https://y.example" },
+    ]);
+    expect(r).toHaveLength(1);
+    expect(r[0].titulo).toBe("primera");
+    expect(r[0].descripcion.length).toBeLessThanOrEqual(501); // 500 + «…»
+    expect(r[0].descripcion.endsWith("…")).toBe(true);
+  });
+
+  it("no revienta con basura: no-array, objetos raros o null", () => {
+    expect(validarOfertas(null)).toEqual([]);
+    expect(validarOfertas("ofertas")).toEqual([]);
+    expect(validarOfertas([null, 42, "x", {}])).toEqual([]);
+  });
+});
+
+describe("fusionarOfertas", () => {
+  const base = [
+    oferta({ id: "of-1", titulo: "Base uno" }),
+    oferta({ id: "of-2", titulo: "Base dos" }),
+  ];
+
+  it("la fuente pisa a la base por id conservando la posición", () => {
+    const r = fusionarOfertas(base, [oferta({ id: "of-1", titulo: "Pisada", valor: "Mejorada" })]);
+    expect(r.map((o) => o.id)).toEqual(["of-1", "of-2"]);
+    expect(r[0].titulo).toBe("Pisada");
+  });
+
+  it("las ofertas nuevas de la fuente se añaden al final", () => {
+    const r = fusionarOfertas(base, [oferta({ id: "of-9", titulo: "Extra" })]);
+    expect(r.map((o) => o.id)).toEqual(["of-1", "of-2", "of-9"]);
+  });
+});
+
+describe("filtrarOfertas / resumenOfertas", () => {
+  const HOY = "2026-03-15";
+  const lista = [
+    oferta({ id: "of-1", proveedor: "Groq", titulo: "API gratuita", tipo: "gratis" }),
+    oferta({ id: "of-2", proveedor: "Windsurf", titulo: "7 días de Pro", tipo: "dias", termina: "2026-03-16" }),
+    oferta({ id: "of-3", proveedor: "Together", titulo: "Crédito inicial", tipo: "creditos" }),
+    oferta({ id: "of-4", proveedor: "Vieja", titulo: "Terminada", tipo: "gratis", termina: "2026-03-01" }),
+  ];
+  const favoritas = new Set(["of-3"]);
+
+  it("siempre excluye las caducadas", () => {
+    const r = filtrarOfertas(lista, { consulta: "", tipo: "todas", favoritas, hoy: HOY, diasAviso: 3 });
+    expect(r.map((o) => o.id)).toEqual(["of-1", "of-2", "of-3"]);
+  });
+
+  it("busca sin tildes ni mayúsculas en proveedor, título y descripción", () => {
+    const r = filtrarOfertas(lista, { consulta: "API GRATUITA", tipo: "todas", favoritas, hoy: HOY, diasAviso: 3 });
+    expect(r.map((o) => o.id)).toEqual(["of-1"]);
+    const conTilde = filtrarOfertas(lista, { consulta: "credito", tipo: "todas", favoritas, hoy: HOY, diasAviso: 3 });
+    expect(conTilde.map((o) => o.id)).toEqual(["of-3"]);
+  });
+
+  it("filtra por tipo y por favoritas", () => {
+    const porTipo = filtrarOfertas(lista, { consulta: "", tipo: "dias", favoritas, hoy: HOY, diasAviso: 3 });
+    expect(porTipo.map((o) => o.id)).toEqual(["of-2"]);
+    const porFav = filtrarOfertas(lista, { consulta: "", tipo: "favoritas", favoritas, hoy: HOY, diasAviso: 3 });
+    expect(porFav.map((o) => o.id)).toEqual(["of-3"]);
+  });
+
+  it("el resumen separa vigentes de por expirar y cuenta favoritas", () => {
+    const r = resumenOfertas(lista, HOY, 3, favoritas);
+    expect(r).toEqual({ vigentes: 2, porExpirar: 1, favoritas: 1 });
+  });
+});
+
+describe("catálogo base", () => {
+  it("es honesto: ids únicos, https, sin campos vacíos y con fecha de verificación común", () => {
+    const ids = new Set(OFERTAS_BASE.map((o) => o.id));
+    expect(ids.size).toBe(OFERTAS_BASE.length);
+    expect(OFERTAS_BASE.length).toBeGreaterThanOrEqual(10);
+    for (const o of OFERTAS_BASE) {
+      expect(o.url.startsWith("https://")).toBe(true);
+      expect(o.proveedor.length).toBeGreaterThan(0);
+      expect(o.titulo.length).toBeGreaterThan(0);
+      expect(o.descripcion.length).toBeGreaterThan(0);
+      expect(o.valor.length).toBeGreaterThan(0);
+      // Antes esta línea EXIGÍA que todas llevaran la misma fecha, que es
+      // justo el sello falso que se ha quitado: o hay una fecha real de
+      // cuando se miró esa oferta, o no hay ninguna y se dice.
+      if (o.verificado !== null) expect(o.verificado).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      if (o.termina) expect(o.termina).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it("los tipos del catálogo son solo los cinco previstos", () => {
+    const validos = new Set(["gratis", "dias", "descuento", "creditos", "estudiantes"]);
+    for (const o of OFERTAS_BASE) expect(validos.has(o.tipo)).toBe(true);
+  });
+});
+
+describe("propiedad: el estado solo depende de los días que faltan", () => {
+  it("cualquier fecha dentro del margen avisa y fuera no", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 0, max: 365 }), fc.integer({ min: 0, max: 14 }), (faltan, aviso) => {
+        const hoy = "2026-03-15";
+        const o = oferta({ termina: sumarDias(hoy, faltan) });
+        expect(estadoOferta(o, hoy, aviso)).toBe(faltan <= aviso ? "porExpirar" : "vigente");
+      })
+    );
+  });
+});
+
+/** ——— La fecha de verificación no puede ponerse sola ———
+ *
+ * Antes TODAS las entradas heredaban `OFERTAS_VERIFICADO`, y una fuente propia
+ * sin fecha se sellaba con la nuestra. Al publicar una versión, catorce
+ * ofertas pasaban a decir «verificado hoy» sin que nadie hubiera mirado
+ * ninguna: un sello de frescura falso, que es peor que no poner fecha.
+ */
+describe("la verificación no se inventa", () => {
+  it("una oferta de fuera SIN fecha se queda sin sello, no con el nuestro", () => {
+    const [o] = validarOfertas([
+      {
+        id: "x",
+        proveedor: "P",
+        titulo: "T",
+        tipo: "gratis",
+        valor: "Gratis",
+        descripcion: "d",
+        url: "https://ejemplo.com",
+      },
+    ]);
+    expect(o.verificado).toBeNull();
+  });
+
+  it("si trae fecha propia, se respeta", () => {
+    const [o] = validarOfertas([
+      {
+        id: "x",
+        proveedor: "P",
+        titulo: "T",
+        tipo: "gratis",
+        valor: "Gratis",
+        descripcion: "d",
+        url: "https://ejemplo.com",
+        verificado: "2026-01-15",
+      },
+    ]);
+    expect(o.verificado).toBe("2026-01-15");
+  });
+
+  it("la edad se cuenta en días y avisa cuando ya es vieja", () => {
+    expect(diasDesdeVerificacion("2026-09-01", "2026-09-06")).toBe(5);
+    expect(verificacionVieja("2026-09-01", "2026-09-06")).toBe(false);
+    expect(verificacionVieja("2026-01-01", "2026-09-06")).toBe(true);
+  });
+
+  it("la oferta que nadie pudo comprobar va marcada, no maquillada", () => {
+    const glm = OFERTAS_BASE.find((o) => o.id === "of-zai-coding-plan");
+    expect(glm, "Z.ai tiene que estar en el catálogo").toBeTruthy();
+    expect(glm!.verificado, "sin comprobar = sin fecha").toBeNull();
+    expect(glm!.descripcion).toMatch(/no se ha podido comprobar/i);
+  });
+});

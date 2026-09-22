@@ -1,1 +1,301 @@
-LyoqIEZvcmphIElBIOKAlCBEZXRlY2Npw7NuIGRlIGNhcGFjaWRhZCBkZSB0b29scyBwb3IgbW9kZWxvLgogKgogKiBgcHJvYmVNb2RlbGAgc29sbyBkaWNlIHNpIGVsIG1vZGVsbyByZXNwb25kZS4gQXF1w60gc2UgdmEgdW4gcGFzbyBtw6FzOgogKiBzZSBtYW5kYSB1bmEgcGV0aWNpw7NuIE3DjU5JTUEgY29uIHVuIGB0b29sc2AgaW52ZW50YWRvIHkgc2UgbWlyYSBzaSBlbAogKiBtb2RlbG8gbG8gYWNlcHRhIG8gbG8gcmVjaGF6YS4gTXVjaG9zIG1vZGVsb3MgZ3JhdGlzIG5vIHNvcG9ydGFuCiAqIGB0b29sc2AgKG8gbG8gc29wb3J0YW4gbWFsKSB5IGVuY2VuZGVybG8gYSBzZWNhcyByb21wZSBlbCBhZ2VudGUganVzdG8KICogZW4gbG9zIG1vZGVsb3MgcGFyYSBsb3MgcXVlIGV4aXN0ZSBGb3JqYSDigJQgZXMgZWwgZmFsbG8gcXVlIGVsIFBMQU4tVjQKICogaWRlbnRpZmljYSB5IGFycmVnbGEgYXF1w60uCiAqCiAqIExhIHBydWViYSBlcyBjYXJhICh1biByb3VuZC10cmlwKSwgYXPDrSBxdWUgZWwgcmVzdWx0YWRvIHNlIGNhY2hlYSBlbgogKiBtZW1vcmlhIChubyBlbiBsb2NhbFN0b3JhZ2U6IHNpIGNhbWJpYXMgZGUgY2xhdmUgbyBkZSBwcm92ZWVkb3IsIHNlCiAqIHJlcGl0ZSBsYSBwcnVlYmEgbGEgcHLDs3hpbWEgdmV6OyBlcyBsbyBjb3JyZWN0byBwb3JxdWUgbGEgY2FwYWNpZGFkCiAqIHB1ZWRlIGRlcGVuZGVyIGRlIGxhIGNsYXZlKS4KICoKICogQ8OzbW8gc2UgZGVjaWRlIGVsIHZlcmVkaWN0bzoKICogICAtIDIwMCArIGN1ZXJwbyBjb24gYHRvb2xfY2FsbHNgIC8gYHRvb2xfdXNlYCAvIGBmdW5jdGlvbkNhbGxgIOKGkiBPSwogKiAgIC0gMjAwIHNpbiB0b29scyBlbiBsYSByZXNwdWVzdGEg4oaSIE9LIChlbCBtb2RlbG8gYWNlcHTDsyBlbCBjYW1wbyB5CiAqICAgICByZXNwb25kacOzIHRleHRvIG5vcm1hbDsgc2UgcHVlZGUgdXNhciB0b29scywgYXVucXVlIGVzdGUgbW9kZWxvCiAqICAgICBubyBsYXMgYXByb3ZlY2jDsyBwYXJhIGVzdGEgcHJlZ3VudGEgdHJpdmlhbCkKICogICAtIDQwMCBjb24gwqt0b29sc8K7IC8gwqtmdW5jdGlvbsK7IC8gwqtmdW5jdGlvbkRlY2xhcmF0aW9uc8K7IGVuIGVsIGVycm9yCiAqICAgICDihpIgTk8gc29wb3J0YSB0b29scwogKiAgIC0gNDAwIGNvbiBvdHJvIG1lbnNhamUg4oaSIGRlc2Nvbm9jaWRvIChsbyB0cmF0YW1vcyBjb21vIE5PIHBhcmEgbm8KICogICAgIHJvbXBlciBlbCBhZ2VudGU7IGVsIG1vZGVsbyB5YSBmYWxsw7MgZW4gYWxnbykKICogICAtIDQwMS80MDMg4oaSIHNpbi1jbGF2ZSAvIHNpbi1wZXJtaXNvIChpZ3VhbCBxdWUgYGNsYXNzaWZ5UHJvYmVgKQogKiAgIC0gNDI5IOKGkiBsaW1pdGFkbyAoYWNlcHRhIHRvb2xzLCBzb2xvIHF1ZSBzZSBhY2Fiw7MgbGEgY3VvdGEpCiAqICAgLSA1eHggLyBzaW4tcmVkIOKGkiBjYcOtZG8gLyBzaW4tcmVkIChubyBzZSBzYWJlOyBubyBzZSBjYWNoZWEpCiAqLwppbXBvcnQgeyBnZXRQcm92aWRlciB9IGZyb20gIi4vcHJvdmlkZXJzIjsKaW1wb3J0IHR5cGUgeyBQcm92aWRlckNvbmZpZywgUHJvdmlkZXJJZCB9IGZyb20gIi4vdHlwZXMiOwppbXBvcnQgeyBidWlsZFJlcXVlc3QsIGVuZHBvaW50IH0gZnJvbSAiLi9jaGF0LWNsaWVudCI7CmltcG9ydCB7IGNsYXNzaWZ5UHJvYmUsIHR5cGUgUHJvYmVWZXJkaWN0IH0gZnJvbSAiLi9tb2RlbC1wcm9iZSI7CmltcG9ydCB7IHRyYW5zbGF0ZVRvb2xzIH0gZnJvbSAiLi90b29scy10cmFuc2xhdGUiOwppbXBvcnQgeyBUT09MX0NBVEFMT0csIHR5cGUgVG9vbERlZiB9IGZyb20gIi4vdG9vbHMtY2F0YWxvZyI7CmltcG9ydCB7IHJlY29yZFF1b3RhSGVhZGVycyB9IGZyb20gIi4vcXVvdGEiOwoKZXhwb3J0IHR5cGUgVG9vbHNTdXBwb3J0ID0KICB8ICJvayIgLy8gc29wb3J0YSB0b29scwogIHwgIm5vIiAvLyBubyBsYXMgc29wb3J0YQogIHwgInNpbi1jbGF2ZSIKICB8ICJzaW4tcGVybWlzbyIKICB8ICJsaW1pdGFkbyIgLy8gNDI5OiBzb3BvcnRhIHRvb2xzIHBlcm8gc2UgYWNhYsOzIGxhIGN1b3RhCiAgfCAiY2FpZG8iCiAgfCAic2luLXJlZCIKICB8ICJkZXNjb25vY2lkbyI7CgpleHBvcnQgaW50ZXJmYWNlIFRvb2xzUHJvYmVSZXN1bHQgewogIHN1cHBvcnQ6IFRvb2xzU3VwcG9ydDsKICAvKiogdmVyZWRpY3RvIGNsw6FzaWNvIChjb21wYXRpYmxlIGNvbiBgY2xhc3NpZnlQcm9iZWApICovCiAgdmVyZGljdDogUHJvYmVWZXJkaWN0OwogIHN0YXR1czogbnVtYmVyOwogIGRldGFpbD86IHN0cmluZzsKICBtczogbnVtYmVyOwogIGF0OiBudW1iZXI7Cn0KCi8qKiBNZW5zYWplcyBkZSBlcnJvciB0w61waWNvcyBxdWUgaW5kaWNhbiBxdWUgZWwgbW9kZWxvIE5PIHNvcG9ydGEgdG9vbHMuICovCmNvbnN0IE5PX1RPT0xTID0gWwogICJ0b29sIiwKICAiZnVuY3Rpb24iLAogICJmdW5jdGlvbmRlY2xhcmF0aW9ucyIsCiAgImZ1bmN0aW9uX2NhbGxpbmciLAogICJ0b29sX2NhbGxzIiwKICAidG9vbHMgcGFyYW1ldGVyIiwKICAibm90IHN1cHBvcnQiLAogICJ1bnN1cHBvcnRlZCIsCiAgImRvZXMgbm90IHN1cHBvcnQiLAogICJ0b29scyBhcmUgbm90IiwKICAidG9vbHMgaXMgbm90IiwKICAibm8gdG9vbCIsCl07CgovKiogQ2FjaGVhIGVsIHJlc3VsdGFkbyBwb3IgYChwcm92aWRlcklkLCBtb2RlbElkKWAgZW4gbWVtb3JpYS4KICoKICogTm8gaGFjZSBmYWx0YSB1bmEgZnVuY2nDs24gcGFyYSBpbnZhbGlkYXJsYTogbGEgYGFwaUtleWAgZW50cmEgZW4gbGEgY2xhdmUKICogZGUgY2FjaGUsIGFzw60gcXVlIGNhbWJpYXIgZGUgY2xhdmUgeWEgZXN0cmVuYSBlbnRyYWRhLiBIYWLDrWEgdW5hCiAqIGBpbnZhbGlkYXRlVG9vbHNQcm9iZWAgZXhwb3J0YWRhIHBhcmEgZXNvIHkgbm8gbGEgbGxhbWFiYSBuYWRpZSDigJQgbm8gcG9kw61hLAogKiBwb3JxdWUgeWEgbm8gaGFjw61hIGZhbHRhLiAqLwpjb25zdCBjYWNoZSA9IG5ldyBNYXA8c3RyaW5nLCBUb29sc1Byb2JlUmVzdWx0PigpOwoKZnVuY3Rpb24gY2FjaGVLZXkocHJvdmlkZXJJZDogUHJvdmlkZXJJZCwgY29uZmlnOiBQcm92aWRlckNvbmZpZywgbW9kZWxJZDogc3RyaW5nKTogc3RyaW5nIHsKICAvLyBJbmNsdXllIGFwaUtleSAoaGFzaGVhZGEgbGV2ZW1lbnRlIHBhcmEgbm8gZ3VhcmRhcmxhIGxpdGVyYWwpOiBzaQogIC8vIGNhbWJpYXMgZGUgcGxhbiwgbGEgY2FwYWNpZGFkIGRlIHRvb2xzIHB1ZWRlIGNhbWJpYXIuCiAgY29uc3Qga2V5SGFzaCA9IGNvbmZpZy5hcGlLZXkubGVuZ3RoICsgIjoiICsgY29uZmlnLmFwaUtleS5zbGljZSgwLCA0KTsKICByZXR1cm4gYCR7cHJvdmlkZXJJZH06OiR7Y29uZmlnLmJhc2VVcmwgPz8gIiJ9Ojoke21vZGVsSWR9Ojoke2tleUhhc2h9YDsKfQoKLyoqIMK/VmFsZSBsYSBwZW5hIGNhY2hlYXIgZXN0ZSByZXN1bHRhZG8/IExvcyB0cmFuc2l0b3Jpb3MgKGNhw61kbywKICogc2luLXJlZCwgbGltaXRhZG8pIG5vOiBjb252aWVuZSB2b2x2ZXIgYSBwcm9iYXIuICovCmZ1bmN0aW9uIGNhY2hlYWJsZShzOiBUb29sc1N1cHBvcnQpOiBib29sZWFuIHsKICByZXR1cm4gcyA9PT0gIm9rIiB8fCBzID09PSAibm8iIHx8IHMgPT09ICJzaW4tY2xhdmUiIHx8IHMgPT09ICJzaW4tcGVybWlzbyIgfHwgcyA9PT0gImRlc2Nvbm9jaWRvIjsKfQoKLyoqIExlZSBlbCBjYWNoZSBzaSBsYSBlbnRyYWRhIHNpZ3VlIHNpZW5kbyBmcmVzY2EuICovCmV4cG9ydCBmdW5jdGlvbiBnZXRDYWNoZWRUb29sc1Byb2JlKAogIHByb3ZpZGVySWQ6IFByb3ZpZGVySWQsCiAgY29uZmlnOiBQcm92aWRlckNvbmZpZywKICBtb2RlbElkOiBzdHJpbmcKKTogVG9vbHNQcm9iZVJlc3VsdCB8IG51bGwgewogIHJldHVybiBjYWNoZS5nZXQoY2FjaGVLZXkocHJvdmlkZXJJZCwgY29uZmlnLCBtb2RlbElkKSkgPz8gbnVsbDsKfQoKCi8qKiBQYXJhIHRlc3RzOiBsaW1waWEgdG9kYSBsYSBjYWNoZS4gTm8gc2UgdXNhIGVuIHByb2R1Y2Npw7NuLiAqLwpleHBvcnQgZnVuY3Rpb24gX2NsZWFyVG9vbHNDYWNoZUZvclRlc3RzKCk6IHZvaWQgewogIGNhY2hlLmNsZWFyKCk7Cn0KCi8qKiBDb25zdHJ1eWUgZWwgYm9keSBtw61uaW1vIENPTiB0b29scywgcG9yIHByb3RvY29sby4gUGlkZSAxIHRva2VuCiAqIGRlIHNhbGlkYSBwYXJhIG5vIGdhc3RhciBtw6FzIGRlIGxhIHBydWViYSBub3JtYWwuCiAqCiAqIGBjYXRhbG9nb2AgZXMgZWwgcXVlIGVsIHVzdWFyaW8gcGVybWl0ZSwgbm8gc2llbXByZSBlbCBlbnRlcm86IGxhIHBydWViYQogKiBzb2xvIHF1aWVyZSBzYWJlciBzaSBlbCBtb2RlbG8gZW50aWVuZGUgYHRvb2xzYCwgYXPDrSBxdWUgZGVzY3JpYmlyIGFsCiAqIHByb3ZlZWRvciBoZXJyYW1pZW50YXMgcXVlIGVsIHVzdWFyaW8gaGEgYXBhZ2FkbyBlcyBtYW5kYXIgZnVlcmEgdW5hCiAqIGNhcGFjaWRhZCBxdWUgZGVjaWRpw7Mgbm8gdXNhciwgeSBlbmNpbWEgcGFnYXIgc3VzIHRva2Vucy4gKi8KZnVuY3Rpb24gY3VlcnBvQ29uVG9vbHMoCiAgcHJvdG9jb2w6IHN0cmluZywKICBtb2RlbElkOiBzdHJpbmcsCiAgY2F0YWxvZ286IHJlYWRvbmx5IFRvb2xEZWZbXQopOiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPiB8IG51bGwgewogIGNvbnN0IHRvb2xzID0gdHJhbnNsYXRlVG9vbHMocHJvdG9jb2wgYXMgIm9wZW5haSIgfCAiYW50aHJvcGljIiB8ICJnZW1pbmkiLCBjYXRhbG9nbyk7CiAgaWYgKCF0b29scykgcmV0dXJuIG51bGw7CiAgaWYgKHByb3RvY29sID09PSAiYW50aHJvcGljIikgewogICAgcmV0dXJuIHsKICAgICAgbW9kZWw6IG1vZGVsSWQsCiAgICAgIG1heF90b2tlbnM6IDEsCiAgICAgIG1lc3NhZ2VzOiBbeyByb2xlOiAidXNlciIsIGNvbnRlbnQ6ICJoaSIgfV0sCiAgICAgIHRvb2xzOiB0b29scyBhcyB1bmtub3duLAogICAgfTsKICB9CiAgaWYgKHByb3RvY29sID09PSAiZ2VtaW5pIikgewogICAgcmV0dXJuIHsKICAgICAgY29udGVudHM6IFt7IHJvbGU6ICJ1c2VyIiwgcGFydHM6IFt7IHRleHQ6ICJoaSIgfV0gfV0sCiAgICAgIGdlbmVyYXRpb25Db25maWc6IHsgbWF4T3V0cHV0VG9rZW5zOiAxIH0sCiAgICAgIHRvb2xzOiB0b29scyBhcyB1bmtub3duLAogICAgfTsKICB9CiAgcmV0dXJuIHsKICAgIG1vZGVsOiBtb2RlbElkLAogICAgbWF4X3Rva2VuczogMSwKICAgIG1lc3NhZ2VzOiBbeyByb2xlOiAidXNlciIsIGNvbnRlbnQ6ICJoaSIgfV0sCiAgICB0b29sczogdG9vbHMgYXMgdW5rbm93biwKICB9Owp9CgovKiogQ29uc3RydXllIGVsIGJvZHkgTcONTklNTyBTSU4gdG9vbHMgcGFyYSBjb21wYXJhci4gU2kgZWwgbW9kZWxvCiAqIHJlc3BvbmRlIGlndWFsIGNvbiB5IHNpbiB0b29scywgZWwgc29wb3J0ZSBlcyBjbGFyby4gU2kgc29sbyByZXNwb25kZQogKiBzaW4gdG9vbHMsIGVsIHNvcG9ydGUgZXMgTk8uICovCmZ1bmN0aW9uIF9jdWVycG9TaW5Ub29scyhwcm90b2NvbDogc3RyaW5nLCBtb2RlbElkOiBzdHJpbmcpOiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPiB7CiAgaWYgKHByb3RvY29sID09PSAiYW50aHJvcGljIikgewogICAgcmV0dXJuIHsgbW9kZWw6IG1vZGVsSWQsIG1heF90b2tlbnM6IDEsIG1lc3NhZ2VzOiBbeyByb2xlOiAidXNlciIsIGNvbnRlbnQ6ICJoaSIgfV0gfTsKICB9CiAgaWYgKHByb3RvY29sID09PSAiZ2VtaW5pIikgewogICAgcmV0dXJuIHsKICAgICAgY29udGVudHM6IFt7IHJvbGU6ICJ1c2VyIiwgcGFydHM6IFt7IHRleHQ6ICJoaSIgfV0gfV0sCiAgICAgIGdlbmVyYXRpb25Db25maWc6IHsgbWF4T3V0cHV0VG9rZW5zOiAxIH0sCiAgICB9OwogIH0KICByZXR1cm4geyBtb2RlbDogbW9kZWxJZCwgbWF4X3Rva2VuczogMSwgbWVzc2FnZXM6IFt7IHJvbGU6ICJ1c2VyIiwgY29udGVudDogImhpIiB9XSB9Owp9CgovKiogTWFuZGEgbGEgcHJ1ZWJhIGRlIHRvb2xzIHkgZGVjaWRlIGVsIHZlcmVkaWN0by4gTm8gbGFuemE6IHNpIGFsZ28KICogZmFsbGEgYSBuaXZlbCBkZSByZWQsIGRldnVlbHZlIGBzaW4tcmVkYC4gKi8KZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHByb2JlVG9vbHMoCiAgcHJvdmlkZXJJZDogUHJvdmlkZXJJZCwKICBjb25maWc6IFByb3ZpZGVyQ29uZmlnLAogIG1vZGVsSWQ6IHN0cmluZywKICBzaWduYWw/OiBBYm9ydFNpZ25hbCwKICBjYXRhbG9nbzogcmVhZG9ubHkgVG9vbERlZltdID0gVE9PTF9DQVRBTE9HCik6IFByb21pc2U8VG9vbHNQcm9iZVJlc3VsdD4gewogIC8vIFNpIHlhIGVzdGFiYSBlbiBjYWNoZSwgc2UgZGV2dWVsdmUgc2luIHRvY2FyIGxhIHJlZC4KICBjb25zdCBjYWNoZWQgPSBnZXRDYWNoZWRUb29sc1Byb2JlKHByb3ZpZGVySWQsIGNvbmZpZywgbW9kZWxJZCk7CiAgaWYgKGNhY2hlZCkgcmV0dXJuIGNhY2hlZDsKCiAgY29uc3QgZGVmID0gZ2V0UHJvdmlkZXIocHJvdmlkZXJJZCk7CiAgY29uc3QgYmFzZSA9IChjb25maWcuYmFzZVVybCB8fCBkZWYuYmFzZVVybCkudHJpbSgpOwogIGNvbnN0IGVtcGV6w7MgPSBEYXRlLm5vdygpOwoKICAvLyBQZXRpY2nDs24gY29uIHRvb2xzLgogIGxldCBwYXRoOiBzdHJpbmc7CiAgbGV0IGV4dHJhOiBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+ID0ge307CiAgaWYgKGRlZi5wcm90b2NvbCA9PT0gImFudGhyb3BpYyIpIHsKICAgIHBhdGggPSAiL3YxL21lc3NhZ2VzIjsKICAgIGV4dHJhID0gewogICAgICAieC1hcGkta2V5IjogY29uZmlnLmFwaUtleSwKICAgICAgImFudGhyb3BpYy12ZXJzaW9uIjogIjIwMjMtMDYtMDEiLAogICAgICAiYW50aHJvcGljLWRhbmdlcm91cy1kaXJlY3QtYnJvd3Nlci1hY2Nlc3MiOiAidHJ1ZSIsCiAgICB9OwogIH0gZWxzZSBpZiAoZGVmLnByb3RvY29sID09PSAiZ2VtaW5pIikgewogICAgcGF0aCA9IGAvbW9kZWxzLyR7ZW5jb2RlVVJJQ29tcG9uZW50KG1vZGVsSWQpfTpnZW5lcmF0ZUNvbnRlbnRgOwogICAgZXh0cmEgPSB7ICJ4LWdvb2ctYXBpLWtleSI6IGNvbmZpZy5hcGlLZXkgfTsKICB9IGVsc2UgewogICAgcGF0aCA9ICIvY2hhdC9jb21wbGV0aW9ucyI7CiAgICBleHRyYSA9IHsgQXV0aG9yaXphdGlvbjogYEJlYXJlciAke2NvbmZpZy5hcGlLZXl9YCB9OwogIH0KICBjb25zdCByZXEgPSBidWlsZFJlcXVlc3QoZW5kcG9pbnQoYmFzZSwgcGF0aCksIHsgY29uZmlnLCBwcm92aWRlcklkIH0sIGV4dHJhKTsKICBjb25zdCBib2R5T2JqID0gY3VlcnBvQ29uVG9vbHMoZGVmLnByb3RvY29sLCBtb2RlbElkLCBjYXRhbG9nbyk7CiAgaWYgKCFib2R5T2JqKSB7CiAgICAvLyBDYXTDoWxvZ28gdmFjw61vIChubyBkZWJlcsOtYSBwYXNhcik6IGxvIHRyYXRhbW9zIGNvbW8gTk8uCiAgICBjb25zdCByZXN1bHQ6IFRvb2xzUHJvYmVSZXN1bHQgPSB7CiAgICAgIHN1cHBvcnQ6ICJubyIsCiAgICAgIHZlcmRpY3Q6ICJjYWlkbyIsCiAgICAgIHN0YXR1czogMCwKICAgICAgZGV0YWlsOiAiQ2F0w6Fsb2dvIGRlIHRvb2xzIHZhY8OtbyIsCiAgICAgIG1zOiBEYXRlLm5vdygpIC0gZW1wZXrDsywKICAgICAgYXQ6IERhdGUubm93KCksCiAgICB9OwogICAgcmV0dXJuIHJlc3VsdDsKICB9CiAgY29uc3QgYm9keSA9IEpTT04uc3RyaW5naWZ5KGJvZHlPYmopOwoKICBsZXQgc3RhdHVzOiBudW1iZXI7CiAgbGV0IHRleHQ6IHN0cmluZzsKICB0cnkgewogICAgY29uc3QgcmVzID0gYXdhaXQgZmV0Y2gocmVxLnRhcmdldCwgeyBtZXRob2Q6ICJQT1NUIiwgaGVhZGVyczogcmVxLmhlYWRlcnMsIGJvZHksIHNpZ25hbCB9KTsKICAgIHJlY29yZFF1b3RhSGVhZGVycyhwcm92aWRlcklkLCByZXMuaGVhZGVycyk7CiAgICBzdGF0dXMgPSByZXMuc3RhdHVzOwogICAgaWYgKCFyZXMub2spIHsKICAgICAgdHJ5IHsKICAgICAgICB0ZXh0ID0gKGF3YWl0IHJlcy50ZXh0KCkpLnNsaWNlKDAsIDQwMCk7CiAgICAgIH0gY2F0Y2ggewogICAgICAgIHRleHQgPSAiIjsKICAgICAgfQogICAgfSBlbHNlIHsKICAgICAgdGV4dCA9ICIiOwogICAgfQogIH0gY2F0Y2ggKGVycikgewogICAgY29uc3QgcmVzdWx0OiBUb29sc1Byb2JlUmVzdWx0ID0gewogICAgICBzdXBwb3J0OiAic2luLXJlZCIsCiAgICAgIHZlcmRpY3Q6IGNsYXNzaWZ5UHJvYmUoMCksCiAgICAgIHN0YXR1czogMCwKICAgICAgZGV0YWlsOiBlcnIgaW5zdGFuY2VvZiBFcnJvciA/IGVyci5tZXNzYWdlIDogdW5kZWZpbmVkLAogICAgICBtczogRGF0ZS5ub3coKSAtIGVtcGV6w7MsCiAgICAgIGF0OiBEYXRlLm5vdygpLAogICAgfTsKICAgIHJldHVybiByZXN1bHQ7CiAgfQoKICBjb25zdCBzdXBwb3J0ID0gY2xhc3NpZnlUb29sc1N1cHBvcnQoc3RhdHVzLCB0ZXh0KTsKICBjb25zdCByZXN1bHQ6IFRvb2xzUHJvYmVSZXN1bHQgPSB7CiAgICBzdXBwb3J0LAogICAgdmVyZGljdDogY2xhc3NpZnlQcm9iZShzdGF0dXMsIHRleHQpLAogICAgc3RhdHVzLAogICAgZGV0YWlsOiB0ZXh0IHx8IHVuZGVmaW5lZCwKICAgIG1zOiBEYXRlLm5vdygpIC0gZW1wZXrDsywKICAgIGF0OiBEYXRlLm5vdygpLAogIH07CiAgaWYgKGNhY2hlYWJsZShzdXBwb3J0KSkgewogICAgY2FjaGUuc2V0KGNhY2hlS2V5KHByb3ZpZGVySWQsIGNvbmZpZywgbW9kZWxJZCksIHJlc3VsdCk7CiAgfQogIHJldHVybiByZXN1bHQ7Cn0KCi8qKiBDbGFzaWZpY2EgbGEgcmVzcHVlc3RhIEhUVFAvY3VlcnBvIGVuIGBUb29sc1N1cHBvcnRgLiAqLwpleHBvcnQgZnVuY3Rpb24gY2xhc3NpZnlUb29sc1N1cHBvcnQoc3RhdHVzOiBudW1iZXIsIGJvZHkgPSAiIik6IFRvb2xzU3VwcG9ydCB7CiAgY29uc3QgdCA9IGJvZHkudG9Mb3dlckNhc2UoKTsKICBpZiAoc3RhdHVzID09PSAwKSByZXR1cm4gInNpbi1yZWQiOwogIGlmIChzdGF0dXMgPj0gMjAwICYmIHN0YXR1cyA8IDMwMCkgcmV0dXJuICJvayI7CiAgaWYgKHN0YXR1cyA9PT0gNDI5KSByZXR1cm4gImxpbWl0YWRvIjsKICBpZiAoc3RhdHVzID09PSA0MDEpIHJldHVybiAic2luLWNsYXZlIjsKICBpZiAoc3RhdHVzID09PSA0MDMpIHsKICAgIC8vIDQwMyBwdWVkZSBzZXIgc2luLXBlcm1pc28gbyBxdWUgZWwgbW9kZWxvIG5vIGV4aXN0ZSBjb24gZXN0YSBjbGF2ZS4KICAgIHJldHVybiBOT19UT09MUy5zb21lKChzKSA9PiB0LmluY2x1ZGVzKHMpKSA/ICJubyIgOiAic2luLXBlcm1pc28iOwogIH0KICBpZiAoc3RhdHVzID09PSA0MDAgfHwgc3RhdHVzID09PSA0MjIpIHsKICAgIC8vIDQwMCArIG1lbmNpw7NuIGRlIHRvb2xzL2Z1bmN0aW9uIOKGkiBOTyBzb3BvcnRhLgogICAgaWYgKE5PX1RPT0xTLnNvbWUoKHMpID0+IHQuaW5jbHVkZXMocykpKSByZXR1cm4gIm5vIjsKICAgIC8vIDQwMCBzaW4gbWVuY2nDs24gZGUgdG9vbHM6IG5vIHNhYmVtb3MuIExvIHRyYXRhbW9zIGNvbW8gZGVzY29ub2NpZG8KICAgIC8vIChOTyByb21wZSBlbCBhZ2VudGU6IHNlIGNhZSBhbCBjYW1pbm8gWE1MKS4KICAgIHJldHVybiAiZGVzY29ub2NpZG8iOwogIH0KICBpZiAoc3RhdHVzID09PSA0MDQpIHJldHVybiAiZGVzY29ub2NpZG8iOyAvLyA0MDQgZW4gZWwgbW9kZWxvLCBubyBlbiB0b29scwogIHJldHVybiAiY2FpZG8iOwp9CgovKiogwr9TZSBwdWVkZW4gbWFuZGFyIHRvb2xzIGEgZXN0ZSBtb2RlbG8/IGBsaW1pdGFkb2AgY3VlbnRhIGNvbW8gc8OtOgogKiBlbCBtb2RlbG8gbGFzIGFjZXB0YSwgc29sbyBxdWUgYWhvcmEgbWlzbW8gc2UgYWNhYsOzIGxhIGN1b3RhLiAqLwpleHBvcnQgZnVuY3Rpb24gc3VwcG9ydHNUb29scyhzOiBUb29sc1N1cHBvcnQpOiBib29sZWFuIHsKICByZXR1cm4gcyA9PT0gIm9rIiB8fCBzID09PSAibGltaXRhZG8iOwp9CgovKiogTWVuc2FqZSBjb3J0byBwYXJhIGxhIFVJLiAqLwpleHBvcnQgZnVuY3Rpb24gbWVuc2FqZVRvb2xzKHM6IFRvb2xzU3VwcG9ydCk6IHN0cmluZyB7CiAgc3dpdGNoIChzKSB7CiAgICBjYXNlICJvayI6CiAgICAgIHJldHVybiAiU29wb3J0YSB0b29scyI7CiAgICBjYXNlICJubyI6CiAgICAgIHJldHVybiAiTm8gc29wb3J0YSB0b29scyAodXNhIFhNTCkiOwogICAgY2FzZSAic2luLWNsYXZlIjoKICAgICAgcmV0dXJuICJDbGF2ZSBubyB2w6FsaWRhIjsKICAgIGNhc2UgInNpbi1wZXJtaXNvIjoKICAgICAgcmV0dXJuICJUdSBjbGF2ZSBubyB0aWVuZSBhY2Nlc28iOwogICAgY2FzZSAibGltaXRhZG8iOgogICAgICByZXR1cm4gIlNvcG9ydGEgdG9vbHMgKGN1b3RhIGFnb3RhZGEpIjsKICAgIGNhc2UgImNhaWRvIjoKICAgICAgcmV0dXJuICJFbCBwcm92ZWVkb3IgZGV2b2x2acOzIHVuIGVycm9yIjsKICAgIGNhc2UgInNpbi1yZWQiOgogICAgICByZXR1cm4gIk5vIGh1Ym8gcmVzcHVlc3RhIjsKICAgIGNhc2UgImRlc2Nvbm9jaWRvIjoKICAgICAgcmV0dXJuICJDYXBhY2lkYWQgZGUgdG9vbHMgZGVzY29ub2NpZGEiOwogIH0KfQo=
+/** Forja IA — Detección de capacidad de tools por modelo.
+ *
+ * `probeModel` solo dice si el modelo responde. Aquí se va un paso más:
+ * se manda una petición MÍNIMA con un `tools` inventado y se mira si el
+ * modelo lo acepta o lo rechaza. Muchos modelos gratis no soportan
+ * `tools` (o lo soportan mal) y encenderlo a secas rompe el agente justo
+ * en los modelos para los que existe Forja — es el fallo que el PLAN-V4
+ * identifica y arregla aquí.
+ *
+ * La prueba es cara (un round-trip), así que el resultado se cachea en
+ * memoria (no en localStorage: si cambias de clave o de proveedor, se
+ * repite la prueba la próxima vez; es lo correcto porque la capacidad
+ * puede depender de la clave).
+ *
+ * Cómo se decide el veredicto:
+ *   - 200 + cuerpo con `tool_calls` / `tool_use` / `functionCall` → OK
+ *   - 200 sin tools en la respuesta → OK (el modelo aceptó el campo y
+ *     respondió texto normal; se puede usar tools, aunque este modelo
+ *     no las aprovechó para esta pregunta trivial)
+ *   - 400 con «tools» / «function» / «functionDeclarations» en el error
+ *     → NO soporta tools
+ *   - 400 con otro mensaje → desconocido (lo tratamos como NO para no
+ *     romper el agente; el modelo ya falló en algo)
+ *   - 401/403 → sin-clave / sin-permiso (igual que `classifyProbe`)
+ *   - 429 → limitado (acepta tools, solo que se acabó la cuota)
+ *   - 5xx / sin-red → caído / sin-red (no se sabe; no se cachea)
+ */
+import { getProvider } from "./providers";
+import type { ProviderConfig, ProviderId } from "./types";
+import { buildRequest, endpoint } from "./chat-client";
+import { classifyProbe, type ProbeVerdict } from "./model-probe";
+import { translateTools } from "./tools-translate";
+import { TOOL_CATALOG, type ToolDef } from "./tools-catalog";
+import { recordQuotaHeaders } from "./quota";
+
+export type ToolsSupport =
+  | "ok" // soporta tools
+  | "no" // no las soporta
+  | "sin-clave"
+  | "sin-permiso"
+  | "limitado" // 429: soporta tools pero se acabó la cuota
+  | "caido"
+  | "sin-red"
+  | "desconocido";
+
+export interface ToolsProbeResult {
+  support: ToolsSupport;
+  /** veredicto clásico (compatible con `classifyProbe`) */
+  verdict: ProbeVerdict;
+  status: number;
+  detail?: string;
+  ms: number;
+  at: number;
+}
+
+/** Mensajes de error típicos que indican que el modelo NO soporta tools. */
+const NO_TOOLS = [
+  "tool",
+  "function",
+  "functiondeclarations",
+  "function_calling",
+  "tool_calls",
+  "tools parameter",
+  "not support",
+  "unsupported",
+  "does not support",
+  "tools are not",
+  "tools is not",
+  "no tool",
+];
+
+/** Cachea el resultado por `(providerId, modelId)` en memoria.
+ *
+ * No hace falta una función para invalidarla: la `apiKey` entra en la clave
+ * de cache, así que cambiar de clave ya estrena entrada. Había una
+ * `invalidateToolsProbe` exportada para eso y no la llamaba nadie — no podía,
+ * porque ya no hacía falta. */
+const cache = new Map<string, ToolsProbeResult>();
+
+function cacheKey(providerId: ProviderId, config: ProviderConfig, modelId: string): string {
+  // Incluye apiKey (hasheada levemente para no guardarla literal): si
+  // cambias de plan, la capacidad de tools puede cambiar.
+  const keyHash = config.apiKey.length + ":" + config.apiKey.slice(0, 4);
+  return `${providerId}::${config.baseUrl ?? ""}::${modelId}::${keyHash}`;
+}
+
+/** ¿Vale la pena cachear este resultado? Los transitorios (caído,
+ * sin-red, limitado) no: conviene volver a probar. */
+function cacheable(s: ToolsSupport): boolean {
+  return s === "ok" || s === "no" || s === "sin-clave" || s === "sin-permiso" || s === "desconocido";
+}
+
+/** Lee el cache si la entrada sigue siendo fresca. */
+export function getCachedToolsProbe(
+  providerId: ProviderId,
+  config: ProviderConfig,
+  modelId: string
+): ToolsProbeResult | null {
+  return cache.get(cacheKey(providerId, config, modelId)) ?? null;
+}
+
+
+/** Para tests: limpia toda la cache. No se usa en producción. */
+export function _clearToolsCacheForTests(): void {
+  cache.clear();
+}
+
+/** Construye el body mínimo CON tools, por protocolo. Pide 1 token
+ * de salida para no gastar más de la prueba normal.
+ *
+ * `catalogo` es el que el usuario permite, no siempre el entero: la prueba
+ * solo quiere saber si el modelo entiende `tools`, así que describir al
+ * proveedor herramientas que el usuario ha apagado es mandar fuera una
+ * capacidad que decidió no usar, y encima pagar sus tokens. */
+function cuerpoConTools(
+  protocol: string,
+  modelId: string,
+  catalogo: readonly ToolDef[]
+): Record<string, unknown> | null {
+  const tools = translateTools(protocol as "openai" | "anthropic" | "gemini", catalogo);
+  if (!tools) return null;
+  if (protocol === "anthropic") {
+    return {
+      model: modelId,
+      max_tokens: 1,
+      messages: [{ role: "user", content: "hi" }],
+      tools: tools as unknown,
+    };
+  }
+  if (protocol === "gemini") {
+    return {
+      contents: [{ role: "user", parts: [{ text: "hi" }] }],
+      generationConfig: { maxOutputTokens: 1 },
+      tools: tools as unknown,
+    };
+  }
+  return {
+    model: modelId,
+    max_tokens: 1,
+    messages: [{ role: "user", content: "hi" }],
+    tools: tools as unknown,
+  };
+}
+
+/** Construye el body MÍNIMO SIN tools para comparar. Si el modelo
+ * responde igual con y sin tools, el soporte es claro. Si solo responde
+ * sin tools, el soporte es NO. */
+function _cuerpoSinTools(protocol: string, modelId: string): Record<string, unknown> {
+  if (protocol === "anthropic") {
+    return { model: modelId, max_tokens: 1, messages: [{ role: "user", content: "hi" }] };
+  }
+  if (protocol === "gemini") {
+    return {
+      contents: [{ role: "user", parts: [{ text: "hi" }] }],
+      generationConfig: { maxOutputTokens: 1 },
+    };
+  }
+  return { model: modelId, max_tokens: 1, messages: [{ role: "user", content: "hi" }] };
+}
+
+/** Manda la prueba de tools y decide el veredicto. No lanza: si algo
+ * falla a nivel de red, devuelve `sin-red`. */
+export async function probeTools(
+  providerId: ProviderId,
+  config: ProviderConfig,
+  modelId: string,
+  signal?: AbortSignal,
+  catalogo: readonly ToolDef[] = TOOL_CATALOG
+): Promise<ToolsProbeResult> {
+  // Si ya estaba en cache, se devuelve sin tocar la red.
+  const cached = getCachedToolsProbe(providerId, config, modelId);
+  if (cached) return cached;
+
+  const def = getProvider(providerId);
+  const base = (config.baseUrl || def.baseUrl).trim();
+  const empezó = Date.now();
+
+  // Petición con tools.
+  let path: string;
+  let extra: Record<string, string> = {};
+  if (def.protocol === "anthropic") {
+    path = "/v1/messages";
+    extra = {
+      "x-api-key": config.apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    };
+  } else if (def.protocol === "gemini") {
+    path = `/models/${encodeURIComponent(modelId)}:generateContent`;
+    extra = { "x-goog-api-key": config.apiKey };
+  } else {
+    path = "/chat/completions";
+    extra = { Authorization: `Bearer ${config.apiKey}` };
+  }
+  const req = buildRequest(endpoint(base, path), { config, providerId }, extra);
+  const bodyObj = cuerpoConTools(def.protocol, modelId, catalogo);
+  if (!bodyObj) {
+    // Catálogo vacío (no debería pasar): lo tratamos como NO.
+    const result: ToolsProbeResult = {
+      support: "no",
+      verdict: "caido",
+      status: 0,
+      detail: "Catálogo de tools vacío",
+      ms: Date.now() - empezó,
+      at: Date.now(),
+    };
+    return result;
+  }
+  const body = JSON.stringify(bodyObj);
+
+  let status: number;
+  let text: string;
+  try {
+    const res = await fetch(req.target, { method: "POST", headers: req.headers, body, signal });
+    recordQuotaHeaders(providerId, res.headers);
+    status = res.status;
+    if (!res.ok) {
+      try {
+        text = (await res.text()).slice(0, 400);
+      } catch {
+        text = "";
+      }
+    } else {
+      text = "";
+    }
+  } catch (err) {
+    const result: ToolsProbeResult = {
+      support: "sin-red",
+      verdict: classifyProbe(0),
+      status: 0,
+      detail: err instanceof Error ? err.message : undefined,
+      ms: Date.now() - empezó,
+      at: Date.now(),
+    };
+    return result;
+  }
+
+  const support = classifyToolsSupport(status, text);
+  const result: ToolsProbeResult = {
+    support,
+    verdict: classifyProbe(status, text),
+    status,
+    detail: text || undefined,
+    ms: Date.now() - empezó,
+    at: Date.now(),
+  };
+  if (cacheable(support)) {
+    cache.set(cacheKey(providerId, config, modelId), result);
+  }
+  return result;
+}
+
+/** Clasifica la respuesta HTTP/cuerpo en `ToolsSupport`. */
+export function classifyToolsSupport(status: number, body = ""): ToolsSupport {
+  const t = body.toLowerCase();
+  if (status === 0) return "sin-red";
+  if (status >= 200 && status < 300) return "ok";
+  if (status === 429) return "limitado";
+  if (status === 401) return "sin-clave";
+  if (status === 403) {
+    // 403 puede ser sin-permiso o que el modelo no existe con esta clave.
+    return NO_TOOLS.some((s) => t.includes(s)) ? "no" : "sin-permiso";
+  }
+  if (status === 400 || status === 422) {
+    // 400 + mención de tools/function → NO soporta.
+    if (NO_TOOLS.some((s) => t.includes(s))) return "no";
+    // 400 sin mención de tools: no sabemos. Lo tratamos como desconocido
+    // (NO rompe el agente: se cae al camino XML).
+    return "desconocido";
+  }
+  if (status === 404) return "desconocido"; // 404 en el modelo, no en tools
+  return "caido";
+}
+
+/** ¿Se pueden mandar tools a este modelo? `limitado` cuenta como sí:
+ * el modelo las acepta, solo que ahora mismo se acabó la cuota. */
+export function supportsTools(s: ToolsSupport): boolean {
+  return s === "ok" || s === "limitado";
+}
+
+/** Mensaje corto para la UI. */
+export function mensajeTools(s: ToolsSupport): string {
+  switch (s) {
+    case "ok":
+      return "Soporta tools";
+    case "no":
+      return "No soporta tools (usa XML)";
+    case "sin-clave":
+      return "Clave no válida";
+    case "sin-permiso":
+      return "Tu clave no tiene acceso";
+    case "limitado":
+      return "Soporta tools (cuota agotada)";
+    case "caido":
+      return "El proveedor devolvió un error";
+    case "sin-red":
+      return "No hubo respuesta";
+    case "desconocido":
+      return "Capacidad de tools desconocida";
+  }
+}

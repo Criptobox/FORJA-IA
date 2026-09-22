@@ -1,1 +1,231 @@
-aW1wb3J0IHsgZXhwZWN0LCB0ZXN0IH0gZnJvbSAiLi9maXh0dXJlcyI7CgovKiogRm9yamEgSUEg4oCUIE1vZG8gUmVwYXNvOiB0YXJqZXRhcyBkZSBlc3R1ZGlvIGNvbiByZXBldGljacOzbiBlc3BhY2lhZGEuCiAqCiAqIERvcyBjYW1pbm9zIHF1ZSB0aWVuZW4gcXVlIGZ1bmNpb25hciBkZSB2ZXJkYWQ6CiAqCiAqIDEuIEVTVFVESUFSOiBjb24gdGFyamV0YXMgdmVuY2lkYXMgZW4gbGEgYmlibGlvdGVjYSwgZWwgZGnDoWxvZ28gbXVlc3RyYSBsYQogKiAgICBjb2xhLCBzZSB2b2x0ZWEgbGEgdGFyamV0YSwgc2UgY2FsaWZpY2EsIHkgwqtvdHJhIHZlesK7IGxhIGRldnVlbHZlIGFsCiAqICAgIGZpbmFsIGRlIGxhIGNvbGEgZW4gdmV6IGRlIGRlamFybGEgZnVlcmEuCiAqIDIuIEdVQVJEQVI6IGN1YW5kbyB1bmEgcmVzcHVlc3RhIGRlbCBtb2RlbG8gdHJhZSB1biBibG9xdWUgYGBgZm9yamEtcmVwYXNvLAogKiAgICBlbCBtZW5zYWplIG9mcmVjZSDCq0d1YXJkYXIgcmVwYXNvwrssIHkgbGFzIHRhcmpldGFzIGVudHJhbiBzaW4gcGlzYXIgYQogKiAgICBsYXMgcXVlIHlhIGV4aXN0w61hbiAoZHVwbGljYWRvcyBmdWVyYSkuCiAqCiAqIFNlIHNpZW1icmEgZWwgc3RvcmUgcHJvcGlvIChgZm9yamEtcmVwYXNvLXYxYCkgY29tbyBzZSBzaWVtYnJhIGVsIHByaW5jaXBhbAogKiBlbiBlbCByZXN0byBkZSBsb3Mgc3BlY3M6IGNvbiBsYXMgdGFyamV0YXMgeWEgZGVudHJvLCBuYWRhIGRlcGVuZGUgZGUgdW4KICogbW9kZWxvIGVuIHZpdm8uCiAqLwoKY29uc3QgSE9ZID0gKCgpID0+IHsKICBjb25zdCBkID0gbmV3IERhdGUoKTsKICByZXR1cm4gYCR7ZC5nZXRGdWxsWWVhcigpfS0ke1N0cmluZyhkLmdldE1vbnRoKCkgKyAxKS5wYWRTdGFydCgyLCAiMCIpfS0ke1N0cmluZyhkLmdldERhdGUoKSkucGFkU3RhcnQoMiwgIjAiKX1gOwp9KSgpOwoKY29uc3QgQVlFUiA9ICgoKSA9PiB7CiAgY29uc3QgZCA9IG5ldyBEYXRlKERhdGUubm93KCkgLSA4Nl80MDBfMDAwKTsKICByZXR1cm4gYCR7ZC5nZXRGdWxsWWVhcigpfS0ke1N0cmluZyhkLmdldE1vbnRoKCkgKyAxKS5wYWRTdGFydCgyLCAiMCIpfS0ke1N0cmluZyhkLmdldERhdGUoKSkucGFkU3RhcnQoMiwgIjAiKX1gOwp9KSgpOwoKZnVuY3Rpb24gX3NlZWRSZXBhc28odGFyamV0YXM6IHVua25vd25bXSkgewogIHJldHVybiBKU09OLnN0cmluZ2lmeSh7IHN0YXRlOiB7IHRhcmpldGFzIH0sIHZlcnNpb246IDAgfSk7Cn0KCnRlc3QoImVzdHVkaWEgbG8gdmVuY2lkbzogdm9sdGVhLCBjYWxpZmljYSwgeSDCq290cmEgdmV6wrsgdnVlbHZlIGEgbGEgY29sYSIsIGFzeW5jICh7IHBhZ2UgfSkgPT4gewogIGF3YWl0IHBhZ2UuYWRkSW5pdFNjcmlwdCgKICAgICh7IGhveSwgYXllciB9OiB7IGhveTogc3RyaW5nOyBheWVyOiBzdHJpbmcgfSkgPT4gewogICAgICB0cnkgewogICAgICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCJmb3JqYS1wcmV2aWV3LWRlbW8iLCAiMSIpOwogICAgICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKAogICAgICAgICAgImZvcmphLWFpLXYxIiwKICAgICAgICAgIEpTT04uc3RyaW5naWZ5KHsKICAgICAgICAgICAgc3RhdGU6IHsKICAgICAgICAgICAgICBzZXNzaW9uczogW10sCiAgICAgICAgICAgICAgYWN0aXZlU2Vzc2lvbklkOiBudWxsLAogICAgICAgICAgICAgIG9uYm9hcmRpbmdEb25lOiB0cnVlLAogICAgICAgICAgICAgIGZhdm9yaXRlczogW10sCiAgICAgICAgICAgICAgcmFkYXJTZWVuSWRzOiBbXSwKICAgICAgICAgICAgICBza2lsbHM6IFtdLAogICAgICAgICAgICAgIHNldHRpbmdzOiB7IGRlZmF1bHRNb2RlbEtleTogbnVsbCwgYWNjZXNzQ29kZTogIiIsIGFnZW50TW9kZXM6IFtdLCBhaG9ycm86IGZhbHNlIH0sCiAgICAgICAgICAgICAgcHJvdmlkZXJzOiB7fSwKICAgICAgICAgICAgICB2ZXJzaW9uOiAxLAogICAgICAgICAgICB9LAogICAgICAgICAgICB2ZXJzaW9uOiAwLAogICAgICAgICAgfSkKICAgICAgICApOwogICAgICAgIC8vIGRvcyB2ZW5jaWRhcyAodW5hIGRlIGF5ZXIsIG90cmEgZGUgaG95KSB5IHVuYSBxdWUgYcO6biBubyB0b2NhCiAgICAgICAgbG9jYWxTdG9yYWdlLnNldEl0ZW0oCiAgICAgICAgICAiZm9yamEtcmVwYXNvLXYxIiwKICAgICAgICAgIEpTT04uc3RyaW5naWZ5KHsKICAgICAgICAgICAgc3RhdGU6IHsKICAgICAgICAgICAgICB0YXJqZXRhczogWwogICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICBpZDogImNhcmQtc3NyZiIsCiAgICAgICAgICAgICAgICAgIGZyZW50ZTogIsK/UXXDqSBlcyBlbCBTU1JGPyIsCiAgICAgICAgICAgICAgICAgIGRvcnNvOiAiRm9yamFyIHBldGljaW9uZXMgZGVzZGUgZWwgc2Vydmlkb3IgaGFjaWEgbGEgcmVkIGludGVybmEiLAogICAgICAgICAgICAgICAgICByZXBldGljaW9uZXM6IDIsCiAgICAgICAgICAgICAgICAgIGZhY2lsaWRhZDogMi41LAogICAgICAgICAgICAgICAgICBpbnRlcnZhbG9EaWFzOiA2LAogICAgICAgICAgICAgICAgICB2ZW5jaW1pZW50bzogYXllciwKICAgICAgICAgICAgICAgICAgY3JlYWRhOiAxLAogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgaWQ6ICJjYXJkLXBpaSIsCiAgICAgICAgICAgICAgICAgIGZyZW50ZTogIsK/UXXDqSBwcm90ZWdlIGVsIGVzY3VkbyBQSUk/IiwKICAgICAgICAgICAgICAgICAgZG9yc286ICJDb3JyZW9zLCB0ZWzDqWZvbm9zLCB0YXJqZXRhcywgSUJBTiB5IEROSSwgYW50ZXMgZGUgc2FsaXIgZGVsIG5hdmVnYWRvciIsCiAgICAgICAgICAgICAgICAgIHJlcGV0aWNpb25lczogMCwKICAgICAgICAgICAgICAgICAgZmFjaWxpZGFkOiAyLjUsCiAgICAgICAgICAgICAgICAgIGludGVydmFsb0RpYXM6IDAsCiAgICAgICAgICAgICAgICAgIHZlbmNpbWllbnRvOiBob3ksCiAgICAgICAgICAgICAgICAgIGNyZWFkYTogMiwKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgIGlkOiAiY2FyZC1mdXR1cmEiLAogICAgICAgICAgICAgICAgICBmcmVudGU6ICJUYXJqZXRhIHF1ZSBhw7puIG5vIHRvY2EiLAogICAgICAgICAgICAgICAgICBkb3JzbzogIk5vIGRlYmUgc2FsaXIgaG95IiwKICAgICAgICAgICAgICAgICAgcmVwZXRpY2lvbmVzOiAxLAogICAgICAgICAgICAgICAgICBmYWNpbGlkYWQ6IDIuNSwKICAgICAgICAgICAgICAgICAgaW50ZXJ2YWxvRGlhczogNiwKICAgICAgICAgICAgICAgICAgdmVuY2ltaWVudG86ICIyOTk5LTAxLTAxIiwKICAgICAgICAgICAgICAgICAgY3JlYWRhOiAzLAogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICBdLAogICAgICAgICAgICB9LAogICAgICAgICAgICB2ZXJzaW9uOiAwLAogICAgICAgICAgfSkKICAgICAgICApOwogICAgICB9IGNhdGNoIHsKICAgICAgICAvKiBmcmFtZSBzaW4gYWNjZXNvICovCiAgICAgIH0KICAgIH0sCiAgICB7IGhveTogSE9ZLCBheWVyOiBBWUVSIH0KICApOwoKICBhd2FpdCBwYWdlLnNldFZpZXdwb3J0U2l6ZSh7IHdpZHRoOiAxNDQwLCBoZWlnaHQ6IDkwMCB9KTsKICBhd2FpdCBwYWdlLmdvdG8oIi8iKTsKICBhd2FpdCBleHBlY3QocGFnZS5sb2NhdG9yKCJ0ZXh0YXJlYSIpLmZpcnN0KCkpLnRvQmVWaXNpYmxlKHsgdGltZW91dDogMzBfMDAwIH0pOwoKICAvLyBMYSBiYXJyYSBsYXRlcmFsIHRyYWUgbGEgcHVlcnRhIGNvbiBsYSBpbnNpZ25pYSBkZSB2ZW5jaWRhcwogIGF3YWl0IHBhZ2UuZ2V0QnlSb2xlKCJidXR0b24iLCB7IG5hbWU6IC9SZXBhc28vIH0pLmNsaWNrKCk7CiAgY29uc3QgZGlhbG9nbyA9IHBhZ2UuZ2V0QnlSb2xlKCJkaWFsb2ciKTsKCiAgLy8gQ29sYSBkZSAyOiBsYSBmdXR1cmEgbm8gZW50cmEKICBhd2FpdCBleHBlY3QoZGlhbG9nby5nZXRCeVRleHQoLzFccypcL1xzKjIvKSkudG9CZVZpc2libGUoKTsKICBhd2FpdCBleHBlY3QoZGlhbG9nby5nZXRCeVRleHQoIsK/UXXDqSBlcyBlbCBTU1JGPyIpKS50b0JlVmlzaWJsZSgpOwoKICBhd2FpdCBkaWFsb2dvLmdldEJ5Um9sZSgiYnV0dG9uIiwgeyBuYW1lOiAiTW9zdHJhciByZXNwdWVzdGEiIH0pLmNsaWNrKCk7CiAgYXdhaXQgZXhwZWN0KGRpYWxvZ28uZ2V0QnlUZXh0KC9Gb3JqYXIgcGV0aWNpb25lcy8pKS50b0JlVmlzaWJsZSgpOwoKICAvLyBCaWVuIOKGkiBtYcOxYW5hOyBzYWxlIGRlIGxhIGNvbGEKICBhd2FpdCBkaWFsb2dvLmdldEJ5Um9sZSgiYnV0dG9uIiwgeyBuYW1lOiAvXkJpZW4vIH0pLmNsaWNrKCk7CgogIGF3YWl0IGV4cGVjdChkaWFsb2dvLmdldEJ5VGV4dCgiwr9RdcOpIHByb3RlZ2UgZWwgZXNjdWRvIFBJST8iKSkudG9CZVZpc2libGUoKTsKICBhd2FpdCBkaWFsb2dvLmdldEJ5Um9sZSgiYnV0dG9uIiwgeyBuYW1lOiAiTW9zdHJhciByZXNwdWVzdGEiIH0pLmNsaWNrKCk7CiAgYXdhaXQgZGlhbG9nby5nZXRCeVJvbGUoImJ1dHRvbiIsIHsgbmFtZTogL15PdHJhIHZlei8gfSkuY2xpY2soKTsKCiAgLy8gwqtPdHJhIHZlesK7IE5PIGxhIHNhY2E6IHJlYXBhcmVjZSBhbCBmaW5hbCBkZSBsYSBjb2xhICgzLzMpCiAgYXdhaXQgZXhwZWN0KGRpYWxvZ28uZ2V0QnlUZXh0KC8zXHMqXC9ccyozLykpLnRvQmVWaXNpYmxlKCk7CiAgYXdhaXQgZXhwZWN0KGRpYWxvZ28uZ2V0QnlUZXh0KCLCv1F1w6kgcHJvdGVnZSBlbCBlc2N1ZG8gUElJPyIpKS50b0JlVmlzaWJsZSgpOwogIGF3YWl0IGRpYWxvZ28uZ2V0QnlSb2xlKCJidXR0b24iLCB7IG5hbWU6ICJNb3N0cmFyIHJlc3B1ZXN0YSIgfSkuY2xpY2soKTsKICBhd2FpdCBkaWFsb2dvLmdldEJ5Um9sZSgiYnV0dG9uIiwgeyBuYW1lOiAvXkJpZW4vIH0pLmNsaWNrKCk7CgogIGF3YWl0IGV4cGVjdChkaWFsb2dvLmdldEJ5VGV4dCgvRMOtYSBjb21wbGV0YWRvL2kpKS50b0JlVmlzaWJsZSgpOwogIGF3YWl0IHBhZ2Uua2V5Ym9hcmQucHJlc3MoIkVzY2FwZSIpOwogIGF3YWl0IGV4cGVjdChwYWdlLmdldEJ5Um9sZSgiZGlhbG9nIikpLnRvSGF2ZUNvdW50KDApOwp9KTsKCnRlc3QoImd1YXJkYSBlbCBibG9xdWUgZm9yamEtcmVwYXNvIGRlc2RlIGVsIG1lbnNhamUsIHNpbiBkdXBsaWNhciIsIGFzeW5jICh7IHBhZ2UgfSkgPT4gewogIGNvbnN0IGJsb3F1ZSA9IFsKICAgICJUZSBsYXMgcmVzdW1vIGVuIHRhcmpldGFzOiIsCiAgICAiYGBgZm9yamEtcmVwYXNvIiwKICAgICd7ICJ0YXJqZXRhcyI6IFsnLAogICAgJyAgeyAiZnJlbnRlIjogIsK/UXXDqSBoYWNlIHByb3h5LWJ1ZGdldD8iLCAiZG9yc28iOiAiUG9uZSB0ZWNobyBhIGxhcyBsbGFtYWRhcyBkZSByZWzDqSBkZWwgcHJveHkiIH0sJywKICAgICcgIHsgImZyZW50ZSI6ICLCv0NhcGl0YWwgZGUgUGVyw7o/IiwgImRvcnNvIjogIkxpbWEiIH0nLAogICAgIl0gfSIsCiAgICAiYGBgIiwKICBdLmpvaW4oIlxuIik7CgogIGF3YWl0IHBhZ2UuYWRkSW5pdFNjcmlwdCgKICAgIChjb250ZW5pZG86IHN0cmluZykgPT4gewogICAgICB0cnkgewogICAgICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCJmb3JqYS1wcmV2aWV3LWRlbW8iLCAiMSIpOwogICAgICAgIGNvbnN0IGFob3JhID0gRGF0ZS5ub3coKTsKICAgICAgICBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgKICAgICAgICAgICJmb3JqYS1haS12MSIsCiAgICAgICAgICBKU09OLnN0cmluZ2lmeSh7CiAgICAgICAgICAgIHN0YXRlOiB7CiAgICAgICAgICAgICAgc2Vzc2lvbnM6IFsKICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgaWQ6ICJzZXNpb24tcmVwYXNvIiwKICAgICAgICAgICAgICAgICAgdGl0bGU6ICJDb252ZXJzYWNpw7NuIGNvbiB0YXJqZXRhcyIsCiAgICAgICAgICAgICAgICAgIGNyZWF0ZWRBdDogYWhvcmEsCiAgICAgICAgICAgICAgICAgIHVwZGF0ZWRBdDogYWhvcmEsCiAgICAgICAgICAgICAgICAgIG1lc3NhZ2VzOiBbCiAgICAgICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgICAgaWQ6ICJtMSIsCiAgICAgICAgICAgICAgICAgICAgICByb2xlOiAidXNlciIsCiAgICAgICAgICAgICAgICAgICAgICBjb250ZW50OiAiSGF6bWUgdGFyamV0YXMgZGUgZXN0YSBjaGFybGEiLAogICAgICAgICAgICAgICAgICAgICAgY3JlYXRlZEF0OiBhaG9yYSwKICAgICAgICAgICAgICAgICAgICB9LAogICAgICAgICAgICAgICAgICAgIHsgaWQ6ICJtMiIsIHJvbGU6ICJhc3Npc3RhbnQiLCBjb250ZW50OiBjb250ZW5pZG8sIGNyZWF0ZWRBdDogYWhvcmEgKyAxIH0sCiAgICAgICAgICAgICAgICAgIF0sCiAgICAgICAgICAgICAgICB9LAogICAgICAgICAgICAgIF0sCiAgICAgICAgICAgICAgYWN0aXZlU2Vzc2lvbklkOiAic2VzaW9uLXJlcGFzbyIsCiAgICAgICAgICAgICAgb25ib2FyZGluZ0RvbmU6IHRydWUsCiAgICAgICAgICAgICAgZmF2b3JpdGVzOiBbXSwKICAgICAgICAgICAgICByYWRhclNlZW5JZHM6IFtdLAogICAgICAgICAgICAgIHNraWxsczogW10sCiAgICAgICAgICAgICAgc2V0dGluZ3M6IHsgZGVmYXVsdE1vZGVsS2V5OiBudWxsLCBhY2Nlc3NDb2RlOiAiIiwgYWdlbnRNb2RlczogW10sIGFob3JybzogZmFsc2UgfSwKICAgICAgICAgICAgICBwcm92aWRlcnM6IHt9LAogICAgICAgICAgICAgIHZlcnNpb246IDEsCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgIHZlcnNpb246IDAsCiAgICAgICAgICB9KQogICAgICAgICk7CiAgICAgICAgLy8gwqvCv0NhcGl0YWwgZGUgUGVyw7o/wrsgeWEgZXhpc3RlOiBlcyBlbCBkdXBsaWNhZG8gcXVlIE5PIGRlYmUgZW50cmFyCiAgICAgICAgbG9jYWxTdG9yYWdlLnNldEl0ZW0oCiAgICAgICAgICAiZm9yamEtcmVwYXNvLXYxIiwKICAgICAgICAgIEpTT04uc3RyaW5naWZ5KHsKICAgICAgICAgICAgc3RhdGU6IHsKICAgICAgICAgICAgICB0YXJqZXRhczogWwogICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICBpZDogImNhcmQtdmllamEiLAogICAgICAgICAgICAgICAgICBmcmVudGU6ICLCv0NhcGl0YWwgZGUgUGVyw7o/IiwKICAgICAgICAgICAgICAgICAgZG9yc286ICJMaW1hIiwKICAgICAgICAgICAgICAgICAgcmVwZXRpY2lvbmVzOiAxLAogICAgICAgICAgICAgICAgICBmYWNpbGlkYWQ6IDIuNSwKICAgICAgICAgICAgICAgICAgaW50ZXJ2YWxvRGlhczogMSwKICAgICAgICAgICAgICAgICAgdmVuY2ltaWVudG86ICIyOTk5LTAxLTAxIiwKICAgICAgICAgICAgICAgICAgY3JlYWRhOiAxLAogICAgICAgICAgICAgICAgfSwKICAgICAgICAgICAgICBdLAogICAgICAgICAgICB9LAogICAgICAgICAgICB2ZXJzaW9uOiAwLAogICAgICAgICAgfSkKICAgICAgICApOwogICAgICB9IGNhdGNoIHsKICAgICAgICAvKiBmcmFtZSBzaW4gYWNjZXNvICovCiAgICAgIH0KICAgIH0sCiAgICBibG9xdWUKICApOwoKICBhd2FpdCBwYWdlLnNldFZpZXdwb3J0U2l6ZSh7IHdpZHRoOiAxNDQwLCBoZWlnaHQ6IDkwMCB9KTsKICBhd2FpdCBwYWdlLmdvdG8oIi8iKTsKICBhd2FpdCBleHBlY3QocGFnZS5sb2NhdG9yKCJ0ZXh0YXJlYSIpLmZpcnN0KCkpLnRvQmVWaXNpYmxlKHsgdGltZW91dDogMzBfMDAwIH0pOwoKICAvLyBMb3MgYm90b25lcyBkZSBhY2Npw7NuIGRlbCBtZW5zYWplIGFwYXJlY2VuIGFsIHBhc2FyIGVsIHJhdMOzbiAoZXNjcml0b3JpbykKICBjb25zdCBtZW5zYWplID0gcGFnZS5nZXRCeVRleHQoIlRlIGxhcyByZXN1bW8gZW4gdGFyamV0YXM6IikuZmlyc3QoKTsKICBhd2FpdCBtZW5zYWplLmhvdmVyKHsgZm9yY2U6IHRydWUgfSk7CiAgYXdhaXQgcGFnZS5nZXRCeVJvbGUoImJ1dHRvbiIsIHsgbmFtZTogIkd1YXJkYXIgcmVwYXNvIiB9KS5maXJzdCgpLmNsaWNrKCk7CgogIC8vIDIgcHJvcHVlc3RhcywgMSBkdXBsaWNhZGE6IGVudHJhIHVuYSBzb2xhCiAgYXdhaXQgZXhwZWN0KHBhZ2UuZ2V0QnlUZXh0KC8xIHRhcmpldGEgZ3VhcmRhZGEvKSkudG9CZVZpc2libGUoeyB0aW1lb3V0OiAxMF8wMDAgfSk7CgogIC8vIFkgZXN0w6EgZW4gbGEgYmlibGlvdGVjYSBqdW50byBhIGxhIHZpZWphLCBxdWUgY29uc2VydmEgc3UgcHJvZ3Jlc28KICBhd2FpdCBwYWdlLmdldEJ5Um9sZSgiYnV0dG9uIiwgeyBuYW1lOiAvUmVwYXNvLyB9KS5jbGljaygpOwogIGNvbnN0IGRpYWxvZ28gPSBwYWdlLmdldEJ5Um9sZSgiZGlhbG9nIik7CiAgYXdhaXQgZGlhbG9nby5nZXRCeVJvbGUoInRhYiIsIHsgbmFtZTogL0JpYmxpb3RlY2EvaSB9KS5jbGljaygpOwogIGF3YWl0IGV4cGVjdChkaWFsb2dvLmdldEJ5VGV4dCgiwr9RdcOpIGhhY2UgcHJveHktYnVkZ2V0PyIpKS50b0JlVmlzaWJsZSgpOwogIGF3YWl0IGV4cGVjdChkaWFsb2dvLmdldEJ5VGV4dCgiwr9DYXBpdGFsIGRlIFBlcsO6PyIpKS50b0JlVmlzaWJsZSgpOwp9KTsK
+import { expect, test } from "./fixtures";
+
+/** Forja IA — Modo Repaso: tarjetas de estudio con repetición espaciada.
+ *
+ * Dos caminos que tienen que funcionar de verdad:
+ *
+ * 1. ESTUDIAR: con tarjetas vencidas en la biblioteca, el diálogo muestra la
+ *    cola, se voltea la tarjeta, se califica, y «otra vez» la devuelve al
+ *    final de la cola en vez de dejarla fuera.
+ * 2. GUARDAR: cuando una respuesta del modelo trae un bloque ```forja-repaso,
+ *    el mensaje ofrece «Guardar repaso», y las tarjetas entran sin pisar a
+ *    las que ya existían (duplicados fuera).
+ *
+ * Se siembra el store propio (`forja-repaso-v1`) como se siembra el principal
+ * en el resto de los specs: con las tarjetas ya dentro, nada depende de un
+ * modelo en vivo.
+ */
+
+const HOY = (() => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+})();
+
+const AYER = (() => {
+  const d = new Date(Date.now() - 86_400_000);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+})();
+
+function _seedRepaso(tarjetas: unknown[]) {
+  return JSON.stringify({ state: { tarjetas }, version: 0 });
+}
+
+test("estudia lo vencido: voltea, califica, y «otra vez» vuelve a la cola", async ({ page }) => {
+  await page.addInitScript(
+    ({ hoy, ayer }: { hoy: string; ayer: string }) => {
+      try {
+        localStorage.setItem("forja-preview-demo", "1");
+        localStorage.setItem(
+          "forja-ai-v1",
+          JSON.stringify({
+            state: {
+              sessions: [],
+              activeSessionId: null,
+              onboardingDone: true,
+              favorites: [],
+              radarSeenIds: [],
+              skills: [],
+              settings: { defaultModelKey: null, accessCode: "", agentModes: [], ahorro: false },
+              providers: {},
+              version: 1,
+            },
+            version: 0,
+          })
+        );
+        // dos vencidas (una de ayer, otra de hoy) y una que aún no toca
+        localStorage.setItem(
+          "forja-repaso-v1",
+          JSON.stringify({
+            state: {
+              tarjetas: [
+                {
+                  id: "card-ssrf",
+                  frente: "¿Qué es el SSRF?",
+                  dorso: "Forjar peticiones desde el servidor hacia la red interna",
+                  repeticiones: 2,
+                  facilidad: 2.5,
+                  intervaloDias: 6,
+                  vencimiento: ayer,
+                  creada: 1,
+                },
+                {
+                  id: "card-pii",
+                  frente: "¿Qué protege el escudo PII?",
+                  dorso: "Correos, teléfonos, tarjetas, IBAN y DNI, antes de salir del navegador",
+                  repeticiones: 0,
+                  facilidad: 2.5,
+                  intervaloDias: 0,
+                  vencimiento: hoy,
+                  creada: 2,
+                },
+                {
+                  id: "card-futura",
+                  frente: "Tarjeta que aún no toca",
+                  dorso: "No debe salir hoy",
+                  repeticiones: 1,
+                  facilidad: 2.5,
+                  intervaloDias: 6,
+                  vencimiento: "2999-01-01",
+                  creada: 3,
+                },
+              ],
+            },
+            version: 0,
+          })
+        );
+      } catch {
+        /* frame sin acceso */
+      }
+    },
+    { hoy: HOY, ayer: AYER }
+  );
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await expect(page.locator("textarea").first()).toBeVisible({ timeout: 30_000 });
+
+  // La barra lateral trae la puerta con la insignia de vencidas
+  await page.getByRole("button", { name: /Repaso/ }).click();
+  const dialogo = page.getByRole("dialog");
+
+  // Cola de 2: la futura no entra
+  await expect(dialogo.getByText(/1\s*\/\s*2/)).toBeVisible();
+  await expect(dialogo.getByText("¿Qué es el SSRF?")).toBeVisible();
+
+  await dialogo.getByRole("button", { name: "Mostrar respuesta" }).click();
+  await expect(dialogo.getByText(/Forjar peticiones/)).toBeVisible();
+
+  // Bien → mañana; sale de la cola
+  await dialogo.getByRole("button", { name: /^Bien/ }).click();
+
+  await expect(dialogo.getByText("¿Qué protege el escudo PII?")).toBeVisible();
+  await dialogo.getByRole("button", { name: "Mostrar respuesta" }).click();
+  await dialogo.getByRole("button", { name: /^Otra vez/ }).click();
+
+  // «Otra vez» NO la saca: reaparece al final de la cola (3/3)
+  await expect(dialogo.getByText(/3\s*\/\s*3/)).toBeVisible();
+  await expect(dialogo.getByText("¿Qué protege el escudo PII?")).toBeVisible();
+  await dialogo.getByRole("button", { name: "Mostrar respuesta" }).click();
+  await dialogo.getByRole("button", { name: /^Bien/ }).click();
+
+  await expect(dialogo.getByText(/Día completado/i)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});
+
+test("guarda el bloque forja-repaso desde el mensaje, sin duplicar", async ({ page }) => {
+  const bloque = [
+    "Te las resumo en tarjetas:",
+    "```forja-repaso",
+    '{ "tarjetas": [',
+    '  { "frente": "¿Qué hace proxy-budget?", "dorso": "Pone techo a las llamadas de relé del proxy" },',
+    '  { "frente": "¿Capital de Perú?", "dorso": "Lima" }',
+    "] }",
+    "```",
+  ].join("\n");
+
+  await page.addInitScript(
+    (contenido: string) => {
+      try {
+        localStorage.setItem("forja-preview-demo", "1");
+        const ahora = Date.now();
+        localStorage.setItem(
+          "forja-ai-v1",
+          JSON.stringify({
+            state: {
+              sessions: [
+                {
+                  id: "sesion-repaso",
+                  title: "Conversación con tarjetas",
+                  createdAt: ahora,
+                  updatedAt: ahora,
+                  messages: [
+                    {
+                      id: "m1",
+                      role: "user",
+                      content: "Hazme tarjetas de esta charla",
+                      createdAt: ahora,
+                    },
+                    { id: "m2", role: "assistant", content: contenido, createdAt: ahora + 1 },
+                  ],
+                },
+              ],
+              activeSessionId: "sesion-repaso",
+              onboardingDone: true,
+              favorites: [],
+              radarSeenIds: [],
+              skills: [],
+              settings: { defaultModelKey: null, accessCode: "", agentModes: [], ahorro: false },
+              providers: {},
+              version: 1,
+            },
+            version: 0,
+          })
+        );
+        // «¿Capital de Perú?» ya existe: es el duplicado que NO debe entrar
+        localStorage.setItem(
+          "forja-repaso-v1",
+          JSON.stringify({
+            state: {
+              tarjetas: [
+                {
+                  id: "card-vieja",
+                  frente: "¿Capital de Perú?",
+                  dorso: "Lima",
+                  repeticiones: 1,
+                  facilidad: 2.5,
+                  intervaloDias: 1,
+                  vencimiento: "2999-01-01",
+                  creada: 1,
+                },
+              ],
+            },
+            version: 0,
+          })
+        );
+      } catch {
+        /* frame sin acceso */
+      }
+    },
+    bloque
+  );
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await expect(page.locator("textarea").first()).toBeVisible({ timeout: 30_000 });
+
+  // Los botones de acción del mensaje aparecen al pasar el ratón (escritorio)
+  const mensaje = page.getByText("Te las resumo en tarjetas:").first();
+  await mensaje.hover({ force: true });
+  await page.getByRole("button", { name: "Guardar repaso" }).first().click();
+
+  // 2 propuestas, 1 duplicada: entra una sola
+  await expect(page.getByText(/1 tarjeta guardada/)).toBeVisible({ timeout: 10_000 });
+
+  // Y está en la biblioteca junto a la vieja, que conserva su progreso
+  await page.getByRole("button", { name: /Repaso/ }).click();
+  const dialogo = page.getByRole("dialog");
+  await dialogo.getByRole("tab", { name: /Biblioteca/i }).click();
+  await expect(dialogo.getByText("¿Qué hace proxy-budget?")).toBeVisible();
+  await expect(dialogo.getByText("¿Capital de Perú?")).toBeVisible();
+});

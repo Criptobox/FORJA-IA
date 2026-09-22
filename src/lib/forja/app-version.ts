@@ -1,1 +1,54 @@
-LyoqIEZvcmphIElBIOKAlCBRdcOpIGNvcGlhIGRlIGxhIGFwcCBzZSBlc3TDoSBlamVjdXRhbmRvLgogKgogKiBMYSB2ZXJzacOzbiBzYWxlIGRlIHBhY2thZ2UuanNvbiBhIHRyYXbDqXMgZGUgbmV4dC5jb25maWc7IGVsIGxpdGVyYWwgZGUgYXF1w60KICogZXMgc29sbyBlbCByZXNwYWxkbyBwYXJhIGxhcyBwcnVlYmFzIHkgcGFyYSBjdWFscXVpZXIgZW50b3JubyBxdWUgbm8gcGFzZSBsYQogKiB2YXJpYWJsZS4gVW4gdGVzdCBjb21wcnVlYmEgcXVlIGxvcyBkb3MgY29pbmNpZGVuLCBwb3JxdWUgdGVuZXJsbyBlc2NyaXRvIGEKICogbWFubyBlbiBkb3Mgc2l0aW9zIHlhIGhpem8gcXVlIGRpdmVyZ2llcmFuOiBBanVzdGVzIGFudW5jacOzIMKrdjMuMcK7IGR1cmFudGUKICogY3VhdHJvIHZlcnNpb25lcy4KICovCmV4cG9ydCBjb25zdCBBUFBfVkVSU0lPTiA9IHByb2Nlc3MuZW52Lk5FWFRfUFVCTElDX0ZPUkpBX1ZFUlNJT04gfHwgIjQuNjguMSI7CmV4cG9ydCBjb25zdCBBUFBfUkVQTyA9ICJDcmlwdG9ib3gvRk9SSkEtSUEiOwoKLyoqIENvbW1pdCBkZSBlc3RhIGJ1aWxkICg3IGNhcmFjdGVyZXMpLCB2YWPDrW8gc2kgbm8gc2Ugc3Vwby4gKi8KZXhwb3J0IGNvbnN0IEFQUF9DT01NSVQgPSBwcm9jZXNzLmVudi5ORVhUX1BVQkxJQ19GT1JKQV9DT01NSVQgfHwgIiI7Ci8qKiBNb21lbnRvIGVuIHF1ZSBzZSBjb21waWzDsywgZW4gSVNPLiAqLwpleHBvcnQgY29uc3QgQVBQX0JVSUxUID0gcHJvY2Vzcy5lbnYuTkVYVF9QVUJMSUNfRk9SSkFfQlVJTFQgfHwgIiI7CgovKioKICogRXRpcXVldGEgY29ydGEgZSBpbmVxdcOtdm9jYSBkZSBsYSBjb3BpYSBlbiBlamVjdWNpw7NuOiDCq3YzLjUuMCDCtyBhMWIyYzNkwrsuCiAqCiAqIEVsIGNvbW1pdCBlcyBsbyBxdWUgZGUgdmVyZGFkIGRpc3Rpbmd1ZSBkb3MgZGVzcGxpZWd1ZXM6IGxhIHZlcnNpw7NuIHNvbGEgbm8KICogY2FtYmlhIGVudHJlIGFycmVnbG9zLCB5IHNpbiDDqWwgbm8gc2UgcHVlZGUgc2FiZXIgc2kgZWwgbmF2ZWdhZG9yIGVzdMOhCiAqIHNpcnZpZW5kbyBsYSBjb3BpYSBudWV2YSBvIHVuYSBndWFyZGFkYSBlbiBjYWNow6kuCiAqLwpleHBvcnQgZnVuY3Rpb24gYnVpbGRMYWJlbCgKICB2ZXJzaW9uID0gQVBQX1ZFUlNJT04sCiAgY29tbWl0ID0gQVBQX0NPTU1JVCwKICBidWlsdCA9IEFQUF9CVUlMVAopOiBzdHJpbmcgewogIGNvbnN0IHBhcnRlcyA9IFtgdiR7dmVyc2lvbn1gXTsKICBpZiAoY29tbWl0KSBwYXJ0ZXMucHVzaChjb21taXQpOwogIGlmIChidWlsdCkgewogICAgY29uc3QgZCA9IG5ldyBEYXRlKGJ1aWx0KTsKICAgIGlmICghTnVtYmVyLmlzTmFOKGQuZ2V0VGltZSgpKSkgcGFydGVzLnB1c2goZC50b0lTT1N0cmluZygpLnNsaWNlKDAsIDEwKSk7CiAgfQogIHJldHVybiBwYXJ0ZXMuam9pbigiIMK3ICIpOwp9CgpleHBvcnQgdHlwZSBWZXJzaW9uU3RhdHVzID0gIm9rIiB8ICJvdXRkYXRlZCIgfCAidW5rbm93biI7CgpleHBvcnQgZnVuY3Rpb24gY29tcGFyZVNlbXZlcihhOiBzdHJpbmcsIGI6IHN0cmluZyk6IG51bWJlciB7CiAgY29uc3QgcGEgPSBhLnNwbGl0KCIuIikubWFwKChuKSA9PiBwYXJzZUludChuLnJlcGxhY2UoL1xEL2csICIiKSwgMTApIHx8IDApOwogIGNvbnN0IHBiID0gYi5zcGxpdCgiLiIpLm1hcCgobikgPT4gcGFyc2VJbnQobi5yZXBsYWNlKC9cRC9nLCAiIiksIDEwKSB8fCAwKTsKICBjb25zdCBsZW4gPSBNYXRoLm1heChwYS5sZW5ndGgsIHBiLmxlbmd0aCk7CiAgZm9yIChsZXQgaSA9IDA7IGkgPCBsZW47IGkrKykgewogICAgY29uc3QgZCA9IChwYVtpXSA/PyAwKSAtIChwYltpXSA/PyAwKTsKICAgIGlmIChkICE9PSAwKSByZXR1cm4gZCA8IDAgPyAtMSA6IDE7CiAgfQogIHJldHVybiAwOwp9CgpleHBvcnQgZnVuY3Rpb24gdmVyc2lvbkNoZWNrKGxvY2FsOiBzdHJpbmcsIGxhdGVzdDogc3RyaW5nIHwgbnVsbCk6IFZlcnNpb25TdGF0dXMgewogIGlmICghbGF0ZXN0KSByZXR1cm4gInVua25vd24iOwogIHJldHVybiBjb21wYXJlU2VtdmVyKGxvY2FsLCBsYXRlc3QpID49IDAgPyAib2siIDogIm91dGRhdGVkIjsKfQo=
+/** Forja IA — Qué copia de la app se está ejecutando.
+ *
+ * La versión sale de package.json a través de next.config; el literal de aquí
+ * es solo el respaldo para las pruebas y para cualquier entorno que no pase la
+ * variable. Un test comprueba que los dos coinciden, porque tenerlo escrito a
+ * mano en dos sitios ya hizo que divergieran: Ajustes anunció «v3.1» durante
+ * cuatro versiones.
+ */
+export const APP_VERSION = process.env.NEXT_PUBLIC_FORJA_VERSION || "4.68.1";
+export const APP_REPO = "Criptobox/FORJA-IA";
+
+/** Commit de esta build (7 caracteres), vacío si no se supo. */
+export const APP_COMMIT = process.env.NEXT_PUBLIC_FORJA_COMMIT || "";
+/** Momento en que se compiló, en ISO. */
+export const APP_BUILT = process.env.NEXT_PUBLIC_FORJA_BUILT || "";
+
+/**
+ * Etiqueta corta e inequívoca de la copia en ejecución: «v3.5.0 · a1b2c3d».
+ *
+ * El commit es lo que de verdad distingue dos despliegues: la versión sola no
+ * cambia entre arreglos, y sin él no se puede saber si el navegador está
+ * sirviendo la copia nueva o una guardada en caché.
+ */
+export function buildLabel(
+  version = APP_VERSION,
+  commit = APP_COMMIT,
+  built = APP_BUILT
+): string {
+  const partes = [`v${version}`];
+  if (commit) partes.push(commit);
+  if (built) {
+    const d = new Date(built);
+    if (!Number.isNaN(d.getTime())) partes.push(d.toISOString().slice(0, 10));
+  }
+  return partes.join(" · ");
+}
+
+export type VersionStatus = "ok" | "outdated" | "unknown";
+
+export function compareSemver(a: string, b: string): number {
+  const pa = a.split(".").map((n) => parseInt(n.replace(/\D/g, ""), 10) || 0);
+  const pb = b.split(".").map((n) => parseInt(n.replace(/\D/g, ""), 10) || 0);
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d !== 0) return d < 0 ? -1 : 1;
+  }
+  return 0;
+}
+
+export function versionCheck(local: string, latest: string | null): VersionStatus {
+  if (!latest) return "unknown";
+  return compareSemver(local, latest) >= 0 ? "ok" : "outdated";
+}

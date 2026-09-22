@@ -1,1 +1,98 @@
-LyoqIEZvcmphIElBIOKAlCBhZGFwdGFkb3JlcyByZWFsZXMgZGUgZnVlbnRlcyBwYXJhIFYzMC4KICoKICogQ2FkYSBhZGFwdGFkb3IgcHJvZHVjZSBzbmFwc2hvdHMgcGVxdWXDsW9zIHBhcmEgRm9yamFTeW5jV2F0Y2hlci4gTm8gZ3VhcmRhCiAqIGNyZWRlbmNpYWxlcyBuaSBlamVjdXRhIGPDs2RpZ28gcmVtb3RvLiBFbCBjb250ZW5pZG8gc2UgbGltaXRhIGEgYXJjaGl2b3MgZGUKICogdGV4dG8gw7p0aWxlcyBwYXJhIGLDunNxdWVkYS4KICovCmltcG9ydCB0eXBlIHsgRm9yamFTZWFyY2hEb2N1bWVudCB9IGZyb20gIi4vZm9yamEtc2VhcmNoIjsKaW1wb3J0IHR5cGUgeyBGb3JqYVN5bmNMb2FkZXIsIEZvcmphU3luY1NuYXBzaG90IH0gZnJvbSAiLi9mb3JqYS1zeW5jLXdhdGNoZXIiOwppbXBvcnQgeyBjcmVhdGVNZWdhUHJvdmlkZXIgfSBmcm9tICIuL21lZ2EtcHJvdmlkZXIiOwoKY29uc3QgTUFYX0ZJTEVfQllURVMgPSA1MTJfMDAwOwpjb25zdCBNQVhfVE9UQUxfQllURVMgPSA4XzAwMF8wMDA7CmNvbnN0IFRFWFRfRVhUID0gL1wuKD86aHRtbD98Y3NzfHNjc3N8c2Fzc3xsZXNzfGpzfGpzeHxtanN8Y2pzfHRzfHRzeHxqc29ufG1kfHR4dHx4bWx8c3ZnfHZ1ZXxzdmVsdGV8YXN0cm98cHl8cmJ8cGhwfGphdmF8a3R8Z298cnN8Y3xofGNwcHxocHB8Y3N8c3dpZnR8c2h8c3FsfGdyYXBocWx8eW1sfHlhbWx8dG9tbHxpbml8Y2ZnfGNvbmZ8ZW52fGdpdGlnbm9yZSkkL2k7CgpmdW5jdGlvbiBpc1RleHRQYXRoKHBhdGg6IHN0cmluZyk6IGJvb2xlYW4geyByZXR1cm4gVEVYVF9FWFQudGVzdChwYXRoKSB8fCAvKD86XnxcLylkb2NrZXJmaWxlJC9pLnRlc3QocGF0aCk7IH0KZnVuY3Rpb24gYXNUZXh0KGJ5dGVzOiBVaW50OEFycmF5KTogc3RyaW5nIHsgcmV0dXJuIG5ldyBUZXh0RGVjb2RlcigpLmRlY29kZShieXRlcyk7IH0KCmFzeW5jIGZ1bmN0aW9uIHdhbGtTdG9yYWdlKHByb3ZpZGVyOiBSZXR1cm5UeXBlPHR5cGVvZiBjcmVhdGVNZWdhUHJvdmlkZXI+LCBwYXJlbnRJZDogc3RyaW5nIHwgdW5kZWZpbmVkLCBwcmVmaXg6IHN0cmluZywgZG9jczogRm9yamFTZWFyY2hEb2N1bWVudFtdLCBidWRnZXQ6IHsgYnl0ZXM6IG51bWJlciB9LCBtYXhEZXB0aCA9IDgpOiBQcm9taXNlPHZvaWQ+IHsKICBpZiAobWF4RGVwdGggPCAwIHx8IGJ1ZGdldC5ieXRlcyA+PSBNQVhfVE9UQUxfQllURVMpIHJldHVybjsKICBjb25zdCBpdGVtcyA9IGF3YWl0IHByb3ZpZGVyLmxpc3QocGFyZW50SWQpOwogIGZvciAoY29uc3QgaXRlbSBvZiBpdGVtcykgewogICAgY29uc3QgcGF0aCA9IHByZWZpeCA/IGAke3ByZWZpeH0vJHtpdGVtLm5hbWV9YCA6IGl0ZW0ubmFtZTsKICAgIGlmIChpdGVtLmtpbmQgPT09ICJmb2xkZXIiKSB7CiAgICAgIGF3YWl0IHdhbGtTdG9yYWdlKHByb3ZpZGVyLCBpdGVtLmlkLCBwYXRoLCBkb2NzLCBidWRnZXQsIG1heERlcHRoIC0gMSk7CiAgICAgIGNvbnRpbnVlOwogICAgfQogICAgaWYgKCFpc1RleHRQYXRoKHBhdGgpIHx8IChpdGVtLnNpemVCeXRlcyA/PyAwKSA+IE1BWF9GSUxFX0JZVEVTKSBjb250aW51ZTsKICAgIGNvbnN0IHJlbWFpbmluZyA9IE1BWF9UT1RBTF9CWVRFUyAtIGJ1ZGdldC5ieXRlczsKICAgIGlmIChyZW1haW5pbmcgPD0gMCkgYnJlYWs7CiAgICB0cnkgewogICAgICBjb25zdCBieXRlcyA9IGF3YWl0IHByb3ZpZGVyLnJlYWQoaXRlbS5pZCk7CiAgICAgIGNvbnN0IGNsaXBwZWQgPSBieXRlcy5ieXRlTGVuZ3RoID4gcmVtYWluaW5nID8gYnl0ZXMuc3ViYXJyYXkoMCwgcmVtYWluaW5nKSA6IGJ5dGVzOwogICAgICBkb2NzLnB1c2goeyBpZDogYG1lZ2E6JHtpdGVtLmlkfWAsIHBhdGgsIHRleHQ6IGFzVGV4dChjbGlwcGVkKSwgbWV0YWRhdGE6IHsgcHJvdmlkZXI6ICJtZWdhIiwgcmVtb3RlSWQ6IGl0ZW0uaWQsIHNpemVCeXRlczogaXRlbS5zaXplQnl0ZXMgPz8gMCB9IH0pOwogICAgICBidWRnZXQuYnl0ZXMgKz0gY2xpcHBlZC5ieXRlTGVuZ3RoOwogICAgfSBjYXRjaCB7IC8qIHVuIGFyY2hpdm8gcmVtb3RvIGlsZWdpYmxlIG5vIGJsb3F1ZWEgZWwgc25hcHNob3QgKi8gfQogIH0KfQoKLyoqIFNuYXBzaG90IHJlYWwgZGUgTUVHQSB1c2FuZG8gbGEgc2VzacOzbiBNRUdBIHlhIGNvbmVjdGFkYSBlbiBGb3JqYS4gKi8KZXhwb3J0IGZ1bmN0aW9uIGNyZWF0ZU1lZ2FTeW5jTG9hZGVyKGtleSA9ICJtZWdhLXJvb3QiKTogRm9yamFTeW5jTG9hZGVyIHsKICByZXR1cm4gYXN5bmMgKCk6IFByb21pc2U8Rm9yamFTeW5jU25hcHNob3Q+ID0+IHsKICAgIGNvbnN0IGRvY3M6IEZvcmphU2VhcmNoRG9jdW1lbnRbXSA9IFtdOwogICAgYXdhaXQgd2Fsa1N0b3JhZ2UoY3JlYXRlTWVnYVByb3ZpZGVyKCksIHVuZGVmaW5lZCwgIiIsIGRvY3MsIHsgYnl0ZXM6IDAgfSk7CiAgICByZXR1cm4geyBzb3VyY2U6ICJtZWdhIiwga2V5LCBkb2N1bWVudHM6IGRvY3MsIGNvbGxlY3RlZEF0OiBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCkgfTsKICB9Owp9CgpleHBvcnQgaW50ZXJmYWNlIEdpdEh1YlN5bmNPcHRpb25zIHsKICBvd25lcjogc3RyaW5nOwogIHJlcG86IHN0cmluZzsKICByZWY/OiBzdHJpbmc7CiAgdG9rZW4/OiBzdHJpbmc7Cn0KCi8qKiBTbmFwc2hvdCByZWFsIGRlIHVuIHJlcG9zaXRvcmlvIEdpdEh1YiBtZWRpYW50ZSBsYSBHaXQgVHJlZXMvQmxvYnMgQVBJLiAqLwpleHBvcnQgZnVuY3Rpb24gY3JlYXRlR2l0SHViU3luY0xvYWRlcihvcHRpb25zOiBHaXRIdWJTeW5jT3B0aW9ucyk6IEZvcmphU3luY0xvYWRlciB7CiAgcmV0dXJuIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IGhlYWRlcnM6IFJlY29yZDxzdHJpbmcsIHN0cmluZz4gPSB7IEFjY2VwdDogImFwcGxpY2F0aW9uL3ZuZC5naXRodWIranNvbiIgfTsKICAgIGlmIChvcHRpb25zLnRva2VuKSBoZWFkZXJzLkF1dGhvcml6YXRpb24gPSBgQmVhcmVyICR7b3B0aW9ucy50b2tlbn1gOwogICAgY29uc3QgYmFzZSA9IGBodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zLyR7ZW5jb2RlVVJJQ29tcG9uZW50KG9wdGlvbnMub3duZXIpfS8ke2VuY29kZVVSSUNvbXBvbmVudChvcHRpb25zLnJlcG8pfWA7CiAgICBjb25zdCByZWYgPSBlbmNvZGVVUklDb21wb25lbnQob3B0aW9ucy5yZWYgPz8gIkhFQUQiKTsKICAgIGNvbnN0IHRyZWVSZXMgPSBhd2FpdCBmZXRjaChgJHtiYXNlfS9naXQvdHJlZXMvJHtyZWZ9P3JlY3Vyc2l2ZT0xYCwgeyBoZWFkZXJzIH0pOwogICAgaWYgKCF0cmVlUmVzLm9rKSB0aHJvdyBuZXcgRXJyb3IoYEdpdEh1YiB0cmVlICR7dHJlZVJlcy5zdGF0dXN9YCk7CiAgICBjb25zdCB0cmVlID0gYXdhaXQgdHJlZVJlcy5qc29uKCkgYXMgeyB0cmVlPzogQXJyYXk8eyBwYXRoOiBzdHJpbmc7IHR5cGU6IHN0cmluZzsgc2hhOiBzdHJpbmc7IHNpemU/OiBudW1iZXIgfT47IHRydW5jYXRlZD86IGJvb2xlYW4gfTsKICAgIGNvbnN0IGRvY3M6IEZvcmphU2VhcmNoRG9jdW1lbnRbXSA9IFtdOwogICAgbGV0IGJ1ZGdldCA9IDA7CiAgICBmb3IgKGNvbnN0IGVudHJ5IG9mIHRyZWUudHJlZSA/PyBbXSkgewogICAgICBpZiAoZW50cnkudHlwZSAhPT0gImJsb2IiIHx8ICFpc1RleHRQYXRoKGVudHJ5LnBhdGgpIHx8IChlbnRyeS5zaXplID8/IDApID4gTUFYX0ZJTEVfQllURVMpIGNvbnRpbnVlOwogICAgICBpZiAoYnVkZ2V0ID49IE1BWF9UT1RBTF9CWVRFUykgYnJlYWs7CiAgICAgIHRyeSB7CiAgICAgICAgY29uc3QgcmVzID0gYXdhaXQgZmV0Y2goYCR7YmFzZX0vZ2l0L2Jsb2JzLyR7ZW5jb2RlVVJJQ29tcG9uZW50KGVudHJ5LnNoYSl9YCwgeyBoZWFkZXJzIH0pOwogICAgICAgIGlmICghcmVzLm9rKSBjb250aW51ZTsKICAgICAgICBjb25zdCBibG9iID0gYXdhaXQgcmVzLmpzb24oKSBhcyB7IGNvbnRlbnQ/OiBzdHJpbmc7IGVuY29kaW5nPzogc3RyaW5nIH07CiAgICAgICAgaWYgKCFibG9iLmNvbnRlbnQgfHwgYmxvYi5lbmNvZGluZyAhPT0gImJhc2U2NCIpIGNvbnRpbnVlOwogICAgICAgIGNvbnN0IGJ5dGVzID0gVWludDhBcnJheS5mcm9tKGF0b2IoYmxvYi5jb250ZW50LnJlcGxhY2UoL1xuL2csICIiKSksIGMgPT4gYy5jaGFyQ29kZUF0KDApKTsKICAgICAgICBjb25zdCBjbGlwcGVkID0gYnl0ZXMuc3ViYXJyYXkoMCwgTWF0aC5taW4oYnl0ZXMuYnl0ZUxlbmd0aCwgTUFYX1RPVEFMX0JZVEVTIC0gYnVkZ2V0KSk7CiAgICAgICAgZG9jcy5wdXNoKHsgaWQ6IGBnaXRodWI6JHtvcHRpb25zLm93bmVyfS8ke29wdGlvbnMucmVwb306JHtlbnRyeS5wYXRofWAsIHBhdGg6IGVudHJ5LnBhdGgsIHRleHQ6IGFzVGV4dChjbGlwcGVkKSwgbWV0YWRhdGE6IHsgcHJvdmlkZXI6ICJnaXRodWIiLCBvd25lcjogb3B0aW9ucy5vd25lciwgcmVwbzogb3B0aW9ucy5yZXBvLCBzaGE6IGVudHJ5LnNoYSwgdHJ1bmNhdGVkOiBCb29sZWFuKHRyZWUudHJ1bmNhdGVkKSB9IH0pOwogICAgICAgIGJ1ZGdldCArPSBjbGlwcGVkLmJ5dGVMZW5ndGg7CiAgICAgIH0gY2F0Y2ggeyAvKiBzaWd1ZSBjb24gZWwgcmVzdG8gKi8gfQogICAgfQogICAgcmV0dXJuIHsgc291cmNlOiAiZ2l0aHViIiwga2V5OiBgJHtvcHRpb25zLm93bmVyfS8ke29wdGlvbnMucmVwb31AJHtvcHRpb25zLnJlZiA/PyAiSEVBRCJ9YCwgZG9jdW1lbnRzOiBkb2NzLCBjb2xsZWN0ZWRBdDogbmV3IERhdGUoKS50b0lTT1N0cmluZygpIH07CiAgfTsKfQoKZXhwb3J0IGludGVyZmFjZSBTYW5kYm94U3luY0ZpbGUgeyBwYXRoOiBzdHJpbmc7IGNvbnRlbnQ6IHN0cmluZzsgfQpleHBvcnQgZnVuY3Rpb24gY3JlYXRlU2FuZGJveFN5bmNMb2FkZXIocHJvamVjdElkOiBzdHJpbmcsIGZpbGVzOiBTYW5kYm94U3luY0ZpbGVbXSk6IEZvcmphU3luY0xvYWRlciB7CiAgcmV0dXJuIGFzeW5jICgpID0+ICh7CiAgICBzb3VyY2U6ICJzYW5kYm94IiwKICAgIGtleTogYHNhbmRib3g6JHtwcm9qZWN0SWR9YCwKICAgIGRvY3VtZW50czogZmlsZXMuZmlsdGVyKGYgPT4gaXNUZXh0UGF0aChmLnBhdGgpKS5zbGljZSgwLCAyMDAwKS5tYXAoZiA9PiAoeyBpZDogYHNhbmRib3g6JHtwcm9qZWN0SWR9OiR7Zi5wYXRofWAsIHBhdGg6IGYucGF0aCwgdGV4dDogZi5jb250ZW50LnNsaWNlKDAsIDI1MF8wMDApLCBtZXRhZGF0YTogeyBwcm92aWRlcjogInNhbmRib3giLCBwcm9qZWN0SWQgfSB9KSksCiAgICBjb2xsZWN0ZWRBdDogbmV3IERhdGUoKS50b0lTT1N0cmluZygpLAogIH0pOwp9CgovKiogQ29uc3RydXllIGxvYWRlcnMgc2luIGluaWNpYXIgcG9sbGluZzogZWwgT3JjaGVzdHJhdG9yIGRlY2lkZSBjdcOhbmRvIHNpbmNyb25pemFyLiAqLwpleHBvcnQgZnVuY3Rpb24gY3JlYXRlRm9yamFTb3VyY2VMb2FkZXJzKCk6IHsgbWVnYTogKGtleT86IHN0cmluZykgPT4gRm9yamFTeW5jTG9hZGVyOyBnaXRodWI6IChvcHRpb25zOiBHaXRIdWJTeW5jT3B0aW9ucykgPT4gRm9yamFTeW5jTG9hZGVyOyBzYW5kYm94OiAocHJvamVjdElkOiBzdHJpbmcsIGZpbGVzOiBTYW5kYm94U3luY0ZpbGVbXSkgPT4gRm9yamFTeW5jTG9hZGVyIH0gewogIHJldHVybiB7IG1lZ2E6IGNyZWF0ZU1lZ2FTeW5jTG9hZGVyLCBnaXRodWI6IGNyZWF0ZUdpdEh1YlN5bmNMb2FkZXIsIHNhbmRib3g6IGNyZWF0ZVNhbmRib3hTeW5jTG9hZGVyIH07Cn0K
+/** Forja IA — adaptadores reales de fuentes para V30.
+ *
+ * Cada adaptador produce snapshots pequeños para ForjaSyncWatcher. No guarda
+ * credenciales ni ejecuta código remoto. El contenido se limita a archivos de
+ * texto útiles para búsqueda.
+ */
+import type { ForjaSearchDocument } from "./forja-search";
+import type { ForjaSyncLoader, ForjaSyncSnapshot } from "./forja-sync-watcher";
+import { createMegaProvider } from "./mega-provider";
+
+const MAX_FILE_BYTES = 512_000;
+const MAX_TOTAL_BYTES = 8_000_000;
+const TEXT_EXT = /\.(?:html?|css|scss|sass|less|js|jsx|mjs|cjs|ts|tsx|json|md|txt|xml|svg|vue|svelte|astro|py|rb|php|java|kt|go|rs|c|h|cpp|hpp|cs|swift|sh|sql|graphql|yml|yaml|toml|ini|cfg|conf|env|gitignore)$/i;
+
+function isTextPath(path: string): boolean { return TEXT_EXT.test(path) || /(?:^|\/)dockerfile$/i.test(path); }
+function asText(bytes: Uint8Array): string { return new TextDecoder().decode(bytes); }
+
+async function walkStorage(provider: ReturnType<typeof createMegaProvider>, parentId: string | undefined, prefix: string, docs: ForjaSearchDocument[], budget: { bytes: number }, maxDepth = 8): Promise<void> {
+  if (maxDepth < 0 || budget.bytes >= MAX_TOTAL_BYTES) return;
+  const items = await provider.list(parentId);
+  for (const item of items) {
+    const path = prefix ? `${prefix}/${item.name}` : item.name;
+    if (item.kind === "folder") {
+      await walkStorage(provider, item.id, path, docs, budget, maxDepth - 1);
+      continue;
+    }
+    if (!isTextPath(path) || (item.sizeBytes ?? 0) > MAX_FILE_BYTES) continue;
+    const remaining = MAX_TOTAL_BYTES - budget.bytes;
+    if (remaining <= 0) break;
+    try {
+      const bytes = await provider.read(item.id);
+      const clipped = bytes.byteLength > remaining ? bytes.subarray(0, remaining) : bytes;
+      docs.push({ id: `mega:${item.id}`, path, text: asText(clipped), metadata: { provider: "mega", remoteId: item.id, sizeBytes: item.sizeBytes ?? 0 } });
+      budget.bytes += clipped.byteLength;
+    } catch { /* un archivo remoto ilegible no bloquea el snapshot */ }
+  }
+}
+
+/** Snapshot real de MEGA usando la sesión MEGA ya conectada en Forja. */
+export function createMegaSyncLoader(key = "mega-root"): ForjaSyncLoader {
+  return async (): Promise<ForjaSyncSnapshot> => {
+    const docs: ForjaSearchDocument[] = [];
+    await walkStorage(createMegaProvider(), undefined, "", docs, { bytes: 0 });
+    return { source: "mega", key, documents: docs, collectedAt: new Date().toISOString() };
+  };
+}
+
+export interface GitHubSyncOptions {
+  owner: string;
+  repo: string;
+  ref?: string;
+  token?: string;
+}
+
+/** Snapshot real de un repositorio GitHub mediante la Git Trees/Blobs API. */
+export function createGitHubSyncLoader(options: GitHubSyncOptions): ForjaSyncLoader {
+  return async () => {
+    const headers: Record<string, string> = { Accept: "application/vnd.github+json" };
+    if (options.token) headers.Authorization = `Bearer ${options.token}`;
+    const base = `https://api.github.com/repos/${encodeURIComponent(options.owner)}/${encodeURIComponent(options.repo)}`;
+    const ref = encodeURIComponent(options.ref ?? "HEAD");
+    const treeRes = await fetch(`${base}/git/trees/${ref}?recursive=1`, { headers });
+    if (!treeRes.ok) throw new Error(`GitHub tree ${treeRes.status}`);
+    const tree = await treeRes.json() as { tree?: Array<{ path: string; type: string; sha: string; size?: number }>; truncated?: boolean };
+    const docs: ForjaSearchDocument[] = [];
+    let budget = 0;
+    for (const entry of tree.tree ?? []) {
+      if (entry.type !== "blob" || !isTextPath(entry.path) || (entry.size ?? 0) > MAX_FILE_BYTES) continue;
+      if (budget >= MAX_TOTAL_BYTES) break;
+      try {
+        const res = await fetch(`${base}/git/blobs/${encodeURIComponent(entry.sha)}`, { headers });
+        if (!res.ok) continue;
+        const blob = await res.json() as { content?: string; encoding?: string };
+        if (!blob.content || blob.encoding !== "base64") continue;
+        const bytes = Uint8Array.from(atob(blob.content.replace(/\n/g, "")), c => c.charCodeAt(0));
+        const clipped = bytes.subarray(0, Math.min(bytes.byteLength, MAX_TOTAL_BYTES - budget));
+        docs.push({ id: `github:${options.owner}/${options.repo}:${entry.path}`, path: entry.path, text: asText(clipped), metadata: { provider: "github", owner: options.owner, repo: options.repo, sha: entry.sha, truncated: Boolean(tree.truncated) } });
+        budget += clipped.byteLength;
+      } catch { /* sigue con el resto */ }
+    }
+    return { source: "github", key: `${options.owner}/${options.repo}@${options.ref ?? "HEAD"}`, documents: docs, collectedAt: new Date().toISOString() };
+  };
+}
+
+export interface SandboxSyncFile { path: string; content: string; }
+export function createSandboxSyncLoader(projectId: string, files: SandboxSyncFile[]): ForjaSyncLoader {
+  return async () => ({
+    source: "sandbox",
+    key: `sandbox:${projectId}`,
+    documents: files.filter(f => isTextPath(f.path)).slice(0, 2000).map(f => ({ id: `sandbox:${projectId}:${f.path}`, path: f.path, text: f.content.slice(0, 250_000), metadata: { provider: "sandbox", projectId } })),
+    collectedAt: new Date().toISOString(),
+  });
+}
+
+/** Construye loaders sin iniciar polling: el Orchestrator decide cuándo sincronizar. */
+export function createForjaSourceLoaders(): { mega: (key?: string) => ForjaSyncLoader; github: (options: GitHubSyncOptions) => ForjaSyncLoader; sandbox: (projectId: string, files: SandboxSyncFile[]) => ForjaSyncLoader } {
+  return { mega: createMegaSyncLoader, github: createGitHubSyncLoader, sandbox: createSandboxSyncLoader };
+}

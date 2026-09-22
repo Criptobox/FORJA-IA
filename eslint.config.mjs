@@ -1,1 +1,108 @@
-aW1wb3J0IG5leHRDb3JlV2ViVml0YWxzIGZyb20gImVzbGludC1jb25maWctbmV4dC9jb3JlLXdlYi12aXRhbHMiOwppbXBvcnQgbmV4dFR5cGVzY3JpcHQgZnJvbSAiZXNsaW50LWNvbmZpZy1uZXh0L3R5cGVzY3JpcHQiOwppbXBvcnQgeyBkaXJuYW1lIH0gZnJvbSAicGF0aCI7CmltcG9ydCB7IGZpbGVVUkxUb1BhdGggfSBmcm9tICJ1cmwiOwoKY29uc3QgX19maWxlbmFtZSA9IGZpbGVVUkxUb1BhdGgoaW1wb3J0Lm1ldGEudXJsKTsKY29uc3QgX19kaXJuYW1lID0gZGlybmFtZShfX2ZpbGVuYW1lKTsKCi8qIERvcyBmYXNlcywgcGFyYSBxdWUgZWwgbGludCB2dWVsdmEgYSBzZXIgdW5hIHJlZCBkZSBzZWd1cmlkYWQgeSBubyB1bgogKiBhZG9ybm8gYXBhZ2FkbzoKICoKICogIEZBU0UgMSAoZXJyb3Jlcyk6IGxvIHF1ZSBkZSB2ZXJkYWQgcm9tcGUgbyBlc2NvbmRlIGJ1Z3Mg4oCUIHZhcmlhYmxlcyBzaW4KICogIHVzYXIgKGNvbiBwdWVydGEgZGUgZXNjYXBlIGBeX2ApLCBgbGV0YCBxdWUgbnVuY2Egc2UgcmVhc2lnbmFuLAogKiAgcmVhc2lnbmFjaW9uZXMgZGUgcGFyw6FtZXRyb3MsIGBjYXNlYCBzaW4gYnJlYWvigKYgUmVnbGFzIGJhcmF0YXMgZGUKICogIG1hbnRlbmVyIHkgZGUgcmVudGFiaWxpZGFkIGlubWVkaWF0YS4KICoKICogIEZBU0UgMiAoYXZpc29zKTogbG8gcXVlIGNvbnZpZW5lIHZlciBzaW4gcXVlIGJsb3F1ZWUg4oCUIGBhbnlgLAogKiAgZXhoYXVzdGl2ZS1kZXBzIGRlbCBjb21waWxhZG9yIGRlIFJlYWN0LCBgPGltZz5g4oCmIEVzdMOhbiBhIGxhIHZpc3RhIHBhcmEKICogIGlyc2UgbGltcGlhbmRvIHBvciByb25kYXM7IHVuIGF2aXNvIE5PIHJvbXBlIGVsIGJ1aWxkIG5pIGVsIENJLgogKgogKiBgYXNzZXRzL2AgcXVlZGEgZnVlcmE6IGBmb3JqYS0zZC5qc2AgZXMgdW4gbcOzZHVsbyBmYWJyaWNhZG8gYSBtYW5vIHF1ZSBlbAogKiBsaW50IHJlZXNjcmliw61hIHBvciBzdSBjdWVudGEgeSByb21ww61hIGxvcyB0ZXN0cyAodmVyIGdpdCBoaXN0b3J5KS4KICovCmNvbnN0IGlnbm9yZXMgPSBbCiAgIm5vZGVfbW9kdWxlcy8qKiIsCiAgIi5uZXh0LyoqIiwKICAib3V0LyoqIiwKICAiYnVpbGQvKioiLAogICJuZXh0LWVudi5kLnRzIiwKICAiZXhhbXBsZXMvKioiLAogICJza2lsbHMiLAogICJ3b3Jrc3BhY2UvKioiLAogICJkb3dubG9hZC8qKiIsCiAgInNjcmlwdHMvKioiLAogICJkYi8qKiIsCiAgIi56c2NyaXB0cy8qKiIsCiAgIm1vdG9yLWZvcmphLyoqIiwKICAicHVibGljL21vdG9yLWZvcmphLm1qcyIsCiAgImFzc2V0cy8qKiIsCl07Cgpjb25zdCBlc2xpbnRDb25maWcgPSBbCiAgLi4ubmV4dENvcmVXZWJWaXRhbHMsCiAgLi4ubmV4dFR5cGVzY3JpcHQsCiAgewogICAgaWdub3JlcywKICB9LAogIHsKICAgIHJ1bGVzOiB7CiAgICAgIC8qIC0tLS0gRkFTRSAyOiBhdmlzb3MgKG5vIGJsb3F1ZWFuKSAtLS0tICovCiAgICAgICJAdHlwZXNjcmlwdC1lc2xpbnQvbm8tZXhwbGljaXQtYW55IjogIndhcm4iLAogICAgICAiQHR5cGVzY3JpcHQtZXNsaW50L25vLW5vbi1udWxsLWFzc2VydGlvbiI6ICJ3YXJuIiwKICAgICAgIkB0eXBlc2NyaXB0LWVzbGludC9iYW4tdHMtY29tbWVudCI6ICJ3YXJuIiwKICAgICAgInJlYWN0LWhvb2tzL2V4aGF1c3RpdmUtZGVwcyI6ICJ3YXJuIiwKICAgICAgInJlYWN0LWhvb2tzL3B1cml0eSI6ICJ3YXJuIiwKICAgICAgInJlYWN0LWhvb2tzL3NldC1zdGF0ZS1pbi1lZmZlY3QiOiAid2FybiIsCiAgICAgIC8qIHJlYWN0LWNvbXBpbGVyL3JlYWN0LWNvbXBpbGVyOiBlbCBwbHVnaW4gbm8gdmllbmUgZW4gbGFzIGRlcHMgZGVsCiAgICAgICAqIHByb3llY3RvIHkgRVNMaW50IGxvIGV4aWdlIHJlZ2lzdHJhZG8gZW4gY3VhbnRvIGxhIHJlZ2xhIG5vIGVzdMOhCiAgICAgICAqIMKrb2ZmwrsuIFNlIGFwYWdhIGhhc3RhIGluc3RhbGFybG8gZGUgdmVyZGFkLiAqLwogICAgICAiQG5leHQvbmV4dC9uby1pbWctZWxlbWVudCI6ICJ3YXJuIiwKICAgICAgIm5vLWNvbnNvbGUiOiAib2ZmIiwKICAgICAgIm5vLWRlYnVnZ2VyIjogIndhcm4iLAogICAgICAibm8tZW1wdHkiOiAid2FybiIsCiAgICB9LAogIH0sCiAgewogICAgcnVsZXM6IHsKICAgICAgLyogLS0tLSBGQVNFIDE6IGVycm9yZXMgKGJsb3F1ZWFuKSAtLS0tICovCiAgICAgICJAdHlwZXNjcmlwdC1lc2xpbnQvbm8tdW51c2VkLXZhcnMiOiBbCiAgICAgICAgImVycm9yIiwKICAgICAgICB7CiAgICAgICAgICBhcmdzOiAiYWxsIiwKICAgICAgICAgIGFyZ3NJZ25vcmVQYXR0ZXJuOiAiXl8iLAogICAgICAgICAgdmFyc0lnbm9yZVBhdHRlcm46ICJeXyIsCiAgICAgICAgICBjYXVnaHRFcnJvcnNJZ25vcmVQYXR0ZXJuOiAiXl8iLAogICAgICAgIH0sCiAgICAgIF0sCiAgICAgICJwcmVmZXItY29uc3QiOiAiZXJyb3IiLAogICAgICAiQHR5cGVzY3JpcHQtZXNsaW50L3ByZWZlci1hcy1jb25zdCI6ICJlcnJvciIsCiAgICAgICJuby12YXIiOiAiZXJyb3IiLAogICAgICAibm8taXJyZWd1bGFyLXdoaXRlc3BhY2UiOiAiZXJyb3IiLAogICAgICAibm8tY2FzZS1kZWNsYXJhdGlvbnMiOiAiZXJyb3IiLAogICAgICAibm8tZmFsbHRocm91Z2giOiAiZXJyb3IiLAogICAgICAibm8tbWl4ZWQtc3BhY2VzLWFuZC10YWJzIjogImVycm9yIiwKICAgICAgIm5vLXJlZGVjbGFyZSI6ICJlcnJvciIsCiAgICAgICJuby11bnJlYWNoYWJsZSI6ICJlcnJvciIsCiAgICAgICJuby11c2VsZXNzLWVzY2FwZSI6ICJlcnJvciIsCgogICAgICAvKiBBcGFnYWRhcyBhIGNvbmNpZW5jaWE6IGxhcyBtYW50dXZvIGxhIGJhc2UgeSBhcXXDrSB2YSBlbCBwb3IgcXXDqS4KICAgICAgICogLSByZWFjdC9kaXNwbGF5LW5hbWUgeSByZWFjdC9wcm9wLXR5cGVzOiBjb24gZnVuY2lvbmVzIHkgdGlwb3MgZGUKICAgICAgICogICBUUyBubyBhcG9ydGFuIG5hZGEuCiAgICAgICAqIC0gbm8tdW5kZWY6IFRTIHlhIGxvIGxsZXZhICh5IHNlIGVxdWl2b2NhIG1lbm9zIGNvbiBsb3MgdGlwb3MpLgogICAgICAgKiAtIG5vLXVudXNlZC12YXJzIChlbCBuYXRpdm8pOiByaWdlIGxhIHZlcnNpw7NuIGRlIEB0eXBlc2NyaXB0LWVzbGludCwKICAgICAgICogICBkdXBsaWNhcmxvIHNvbG8gZGEgYXZpc29zIGRvYmxlcy4KICAgICAgICogLSBuby1odG1sLWxpbmstZm9yLXBhZ2VzOiBlbCBwcm95ZWN0byBubyB1c2EgPGE+IHBhcmEgcnV0YXMKICAgICAgICogICBpbnRlcm5hcyBzYWx2byBjYXNvcyBtZWRpZG9zLiAqLwogICAgICAicmVhY3QvZGlzcGxheS1uYW1lIjogIm9mZiIsCiAgICAgICJyZWFjdC9wcm9wLXR5cGVzIjogIm9mZiIsCiAgICAgICJyZWFjdC9uby11bmVzY2FwZWQtZW50aXRpZXMiOiAib2ZmIiwKICAgICAgIm5vLXVuZGVmIjogIm9mZiIsCiAgICAgICJuby11bnVzZWQtdmFycyI6ICJvZmYiLAogICAgICAiQG5leHQvbmV4dC9uby1odG1sLWxpbmstZm9yLXBhZ2VzIjogIm9mZiIsCiAgICAgICJAdHlwZXNjcmlwdC1lc2xpbnQvbm8tdW51c2VkLWRpc2FibGUtZGlyZWN0aXZlIjogIm9mZiIsCiAgICB9LAogIH0sCl07CgpleHBvcnQgZGVmYXVsdCBlc2xpbnRDb25maWc7Cg==
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/* Dos fases, para que el lint vuelva a ser una red de seguridad y no un
+ * adorno apagado:
+ *
+ *  FASE 1 (errores): lo que de verdad rompe o esconde bugs — variables sin
+ *  usar (con puerta de escape `^_`), `let` que nunca se reasignan,
+ *  reasignaciones de parámetros, `case` sin break… Reglas baratas de
+ *  mantener y de rentabilidad inmediata.
+ *
+ *  FASE 2 (avisos): lo que conviene ver sin que bloquee — `any`,
+ *  exhaustive-deps del compilador de React, `<img>`… Están a la vista para
+ *  irse limpiando por rondas; un aviso NO rompe el build ni el CI.
+ *
+ * `assets/` queda fuera: `forja-3d.js` es un módulo fabricado a mano que el
+ * lint reescribía por su cuenta y rompía los tests (ver git history).
+ */
+const ignores = [
+  "node_modules/**",
+  ".next/**",
+  "out/**",
+  "build/**",
+  "next-env.d.ts",
+  "examples/**",
+  "skills",
+  "workspace/**",
+  "download/**",
+  "scripts/**",
+  "db/**",
+  ".zscripts/**",
+  "motor-forja/**",
+  "public/motor-forja.mjs",
+  "assets/**",
+];
+
+const eslintConfig = [
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  {
+    ignores,
+  },
+  {
+    rules: {
+      /* ---- FASE 2: avisos (no bloquean) ---- */
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-non-null-assertion": "warn",
+      "@typescript-eslint/ban-ts-comment": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+      /* react-compiler/react-compiler: el plugin no viene en las deps del
+       * proyecto y ESLint lo exige registrado en cuanto la regla no está
+       * «off». Se apaga hasta instalarlo de verdad. */
+      "@next/next/no-img-element": "warn",
+      "no-console": "off",
+      "no-debugger": "warn",
+      "no-empty": "warn",
+    },
+  },
+  {
+    rules: {
+      /* ---- FASE 1: errores (bloquean) ---- */
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          args: "all",
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "prefer-const": "error",
+      "@typescript-eslint/prefer-as-const": "error",
+      "no-var": "error",
+      "no-irregular-whitespace": "error",
+      "no-case-declarations": "error",
+      "no-fallthrough": "error",
+      "no-mixed-spaces-and-tabs": "error",
+      "no-redeclare": "error",
+      "no-unreachable": "error",
+      "no-useless-escape": "error",
+
+      /* Apagadas a conciencia: las mantuvo la base y aquí va el por qué.
+       * - react/display-name y react/prop-types: con funciones y tipos de
+       *   TS no aportan nada.
+       * - no-undef: TS ya lo lleva (y se equivoca menos con los tipos).
+       * - no-unused-vars (el nativo): rige la versión de @typescript-eslint,
+       *   duplicarlo solo da avisos dobles.
+       * - no-html-link-for-pages: el proyecto no usa <a> para rutas
+       *   internas salvo casos medidos. */
+      "react/display-name": "off",
+      "react/prop-types": "off",
+      "react/no-unescaped-entities": "off",
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      "@next/next/no-html-link-for-pages": "off",
+      "@typescript-eslint/no-unused-disable-directive": "off",
+    },
+  },
+];
+
+export default eslintConfig;

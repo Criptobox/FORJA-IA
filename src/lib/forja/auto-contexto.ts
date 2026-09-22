@@ -1,1 +1,220 @@
-LyoqIEZvcmphIElBIOKAlCBBdXRvIENvbnRleHQgKHBsYW4gdMOpY25pY28gwqcyKTogZWwgdXN1YXJpbyBubyBkZWJlcsOtYSB0ZW5lcgogKiBxdWUgZXhwbGljYXIgcXXDqSBhcmNoaXZvcyBuaSBxdcOpIGRlY2lzaW9uZXMgc29uIHJlbGV2YW50ZXMuIEFudGVzIGRlCiAqIGxsYW1hciBhbCBtb2RlbG8sIEZvcmphIGRldGVjdGEgbG8gcGVydGluZW50ZSBjb24gaGV1csOtc3RpY2EgbG9jYWwKICogKGtleXdvcmRzICsgTElLRSksIHNpbiBnYXN0YXIgdW5hIGxsYW1hZGEgZXh0cmEgbmkgZW1iZWRkaW5ncy4KICoKICogRmx1am86CiAqICAgcHJvbXB0IOKGkiBleHRyYWVyIGtleXdvcmRzIOKGkiBidXNjYXIgZW4gYXJjaGl2b3MgZGVsIHByb3llY3RvIChtYXBhKSArCiAqICAgbWVtb3JpYSBlc3RydWN0dXJhZGEg4oaSIGJsb3F1ZSBkZSBjb250ZXh0byBwYXJhIGVsIHByb21wdCArIHJlc3VtZW4KICogICBjb250YWJsZSBwYXJhIGxhIFVJICjCqzQgYXJjaGl2b3MgwrcgMyBtZW1vcmlhcyDCtyAxIGVycm9ywrspLgogKgogKiBFcyBwdXJvIHkga2V5d29yZC1iYXNlZCBhIHByb3DDs3NpdG86IGxhIHZlcnNpw7NuIGNvbiBlbWJlZGRpbmdzIGxvY2FsZXMKICogZXMgZmFzZSBmdXR1cmEgeSBzb2xvIHZhbGRyw61hIGxhIHBlbmEgc2kgZXN0YSB2YWxpZGFyYSBzdSB1dGlsaWRhZC4KICovCgppbXBvcnQgdHlwZSB7IE1lbW9yaWFQcm95ZWN0byB9IGZyb20gIi4vbWVtb3JpYS1wcm95ZWN0byI7CmltcG9ydCB0eXBlIHsgUHJvamVjdE1hcCB9IGZyb20gIi4vdHlwZXMiOwoKLyoqIFJlc3VsdGFkbyBkZSBsYSBiw7pzcXVlZGEgZGUgY29udGV4dG8gcGFyYSBVTiB0dXJuby4gKi8KZXhwb3J0IGludGVyZmFjZSBDb250ZXh0b0VuY29udHJhZG8gewogIC8qKiBhcmNoaXZvcyBkZWwgcHJveWVjdG8gbWVuY2lvbmFkb3MgbyBwZXJ0aW5lbnRlcyAqLwogIGFyY2hpdm9zOiBzdHJpbmdbXTsKICAvKiogZGVjaXNpb25lcyBxdWUgYWZlY3RhbiBhbCBlbmNhcmdvICovCiAgZGVjaXNpb25lczogc3RyaW5nW107CiAgLyoqIGVycm9yZXMgcHJldmlvcyBwZXJ0aW5lbnRlcyAoY29uIHN1IHNvbHVjacOzbiBzaSBleGlzdGUpICovCiAgZXJyb3Jlczogc3RyaW5nW107CiAgLyoqIHJlZ2xhcyDCq25vIHRvY2FywrsgcXVlIGFmZWN0YW4gYSBsb3MgYXJjaGl2b3MgZGV0ZWN0YWRvcyAqLwogIHJlZ2xhczogc3RyaW5nW107CiAgLyoqIG5vdGFzIGRlbCBtYXBhIHBlcnRpbmVudGVzICovCiAgbm90YXM6IHN0cmluZ1tdOwp9CgpleHBvcnQgY29uc3QgQ09OVEVYVE9fVkFDSU9fVFVSTk86IENvbnRleHRvRW5jb250cmFkbyA9IHsKICBhcmNoaXZvczogW10sCiAgZGVjaXNpb25lczogW10sCiAgZXJyb3JlczogW10sCiAgcmVnbGFzOiBbXSwKICBub3RhczogW10sCn07CgovKiogU3RvcHdvcmRzIEVTL0VOIG3DrW5pbWFzLiBMYSBoZXVyw61zdGljYSBlcyBjaGFybGEgbG9jYWw6IG5vIGhhY2UgZmFsdGEKICogdW4gdG9rZW5pemFkb3IsIGhhY2UgZmFsdGEgbm8gZGV2b2x2ZXIgwqtkZSBsYSBxdWUgcGFyYcK7LiAqLwpjb25zdCBTVE9QV09SRFMgPSBuZXcgU2V0KFsKICAiZWwiLCJsYSIsImxvcyIsImxhcyIsInVuIiwidW5hIiwidW5vcyIsInVuYXMiLCJkZSIsImRlbCIsImFsIiwiYSIsImFudGUiLCJiYWpvIiwiY29uIiwiY29udHJhIiwiZGVzZGUiLCJlbiIsImVudHJlIiwiaGFjaWEiLCJwYXJhIiwicG9yIiwic2VndW4iLCJzaW4iLCJzb2JyZSIsInRyYXMiLCJ5IiwibyIsInUiLCJlIiwicXVlIiwiY29tbyIsIm11eSIsIm3DoXMiLCJtYXMiLCJwZXJvIiwicG9ycXVlIiwiY3VhbmRvIiwiY3VhbCIsImN1YWxlcyIsImRvbmRlIiwicXVpZW4iLCJxdWllcm8iLCJxdWllcmFzIiwicHVlZGVzIiwicG9kcmlhcyIsImZhdm9yIiwiZ3JhY2lhcyIsImhvbGEiLCJ0aGUiLCJhbmQiLCJmb3IiLCJ3aXRoIiwidGhhdCIsInRoaXMiLCJmcm9tIiwiaW50byIsInlvdXIiLCJ5b3UiLCJvdXIiLCJhcmUiLCJ3YXMiLCJ3ZXJlIiwiaGF2ZSIsImhhcyIsImNhbiIsImNvdWxkIiwid291bGQiLCJzaG91bGQiLCJwbGVhc2UiLCJ0aGFua3MiLCJoZWxsbyIsIm1ha2UiLCJjcmVhdGUiLCJidWlsZCIsInBhZ2UiLCJ3ZWJzaXRlIiwid2ViIiwiYXBwIiwKXSk7CgovKiogRXh0cmFlIHTDqXJtaW5vcyBkZSBiw7pzcXVlZGEgZGVsIHByb21wdDogcGFsYWJyYXMgZGUgY29udGVuaWRvLCBub21icmVzCiAqIGRlIGFyY2hpdm8geSBydXRhcy4gRGVkdXBsaWNhZG8geSBhY290YWRvICgxNSB0w6lybWlub3MpLiAqLwpleHBvcnQgZnVuY3Rpb24gZXh0cmFlcktleXdvcmRzKHByb21wdDogc3RyaW5nKTogc3RyaW5nW10gewogIGNvbnN0IHQgPSAocHJvbXB0ID8/ICIiKS50b0xvd2VyQ2FzZSgpOwogIGlmICghdC50cmltKCkpIHJldHVybiBbXTsKICBjb25zdCBvdXQ6IHN0cmluZ1tdID0gW107CgogIC8vIHJ1dGFzIHkgbm9tYnJlcyBkZSBhcmNoaXZvIGNvbiBleHRlbnNpw7NuIHByaW1lcm8gKG3DoXhpbWEgc2XDsWFsKQogIGNvbnN0IHJ1dGFzID0gdC5tYXRjaCgvW1x3Li8tXStcLihodG1sP3xjc3N8anN8anN4fHRzfHRzeHxqc29ufG1kfHN2Z3xweXxtanN8Y2pzKS9nKSA/PyBbXTsKICBmb3IgKGNvbnN0IHIgb2YgcnV0YXMpIHsKICAgIGlmICghb3V0LmluY2x1ZGVzKHIpKSBvdXQucHVzaChyKTsKICB9CgogIGNvbnN0IHBhbGFicmFzID0gdAogICAgLnNwbGl0KC9bXlx3w6HDqcOtw7PDusOxw7xdKy8pCiAgICAuZmlsdGVyKChwKSA9PiBwLmxlbmd0aCA+PSA0ICYmICFTVE9QV09SRFMuaGFzKHApICYmICEvXlxkKyQvLnRlc3QocCkpOwogIGZvciAoY29uc3QgcCBvZiBwYWxhYnJhcykgewogICAgaWYgKG91dC5sZW5ndGggPj0gMTUpIGJyZWFrOwogICAgaWYgKCFvdXQuaW5jbHVkZXMocCkpIG91dC5wdXNoKHApOwogIH0KICByZXR1cm4gb3V0Owp9CgovKiogUHVudHVhY2nDs24gZGUgdW4gdGV4dG8gY29udHJhIGxhcyBrZXl3b3JkczogY3XDoW50YXMgYXBhcmVjZW4sIGNvbgogKiBib251cyBwb3IgYXBhcmljaW9uZXMgbcO6bHRpcGxlcyAodG9wZSAzIHBvciB0w6lybWlubyBwYXJhIG5vIGluZmxhcikuICovCmZ1bmN0aW9uIHB1bnR1YXIodGV4dG86IHN0cmluZywga2V5d29yZHM6IHJlYWRvbmx5IHN0cmluZ1tdKTogbnVtYmVyIHsKICBpZiAoIXRleHRvKSByZXR1cm4gMDsKICBjb25zdCB0ID0gdGV4dG8udG9Mb3dlckNhc2UoKTsKICBsZXQgbiA9IDA7CiAgZm9yIChjb25zdCBrIG9mIGtleXdvcmRzKSB7CiAgICBjb25zdCBpID0gdC5zcGxpdChrKS5sZW5ndGggLSAxOwogICAgaWYgKGkgPiAwKSBuICs9IDEgKyBNYXRoLm1pbigyLCBpIC0gMSk7CiAgfQogIHJldHVybiBuOwp9CgovKiogQnVzY2EgZWwgY29udGV4dG8gcmVsZXZhbnRlIHBhcmEgdW4gZW5jYXJnbywgY3J1emFuZG8gZWwgcHJvbXB0IGNvbiBlbAogKiBtYXBhIGRlbCBwcm95ZWN0byB5IGxhIG1lbW9yaWEgZXN0cnVjdHVyYWRhLgogKgogKiBgYXJjaGl2b3NEaXNwb25pYmxlc2Agc29uIGxhcyBydXRhcyBSRUFMRVMgcXVlIGV4aXN0ZW4gKGRlbCBTYW5kYm94IG8KICogZGVsIG1hcGEpOiB1biBhcmNoaXZvIHF1ZSBubyBleGlzdGUgbm8gdmlhamEgY29tbyBjb250ZXh0bywgc2UgYXZpc2EKICogYXBhcnRlIHNpIGVsIHByb21wdCBsbyBub21icmFiYSAoZGVzYWx1Y2luYWNpw7NuIGJhcmF0YSkuICovCmV4cG9ydCBmdW5jdGlvbiBidXNjYXJDb250ZXh0bygKICBwcm9tcHQ6IHN0cmluZywKICBkYXRvczogewogICAgYXJjaGl2b3NEaXNwb25pYmxlcz86IHJlYWRvbmx5IHN0cmluZ1tdOwogICAgY29udGVuaWRvQXJjaGl2b3M/OiBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+OwogICAgbWFwYT86IFByb2plY3RNYXAgfCBudWxsOwogICAgbWVtb3JpYT86IE1lbW9yaWFQcm95ZWN0byB8IG51bGw7CiAgICByZWdsYXM/OiByZWFkb25seSB7IHBhdHJvbjogc3RyaW5nOyBtb3Rpdm86IHN0cmluZyB9W107CiAgfQopOiBDb250ZXh0b0VuY29udHJhZG8gewogIGNvbnN0IGt3ID0gZXh0cmFlcktleXdvcmRzKHByb21wdCk7CiAgaWYgKCFrdy5sZW5ndGgpIHJldHVybiB7IC4uLkNPTlRFWFRPX1ZBQ0lPX1RVUk5PIH07CiAgLy8gT0pPOiBjb3BpYSBQUk9GVU5EQSBkZSBsb3MgYXJyYXlzLCBubyBzcHJlYWQuIGB7Li4uVkFDSU99YCBjb21wYXJ0ZSBsYXMKICAvLyByZWZlcmVuY2lhcyBkZSBsb3MgYXJyYXlzIGludGVybm9zIHkgdW4gYHB1c2hgIGRlIHVuYSBsbGFtYWRhIGNvbnRhbWluYWJhCiAgLy8gYSBsYSBzaWd1aWVudGUgKHkgY29uIGVsbG8sIGVsIGNvbnRleHRvIGRlIHVuIHR1cm5vIGRpc3RpbnRvKS4KICBjb25zdCByZXM6IENvbnRleHRvRW5jb250cmFkbyA9IHsKICAgIGFyY2hpdm9zOiBbXSwKICAgIGRlY2lzaW9uZXM6IFtdLAogICAgZXJyb3JlczogW10sCiAgICByZWdsYXM6IFtdLAogICAgbm90YXM6IFtdLAogIH07CgogIC8vIOKAlOKAlOKAlCBhcmNoaXZvcyDigJTigJTigJQKICBjb25zdCBkaXNwb25pYmxlcyA9IGRhdG9zLmFyY2hpdm9zRGlzcG9uaWJsZXMgPz8gW107CiAgY29uc3QgY29udGVuaWRvcyA9IGRhdG9zLmNvbnRlbmlkb0FyY2hpdm9zID8/IHt9OwogIGNvbnN0IHB1bnR1YWRvczogeyBwYXRoOiBzdHJpbmc7IG46IG51bWJlciB9W10gPSBbXTsKICBmb3IgKGNvbnN0IHBhdGggb2YgZGlzcG9uaWJsZXMpIHsKICAgIGxldCBuID0gcHVudHVhcihwYXRoLCBrdyk7CiAgICBjb25zdCBjb250ZW5pZG8gPSBjb250ZW5pZG9zW3BhdGhdOwogICAgaWYgKG4gPT09IDAgJiYgY29udGVuaWRvKSB7CiAgICAgIC8vIGVsIG5vbWJyZSBubyBtZW5jaW9uYSBuYWRhOiBtaXJhIGVsIGNvbnRlbmlkbyAodMOpcm1pbm9zLCBubyBydXRhcykKICAgICAgbiA9IHB1bnR1YXIoY29udGVuaWRvLnNsaWNlKDAsIDQwMDApLCBrdykgPj0gMiA/IDEgOiAwOwogICAgfQogICAgaWYgKG4gPiAwKSBwdW50dWFkb3MucHVzaCh7IHBhdGgsIG4gfSk7CiAgfQogIHJlcy5hcmNoaXZvcyA9IHB1bnR1YWRvcwogICAgLnNvcnQoKGEsIGIpID0+IGIubiAtIGEubikKICAgIC5zbGljZSgwLCA2KQogICAgLm1hcCgocCkgPT4gcC5wYXRoKTsKCiAgLy8g4oCU4oCU4oCUIG1hcGE6IHJlc3VtZW4gZGUgYXJjaGl2b3MgcGVydGluZW50ZXMgKyBub3RhcyDigJTigJTigJQKICBjb25zdCBtYXBhID0gZGF0b3MubWFwYSA/PyBudWxsOwogIGlmIChtYXBhKSB7CiAgICBmb3IgKGNvbnN0IGYgb2YgbWFwYS5maWxlcykgewogICAgICBpZiAocmVzLmFyY2hpdm9zLmluY2x1ZGVzKGYubmFtZSkpIGNvbnRpbnVlOwogICAgICBpZiAocHVudHVhcihgJHtmLm5hbWV9ICR7Zi5zdW1tYXJ5fSAkeyhmLmZlYXR1cmVzID8/IFtdKS5qb2luKCIgIil9YCwga3cpID4gMSkgewogICAgICAgIHJlcy5hcmNoaXZvcy5wdXNoKGYubmFtZSk7CiAgICAgICAgaWYgKHJlcy5hcmNoaXZvcy5sZW5ndGggPj0gOCkgYnJlYWs7CiAgICAgIH0KICAgIH0KICAgIHJlcy5ub3RhcyA9IChtYXBhLm5vdGVzID8/IFtdKQogICAgICAuZmlsdGVyKChuKSA9PiBwdW50dWFyKG4sIGt3KSA+IDApCiAgICAgIC5zbGljZSgwLCA0KTsKICB9CgogIC8vIOKAlOKAlOKAlCBtZW1vcmlhIGVzdHJ1Y3R1cmFkYSDigJTigJTigJQKICBjb25zdCBtZW0gPSBkYXRvcy5tZW1vcmlhID8/IG51bGw7CiAgaWYgKG1lbSkgewogICAgcmVzLmRlY2lzaW9uZXMgPSBtZW0uZGVjaXNpb25lcwogICAgICAuZmlsdGVyKChkKSA9PiB7CiAgICAgICAgY29uc3QgYmFzZSA9IHB1bnR1YXIoZC5jb250ZW5pZG8sIGt3KTsKICAgICAgICAvLyB1bmEgZGVjaXNpw7NuIGRlIGFyY2hpdm8gYXBsaWNhIHNpIHNlIG1lbmNpb25hIHN1IGFyY2hpdm8KICAgICAgICBpZiAoZC5yZWZlcmVuY2lhICYmIGt3LnNvbWUoKGspID0+IGQucmVmZXJlbmNpYSEudG9Mb3dlckNhc2UoKS5pbmNsdWRlcyhrKSkpIHJldHVybiB0cnVlOwogICAgICAgIHJldHVybiBiYXNlID4gMDsKICAgICAgfSkKICAgICAgLnNsaWNlKDAsIDUpCiAgICAgIC5tYXAoKGQpID0+IGQuY29udGVuaWRvKTsKICAgIHJlcy5lcnJvcmVzID0gbWVtLmVycm9yZXMKICAgICAgLmZpbHRlcigoZSkgPT4gcHVudHVhcihgJHtlLnF1ZX0gJHsoZS5hcmNoaXZvcyA/PyBbXSkuam9pbigiICIpfWAsIGt3KSA+IDApCiAgICAgIC5zbGljZSgwLCA0KQogICAgICAubWFwKChlKSA9PiBgJHtlLnF1ZX0ke2Uuc29sdWNpb24gPyBgIOKAlCByZXN1ZWx0bzogJHtlLnNvbHVjaW9ufWAgOiAiIn1gKTsKICB9CgogIC8vIOKAlOKAlOKAlCByZWdsYXMgcXVlIHByb3RlZ2VuIGFyY2hpdm9zIG1lbmNpb25hZG9zIOKAlOKAlOKAlAogIGNvbnN0IHJlZ2xhcyA9IGRhdG9zLnJlZ2xhcyA/PyBbXTsKICBjb25zdCBtZW5jaW9uYWRvcyA9IFsKICAgIC4uLnJlcy5hcmNoaXZvcywKICAgIC4uLihwcm9tcHQubWF0Y2goL1tcdy4vLV0rXC4oaHRtbD98Y3NzfGpzfGpzeHx0c3x0c3h8anNvbnxtZHxzdmd8cHl8bWpzfGNqcykvZykgPz8gW10pLAogIF07CiAgY29uc3QgdmlzdG9zID0gbmV3IFNldDxzdHJpbmc+KCk7CiAgZm9yIChjb25zdCByIG9mIHJlZ2xhcykgewogICAgY29uc3QgYXBsaWNhID0gbWVuY2lvbmFkb3Muc29tZSgobSkgPT4gbS50b0xvd2VyQ2FzZSgpLmluY2x1ZGVzKHIucGF0cm9uLnRvTG93ZXJDYXNlKCkucmVwbGFjZSgvXCovZywgIiIpKSB8fCByLnBhdHJvbi5yZXBsYWNlKC9cKi9nLCAiIikudG9Mb3dlckNhc2UoKS5pbmNsdWRlcyhtLnRvTG93ZXJDYXNlKCkucmVwbGFjZSgvXC4oaHRtbD98Y3NzfGpzfGpzeHx0c3x0c3h8anNvbnxtZCkkL2ksICIiKSkpOwogICAgaWYgKGFwbGljYSAmJiAhdmlzdG9zLmhhcyhyLnBhdHJvbikpIHsKICAgICAgdmlzdG9zLmFkZChyLnBhdHJvbik7CiAgICAgIHJlcy5yZWdsYXMucHVzaChgJHtyLnBhdHJvbn0g4oCUICR7ci5tb3Rpdm99YCk7CiAgICB9CiAgfQogIHJldHVybiByZXM7Cn0KCi8qKiDCv1NlIGVuY29udHLDsyBhbGdvIHF1ZSB2YWxnYSBsYSBwZW5hIGVuc2XDsWFyPyAqLwpleHBvcnQgZnVuY3Rpb24gaGF5Q29udGV4dG9UdXJubyhjOiBDb250ZXh0b0VuY29udHJhZG8pOiBib29sZWFuIHsKICByZXR1cm4gISEoYy5hcmNoaXZvcy5sZW5ndGggfHwgYy5kZWNpc2lvbmVzLmxlbmd0aCB8fCBjLmVycm9yZXMubGVuZ3RoIHx8IGMucmVnbGFzLmxlbmd0aCB8fCBjLm5vdGFzLmxlbmd0aCk7Cn0KCi8qKiBFbCBibG9xdWUgcXVlIHNlIGlueWVjdGEgZW4gZWwgc3lzdGVtIHByb21wdC4gQ29tcGFjdG8geSBhY2Npb25hYmxlOgogKiBsZSBkaWNlIGFsIG1vZGVsbyBxdcOpIG1pcmFyIHkgcXXDqSByZXNwZXRhciwgbm8gbGUgZGEgcmVsbGVuby4gKi8KZXhwb3J0IGZ1bmN0aW9uIHJlbmRlckNvbnRleHRvUGFyYVByb21wdChjOiBDb250ZXh0b0VuY29udHJhZG8pOiBzdHJpbmcgfCBudWxsIHsKICBpZiAoIWhheUNvbnRleHRvVHVybm8oYykpIHJldHVybiBudWxsOwogIGNvbnN0IGxpbmVhczogc3RyaW5nW10gPSBbIiMjIENvbnRleHRvIHBlcnRpbmVudGUgZGV0ZWN0YWRvIGVuIGVsIHByb3llY3RvIl07CiAgaWYgKGMuYXJjaGl2b3MubGVuZ3RoKSB7CiAgICBsaW5lYXMucHVzaChgQXJjaGl2b3MgaW1wbGljYWRvczogJHtjLmFyY2hpdm9zLmpvaW4oIiwgIil9LiBSZXbDrXNhbG9zIGFudGVzIGRlIHByb3BvbmVyIGNhbWJpb3MuYCk7CiAgfQogIGlmIChjLmRlY2lzaW9uZXMubGVuZ3RoKSB7CiAgICBsaW5lYXMucHVzaCgiRGVjaXNpb25lcyB5YSB0b21hZGFzIChubyBsYXMgY29udHJhZGlnYXMpOiIpOwogICAgZm9yIChjb25zdCBkIG9mIGMuZGVjaXNpb25lcykgbGluZWFzLnB1c2goYC0gJHtkfWApOwogIH0KICBpZiAoYy5lcnJvcmVzLmxlbmd0aCkgewogICAgbGluZWFzLnB1c2goIkVycm9yZXMgcHJldmlvcyBwZXJ0aW5lbnRlczoiKTsKICAgIGZvciAoY29uc3QgZSBvZiBjLmVycm9yZXMpIGxpbmVhcy5wdXNoKGAtICR7ZX1gKTsKICB9CiAgaWYgKGMucmVnbGFzLmxlbmd0aCkgewogICAgbGluZWFzLnB1c2goIlJlZ2xhcyBkZWwgdXN1YXJpbyBxdWUgYXBsaWNhbiBhIEVTVEUgZW5jYXJnbzoiKTsKICAgIGZvciAoY29uc3QgciBvZiBjLnJlZ2xhcykgbGluZWFzLnB1c2goYC0gTk8gdG9jYXI6ICR7cn1gKTsKICB9CiAgaWYgKGMubm90YXMubGVuZ3RoKSB7CiAgICBsaW5lYXMucHVzaCgiTm90YXMgZGVsIHByb3llY3RvIHBlcnRpbmVudGVzOiIpOwogICAgZm9yIChjb25zdCBuIG9mIGMubm90YXMpIGxpbmVhcy5wdXNoKGAtICR7bn1gKTsKICB9CiAgcmV0dXJuIGxpbmVhcy5qb2luKCJcbiIpOwp9CgovKiogRWwgcmVzdW1lbiBwYXJhIGxhIFVJOiDCqzQgYXJjaGl2b3MgwrcgMyBtZW1vcmlhcyDCtyAxIGVycm9ywrsuICovCmV4cG9ydCBmdW5jdGlvbiByZXN1bWVuQ29udGV4dG9UdXJubyhjOiBDb250ZXh0b0VuY29udHJhZG8pOiBzdHJpbmcgewogIGNvbnN0IHBhcnRlczogc3RyaW5nW10gPSBbXTsKICBpZiAoYy5hcmNoaXZvcy5sZW5ndGgpIHBhcnRlcy5wdXNoKGAke2MuYXJjaGl2b3MubGVuZ3RofSBhcmNoaXZvKHMpYCk7CiAgaWYgKGMuZGVjaXNpb25lcy5sZW5ndGgpIHBhcnRlcy5wdXNoKGAke2MuZGVjaXNpb25lcy5sZW5ndGh9IGRlY2lzacOzbihlcylgKTsKICBpZiAoYy5lcnJvcmVzLmxlbmd0aCkgcGFydGVzLnB1c2goYCR7Yy5lcnJvcmVzLmxlbmd0aH0gZXJyb3IoZXMpIHByZXZpbyhzKWApOwogIGlmIChjLnJlZ2xhcy5sZW5ndGgpIHBhcnRlcy5wdXNoKGAke2MucmVnbGFzLmxlbmd0aH0gcmVnbGEocylgKTsKICBpZiAoYy5ub3Rhcy5sZW5ndGgpIHBhcnRlcy5wdXNoKGAke2Mubm90YXMubGVuZ3RofSBub3RhKHMpYCk7CiAgcmV0dXJuIHBhcnRlcy5qb2luKCIgwrcgIik7Cn0K
+/** Forja IA — Auto Context (plan técnico §2): el usuario no debería tener
+ * que explicar qué archivos ni qué decisiones son relevantes. Antes de
+ * llamar al modelo, Forja detecta lo pertinente con heurística local
+ * (keywords + LIKE), sin gastar una llamada extra ni embeddings.
+ *
+ * Flujo:
+ *   prompt → extraer keywords → buscar en archivos del proyecto (mapa) +
+ *   memoria estructurada → bloque de contexto para el prompt + resumen
+ *   contable para la UI («4 archivos · 3 memorias · 1 error»).
+ *
+ * Es puro y keyword-based a propósito: la versión con embeddings locales
+ * es fase futura y solo valdría la pena si esta validara su utilidad.
+ */
+
+import type { MemoriaProyecto } from "./memoria-proyecto";
+import type { ProjectMap } from "./types";
+
+/** Resultado de la búsqueda de contexto para UN turno. */
+export interface ContextoEncontrado {
+  /** archivos del proyecto mencionados o pertinentes */
+  archivos: string[];
+  /** decisiones que afectan al encargo */
+  decisiones: string[];
+  /** errores previos pertinentes (con su solución si existe) */
+  errores: string[];
+  /** reglas «no tocar» que afectan a los archivos detectados */
+  reglas: string[];
+  /** notas del mapa pertinentes */
+  notas: string[];
+}
+
+export const CONTEXTO_VACIO_TURNO: ContextoEncontrado = {
+  archivos: [],
+  decisiones: [],
+  errores: [],
+  reglas: [],
+  notas: [],
+};
+
+/** Stopwords ES/EN mínimas. La heurística es charla local: no hace falta
+ * un tokenizador, hace falta no devolver «de la que para». */
+const STOPWORDS = new Set([
+  "el","la","los","las","un","una","unos","unas","de","del","al","a","ante","bajo","con","contra","desde","en","entre","hacia","para","por","segun","sin","sobre","tras","y","o","u","e","que","como","muy","más","mas","pero","porque","cuando","cual","cuales","donde","quien","quiero","quieras","puedes","podrias","favor","gracias","hola","the","and","for","with","that","this","from","into","your","you","our","are","was","were","have","has","can","could","would","should","please","thanks","hello","make","create","build","page","website","web","app",
+]);
+
+/** Extrae términos de búsqueda del prompt: palabras de contenido, nombres
+ * de archivo y rutas. Deduplicado y acotado (15 términos). */
+export function extraerKeywords(prompt: string): string[] {
+  const t = (prompt ?? "").toLowerCase();
+  if (!t.trim()) return [];
+  const out: string[] = [];
+
+  // rutas y nombres de archivo con extensión primero (máxima señal)
+  const rutas = t.match(/[\w./-]+\.(html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs)/g) ?? [];
+  for (const r of rutas) {
+    if (!out.includes(r)) out.push(r);
+  }
+
+  const palabras = t
+    .split(/[^\wáéíóúñü]+/)
+    .filter((p) => p.length >= 4 && !STOPWORDS.has(p) && !/^\d+$/.test(p));
+  for (const p of palabras) {
+    if (out.length >= 15) break;
+    if (!out.includes(p)) out.push(p);
+  }
+  return out;
+}
+
+/** Puntuación de un texto contra las keywords: cuántas aparecen, con
+ * bonus por apariciones múltiples (tope 3 por término para no inflar). */
+function puntuar(texto: string, keywords: readonly string[]): number {
+  if (!texto) return 0;
+  const t = texto.toLowerCase();
+  let n = 0;
+  for (const k of keywords) {
+    const i = t.split(k).length - 1;
+    if (i > 0) n += 1 + Math.min(2, i - 1);
+  }
+  return n;
+}
+
+/** Busca el contexto relevante para un encargo, cruzando el prompt con el
+ * mapa del proyecto y la memoria estructurada.
+ *
+ * `archivosDisponibles` son las rutas REALES que existen (del Sandbox o
+ * del mapa): un archivo que no existe no viaja como contexto, se avisa
+ * aparte si el prompt lo nombraba (desalucinación barata). */
+export function buscarContexto(
+  prompt: string,
+  datos: {
+    archivosDisponibles?: readonly string[];
+    contenidoArchivos?: Record<string, string>;
+    mapa?: ProjectMap | null;
+    memoria?: MemoriaProyecto | null;
+    reglas?: readonly { patron: string; motivo: string }[];
+  }
+): ContextoEncontrado {
+  const kw = extraerKeywords(prompt);
+  if (!kw.length) return { ...CONTEXTO_VACIO_TURNO };
+  // OJO: copia PROFUNDA de los arrays, no spread. `{...VACIO}` comparte las
+  // referencias de los arrays internos y un `push` de una llamada contaminaba
+  // a la siguiente (y con ello, el contexto de un turno distinto).
+  const res: ContextoEncontrado = {
+    archivos: [],
+    decisiones: [],
+    errores: [],
+    reglas: [],
+    notas: [],
+  };
+
+  // ——— archivos ———
+  const disponibles = datos.archivosDisponibles ?? [];
+  const contenidos = datos.contenidoArchivos ?? {};
+  const puntuados: { path: string; n: number }[] = [];
+  for (const path of disponibles) {
+    let n = puntuar(path, kw);
+    const contenido = contenidos[path];
+    if (n === 0 && contenido) {
+      // el nombre no menciona nada: mira el contenido (términos, no rutas)
+      n = puntuar(contenido.slice(0, 4000), kw) >= 2 ? 1 : 0;
+    }
+    if (n > 0) puntuados.push({ path, n });
+  }
+  res.archivos = puntuados
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 6)
+    .map((p) => p.path);
+
+  // ——— mapa: resumen de archivos pertinentes + notas ———
+  const mapa = datos.mapa ?? null;
+  if (mapa) {
+    for (const f of mapa.files) {
+      if (res.archivos.includes(f.name)) continue;
+      if (puntuar(`${f.name} ${f.summary} ${(f.features ?? []).join(" ")}`, kw) > 1) {
+        res.archivos.push(f.name);
+        if (res.archivos.length >= 8) break;
+      }
+    }
+    res.notas = (mapa.notes ?? [])
+      .filter((n) => puntuar(n, kw) > 0)
+      .slice(0, 4);
+  }
+
+  // ——— memoria estructurada ———
+  const mem = datos.memoria ?? null;
+  if (mem) {
+    res.decisiones = mem.decisiones
+      .filter((d) => {
+        const base = puntuar(d.contenido, kw);
+        // una decisión de archivo aplica si se menciona su archivo
+        if (d.referencia && kw.some((k) => d.referencia!.toLowerCase().includes(k))) return true;
+        return base > 0;
+      })
+      .slice(0, 5)
+      .map((d) => d.contenido);
+    res.errores = mem.errores
+      .filter((e) => puntuar(`${e.que} ${(e.archivos ?? []).join(" ")}`, kw) > 0)
+      .slice(0, 4)
+      .map((e) => `${e.que}${e.solucion ? ` — resuelto: ${e.solucion}` : ""}`);
+  }
+
+  // ——— reglas que protegen archivos mencionados ———
+  const reglas = datos.reglas ?? [];
+  const mencionados = [
+    ...res.archivos,
+    ...(prompt.match(/[\w./-]+\.(html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs)/g) ?? []),
+  ];
+  const vistos = new Set<string>();
+  for (const r of reglas) {
+    const aplica = mencionados.some((m) => m.toLowerCase().includes(r.patron.toLowerCase().replace(/\*/g, "")) || r.patron.replace(/\*/g, "").toLowerCase().includes(m.toLowerCase().replace(/\.(html?|css|js|jsx|ts|tsx|json|md)$/i, "")));
+    if (aplica && !vistos.has(r.patron)) {
+      vistos.add(r.patron);
+      res.reglas.push(`${r.patron} — ${r.motivo}`);
+    }
+  }
+  return res;
+}
+
+/** ¿Se encontró algo que valga la pena enseñar? */
+export function hayContextoTurno(c: ContextoEncontrado): boolean {
+  return !!(c.archivos.length || c.decisiones.length || c.errores.length || c.reglas.length || c.notas.length);
+}
+
+/** El bloque que se inyecta en el system prompt. Compacto y accionable:
+ * le dice al modelo qué mirar y qué respetar, no le da relleno. */
+export function renderContextoParaPrompt(c: ContextoEncontrado): string | null {
+  if (!hayContextoTurno(c)) return null;
+  const lineas: string[] = ["## Contexto pertinente detectado en el proyecto"];
+  if (c.archivos.length) {
+    lineas.push(`Archivos implicados: ${c.archivos.join(", ")}. Revísalos antes de proponer cambios.`);
+  }
+  if (c.decisiones.length) {
+    lineas.push("Decisiones ya tomadas (no las contradigas):");
+    for (const d of c.decisiones) lineas.push(`- ${d}`);
+  }
+  if (c.errores.length) {
+    lineas.push("Errores previos pertinentes:");
+    for (const e of c.errores) lineas.push(`- ${e}`);
+  }
+  if (c.reglas.length) {
+    lineas.push("Reglas del usuario que aplican a ESTE encargo:");
+    for (const r of c.reglas) lineas.push(`- NO tocar: ${r}`);
+  }
+  if (c.notas.length) {
+    lineas.push("Notas del proyecto pertinentes:");
+    for (const n of c.notas) lineas.push(`- ${n}`);
+  }
+  return lineas.join("\n");
+}
+
+/** El resumen para la UI: «4 archivos · 3 memorias · 1 error». */
+export function resumenContextoTurno(c: ContextoEncontrado): string {
+  const partes: string[] = [];
+  if (c.archivos.length) partes.push(`${c.archivos.length} archivo(s)`);
+  if (c.decisiones.length) partes.push(`${c.decisiones.length} decisión(es)`);
+  if (c.errores.length) partes.push(`${c.errores.length} error(es) previo(s)`);
+  if (c.reglas.length) partes.push(`${c.reglas.length} regla(s)`);
+  if (c.notas.length) partes.push(`${c.notas.length} nota(s)`);
+  return partes.join(" · ");
+}

@@ -1,1 +1,442 @@
-LyoqIEZvcmphIElBIOKAlCBNZW1vcmlhIGVzdHJ1Y3R1cmFkYSBkZWwgcHJveWVjdG8gKFBpbGFyIDMgZGVsIHBsYW4gZGUgZXNjYWxhZG8pLgogKgogKiBIYXN0YSBhaG9yYSBsYSBtZW1vcmlhIGVzdGFiYSBmcmFnbWVudGFkYTogZmFsbG9zIHZlcmlmaWNhZG9zIGVuIHVuYSBjbGF2ZQogKiBnbG9iYWwgY29uIFRUTCwgcmVnbGFzIMKrbm8gdG9jYXLCuyBwb3Igc2VzacOzbiwgbm90YXMgZGVudHJvIGRlbCBtYXBhLCB5CiAqIGVycm9yZXMgZW4gdml2byBlZsOtbWVyb3MuIFRvZG8gZXJhIHRleHRvIG8gY2FzaS4gRWwgcGxhbiBwaWRlIGRhdG9zCiAqIEVTVFJVQ1RVUkFET1MgeSBDT05TVUxUQUJMRVMsIHkgc29icmUgdG9kbyBxdWUgZWwgY2VyZWJybyBkZWwgcHJveWVjdG8KICogVkFZQSBDT04gRUwgUFJPWUVDVE86IHNpIG1hw7FhbmEgZWwgcmVwbyBzZSBjbG9uYSBlbiBvdHJhIG3DoXF1aW5hLCBsYQogKiBtZW1vcmlhIHNlIHJlY3VwZXJhIGxleWVuZG8gbG9zIGFyY2hpdm9zIGAuZm9yamEvYCBkZWwgcHJvcGlvIHJlcG8g4oCUIG5vCiAqIGRlcGVuZGUgZGUgcXVlIGVzdGUgbmF2ZWdhZG9yIGNvbnNlcnZlIHN1IGxvY2FsU3RvcmFnZS4KICoKICogRXNxdWVtYSAobcOtbmltbyB2aWFibGUsIGluc3BpcmFkbyBlbiBlbCBkZWwgcGxhbiB0w6ljbmljbyk6CiAqCiAqICAgLmZvcmphLwogKiAgICAgZGVjaXNpb25zLmpzb24gICAgICAg4oCUIGRlY2lzaW9uZXMgdG9tYWRhcyAodXN1YXJpbyB8IGFnZW50ZSB8IG1vZGVsbykKICogICAgIGVycm9ycy5qc29uICAgICAgICAgIOKAlCBlcnJvcmVzIHJlYWxlcyBjb24gY2F1c2EgeSBzb2x1Y2nDs24KICogICAgIHRhc2tzLmpzb24gICAgICAgICAgIOKAlCBUYXNrIEROQTogcXXDqSBzZSBlbmNhcmfDsywgcXXDqSBtb2RlbG8sIHF1w6kgcGFzw7MKICogICAgIGRlc2lnbi10b2tlbnMuanNvbiAgIOKAlCBxdcOpIGRpcmVjY2nDs24gdmlzdWFsIHNlIHVzw7MgKHZhcmlhY2nDs24gZm9yemFkYSkKICogICAgIG5lZ2F0aXZlLXJ1bGVzLmpzb24gIOKAlCByZWdsYXMgwqtubyB0b2NhcsK7IChwdWVudGUgY29uIHJlZ2xhcy1uby50cykKICoKICogUGVyc2lzdGVuY2lhIGxvY2FsOiBVTkEgY2xhdmUgZGUgbG9jYWxTdG9yYWdlIChgZm9yamEtbWVtb3JpYS12MWApIGNvbiB1bgogKiByZWdpc3RybyBwb3Igc2VzacOzbi4gU2UgZXhwb3J0YSBhIGxvcyBjaW5jbyBKU09OIGNvbiBgYUFyY2hpdm9zRm9yamEoKWAKICogY3VhbmRvIHNlIHN1YmUgZWwgcHJveWVjdG8gYSBHaXRIdWIgKHJlcG8tY2xvdWQgLyBnaXRodWItdXBsb2FkKSwgeSBzZQogKiBsZWUgZGUgdnVlbHRhIGNvbiBgZGVBcmNoaXZvc0ZvcmphKClgIGFsIGNsb25hcmxvLgogKgogKiBFc3RlIG3Ds2R1bG8gZXMgcHVybyAoc3RyaW5ncyBpbiwgb2JqZWN0cyBvdXQsIHN0b3JhZ2UgaW55ZWN0YWJsZSkgcGFyYQogKiBxdWUgc2UgcHVlZGEgdGVzdGVhciBzaW4gUmVhY3QgeSBzaW4gbmF2ZWdhZG9yLgogKi8KCi8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwovKiB0aXBvcyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKi8KLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCgovKiogVW5hIGRlY2lzacOzbiBkZWwgcHJveWVjdG86IGxhIHBhbGV0YSwgbGEgZXN0cnVjdHVyYSwgcXXDqSBzZSBkZXNjYXJ0w7MuICovCmV4cG9ydCBpbnRlcmZhY2UgRGVjaXNpb25NZW1vcmlhIHsKICBpZDogc3RyaW5nOwogIGNvbnRlbmlkbzogc3RyaW5nOwogIC8qKiBxdWnDqW4gbGEgdG9tw7MgKi8KICBvcmlnZW46ICJ1c3VhcmlvIiB8ICJhZ2VudGUiIHwgIm1vZGVsbyI7CiAgLyoqIGEgcXXDqSBhcGxpY2E6IHRvZG8gZWwgcHJveWVjdG8sIHVuIGFyY2hpdm8gbyB1bmEgZmVhdHVyZSAqLwogIGFtYml0bzogImdsb2JhbCIgfCAiYXJjaGl2byIgfCAiZmVhdHVyZSI7CiAgLyoqIGFyY2hpdm8gbyBmZWF0dXJlIGNvbmNyZXRhLCBzaSBhbWJpdG8gIT0gZ2xvYmFsICovCiAgcmVmZXJlbmNpYT86IHN0cmluZzsKICBjcmVhZG9FbDogbnVtYmVyOwp9CgovKiogVW4gZXJyb3IgcmVhbCBxdWUgeWEgb2N1cnJpw7MsIGNvbiBzdSBjYXVzYSB5IGPDs21vIHNlIHJlc29sdmnDsy4gKi8KZXhwb3J0IGludGVyZmFjZSBFcnJvck1lbW9yaWEgewogIGlkOiBzdHJpbmc7CiAgcXVlOiBzdHJpbmc7CiAgY2F1c2E/OiBzdHJpbmc7CiAgc29sdWNpb24/OiBzdHJpbmc7CiAgYXJjaGl2b3M/OiBzdHJpbmdbXTsKICByZXN1ZWx0bzogYm9vbGVhbjsKICBjcmVhZG9FbDogbnVtYmVyOwp9CgovKiogVGFzayBETkE6IHVuIGVuY2FyZ28gY29udmVydGlkbyBlbiBvYmpldG8gZXN0cnVjdHVyYWRvIChwbGFuIHTDqWNuaWNvIMKnNCkuCiAqIE5vIGVzIHVuIGZvcm11bGFyaW8gcGFyYSBlbCB1c3VhcmlvOiBsbyBnZW5lcmEgZWwgZmx1am8gZGUgdHJhYmFqbyB5IHNlCiAqIGd1YXJkYSBhbCB0ZXJtaW5hciAobyBmYWxsYXIpIGxhIHRhcmVhLiBBbGltZW50YSBsYSByZWNvbWVuZGFjacOzbiBkZQogKiBtb2RlbG8gKGZhc2UgNykgc2luIG5lY2VzaXRhciB1biBiZW5jaG1hcmsgZm9ybWFsLiAqLwpleHBvcnQgaW50ZXJmYWNlIFRhcmVhTWVtb3JpYSB7CiAgaWQ6IHN0cmluZzsKICBvYmpldGl2bzogc3RyaW5nOwogIGFyY2hpdm9zPzogc3RyaW5nW107CiAgbW9kZWxvPzogc3RyaW5nOwogIC8qKiBwZW5kaW5nIHwgcnVubmluZyB8IGRvbmUgfCBmYWlsZWQgKi8KICBlc3RhZG86ICJwZW5kaW5nIiB8ICJydW5uaW5nIiB8ICJkb25lIiB8ICJmYWlsZWQiOwogIC8qKiBuwrogZGUgcmVpbnRlbnRvcyBkZSBjb3JyZWNjacOzbiBhdXRvbcOhdGljYSBxdWUgY29zdMOzICovCiAgcmVpbnRlbnRvcz86IG51bWJlcjsKICByZXN1bHRhZG8/OiBzdHJpbmc7CiAgY3JlYWRvRWw6IG51bWJlcjsKfQoKLyoqIERpcmVjY2nDs24gZGUgZGlzZcOxbyB1c2FkYSBlbiBlc3RlIHByb3llY3RvIChwbGFuIGVzY2FsYWRvIMKnMi4zKToKICogZ3VhcmRhciBxdcOpIHNlIHVzw7MgcGFyYSBOTyByZXBldGlyc2UgZW50cmUgcHJveWVjdG9zLiAqLwpleHBvcnQgaW50ZXJmYWNlIERpc2Vub1VzYWRvIHsKICBpZDogc3RyaW5nOwogIC8qKiBpZCBkZSBsYSBkaXJlY2Npw7NuIChkZXNpZ24tZGlyZWN0aW9ucy50cyk6IGVkaXRvcmlhbCwgbWluaW1hbOKApiAqLwogIGRpcmVjY2lvbjogc3RyaW5nOwogIC8qKiBwYWxldGEgeSB0aXBvZ3JhZsOtYSByZXN1bWlkYXMsIHBhcmEgZWwgaGlzdG9yaWFsIGxlZ2libGUgKi8KICByZXN1bWVuOiBzdHJpbmc7CiAgY3JlYWRvRWw6IG51bWJlcjsKfQoKLyoqIFJlZ2xhIG5lZ2F0aXZhLCB0YWwgY3VhbCBgUmVnbGFOb2AgZGUgcmVnbGFzLW5vLnRzLiBTZSByZXBpdGUgZWwKICogbcOtbmltbyBwYXJhIG5vIGFycmFzdHJhciB1bmEgZGVwZW5kZW5jaWE6IGVsIHB1ZW50ZSBoYWNlIGVsIG1hcGVvLiAqLwpleHBvcnQgaW50ZXJmYWNlIFJlZ2xhTWVtb3JpYSB7CiAgcGF0cm9uOiBzdHJpbmc7CiAgbW90aXZvOiBzdHJpbmc7CiAgYWN0aXZhOiBib29sZWFuOwogIGNyZWFkb0VsOiBudW1iZXI7Cn0KCi8qKiBMYSBtZW1vcmlhIGNvbXBsZXRhIGRlIFVOIHByb3llY3RvLiAqLwpleHBvcnQgaW50ZXJmYWNlIE1lbW9yaWFQcm95ZWN0byB7CiAgZGVjaXNpb25lczogRGVjaXNpb25NZW1vcmlhW107CiAgZXJyb3JlczogRXJyb3JNZW1vcmlhW107CiAgdGFyZWFzOiBUYXJlYU1lbW9yaWFbXTsKICBkaXNlbm9zOiBEaXNlbm9Vc2Fkb1tdOwogIHJlZ2xhczogUmVnbGFNZW1vcmlhW107Cn0KCmV4cG9ydCBjb25zdCBNRU1PUklBX1ZBQ0lBOiBNZW1vcmlhUHJveWVjdG8gPSB7CiAgZGVjaXNpb25lczogW10sCiAgZXJyb3JlczogW10sCiAgdGFyZWFzOiBbXSwKICBkaXNlbm9zOiBbXSwKICByZWdsYXM6IFtdLAp9OwoKLyoqIFRvcGVzIGRlIGNhZGEgbGlzdGEuIE3DoXMgcXVlIGVzdG8gZWwgcHJvbXB0IHkgZWwgSlNPTiBjcmVjZW4gc2luCiAqIGFwb3J0YXI6IGxhIG1lbW9yaWEgw7p0aWwgZXMgbGEgcmVjaWVudGUgeSBsYSBpbXBvcnRhbnRlLiAqLwpleHBvcnQgY29uc3QgVE9QRV9ERUNJU0lPTkVTID0gMzA7CmV4cG9ydCBjb25zdCBUT1BFX0VSUk9SRVMgPSAzMDsKZXhwb3J0IGNvbnN0IFRPUEVfVEFSRUFTID0gNTA7CmV4cG9ydCBjb25zdCBUT1BFX0RJU0VOT1MgPSAxMjsKZXhwb3J0IGNvbnN0IFRPUEVfUkVHTEFTID0gMjA7CgovKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KLyogaGVscGVycyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICovCi8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwoKZnVuY3Rpb24gaWQobm93OiBudW1iZXIpOiBzdHJpbmcgewogIHJldHVybiBgbSR7bm93LnRvU3RyaW5nKDM2KX0ke01hdGgucmFuZG9tKCkudG9TdHJpbmcoMzYpLnNsaWNlKDIsIDYpfWA7Cn0KCi8qKiBBw7FhZGUgYWwgcHJpbmNpcGlvIHkgcmVjb3J0YS4gRGV2dWVsdmUgdW5hIE5VRVZBIG1lbW9yaWEgKGlubXV0YWJsZToKICogenVzdGFuZCB5IGxvcyB0ZXN0cyBsbyBhZ3JhZGVjZW4pLiAqLwpmdW5jdGlvbiBwdXNoPFQ+KGxpc3RhOiBUW10sIGl0ZW06IFQsIHRvcGU6IG51bWJlcik6IFRbXSB7CiAgcmV0dXJuIFtpdGVtLCAuLi5saXN0YV0uc2xpY2UoMCwgdG9wZSk7Cn0KCi8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwovKiBvcGVyYWNpb25lcyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKi8KLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCgpleHBvcnQgZnVuY3Rpb24gYWRkRGVjaXNpb24oCiAgbTogTWVtb3JpYVByb3llY3RvLAogIGNvbnRlbmlkbzogc3RyaW5nLAogIG9yaWdlbjogRGVjaXNpb25NZW1vcmlhWyJvcmlnZW4iXSwKICBhbWJpdG86IERlY2lzaW9uTWVtb3JpYVsiYW1iaXRvIl0gPSAiZ2xvYmFsIiwKICByZWZlcmVuY2lhPzogc3RyaW5nLAogIGFob3JhID0gRGF0ZS5ub3coKQopOiBNZW1vcmlhUHJveWVjdG8gewogIGlmICghY29udGVuaWRvLnRyaW0oKSkgcmV0dXJuIG07CiAgcmV0dXJuIHsKICAgIC4uLm0sCiAgICBkZWNpc2lvbmVzOiBwdXNoKAogICAgICBtLmRlY2lzaW9uZXMsCiAgICAgIHsKICAgICAgICBpZDogaWQoYWhvcmEpLAogICAgICAgIGNvbnRlbmlkbzogY29udGVuaWRvLnRyaW0oKSwKICAgICAgICBvcmlnZW4sCiAgICAgICAgYW1iaXRvLAogICAgICAgIC4uLihyZWZlcmVuY2lhID8geyByZWZlcmVuY2lhIH0gOiB7fSksCiAgICAgICAgY3JlYWRvRWw6IGFob3JhLAogICAgICB9LAogICAgICBUT1BFX0RFQ0lTSU9ORVMKICAgICksCiAgfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGFkZEVycm9yKAogIG06IE1lbW9yaWFQcm95ZWN0bywKICBxdWU6IHN0cmluZywKICBkYXRvcz86IHsgY2F1c2E/OiBzdHJpbmc7IHNvbHVjaW9uPzogc3RyaW5nOyBhcmNoaXZvcz86IHN0cmluZ1tdIH0sCiAgYWhvcmEgPSBEYXRlLm5vdygpCik6IE1lbW9yaWFQcm95ZWN0byB7CiAgaWYgKCFxdWUudHJpbSgpKSByZXR1cm4gbTsKICByZXR1cm4gewogICAgLi4ubSwKICAgIGVycm9yZXM6IHB1c2goCiAgICAgIG0uZXJyb3JlcywKICAgICAgewogICAgICAgIGlkOiBpZChhaG9yYSksCiAgICAgICAgcXVlOiBxdWUudHJpbSgpLAogICAgICAgIC4uLihkYXRvcz8uY2F1c2EgPyB7IGNhdXNhOiBkYXRvcy5jYXVzYSB9IDoge30pLAogICAgICAgIC4uLihkYXRvcz8uc29sdWNpb24gPyB7IHNvbHVjaW9uOiBkYXRvcy5zb2x1Y2lvbiB9IDoge30pLAogICAgICAgIC4uLihkYXRvcz8uYXJjaGl2b3M/Lmxlbmd0aCA/IHsgYXJjaGl2b3M6IGRhdG9zLmFyY2hpdm9zIH0gOiB7fSksCiAgICAgICAgcmVzdWVsdG86ICEhZGF0b3M/LnNvbHVjaW9uLAogICAgICAgIGNyZWFkb0VsOiBhaG9yYSwKICAgICAgfSwKICAgICAgVE9QRV9FUlJPUkVTCiAgICApLAogIH07Cn0KCmV4cG9ydCBmdW5jdGlvbiBhZGRUYXJlYSgKICBtOiBNZW1vcmlhUHJveWVjdG8sCiAgb2JqZXRpdm86IHN0cmluZywKICBkYXRvcz86IHsgYXJjaGl2b3M/OiBzdHJpbmdbXTsgbW9kZWxvPzogc3RyaW5nOyBlc3RhZG8/OiBUYXJlYU1lbW9yaWFbImVzdGFkbyJdOyByZWludGVudG9zPzogbnVtYmVyOyByZXN1bHRhZG8/OiBzdHJpbmcgfSwKICBhaG9yYSA9IERhdGUubm93KCkKKTogTWVtb3JpYVByb3llY3RvIHsKICBpZiAoIW9iamV0aXZvLnRyaW0oKSkgcmV0dXJuIG07CiAgcmV0dXJuIHsKICAgIC4uLm0sCiAgICB0YXJlYXM6IHB1c2goCiAgICAgIG0udGFyZWFzLAogICAgICB7CiAgICAgICAgaWQ6IGlkKGFob3JhKSwKICAgICAgICBvYmpldGl2bzogb2JqZXRpdm8udHJpbSgpLAogICAgICAgIC4uLihkYXRvcz8uYXJjaGl2b3M/Lmxlbmd0aCA/IHsgYXJjaGl2b3M6IGRhdG9zLmFyY2hpdm9zIH0gOiB7fSksCiAgICAgICAgLi4uKGRhdG9zPy5tb2RlbG8gPyB7IG1vZGVsbzogZGF0b3MubW9kZWxvIH0gOiB7fSksCiAgICAgICAgZXN0YWRvOiBkYXRvcz8uZXN0YWRvID8/ICJkb25lIiwKICAgICAgICAuLi4oZGF0b3M/LnJlaW50ZW50b3MgIT09IHVuZGVmaW5lZCA/IHsgcmVpbnRlbnRvczogZGF0b3MucmVpbnRlbnRvcyB9IDoge30pLAogICAgICAgIC4uLihkYXRvcz8ucmVzdWx0YWRvID8geyByZXN1bHRhZG86IGRhdG9zLnJlc3VsdGFkbyB9IDoge30pLAogICAgICAgIGNyZWFkb0VsOiBhaG9yYSwKICAgICAgfSwKICAgICAgVE9QRV9UQVJFQVMKICAgICksCiAgfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGFkZERpc2VubygKICBtOiBNZW1vcmlhUHJveWVjdG8sCiAgZGlyZWNjaW9uOiBzdHJpbmcsCiAgcmVzdW1lbjogc3RyaW5nLAogIGFob3JhID0gRGF0ZS5ub3coKQopOiBNZW1vcmlhUHJveWVjdG8gewogIGlmICghZGlyZWNjaW9uLnRyaW0oKSkgcmV0dXJuIG07CiAgcmV0dXJuIHsKICAgIC4uLm0sCiAgICBkaXNlbm9zOiBwdXNoKAogICAgICBtLmRpc2Vub3MsCiAgICAgIHsgaWQ6IGlkKGFob3JhKSwgZGlyZWNjaW9uOiBkaXJlY2Npb24udHJpbSgpLCByZXN1bWVuLCBjcmVhZG9FbDogYWhvcmEgfSwKICAgICAgVE9QRV9ESVNFTk9TCiAgICApLAogIH07Cn0KCi8qKiBMYSDDumx0aW1hIGRpcmVjY2nDs24gZGUgZGlzZcOxbyB1c2FkYSwgbyBudWxsIChwYXJhIGxhIHZhcmlhY2nDs24gZm9yemFkYToKICogc2kgbGEgYW50ZXJpb3IgZnVlIMKrZWRpdG9yaWFswrssIGxhIHNpZ3VpZW50ZSBubyBkZWJlcsOtYSBzZXJsbykuICovCmV4cG9ydCBmdW5jdGlvbiB1bHRpbW9EaXNlbm8obTogTWVtb3JpYVByb3llY3RvKTogc3RyaW5nIHwgbnVsbCB7CiAgcmV0dXJuIG0uZGlzZW5vc1swXT8uZGlyZWNjaW9uID8/IG51bGw7Cn0KCi8qKiDCv0VzdGUgbW9kZWxvIHlhIGZhbGzDsyBtdWNobyBlbiBlc3RlIHByb3llY3RvPyAoZmFzZSA3OiBlbCBncmF0aXMgcXVlCiAqIGFjdW11bGEgcmVpbnRlbnRvcyBlbiB0YXJlYXMgZGUgZGlzZcOxbyBkZWphIGRlIHJlY29tZW5kYXJzZSkuICovCmV4cG9ydCBmdW5jdGlvbiByZWludGVudG9zRGVNb2RlbG8obTogTWVtb3JpYVByb3llY3RvLCBtb2RlbG86IHN0cmluZyk6IG51bWJlciB7CiAgcmV0dXJuIG0udGFyZWFzCiAgICAuZmlsdGVyKCh0KSA9PiB0Lm1vZGVsbyA9PT0gbW9kZWxvKQogICAgLnJlZHVjZSgobiwgdCkgPT4gbiArICh0LnJlaW50ZW50b3MgPz8gMCksIDApOwp9CgovKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KLyogcHVlbnRlIGNvbiByZWdsYXMtbm8udHMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICovCi8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwoKLyoqIFJlZ2xhcyBkZSBsYSBzZXNpw7NuIOKGkiBtZW1vcmlhIChleHBvcnQpLiAqLwpleHBvcnQgZnVuY3Rpb24gcmVnbGFzQU1lbW9yaWEoCiAgbTogTWVtb3JpYVByb3llY3RvLAogIHJlZ2xhczogcmVhZG9ubHkgeyBwYXRyb246IHN0cmluZzsgbW90aXZvOiBzdHJpbmcgfVtdCik6IE1lbW9yaWFQcm95ZWN0byB7CiAgY29uc3QgYWN0aXZhcyA9IHJlZ2xhcy5tYXAoKHIpID0+ICh7CiAgICBwYXRyb246IHIucGF0cm9uLAogICAgbW90aXZvOiByLm1vdGl2bywKICAgIGFjdGl2YTogdHJ1ZSwKICAgIGNyZWFkb0VsOiBEYXRlLm5vdygpLAogIH0pKTsKICByZXR1cm4geyAuLi5tLCByZWdsYXM6IGFjdGl2YXMuc2xpY2UoMCwgVE9QRV9SRUdMQVMpIH07Cn0KCi8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwovKiBleHBvcnQvaW1wb3J0OiBsb3MgYXJjaGl2b3MgLmZvcmphLyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKi8KLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCgovKiogUHJlZmlqbyBkZSBjYXJwZXRhIGVuIGVsIHJlcG8uICovCmV4cG9ydCBjb25zdCBDQVJQRVRBX0ZPUkpBID0gIi5mb3JqYS8iOwoKLyoqIFNlcmlhbGl6YSBsYSBtZW1vcmlhIGEgbG9zIGNpbmNvIEpTT04gZGVsIHJlcG8uIERldnVlbHZlIHVuIG1hcGEKICogYHBhdGgg4oaSIGNvbnRlbmlkb2AgbGlzdG8gcGFyYSBhw7FhZGlyIGEgdW4gY29tbWl0IGRlIFJlcG8gU3R1ZGlvLiBTb2xvCiAqIGluY2x1eWUgbGFzIHNlY2Npb25lcyBjb24gY29udGVuaWRvOiB1biBgLmZvcmphL2AgdmFjw61vIGVuIGVsIHJlcG8KICogc2Vyw61hIHJ1aWRvLiAqLwpleHBvcnQgZnVuY3Rpb24gYUFyY2hpdm9zRm9yamEobTogTWVtb3JpYVByb3llY3RvKTogUmVjb3JkPHN0cmluZywgc3RyaW5nPiB7CiAgY29uc3Qgb3V0OiBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+ID0ge307CiAgY29uc3Qgdm9sY2FyID0gKG5vbWJyZTogc3RyaW5nLCBkYXRvczogdW5rbm93bikgPT4gewogICAgb3V0W2Ake0NBUlBFVEFfRk9SSkF9JHtub21icmV9YF0gPSBKU09OLnN0cmluZ2lmeShkYXRvcywgbnVsbCwgMik7CiAgfTsKICBpZiAobS5kZWNpc2lvbmVzLmxlbmd0aCkgdm9sY2FyKCJkZWNpc2lvbnMuanNvbiIsIG0uZGVjaXNpb25lcyk7CiAgaWYgKG0uZXJyb3Jlcy5sZW5ndGgpIHZvbGNhcigiZXJyb3JzLmpzb24iLCBtLmVycm9yZXMpOwogIGlmIChtLnRhcmVhcy5sZW5ndGgpIHZvbGNhcigidGFza3MuanNvbiIsIG0udGFyZWFzKTsKICBpZiAobS5kaXNlbm9zLmxlbmd0aCkgdm9sY2FyKCJkZXNpZ24tdG9rZW5zLmpzb24iLCBtLmRpc2Vub3MpOwogIGlmIChtLnJlZ2xhcy5sZW5ndGgpIHZvbGNhcigibmVnYXRpdmUtcnVsZXMuanNvbiIsIG0ucmVnbGFzKTsKICByZXR1cm4gb3V0Owp9CgpmdW5jdGlvbiBwYXJzZUxpc3RhPFQ+KGNydWRvOiBzdHJpbmcgfCB1bmRlZmluZWQpOiBUW10gewogIGlmICghY3J1ZG8pIHJldHVybiBbXTsKICB0cnkgewogICAgY29uc3QgdiA9IEpTT04ucGFyc2UoY3J1ZG8pOwogICAgcmV0dXJuIEFycmF5LmlzQXJyYXkodikgPyAodiBhcyBUW10pIDogW107CiAgfSBjYXRjaCB7CiAgICByZXR1cm4gW107CiAgfQp9CgovKiogTGVlIGxvcyBhcmNoaXZvcyBgLmZvcmphL2AgZGUgdW4gcmVwbyBjbG9uYWRvIHkgcmVjb25zdHJ1eWUgbGEKICogbWVtb3JpYS4gVG9sZXJhIGFyY2hpdm9zIGF1c2VudGVzLCBjb3JydXB0b3MgbyBhIG1lZGlhczogbG8gcXVlIHNlCiAqIHB1ZWRhIGxlZXIgc2UgcmVjdXBlcmEsIGxvIHF1ZSBubywgbm8gKHkgbm8gcm9tcGUgbGEgY2FyZ2EgZGVsIHJlcG8pLiAqLwpleHBvcnQgZnVuY3Rpb24gZGVBcmNoaXZvc0ZvcmphKGZpbGVzOiBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+KTogTWVtb3JpYVByb3llY3RvIHsKICBjb25zdCBidXNjYXIgPSAobm9tYnJlOiBzdHJpbmcpOiBzdHJpbmcgfCB1bmRlZmluZWQgPT4gewogICAgY29uc3QgZGlyZWN0byA9IGZpbGVzW2Ake0NBUlBFVEFfRk9SSkF9JHtub21icmV9YF07CiAgICBpZiAoZGlyZWN0byAhPT0gdW5kZWZpbmVkKSByZXR1cm4gZGlyZWN0bzsKICAgIC8vIHRvbGVyYSBydXRhcyBjb24gY2FycGV0YSByYcOteiAobG9zIHppcCBzdWVsZW4gdHJhZXIgwqtyZXBvLW1haW4vLmZvcmphL+KApsK7KQogICAgY29uc3QgaGl0ID0gT2JqZWN0LmVudHJpZXMoZmlsZXMpLmZpbmQoCiAgICAgIChbaywgX3ZdKSA9PiBrLmVuZHNXaXRoKGAke0NBUlBFVEFfRk9SSkF9JHtub21icmV9YCkgJiYgay5sZW5ndGggPiAwCiAgICApOwogICAgcmV0dXJuIGhpdCA/IGhpdFsxXSA6IHVuZGVmaW5lZDsKICB9OwogIGNvbnN0IGVzTnVtZXJvID0gKHY6IHVua25vd24pOiB2IGlzIG51bWJlciA9PiB0eXBlb2YgdiA9PT0gIm51bWJlciIgJiYgTnVtYmVyLmlzRmluaXRlKHYpOwogIGNvbnN0IGNyZWFkbyA9ICh2OiB1bmtub3duKTogbnVtYmVyID0+IChlc051bWVybyh2KSA/IHYgOiAwKTsKCiAgY29uc3QgZGVjaXNpb25lcyA9IHBhcnNlTGlzdGE8RGVjaXNpb25NZW1vcmlhPihidXNjYXIoImRlY2lzaW9ucy5qc29uIikpCiAgICAuZmlsdGVyKChkKSA9PiB0eXBlb2YgZD8uY29udGVuaWRvID09PSAic3RyaW5nIiAmJiBkLmNvbnRlbmlkby50cmltKCkpCiAgICAubWFwKChkKSA9PiAoewogICAgICAuLi5kLAogICAgICBjcmVhZG9FbDogY3JlYWRvKGQuY3JlYWRvRWwpLAogICAgICBhbWJpdG86IChkLmFtYml0byA9PT0gImFyY2hpdm8iIHx8IGQuYW1iaXRvID09PSAiZmVhdHVyZSIgPyBkLmFtYml0byA6ICJnbG9iYWwiKSBhcyBEZWNpc2lvbk1lbW9yaWFbImFtYml0byJdLAogICAgICBvcmlnZW46IChkLm9yaWdlbiA9PT0gInVzdWFyaW8iIHx8IGQub3JpZ2VuID09PSAibW9kZWxvIiB8fCBkLm9yaWdlbiA9PT0gImFnZW50ZSIgPyBkLm9yaWdlbiA6ICJ1c3VhcmlvIikgYXMgRGVjaXNpb25NZW1vcmlhWyJvcmlnZW4iXSwKICAgIH0pKTsKICBjb25zdCBlcnJvcmVzID0gcGFyc2VMaXN0YTxFcnJvck1lbW9yaWE+KGJ1c2NhcigiZXJyb3JzLmpzb24iKSkKICAgIC5maWx0ZXIoKGUpID0+IHR5cGVvZiBlPy5xdWUgPT09ICJzdHJpbmciICYmIGUucXVlLnRyaW0oKSkKICAgIC5tYXAoKGUpID0+ICh7IC4uLmUsIGNyZWFkb0VsOiBjcmVhZG8oZS5jcmVhZG9FbCksIHJlc3VlbHRvOiAhIWUucmVzdWVsdG8gfSkpOwogIGNvbnN0IHRhcmVhcyA9IHBhcnNlTGlzdGE8VGFyZWFNZW1vcmlhPihidXNjYXIoInRhc2tzLmpzb24iKSkKICAgIC5maWx0ZXIoKHQpID0+IHR5cGVvZiB0Py5vYmpldGl2byA9PT0gInN0cmluZyIgJiYgdC5vYmpldGl2by50cmltKCkpCiAgICAubWFwKCh0KSA9PiAoewogICAgICAuLi50LAogICAgICBjcmVhZG9FbDogY3JlYWRvKHQuY3JlYWRvRWwpLAogICAgICBlc3RhZG86IChbInBlbmRpbmciLCAicnVubmluZyIsICJkb25lIiwgImZhaWxlZCJdLmluY2x1ZGVzKHQuZXN0YWRvKSA/IHQuZXN0YWRvIDogImRvbmUiKSBhcyBUYXJlYU1lbW9yaWFbImVzdGFkbyJdLAogICAgfSkpOwogIGNvbnN0IGRpc2Vub3MgPSBwYXJzZUxpc3RhPERpc2Vub1VzYWRvPihidXNjYXIoImRlc2lnbi10b2tlbnMuanNvbiIpKQogICAgLmZpbHRlcigoZCkgPT4gdHlwZW9mIGQ/LmRpcmVjY2lvbiA9PT0gInN0cmluZyIgJiYgZC5kaXJlY2Npb24udHJpbSgpKQogICAgLm1hcCgoZCkgPT4gKHsgLi4uZCwgY3JlYWRvRWw6IGNyZWFkbyhkLmNyZWFkb0VsKSB9KSk7CiAgY29uc3QgcmVnbGFzID0gcGFyc2VMaXN0YTxSZWdsYU1lbW9yaWE+KGJ1c2NhcigibmVnYXRpdmUtcnVsZXMuanNvbiIpKQogICAgLmZpbHRlcigocikgPT4gdHlwZW9mIHI/LnBhdHJvbiA9PT0gInN0cmluZyIgJiYgci5wYXRyb24udHJpbSgpKQogICAgLm1hcCgocikgPT4gKHsgLi4uciwgY3JlYWRvRWw6IGNyZWFkbyhyLmNyZWFkb0VsKSwgYWN0aXZhOiByLmFjdGl2YSAhPT0gZmFsc2UgfSkpOwoKICByZXR1cm4geyBkZWNpc2lvbmVzLCBlcnJvcmVzLCB0YXJlYXMsIGRpc2Vub3MsIHJlZ2xhcyB9Owp9CgovKiogwr9IYXkgYWxnbyBlbiBsYSBjYXJwZXRhIC5mb3JqYS8gZGUgZXN0ZSByZXBvPyAocGFyYSBlbCBhdmlzbyBkZQogKiDCq21lbW9yaWEgcmVjdXBlcmFkYcK7IGFsIGNsb25hcikuICovCmV4cG9ydCBmdW5jdGlvbiBoYXlGb3JqYUVuKGZpbGVzOiBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+KTogYm9vbGVhbiB7CiAgcmV0dXJuIE9iamVjdC5rZXlzKGZpbGVzKS5zb21lKChrKSA9PiBrLmluY2x1ZGVzKENBUlBFVEFfRk9SSkEpKTsKfQoKLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCi8qIHJlbmRlciBwYXJhIGVsIHByb21wdCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqLwovKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KCi8qKiBCbG9xdWUgZGUgbWVtb3JpYSBxdWUgdmlhamEgYWwgbW9kZWxvIChBdXRvIENvbnRleHQpLiBDb21wYWN0bzogc29sbwogKiBsbyBxdWUgY2FtYmlhIGVsIGNvbXBvcnRhbWllbnRvLiBTaW4gZGVjaXNpb25lcyBlbCBibG9xdWUgbm8gZXhpc3RlLiAqLwpleHBvcnQgZnVuY3Rpb24gcmVuZGVyTWVtb3JpYVBhcmFQcm9tcHQobTogTWVtb3JpYVByb3llY3RvKTogc3RyaW5nIHwgbnVsbCB7CiAgY29uc3QgbGluZWFzOiBzdHJpbmdbXSA9IFtdOwogIGlmIChtLmRlY2lzaW9uZXMubGVuZ3RoKSB7CiAgICBsaW5lYXMucHVzaCgiIyMgTWVtb3JpYSBkZWwgcHJveWVjdG8g4oCUIGRlY2lzaW9uZXMgeWEgdG9tYWRhcyIpOwogICAgZm9yIChjb25zdCBkIG9mIG0uZGVjaXNpb25lcy5zbGljZSgwLCA4KSkgbGluZWFzLnB1c2goYC0gJHtkLmNvbnRlbmlkb31gKTsKICB9CiAgY29uc3QgZXJyb3Jlc0FiaWVydG9zID0gbS5lcnJvcmVzLmZpbHRlcigoZSkgPT4gIWUucmVzdWVsdG8pLnNsaWNlKDAsIDUpOwogIGlmIChlcnJvcmVzQWJpZXJ0b3MubGVuZ3RoKSB7CiAgICBsaW5lYXMucHVzaCgiIyMgRXJyb3JlcyBjb25vY2lkb3Mgc2luIHJlc29sdmVyIik7CiAgICBmb3IgKGNvbnN0IGUgb2YgZXJyb3Jlc0FiaWVydG9zKSBsaW5lYXMucHVzaChgLSAke2UucXVlfSR7ZS5jYXVzYSA/IGAgKGNhdXNhOiAke2UuY2F1c2F9KWAgOiAiIn1gKTsKICB9CiAgY29uc3QgaGlzdG9yaWFsID0gbS5lcnJvcmVzLmZpbHRlcigoZSkgPT4gZS5yZXN1ZWx0byAmJiBlLnNvbHVjaW9uKS5zbGljZSgwLCA0KTsKICBpZiAoaGlzdG9yaWFsLmxlbmd0aCkgewogICAgbGluZWFzLnB1c2goIiMjIEVycm9yZXMgcGFzYWRvcyB5YSByZXN1ZWx0b3MgKG5vIGxvcyByZXBpdGFzKSIpOwogICAgZm9yIChjb25zdCBlIG9mIGhpc3RvcmlhbCkgbGluZWFzLnB1c2goYC0gJHtlLnF1ZX0g4oaSICR7ZS5zb2x1Y2lvbn1gKTsKICB9CiAgaWYgKCFsaW5lYXMubGVuZ3RoKSByZXR1cm4gbnVsbDsKICByZXR1cm4gbGluZWFzLmpvaW4oIlxuIik7Cn0KCi8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwovKiBwZXJzaXN0ZW5jaWEgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKi8KLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCgpjb25zdCBDTEFWRSA9ICJmb3JqYS1tZW1vcmlhLXYxIjsKCi8qKiBSZWdpc3RybyBnbG9iYWw6IHNlc2nDs24g4oaSIG1lbW9yaWEuIGxvY2FsU3RvcmFnZSBjb24gZmFsbGJhY2sgZW4KICogbWVtb3JpYSAobWlzbW8gcGF0csOzbiBxdWUgc25hcHNob3RzLnRzKS4gKi8KZnVuY3Rpb24gc3RvcmFnZVBvckRlZmVjdG8oKTogU3RvcmFnZSB7CiAgdHJ5IHsKICAgIGlmICh0eXBlb2Ygd2luZG93ICE9PSAidW5kZWZpbmVkIiAmJiB3aW5kb3cubG9jYWxTdG9yYWdlKSByZXR1cm4gd2luZG93LmxvY2FsU3RvcmFnZTsKICB9IGNhdGNoIHsKICAgIC8qIGJsb3F1ZWFkbyAqLwogIH0KICAvLyBpbXBvcnQgZGlmZXJpZG8gcGFyYSBubyBhcnJhc3RyYXIgc25hcHNob3RzLnRzIGEgbG9zIHRlc3RzOiBtYXBhIHByb3BpbwogIGNvbnN0IGRhdG9zID0gbmV3IE1hcDxzdHJpbmcsIHN0cmluZz4oKTsKICByZXR1cm4gewogICAgZ2V0IGxlbmd0aCgpIHsKICAgICAgcmV0dXJuIGRhdG9zLnNpemU7CiAgICB9LAogICAgY2xlYXI6ICgpID0+IGRhdG9zLmNsZWFyKCksCiAgICBnZXRJdGVtOiAoaykgPT4gKGRhdG9zLmhhcyhrKSA/IGRhdG9zLmdldChrKSEgOiBudWxsKSwKICAgIGtleTogKGkpID0+IEFycmF5LmZyb20oZGF0b3Mua2V5cygpKVtpXSA/PyBudWxsLAogICAgcmVtb3ZlSXRlbTogKGspID0+IGRhdG9zLmRlbGV0ZShrKSwKICAgIHNldEl0ZW06IChrLCB2KSA9PiBkYXRvcy5zZXQoaywgdiksCiAgfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGxlZXJUb2RvKHN0OiBTdG9yYWdlID0gc3RvcmFnZVBvckRlZmVjdG8oKSk6IFJlY29yZDxzdHJpbmcsIE1lbW9yaWFQcm95ZWN0bz4gewogIHRyeSB7CiAgICBjb25zdCBjcnVkbyA9IHN0LmdldEl0ZW0oQ0xBVkUpOwogICAgaWYgKCFjcnVkbykgcmV0dXJuIHt9OwogICAgY29uc3QgdiA9IEpTT04ucGFyc2UoY3J1ZG8pOwogICAgcmV0dXJuIHYgJiYgdHlwZW9mIHYgPT09ICJvYmplY3QiID8gKHYgYXMgUmVjb3JkPHN0cmluZywgTWVtb3JpYVByb3llY3RvPikgOiB7fTsKICB9IGNhdGNoIHsKICAgIHJldHVybiB7fTsKICB9Cn0KCmV4cG9ydCBmdW5jdGlvbiBndWFyZGFyVG9kbygKICB0b2RvOiBSZWNvcmQ8c3RyaW5nLCBNZW1vcmlhUHJveWVjdG8+LAogIHN0OiBTdG9yYWdlID0gc3RvcmFnZVBvckRlZmVjdG8oKQopOiB2b2lkIHsKICB0cnkgewogICAgc3Quc2V0SXRlbShDTEFWRSwgSlNPTi5zdHJpbmdpZnkodG9kbykpOwogIH0gY2F0Y2ggewogICAgLy8gY3VvdGEgbGxlbmE6IGxhIG1lbW9yaWEgbm8gc2Ugcm9tcGUsIHNvbG8gbm8gc2UgcGVyc2lzdGUKICB9Cn0KCmV4cG9ydCBmdW5jdGlvbiBsZWVyTWVtb3JpYShzZXNpb25JZDogc3RyaW5nLCBzdDogU3RvcmFnZSA9IHN0b3JhZ2VQb3JEZWZlY3RvKCkpOiBNZW1vcmlhUHJveWVjdG8gewogIHJldHVybiBsZWVyVG9kbyhzdClbc2VzaW9uSWRdID8/IHsgLi4uTUVNT1JJQV9WQUNJQSB9Owp9CgpleHBvcnQgZnVuY3Rpb24gZ3VhcmRhck1lbW9yaWEoCiAgc2VzaW9uSWQ6IHN0cmluZywKICBtOiBNZW1vcmlhUHJveWVjdG8sCiAgc3Q6IFN0b3JhZ2UgPSBzdG9yYWdlUG9yRGVmZWN0bygpCik6IHZvaWQgewogIGNvbnN0IHRvZG8gPSBsZWVyVG9kbyhzdCk7CiAgdG9kb1tzZXNpb25JZF0gPSBtOwogIGd1YXJkYXJUb2RvKHRvZG8sIHN0KTsKfQoKLyoqIEJvcnJhIGxhIG1lbW9yaWEgZGUgdW5hIHNlc2nDs24gKGFsIGVsaW1pbmFyIGxhIGNvbnZlcnNhY2nDs24pLiAqLwpleHBvcnQgZnVuY3Rpb24gYm9ycmFyTWVtb3JpYShzZXNpb25JZDogc3RyaW5nLCBzdDogU3RvcmFnZSA9IHN0b3JhZ2VQb3JEZWZlY3RvKCkpOiB2b2lkIHsKICBjb25zdCB0b2RvID0gbGVlclRvZG8oc3QpOwogIGRlbGV0ZSB0b2RvW3Nlc2lvbklkXTsKICBndWFyZGFyVG9kbyh0b2RvLCBzdCk7Cn0K
+/** Forja IA — Memoria estructurada del proyecto (Pilar 3 del plan de escalado).
+ *
+ * Hasta ahora la memoria estaba fragmentada: fallos verificados en una clave
+ * global con TTL, reglas «no tocar» por sesión, notas dentro del mapa, y
+ * errores en vivo efímeros. Todo era texto o casi. El plan pide datos
+ * ESTRUCTURADOS y CONSULTABLES, y sobre todo que el cerebro del proyecto
+ * VAYA CON EL PROYECTO: si mañana el repo se clona en otra máquina, la
+ * memoria se recupera leyendo los archivos `.forja/` del propio repo — no
+ * depende de que este navegador conserve su localStorage.
+ *
+ * Esquema (mínimo viable, inspirado en el del plan técnico):
+ *
+ *   .forja/
+ *     decisions.json       — decisiones tomadas (usuario | agente | modelo)
+ *     errors.json          — errores reales con causa y solución
+ *     tasks.json           — Task DNA: qué se encargó, qué modelo, qué pasó
+ *     design-tokens.json   — qué dirección visual se usó (variación forzada)
+ *     negative-rules.json  — reglas «no tocar» (puente con reglas-no.ts)
+ *
+ * Persistencia local: UNA clave de localStorage (`forja-memoria-v1`) con un
+ * registro por sesión. Se exporta a los cinco JSON con `aArchivosForja()`
+ * cuando se sube el proyecto a GitHub (repo-cloud / github-upload), y se
+ * lee de vuelta con `deArchivosForja()` al clonarlo.
+ *
+ * Este módulo es puro (strings in, objects out, storage inyectable) para
+ * que se pueda testear sin React y sin navegador.
+ */
+
+/* ------------------------------------------------------------------ */
+/* tipos                                                              */
+/* ------------------------------------------------------------------ */
+
+/** Una decisión del proyecto: la paleta, la estructura, qué se descartó. */
+export interface DecisionMemoria {
+  id: string;
+  contenido: string;
+  /** quién la tomó */
+  origen: "usuario" | "agente" | "modelo";
+  /** a qué aplica: todo el proyecto, un archivo o una feature */
+  ambito: "global" | "archivo" | "feature";
+  /** archivo o feature concreta, si ambito != global */
+  referencia?: string;
+  creadoEl: number;
+}
+
+/** Un error real que ya ocurrió, con su causa y cómo se resolvió. */
+export interface ErrorMemoria {
+  id: string;
+  que: string;
+  causa?: string;
+  solucion?: string;
+  archivos?: string[];
+  resuelto: boolean;
+  creadoEl: number;
+}
+
+/** Task DNA: un encargo convertido en objeto estructurado (plan técnico §4).
+ * No es un formulario para el usuario: lo genera el flujo de trabajo y se
+ * guarda al terminar (o fallar) la tarea. Alimenta la recomendación de
+ * modelo (fase 7) sin necesitar un benchmark formal. */
+export interface TareaMemoria {
+  id: string;
+  objetivo: string;
+  archivos?: string[];
+  modelo?: string;
+  /** pending | running | done | failed */
+  estado: "pending" | "running" | "done" | "failed";
+  /** nº de reintentos de corrección automática que costó */
+  reintentos?: number;
+  resultado?: string;
+  creadoEl: number;
+}
+
+/** Dirección de diseño usada en este proyecto (plan escalado §2.3):
+ * guardar qué se usó para NO repetirse entre proyectos. */
+export interface DisenoUsado {
+  id: string;
+  /** id de la dirección (design-directions.ts): editorial, minimal… */
+  direccion: string;
+  /** paleta y tipografía resumidas, para el historial legible */
+  resumen: string;
+  creadoEl: number;
+}
+
+/** Regla negativa, tal cual `ReglaNo` de reglas-no.ts. Se repite el
+ * mínimo para no arrastrar una dependencia: el puente hace el mapeo. */
+export interface ReglaMemoria {
+  patron: string;
+  motivo: string;
+  activa: boolean;
+  creadoEl: number;
+}
+
+/** La memoria completa de UN proyecto. */
+export interface MemoriaProyecto {
+  decisiones: DecisionMemoria[];
+  errores: ErrorMemoria[];
+  tareas: TareaMemoria[];
+  disenos: DisenoUsado[];
+  reglas: ReglaMemoria[];
+}
+
+export const MEMORIA_VACIA: MemoriaProyecto = {
+  decisiones: [],
+  errores: [],
+  tareas: [],
+  disenos: [],
+  reglas: [],
+};
+
+/** Topes de cada lista. Más que esto el prompt y el JSON crecen sin
+ * aportar: la memoria útil es la reciente y la importante. */
+export const TOPE_DECISIONES = 30;
+export const TOPE_ERRORES = 30;
+export const TOPE_TAREAS = 50;
+export const TOPE_DISENOS = 12;
+export const TOPE_REGLAS = 20;
+
+/* ------------------------------------------------------------------ */
+/* helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function id(now: number): string {
+  return `m${now.toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
+
+/** Añade al principio y recorta. Devuelve una NUEVA memoria (inmutable:
+ * zustand y los tests lo agradecen). */
+function push<T>(lista: T[], item: T, tope: number): T[] {
+  return [item, ...lista].slice(0, tope);
+}
+
+/* ------------------------------------------------------------------ */
+/* operaciones                                                        */
+/* ------------------------------------------------------------------ */
+
+export function addDecision(
+  m: MemoriaProyecto,
+  contenido: string,
+  origen: DecisionMemoria["origen"],
+  ambito: DecisionMemoria["ambito"] = "global",
+  referencia?: string,
+  ahora = Date.now()
+): MemoriaProyecto {
+  if (!contenido.trim()) return m;
+  return {
+    ...m,
+    decisiones: push(
+      m.decisiones,
+      {
+        id: id(ahora),
+        contenido: contenido.trim(),
+        origen,
+        ambito,
+        ...(referencia ? { referencia } : {}),
+        creadoEl: ahora,
+      },
+      TOPE_DECISIONES
+    ),
+  };
+}
+
+export function addError(
+  m: MemoriaProyecto,
+  que: string,
+  datos?: { causa?: string; solucion?: string; archivos?: string[] },
+  ahora = Date.now()
+): MemoriaProyecto {
+  if (!que.trim()) return m;
+  return {
+    ...m,
+    errores: push(
+      m.errores,
+      {
+        id: id(ahora),
+        que: que.trim(),
+        ...(datos?.causa ? { causa: datos.causa } : {}),
+        ...(datos?.solucion ? { solucion: datos.solucion } : {}),
+        ...(datos?.archivos?.length ? { archivos: datos.archivos } : {}),
+        resuelto: !!datos?.solucion,
+        creadoEl: ahora,
+      },
+      TOPE_ERRORES
+    ),
+  };
+}
+
+export function addTarea(
+  m: MemoriaProyecto,
+  objetivo: string,
+  datos?: { archivos?: string[]; modelo?: string; estado?: TareaMemoria["estado"]; reintentos?: number; resultado?: string },
+  ahora = Date.now()
+): MemoriaProyecto {
+  if (!objetivo.trim()) return m;
+  return {
+    ...m,
+    tareas: push(
+      m.tareas,
+      {
+        id: id(ahora),
+        objetivo: objetivo.trim(),
+        ...(datos?.archivos?.length ? { archivos: datos.archivos } : {}),
+        ...(datos?.modelo ? { modelo: datos.modelo } : {}),
+        estado: datos?.estado ?? "done",
+        ...(datos?.reintentos !== undefined ? { reintentos: datos.reintentos } : {}),
+        ...(datos?.resultado ? { resultado: datos.resultado } : {}),
+        creadoEl: ahora,
+      },
+      TOPE_TAREAS
+    ),
+  };
+}
+
+export function addDiseno(
+  m: MemoriaProyecto,
+  direccion: string,
+  resumen: string,
+  ahora = Date.now()
+): MemoriaProyecto {
+  if (!direccion.trim()) return m;
+  return {
+    ...m,
+    disenos: push(
+      m.disenos,
+      { id: id(ahora), direccion: direccion.trim(), resumen, creadoEl: ahora },
+      TOPE_DISENOS
+    ),
+  };
+}
+
+/** La última dirección de diseño usada, o null (para la variación forzada:
+ * si la anterior fue «editorial», la siguiente no debería serlo). */
+export function ultimoDiseno(m: MemoriaProyecto): string | null {
+  return m.disenos[0]?.direccion ?? null;
+}
+
+/** ¿Este modelo ya falló mucho en este proyecto? (fase 7: el gratis que
+ * acumula reintentos en tareas de diseño deja de recomendarse). */
+export function reintentosDeModelo(m: MemoriaProyecto, modelo: string): number {
+  return m.tareas
+    .filter((t) => t.modelo === modelo)
+    .reduce((n, t) => n + (t.reintentos ?? 0), 0);
+}
+
+/* ------------------------------------------------------------------ */
+/* puente con reglas-no.ts                                            */
+/* ------------------------------------------------------------------ */
+
+/** Reglas de la sesión → memoria (export). */
+export function reglasAMemoria(
+  m: MemoriaProyecto,
+  reglas: readonly { patron: string; motivo: string }[]
+): MemoriaProyecto {
+  const activas = reglas.map((r) => ({
+    patron: r.patron,
+    motivo: r.motivo,
+    activa: true,
+    creadoEl: Date.now(),
+  }));
+  return { ...m, reglas: activas.slice(0, TOPE_REGLAS) };
+}
+
+/* ------------------------------------------------------------------ */
+/* export/import: los archivos .forja/                                */
+/* ------------------------------------------------------------------ */
+
+/** Prefijo de carpeta en el repo. */
+export const CARPETA_FORJA = ".forja/";
+
+/** Serializa la memoria a los cinco JSON del repo. Devuelve un mapa
+ * `path → contenido` listo para añadir a un commit de Repo Studio. Solo
+ * incluye las secciones con contenido: un `.forja/` vacío en el repo
+ * sería ruido. */
+export function aArchivosForja(m: MemoriaProyecto): Record<string, string> {
+  const out: Record<string, string> = {};
+  const volcar = (nombre: string, datos: unknown) => {
+    out[`${CARPETA_FORJA}${nombre}`] = JSON.stringify(datos, null, 2);
+  };
+  if (m.decisiones.length) volcar("decisions.json", m.decisiones);
+  if (m.errores.length) volcar("errors.json", m.errores);
+  if (m.tareas.length) volcar("tasks.json", m.tareas);
+  if (m.disenos.length) volcar("design-tokens.json", m.disenos);
+  if (m.reglas.length) volcar("negative-rules.json", m.reglas);
+  return out;
+}
+
+function parseLista<T>(crudo: string | undefined): T[] {
+  if (!crudo) return [];
+  try {
+    const v = JSON.parse(crudo);
+    return Array.isArray(v) ? (v as T[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Lee los archivos `.forja/` de un repo clonado y reconstruye la
+ * memoria. Tolera archivos ausentes, corruptos o a medias: lo que se
+ * pueda leer se recupera, lo que no, no (y no rompe la carga del repo). */
+export function deArchivosForja(files: Record<string, string>): MemoriaProyecto {
+  const buscar = (nombre: string): string | undefined => {
+    const directo = files[`${CARPETA_FORJA}${nombre}`];
+    if (directo !== undefined) return directo;
+    // tolera rutas con carpeta raíz (los zip suelen traer «repo-main/.forja/…»)
+    const hit = Object.entries(files).find(
+      ([k, _v]) => k.endsWith(`${CARPETA_FORJA}${nombre}`) && k.length > 0
+    );
+    return hit ? hit[1] : undefined;
+  };
+  const esNumero = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+  const creado = (v: unknown): number => (esNumero(v) ? v : 0);
+
+  const decisiones = parseLista<DecisionMemoria>(buscar("decisions.json"))
+    .filter((d) => typeof d?.contenido === "string" && d.contenido.trim())
+    .map((d) => ({
+      ...d,
+      creadoEl: creado(d.creadoEl),
+      ambito: (d.ambito === "archivo" || d.ambito === "feature" ? d.ambito : "global") as DecisionMemoria["ambito"],
+      origen: (d.origen === "usuario" || d.origen === "modelo" || d.origen === "agente" ? d.origen : "usuario") as DecisionMemoria["origen"],
+    }));
+  const errores = parseLista<ErrorMemoria>(buscar("errors.json"))
+    .filter((e) => typeof e?.que === "string" && e.que.trim())
+    .map((e) => ({ ...e, creadoEl: creado(e.creadoEl), resuelto: !!e.resuelto }));
+  const tareas = parseLista<TareaMemoria>(buscar("tasks.json"))
+    .filter((t) => typeof t?.objetivo === "string" && t.objetivo.trim())
+    .map((t) => ({
+      ...t,
+      creadoEl: creado(t.creadoEl),
+      estado: (["pending", "running", "done", "failed"].includes(t.estado) ? t.estado : "done") as TareaMemoria["estado"],
+    }));
+  const disenos = parseLista<DisenoUsado>(buscar("design-tokens.json"))
+    .filter((d) => typeof d?.direccion === "string" && d.direccion.trim())
+    .map((d) => ({ ...d, creadoEl: creado(d.creadoEl) }));
+  const reglas = parseLista<ReglaMemoria>(buscar("negative-rules.json"))
+    .filter((r) => typeof r?.patron === "string" && r.patron.trim())
+    .map((r) => ({ ...r, creadoEl: creado(r.creadoEl), activa: r.activa !== false }));
+
+  return { decisiones, errores, tareas, disenos, reglas };
+}
+
+/** ¿Hay algo en la carpeta .forja/ de este repo? (para el aviso de
+ * «memoria recuperada» al clonar). */
+export function hayForjaEn(files: Record<string, string>): boolean {
+  return Object.keys(files).some((k) => k.includes(CARPETA_FORJA));
+}
+
+/* ------------------------------------------------------------------ */
+/* render para el prompt                                              */
+/* ------------------------------------------------------------------ */
+
+/** Bloque de memoria que viaja al modelo (Auto Context). Compacto: solo
+ * lo que cambia el comportamiento. Sin decisiones el bloque no existe. */
+export function renderMemoriaParaPrompt(m: MemoriaProyecto): string | null {
+  const lineas: string[] = [];
+  if (m.decisiones.length) {
+    lineas.push("## Memoria del proyecto — decisiones ya tomadas");
+    for (const d of m.decisiones.slice(0, 8)) lineas.push(`- ${d.contenido}`);
+  }
+  const erroresAbiertos = m.errores.filter((e) => !e.resuelto).slice(0, 5);
+  if (erroresAbiertos.length) {
+    lineas.push("## Errores conocidos sin resolver");
+    for (const e of erroresAbiertos) lineas.push(`- ${e.que}${e.causa ? ` (causa: ${e.causa})` : ""}`);
+  }
+  const historial = m.errores.filter((e) => e.resuelto && e.solucion).slice(0, 4);
+  if (historial.length) {
+    lineas.push("## Errores pasados ya resueltos (no los repitas)");
+    for (const e of historial) lineas.push(`- ${e.que} → ${e.solucion}`);
+  }
+  if (!lineas.length) return null;
+  return lineas.join("\n");
+}
+
+/* ------------------------------------------------------------------ */
+/* persistencia                                                       */
+/* ------------------------------------------------------------------ */
+
+const CLAVE = "forja-memoria-v1";
+
+/** Registro global: sesión → memoria. localStorage con fallback en
+ * memoria (mismo patrón que snapshots.ts). */
+function storagePorDefecto(): Storage {
+  try {
+    if (typeof window !== "undefined" && window.localStorage) return window.localStorage;
+  } catch {
+    /* bloqueado */
+  }
+  // import diferido para no arrastrar snapshots.ts a los tests: mapa propio
+  const datos = new Map<string, string>();
+  return {
+    get length() {
+      return datos.size;
+    },
+    clear: () => datos.clear(),
+    getItem: (k) => (datos.has(k) ? datos.get(k)! : null),
+    key: (i) => Array.from(datos.keys())[i] ?? null,
+    removeItem: (k) => datos.delete(k),
+    setItem: (k, v) => datos.set(k, v),
+  };
+}
+
+export function leerTodo(st: Storage = storagePorDefecto()): Record<string, MemoriaProyecto> {
+  try {
+    const crudo = st.getItem(CLAVE);
+    if (!crudo) return {};
+    const v = JSON.parse(crudo);
+    return v && typeof v === "object" ? (v as Record<string, MemoriaProyecto>) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function guardarTodo(
+  todo: Record<string, MemoriaProyecto>,
+  st: Storage = storagePorDefecto()
+): void {
+  try {
+    st.setItem(CLAVE, JSON.stringify(todo));
+  } catch {
+    // cuota llena: la memoria no se rompe, solo no se persiste
+  }
+}
+
+export function leerMemoria(sesionId: string, st: Storage = storagePorDefecto()): MemoriaProyecto {
+  return leerTodo(st)[sesionId] ?? { ...MEMORIA_VACIA };
+}
+
+export function guardarMemoria(
+  sesionId: string,
+  m: MemoriaProyecto,
+  st: Storage = storagePorDefecto()
+): void {
+  const todo = leerTodo(st);
+  todo[sesionId] = m;
+  guardarTodo(todo, st);
+}
+
+/** Borra la memoria de una sesión (al eliminar la conversación). */
+export function borrarMemoria(sesionId: string, st: Storage = storagePorDefecto()): void {
+  const todo = leerTodo(st);
+  delete todo[sesionId];
+  guardarTodo(todo, st);
+}

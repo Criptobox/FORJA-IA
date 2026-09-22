@@ -1,1 +1,57 @@
-aW1wb3J0IHR5cGUgeyBOZXh0Q29uZmlnIH0gZnJvbSAibmV4dCI7CmltcG9ydCB7IGV4ZWNTeW5jIH0gZnJvbSAibm9kZTpjaGlsZF9wcm9jZXNzIjsKaW1wb3J0IHBrZyBmcm9tICIuL3BhY2thZ2UuanNvbiIgd2l0aCB7IHR5cGU6ICJqc29uIiB9OwoKLyoqIENvbW1pdCBkZWwgcXVlIHNhbGnDsyBlc3RhIGJ1aWxkLiBFbiBWZXJjZWwgbG8gZGEgbGEgcGxhdGFmb3JtYTsgZW4gbG9jYWwgc2UKICogIHByZWd1bnRhIGEgZ2l0LiBTaSBubyBoYXkgbmluZ3Vubywgc2UgcXVlZGEgdmFjw61vIHkgbm8gc2UgZW5zZcOxYSBuYWRhLiAqLwpmdW5jdGlvbiBjb21taXQoKTogc3RyaW5nIHsKICBjb25zdCBkZVZlcmNlbCA9IHByb2Nlc3MuZW52LlZFUkNFTF9HSVRfQ09NTUlUX1NIQTsKICBpZiAoZGVWZXJjZWwpIHJldHVybiBkZVZlcmNlbC5zbGljZSgwLCA3KTsKICB0cnkgewogICAgcmV0dXJuIGV4ZWNTeW5jKCJnaXQgcmV2LXBhcnNlIC0tc2hvcnQgSEVBRCIsIHsgZW5jb2Rpbmc6ICJ1dGY4IiB9KS50cmltKCk7CiAgfSBjYXRjaCB7CiAgICByZXR1cm4gIiI7CiAgfQp9Cgpjb25zdCBuZXh0Q29uZmlnOiBOZXh0Q29uZmlnID0gewogIC8qIMKrc3RhbmRhbG9uZcK7IHNpcnZlIHBhcmEgbGV2YW50YXIgZWwgc2Vydmlkb3IgcG9yIHR1IGN1ZW50YSAobnBtIHN0YXJ0KSwgeQogICAqIGVzIGxvIHF1ZSBzZSB1c2EgYXF1w60gcGFyYSBwcm9iYXIgbGEgYnVpbGQgZGUgdmVyZGFkIGFudGVzIGRlIHN1YmlybGEuCiAgICoKICAgKiBFbiBWZXJjZWwgTk86IGFsbMOtIGVsIHByb3BpbyBjb25zdHJ1Y3RvciBoYWNlIHN1IHJhc3RyZW8gZGUgYXJjaGl2b3MsIHkKICAgKiBsb3MgZG9zIGEgbGEgdmV6IGNob2Nhbi4gRWwgc8OtbnRvbWEgZXhhY3RvLCBkZWwgcmVnaXN0cm8gZGUgVmVyY2VsOgogICAqCiAgICogICBSdW5uaW5nIG9uQnVpbGRDb21wbGV0ZSBmcm9tIFZlcmNlbAogICAqICAgRXJyb3I6IEVOT0VOVDogbm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeSwKICAgKiAgICAgcGF0aDogJy92ZXJjZWwvcGF0aDAvLm5leHQvbmV4dC1zZXJ2ZXIuanMubmZ0Lmpzb24nCiAgICoKICAgKiBDb21waWxhIGVudGVybywgZ2VuZXJhIGxhcyAxMSBww6FnaW5hcywgeSByZXZpZW50YSBhbCBmaW5hbCBidXNjYW5kbyB1bgogICAqIGFyY2hpdm8gZGUgcmFzdHJlbyBxdWUgZWwgbW9kbyBzdGFuZGFsb25lIG5vIGRlamEgZG9uZGUgVmVyY2VsIGxvIGVzcGVyYS4KICAgKiBFbXBlesOzIGFsIHN1YmlyIE5leHQgYSAxNi4zLjM7IGNvbiAxNi4xLjEgcGFzYWJhIGRlc2FwZXJjaWJpZG8uCiAgICoKICAgKiBWZXJjZWwgZGVmaW5lIFZFUkNFTD0xIGVuIHN1cyBidWlsZHMsIGFzw60gcXVlIGFow60gc2UgYXBhZ2EgeSBlbiBjdWFscXVpZXIKICAgKiBvdHJvIHNpdGlvIHNlIHF1ZWRhIGNvbW8gZXN0YWJhLiAqLwogIC4uLihwcm9jZXNzLmVudi5WRVJDRUwgPyB7fSA6IHsgb3V0cHV0OiAic3RhbmRhbG9uZSIgYXMgY29uc3QgfSksCiAgLyogTGEgY29tcHJvYmFjacOzbiBkZSB0aXBvcyB2dWVsdmUgYSBlc3RhciBlbmNlbmRpZGEuCiAgICoKICAgKiBBcGFnYXJsYSBubyBlcmEgZWwgcHJvYmxlbWE6IGVsIHJlZ2lzdHJvIGRlIFZlcmNlbCBsbyBkZWrDsyBwb3IgZXNjcml0byDigJQKICAgKiBkZWPDrWEgwqtTa2lwcGluZyB2YWxpZGF0aW9uIG9mIHR5cGVzwrsgeSBhdW4gYXPDrSBmYWxsYWJhLiBMbyBxdWUgZmFsdGFiYSBlcmEKICAgKiBAdHlwZXMvbm9kZSwgcXVlIGhhc3RhIGEwNGVlMjkgbGxlZ2FiYSBkZSByZWJvdGUgcG9ycXVlIGJ1bi10eXBlcyBsbyBwZWTDrWEuCiAgICogQWwgcXVpdGFyIGJ1bi10eXBlcyAocXVlIG5vIHVzYWJhIG5hZGllKSBzZSBmdWUgY29uIMOpbCwgcXVlZMOzIGVuIGVsCiAgICogbG9ja2ZpbGUgc2luIHF1ZSBuYWRpZSBsbyByZWNsYW1hcmEg4oCUcG9yIGVzbyBgbnBtIGNpYCBhcXXDrSBsbyBpbnN0YWxhYmEKICAgKiBpZ3VhbCB5IG5vIGhhYsOtYSBmb3JtYSBkZSByZXByb2R1Y2lyIGVsIGZhbGxv4oCUIHkgZWwgaW5zdGFsYWRvciBkZSBWZXJjZWwsCiAgICogcXVlIHPDrSBsaW1waWEgbG8gcXVlIHNvYnJhLCBsbyBkZXNjYXJ0w7MuCiAgICoKICAgKiBBaG9yYSBlc3TDoSBkZWNsYXJhZG8gZW4gZGV2RGVwZW5kZW5jaWVzLCBxdWUgZXMgZG9uZGUgdGVuw61hIHF1ZSBlc3Rhci4gKi8KICByZWFjdFN0cmljdE1vZGU6IHRydWUsCiAgZGV2SW5kaWNhdG9yczogZmFsc2UsCiAgLyogRGF0b3MgZGUgbGEgYnVpbGQsIHBhcmEgc2FiZXIgUVXDiSBjb3BpYSBzZSBlc3TDoSB1c2FuZG8uIFNpbiBlc3RvIG5vIGhhYsOtYQogICAqIGZvcm1hIGRlIGRpc3Rpbmd1aXIgdW4gZGVzcGxpZWd1ZSBudWV2byBkZSB1bm8gc2VydmlkbyBkZXNkZSBsYSBjYWNow6kuICovCiAgZW52OiB7CiAgICBORVhUX1BVQkxJQ19GT1JKQV9WRVJTSU9OOiBwa2cudmVyc2lvbiwKICAgIE5FWFRfUFVCTElDX0ZPUkpBX0NPTU1JVDogY29tbWl0KCksCiAgICBORVhUX1BVQkxJQ19GT1JKQV9CVUlMVDogbmV3IERhdGUoKS50b0lTT1N0cmluZygpLAogIH0sCn07CgpleHBvcnQgZGVmYXVsdCBuZXh0Q29uZmlnOwo=
+import type { NextConfig } from "next";
+import { execSync } from "node:child_process";
+import pkg from "./package.json" with { type: "json" };
+
+/** Commit del que salió esta build. En Vercel lo da la plataforma; en local se
+ *  pregunta a git. Si no hay ninguno, se queda vacío y no se enseña nada. */
+function commit(): string {
+  const deVercel = process.env.VERCEL_GIT_COMMIT_SHA;
+  if (deVercel) return deVercel.slice(0, 7);
+  try {
+    return execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
+  } catch {
+    return "";
+  }
+}
+
+const nextConfig: NextConfig = {
+  /* «standalone» sirve para levantar el servidor por tu cuenta (npm start), y
+   * es lo que se usa aquí para probar la build de verdad antes de subirla.
+   *
+   * En Vercel NO: allí el propio constructor hace su rastreo de archivos, y
+   * los dos a la vez chocan. El síntoma exacto, del registro de Vercel:
+   *
+   *   Running onBuildComplete from Vercel
+   *   Error: ENOENT: no such file or directory,
+   *     path: '/vercel/path0/.next/next-server.js.nft.json'
+   *
+   * Compila entero, genera las 11 páginas, y revienta al final buscando un
+   * archivo de rastreo que el modo standalone no deja donde Vercel lo espera.
+   * Empezó al subir Next a 16.3.3; con 16.1.1 pasaba desapercibido.
+   *
+   * Vercel define VERCEL=1 en sus builds, así que ahí se apaga y en cualquier
+   * otro sitio se queda como estaba. */
+  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
+  /* La comprobación de tipos vuelve a estar encendida.
+   *
+   * Apagarla no era el problema: el registro de Vercel lo dejó por escrito —
+   * decía «Skipping validation of types» y aun así fallaba. Lo que faltaba era
+   * @types/node, que hasta a04ee29 llegaba de rebote porque bun-types lo pedía.
+   * Al quitar bun-types (que no usaba nadie) se fue con él, quedó en el
+   * lockfile sin que nadie lo reclamara —por eso `npm ci` aquí lo instalaba
+   * igual y no había forma de reproducir el fallo— y el instalador de Vercel,
+   * que sí limpia lo que sobra, lo descartó.
+   *
+   * Ahora está declarado en devDependencies, que es donde tenía que estar. */
+  reactStrictMode: true,
+  devIndicators: false,
+  /* Datos de la build, para saber QUÉ copia se está usando. Sin esto no había
+   * forma de distinguir un despliegue nuevo de uno servido desde la caché. */
+  env: {
+    NEXT_PUBLIC_FORJA_VERSION: pkg.version,
+    NEXT_PUBLIC_FORJA_COMMIT: commit(),
+    NEXT_PUBLIC_FORJA_BUILT: new Date().toISOString(),
+  },
+};
+
+export default nextConfig;
