@@ -1,6 +1,6 @@
 "use client";
 /** Forja IA — Panel de vista previa en vivo + mapa del proyecto */
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Code2,
   DatabaseZap,
@@ -11,6 +11,7 @@ import {
   FileText,
   Map as MapIcon,
   Monitor,
+  Paintbrush,
   Pencil,
   RefreshCw,
   ScanSearch,
@@ -46,6 +47,7 @@ import { useFailures } from "@/lib/forja/failures";
 import { SANDBOX_ORIGIN, injectConsoleBridge } from "@/lib/forja/sandbox";
 import { borrarAlmacen, guardarAlmacen, leerAlmacen, sembrarAlmacen } from "@/lib/forja/preview-storage";
 import { injectEditPilot } from "@/lib/forja/editar-preview";
+import { aHex, cssDeCambios, injectEstiloPilot, type CambioEstilo, type SeleccionEstilo } from "@/lib/forja/editor-estilos";
 import { toast } from "sonner";
 import {
   registrarError,
@@ -98,6 +100,9 @@ export interface PreviewPanelProps {
   /** Identifica la conversación: lo que la página guarde en localStorage se
    *  conserva bajo este id y vuelve al recargar. Sin él, no persiste. */
   almacenId?: string | null;
+  /** Guarda en el código de la respuesta los estilos tocados en la vista
+   *  previa (bloque `data-forja-ajustes`). Devuelve por qué no, si no. */
+  onEditStyle?: (cambios: CambioEstilo[]) => { ok: boolean; motivo?: string };
 }
 
 /** Lo que un padre puede pedirle a un PreviewPanel montado, por ref. Hoy
@@ -127,6 +132,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   onFixLive,
   onEditText,
   almacenId,
+  onEditStyle,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<Dispositivo>("desktop");
@@ -188,7 +194,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
    *  del iframe sin que se enterara nadie. Solo en lo que se PINTA; lo que se
    *  descarga o se abre en pestaña sigue yendo limpio. */
   const paraPintar = useMemo(
-    () => (bundle ? injectEditPilot(injectConsoleBridge(injectVisualQA(bundle))) : ""),
+    () => (bundle ? injectEstiloPilot(injectEditPilot(injectConsoleBridge(injectVisualQA(bundle)))) : ""),
     [bundle]
   );
 
@@ -232,6 +238,74 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
   }, [editando, onEditText]);
+
+  /* ------- tocar un elemento y cambiar su estilo ------- */
+  const [estilando, setEstilando] = useState(false);
+  const [seleccion, setSeleccion] = useState<SeleccionEstilo | null>(null);
+  const [tokens, setTokens] = useState<Record<string, string>>({});
+  /** cambios sin guardar: selector → propiedad → valor */
+  const [borrador, setBorrador] = useState<Record<string, Record<string, string>>>({});
+  const cambiosBorrador = useMemo<CambioEstilo[]>(
+    () => Object.entries(borrador).map(([selector, props]) => ({ selector, props })),
+    [borrador]
+  );
+
+  const enviarAEstilo = (m: Record<string, unknown>) => {
+    try {
+      iframeRef.current?.contentWindow?.postMessage({ source: "forja-estilo-cmd", ...m }, "*");
+    } catch {
+      /* iframe sin cargar: el «listo» reintenta */
+    }
+  };
+  useEffect(() => {
+    enviarAEstilo({ op: "toggle", on: estilando });
+    if (!estilando) setSeleccion(null);
+  }, [estilando]);
+  // lo que llevas tocado se ve YA, antes de guardarlo
+  useEffect(() => {
+    enviarAEstilo({ op: "vivo", css: cssDeCambios(cambiosBorrador) });
+  }, [cambiosBorrador]);
+  // otra respuesta, otro documento: lo pendiente de la anterior no aplica
+  useEffect(() => {
+    setBorrador({});
+    setSeleccion(null);
+  }, [source]);
+
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if (e.source !== iframeRef.current?.contentWindow) return;
+      const d = e.data as { source?: string; type?: string; tokens?: Record<string, string> } & Partial<SeleccionEstilo> | null;
+      if (!d || d.source !== "forja-estilo") return;
+      if (d.type === "listo") {
+        if (estilando) enviarAEstilo({ op: "toggle", on: true });
+        if (cambiosBorrador.length) enviarAEstilo({ op: "vivo", css: cssDeCambios(cambiosBorrador) });
+      } else if (d.type === "tokens" && d.tokens && typeof d.tokens === "object") {
+        setTokens(d.tokens);
+      } else if (d.type === "seleccion" && typeof d.selector === "string" && d.estilos) {
+        setSeleccion({ selector: d.selector, etiqueta: String(d.etiqueta ?? ""), estilos: d.estilos });
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [estilando, cambiosBorrador]);
+
+  const cambiarEstilo = (selector: string, prop: string, valor: string) =>
+    setBorrador((b) => ({ ...b, [selector]: { ...(b[selector] ?? {}), [prop]: valor } }));
+  const valorActual = (selector: string, prop: string, delPiloto?: string) =>
+    borrador[selector]?.[prop] ?? delPiloto ?? "";
+
+  const guardarEstilos = () => {
+    if (!cambiosBorrador.length) return;
+    const r = onEditStyle?.(cambiosBorrador);
+    if (!r) return;
+    if (!r.ok) {
+      toast.error("No se pudo guardar el estilo", { description: r.motivo });
+      return;
+    }
+    setBorrador({});
+    setSeleccion(null);
+    toast.success("Estilo guardado en el código", { description: "Va en un bloque «data-forja-ajustes» al final de la página." });
+  };
 
   /* ------- errores mientras TÚ la usas ------- */
   const [erroresVivos, setErroresVivos] = useState<ErrorEnVivo[]>([]);
@@ -453,13 +527,32 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           variant="ghost"
           size="icon"
           className={cn("size-8 shrink-0", editando && "bg-muted text-foreground")}
-          onClick={() => setEditando((v) => !v)}
+          onClick={() => {
+            setEstilando(false);
+            setEditando((v) => !v);
+          }}
           title={editando ? "Dejar de editar" : "Editar: toca un texto de la vista previa para cambiarlo"}
           aria-label={editando ? "Dejar de editar la vista previa" : "Editar la vista previa"}
           aria-pressed={editando}
         >
           <Pencil className="size-3.5" />
         </Button>
+        {onEditStyle && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("size-8 shrink-0", estilando && "bg-muted text-foreground")}
+            onClick={() => {
+              setEditando(false);
+              setEstilando((v) => !v);
+            }}
+            title={estilando ? "Dejar de editar estilos" : "Estilos: toca un elemento para cambiar color, tamaño, espaciado… o cambia los tokens de la página"}
+            aria-label={estilando ? "Dejar de editar estilos" : "Editar estilos de la vista previa"}
+            aria-pressed={estilando}
+          >
+            <Paintbrush className="size-3.5" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
@@ -536,6 +629,18 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
       </div>
 
       {/* Contenido */}
+      {estilando && tab === "preview" && (
+        <PanelEstilos
+          seleccion={seleccion}
+          tokens={tokens}
+          valor={valorActual}
+          onCambio={cambiarEstilo}
+          pendientes={cambiosBorrador.length}
+          onGuardar={guardarEstilos}
+          onDescartar={() => setBorrador({})}
+        />
+      )}
+
       {qaAbierto && tab !== "map" && (
         <div className="shrink-0 border-b border-border/60 bg-muted/30 px-3 py-2">
           <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -693,3 +798,160 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
     </div>
   );
 });
+
+/* ------------------------------------------------------------------ */
+/* Panel del editor de estilos                                         */
+/* ------------------------------------------------------------------ */
+
+const PESOS = ["300", "400", "500", "600", "700", "800", "900"];
+
+function Campo({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
+  return (
+    <label className="flex min-w-0 flex-col gap-0.5 text-[10px] text-muted-foreground">
+      {etiqueta}
+      {children}
+    </label>
+  );
+}
+
+const claseInput = "h-7 w-full min-w-0 rounded-md border border-border/60 bg-background px-1.5 text-[11px] text-foreground";
+
+function ColorCampo({ valor, onCambio, etiqueta }: { valor: string; onCambio: (v: string) => void; etiqueta: string }) {
+  const hex = aHex(valor);
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        type="color"
+        aria-label={etiqueta}
+        value={hex ?? "#ffffff"}
+        onChange={(e) => onCambio(e.target.value)}
+        title={hex ? hex : "Transparente o en otro espacio de color: elige uno para fijarlo"}
+        className={cn(
+          "h-7 w-8 shrink-0 cursor-pointer rounded border border-border/60 bg-transparent p-0.5",
+          !hex && "opacity-40 [background:repeating-conic-gradient(#ccc_0_25%,transparent_0_50%)_0_0/8px_8px]"
+        )}
+      />
+      <input aria-label={`${etiqueta} (valor)`} value={valor} onChange={(e) => onCambio(e.target.value)} className={claseInput} />
+    </div>
+  );
+}
+
+function PanelEstilos({
+  seleccion,
+  tokens,
+  valor,
+  onCambio,
+  pendientes,
+  onGuardar,
+  onDescartar,
+}: {
+  seleccion: SeleccionEstilo | null;
+  tokens: Record<string, string>;
+  valor: (selector: string, prop: string, delPiloto?: string) => string;
+  onCambio: (selector: string, prop: string, valor: string) => void;
+  pendientes: number;
+  onGuardar: () => void;
+  onDescartar: () => void;
+}) {
+  const sel = seleccion?.selector;
+  const px = (v: string) => (v ? String(Math.round(parseFloat(v))) : "");
+  const listaTokens = Object.entries(tokens);
+  return (
+    <div className="max-h-[45%] shrink-0 overflow-y-auto border-b border-border/60 bg-muted/30 px-3 py-2" aria-label="Editor de estilos">
+      {sel && seleccion ? (
+        <>
+          <p className="mb-1.5 truncate font-mono text-[10px] text-muted-foreground" title={sel}>
+            &lt;{seleccion.etiqueta}&gt; · {sel}
+          </p>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 sm:grid-cols-4">
+            <Campo etiqueta="Color">
+              <ColorCampo etiqueta="Color del texto" valor={valor(sel, "color", seleccion.estilos.color)} onCambio={(v) => onCambio(sel, "color", v)} />
+            </Campo>
+            <Campo etiqueta="Fondo">
+              <ColorCampo etiqueta="Color de fondo" valor={valor(sel, "background-color", seleccion.estilos["background-color"])} onCambio={(v) => onCambio(sel, "background-color", v)} />
+            </Campo>
+            <Campo etiqueta="Tamaño (px)">
+              <input
+                type="number"
+                min={8}
+                max={200}
+                aria-label="Tamaño de letra"
+                value={px(valor(sel, "font-size", seleccion.estilos["font-size"]))}
+                onChange={(e) => onCambio(sel, "font-size", e.target.value ? `${e.target.value}px` : "")}
+                className={claseInput}
+              />
+            </Campo>
+            <Campo etiqueta="Peso">
+              <select
+                aria-label="Peso de la letra"
+                value={valor(sel, "font-weight", seleccion.estilos["font-weight"])}
+                onChange={(e) => onCambio(sel, "font-weight", e.target.value)}
+                className={claseInput}
+              >
+                {[...new Set([valor(sel, "font-weight", seleccion.estilos["font-weight"]), ...PESOS])].filter(Boolean).map((w) => (
+                  <option key={w} value={w}>{w}</option>
+                ))}
+              </select>
+            </Campo>
+            <Campo etiqueta="Relleno">
+              <input aria-label="Relleno" value={valor(sel, "padding", seleccion.estilos.padding)} onChange={(e) => onCambio(sel, "padding", e.target.value)} className={claseInput} />
+            </Campo>
+            <Campo etiqueta="Radio (px)">
+              <input
+                type="number"
+                min={0}
+                max={200}
+                aria-label="Radio de las esquinas"
+                value={px(valor(sel, "border-radius", seleccion.estilos["border-radius"]))}
+                onChange={(e) => onCambio(sel, "border-radius", e.target.value ? `${e.target.value}px` : "")}
+                className={claseInput}
+              />
+            </Campo>
+            <Campo etiqueta="Alineación">
+              <select
+                aria-label="Alineación del texto"
+                value={valor(sel, "text-align", seleccion.estilos["text-align"])}
+                onChange={(e) => onCambio(sel, "text-align", e.target.value)}
+                className={claseInput}
+              >
+                {[...new Set([valor(sel, "text-align", seleccion.estilos["text-align"]), "left", "center", "right", "justify"])].filter(Boolean).map((a) => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+            </Campo>
+            <Campo etiqueta="Interletrado">
+              <input aria-label="Interletrado" value={valor(sel, "letter-spacing", seleccion.estilos["letter-spacing"])} onChange={(e) => onCambio(sel, "letter-spacing", e.target.value)} className={claseInput} />
+            </Campo>
+          </div>
+        </>
+      ) : (
+        <p className="text-[11px] text-muted-foreground">Toca un elemento de la página para cambiar su estilo, o ajusta los tokens de abajo.</p>
+      )}
+
+      {listaTokens.length > 0 && (
+        <details className="mt-2" open={!sel}>
+          <summary className="cursor-pointer text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Tokens de la página ({listaTokens.length})
+          </summary>
+          <div className="mt-1.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+            {listaTokens.map(([nombre, v]) => (
+              <Campo key={nombre} etiqueta={nombre}>
+                <ColorCampo etiqueta={`Token ${nombre}`} valor={valor(":root", nombre, v)} onCambio={(nv) => onCambio(":root", nombre, nv)} />
+              </Campo>
+            ))}
+          </div>
+        </details>
+      )}
+
+      <div className="mt-2 flex items-center justify-end gap-2">
+        {pendientes > 0 && <span className="mr-auto text-[10px] text-muted-foreground">{pendientes} elemento(s) con cambios sin guardar</span>}
+        <Button size="sm" variant="ghost" className="h-7 text-[11px]" disabled={!pendientes} onClick={onDescartar}>
+          Descartar
+        </Button>
+        <Button size="sm" className="h-7 text-[11px]" disabled={!pendientes} onClick={onGuardar}>
+          Guardar en el código
+        </Button>
+      </div>
+    </div>
+  );
+}

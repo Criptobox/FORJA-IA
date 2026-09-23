@@ -30,6 +30,14 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 - **QA conectado al trabajo**: una medición real puede alimentar el panel de salud y crear pendientes verificables.
 - **Privacidad intacta**: estas funciones no añaden cuentas ni telemetría.
 
+## 🧩 Diseñador web y apps
+
+- **Modo App**: si pides una aplicación (gestor, dashboard, CRM, kanban, inventario…) y no una página de presentación, la IA entrega una app **sin build** en módulos ES: `store.js` con persistencia versionada, rutas por hash, una vista por pantalla, `manifest.webmanifest` e icono. CRUD completo, validación, estados vacío/carga/error y exportar/importar JSON.
+- **Datos que sobreviven a recargar**: lo que la app de la vista previa guarda en `localStorage` se conserva por conversación (hasta 256 KB) sin darle al iframe acceso a Forja. Un botón lo borra.
+- **Editor de estilos**: toca un elemento de la vista previa y cambia color, fondo, tamaño, peso, relleno, radio, alineación o interletrado, o cambia los **tokens** de `:root`. Se ve en vivo y al guardar va al código en un bloque `<style data-forja-ajustes>` legible.
+- **Tamaños de pantalla**: escritorio, tablet (768), móvil (390) y móvil pequeño (320). Si el dispositivo no cabe en el panel se pinta a su ancho real y se escala, como en las DevTools.
+- **Auditoría web**: SEO (meta description, Open Graph, encabezados), rendimiento (imágenes sin tamaño o sin lazy, scripts bloqueantes, fuentes) y accesibilidad de código (campos sin etiqueta, foco invisible, tabindex positivo…). Llega al agente con el arreglo de cada hallazgo y suma a Project Health, sin bloquear la publicación.
+
 ## ✨ Características
 
 | | |

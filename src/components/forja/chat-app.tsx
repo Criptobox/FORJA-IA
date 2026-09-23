@@ -57,6 +57,7 @@ import { conKit } from "@/lib/forja/efectos";
 import { OnboardingDialog } from "./onboarding";
 import { PreviewPanel, type PreviewPanelHandle } from "./preview-panel";
 import { aplicarEdicionTexto } from "@/lib/forja/editar-preview";
+import { aplicarAjustesEnFuente, type CambioEstilo } from "@/lib/forja/editor-estilos";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/forja/use-media-query";
 import { Welcome } from "./welcome";
 import { registerServiceWorker } from "./pwa";
@@ -872,6 +873,20 @@ export function ChatApp() {
         return { ok: false, motivo: "no hay ninguna vista previa abierta" };
       }
       const r = aplicarEdicionTexto(previewMsg.content, original, nuevo);
+      if (!r.ok || r.contenido == null) return { ok: false, motivo: r.motivo };
+      updateMessage(activeSession.id, previewMsg.id, { content: r.contenido });
+      return { ok: true };
+    },
+    [activeSession, previewMsg, updateMessage]
+  );
+
+  /** Guarda en la respuesta los estilos tocados en la vista previa. */
+  const editarEstiloDePreview = useCallback(
+    (cambios: CambioEstilo[]): { ok: boolean; motivo?: string } => {
+      if (!activeSession || !previewMsg) {
+        return { ok: false, motivo: "no hay ninguna vista previa abierta" };
+      }
+      const r = aplicarAjustesEnFuente(previewMsg.content, cambios);
       if (!r.ok || r.contenido == null) return { ok: false, motivo: r.motivo };
       updateMessage(activeSession.id, previewMsg.id, { content: r.contenido });
       return { ok: true };
@@ -1924,6 +1939,7 @@ export function ChatApp() {
               onRestoreSnapshot={(i) => activeSession && restoreMapSnapshot(activeSession.id, i)}
               onFixLive={arreglarErroresEnVivo}
               onEditText={editarTextoDePreview}
+              onEditStyle={editarEstiloDePreview}
             />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -1957,6 +1973,7 @@ export function ChatApp() {
               onRestoreSnapshot={(i) => activeSession && restoreMapSnapshot(activeSession.id, i)}
               onFixLive={arreglarErroresEnVivo}
               onEditText={editarTextoDePreview}
+              onEditStyle={editarEstiloDePreview}
             />
           )}
         </SheetContent>
