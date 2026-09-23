@@ -59,10 +59,30 @@ function tieneAtributo(attrs: string, nombre: string): boolean {
 /** El HTML sin el contenido de <script> y <style>, para no confundir
  * cadenas de JS con etiquetas reales. Conserva las etiquetas de apertura. */
 function sinCodigo(html: string): string {
-  return html
-    .replace(/(<script\b[^>]*>)[\s\S]*?(<\/script>)/gi, "$1$2")
-    .replace(/(<style\b[^>]*>)[\s\S]*?(<\/style>)/gi, "$1$2")
-    .replace(/<!--[\s\S]*?-->/g, "");
+  // `</script >` también cierra; y un comentario sin cerrar llega hasta el final
+  return hastaQueNoCambie(
+    html
+      .replace(/(<script\b[^>]*>)[\s\S]*?(<\/script\s*>)/gi, "$1$2")
+      .replace(/(<style\b[^>]*>)[\s\S]*?(<\/style\s*>)/gi, "$1$2"),
+    (t) => t.replace(/<!--[\s\S]*?(?:-->|$)/g, "")
+  );
+}
+
+/** Aplica `f` hasta que el texto deja de cambiar: quitar una etiqueta puede
+ *  juntar los trozos de otra («<scr<b>ipt>»), y una sola pasada la dejaría. */
+function hastaQueNoCambie(texto: string, f: (t: string) => string): string {
+  let antes = texto;
+  for (let i = 0; i < 20; i++) {
+    const despues = f(antes);
+    if (despues === antes) return despues;
+    antes = despues;
+  }
+  return antes;
+}
+
+/** Solo el texto visible (para medir longitudes, nunca para pintarlo). */
+function textoPlano(html: string, sep = ""): string {
+  return hastaQueNoCambie(html, (t) => t.replace(/<[^>]*>/g, sep)).replace(/[<>]/g, sep);
 }
 
 function css(html: string): string {
@@ -156,7 +176,7 @@ function auditarSeo(marcado: string, out: HallazgoAuditoria[]) {
   }
 
   const genericos = [...marcado.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)]
-    .map((m) => m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().toLowerCase())
+    .map((m) => textoPlano(m[1], " ").replace(/\s+/g, " ").trim().toLowerCase())
     .filter((t) => /^(?:haz clic aquí|clic aquí|pulsa aquí|aquí|click here|here|leer más|ver más|más|read more|more)$/.test(t));
   if (genericos.length) {
     out.push({
@@ -335,7 +355,7 @@ function auditarAccesibilidad(marcado: string, estilos: string, out: HallazgoAud
   }
 
   const cuerpo = marcado.match(/<body\b[^>]*>([\s\S]*)<\/body>/i)?.[1] ?? "";
-  if (cuerpo.replace(/<[^>]+>/g, "").trim().length > 400 && !/<main\b/i.test(marcado) && !/role\s*=\s*["']main["']/i.test(marcado)) {
+  if (textoPlano(cuerpo).trim().length > 400 && !/<main\b/i.test(marcado) && !/role\s*=\s*["']main["']/i.test(marcado)) {
     out.push({
       id: "a11y-sin-main",
       categoria: "accesibilidad",

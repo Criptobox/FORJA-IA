@@ -98,3 +98,18 @@ describe("auditarWeb", () => {
     expect(txt).toMatch(/→ /);
   });
 });
+
+describe("auditarWeb — HTML retorcido", () => {
+  it("`</script >` con espacio también cierra el script", () => {
+    const r = auditarWeb(`${LIMPIA.replace("</main>", "</main><script>const t = '<input type=text>';</script >")}`);
+    expect(r.hallazgos.map((h) => h.id)).not.toContain("a11y-campo-sin-etiqueta");
+  });
+  it("un comentario sin cerrar no deja etiquetas vivas", () => {
+    const r = auditarWeb(`${LIMPIA.replace("</main>", "</main><!-- <input type=text>")}`);
+    expect(r.hallazgos.map((h) => h.id)).not.toContain("a11y-campo-sin-etiqueta");
+  });
+  it("las etiquetas partidas no sobreviven al contar texto visible", () => {
+    const r = auditarWeb(`<body><a href="/x"><scr<b>ipt>aquí</a></body>`);
+    expect(r.hallazgos.find((h) => h.id === "seo-enlace-generico")).toBeUndefined();
+  });
+});
