@@ -5,6 +5,7 @@ import type { ProjectMap } from "./types";
 import type { QAResult, QATipo } from "./visual-qa";
 import type { FailureEntry } from "./failures";
 import { scanSecurity } from "./security-center";
+import { auditarWeb } from "./web-audit";
 
 export interface HealthMetric {
   id: string;
@@ -84,6 +85,27 @@ export function calculateProjectHealth(input: {
     });
     if (altos.length) blockers.push(`Posible secreto/API key embebido en el código (${altos.length})`);
   } else metrics.push({ id: "safety", label: "Seguridad básica", score: null, detail: "Sin código para inspeccionar" });
+
+  // SEO y rendimiento leídos del código: bajan la nota pero no bloquean la
+  // publicación (son heurísticas, no mediciones).
+  const auditoria = auditarWeb(html);
+  for (const [id, label, cat] of [
+    ["seo", "SEO", "seo"],
+    ["performance", "Rendimiento", "rendimiento"],
+    ["a11y-code", "Accesibilidad (código)", "accesibilidad"],
+  ] as const) {
+    const propios = auditoria.hallazgos.filter((h) => h.categoria === cat);
+    metrics.push({
+      id,
+      label,
+      score: auditoria.puntuacion[cat],
+      detail: auditoria.puntuacion[cat] == null
+        ? "Sin código para inspeccionar"
+        : propios.length
+          ? propios.slice(0, 3).map((h) => h.arreglo).join(" · ")
+          : "Sin hallazgos en el código",
+    });
+  }
 
   const available = metrics.filter((m) => m.score != null).map((m) => m.score as number);
   return { score: available.length ? Math.round(available.reduce((a, b) => a + b, 0) / available.length) : null, metrics, blockers };
