@@ -113,3 +113,18 @@ describe("auditarWeb — HTML retorcido", () => {
     expect(r.hallazgos.find((h) => h.id === "seo-enlace-generico")).toBeUndefined();
   });
 });
+
+describe("auditarWeb — cierres de script raros", () => {
+  it("`</script\\t\\n foo>` también cierra", () => {
+    const r = auditarWeb(`${LIMPIA.replace("</main>", "</main><script>const t = '<input type=text>';</script\t\n foo>")}`);
+    expect(r.hallazgos.map((h) => h.id)).not.toContain("a11y-campo-sin-etiqueta");
+  });
+  it("un script sin cerrar se lleva el resto (era código)", () => {
+    const r = auditarWeb(`${LIMPIA.replace("</main>", "</main><script>const t = '<input type=text>';")}`);
+    expect(r.hallazgos.map((h) => h.id)).not.toContain("a11y-campo-sin-etiqueta");
+  });
+  it("<scripts> o <styled-x> no son <script>/<style>", () => {
+    const r = auditarWeb(`<body><styled-x><input type="text"></styled-x></body>`);
+    expect(r.hallazgos.map((h) => h.id)).toContain("a11y-campo-sin-etiqueta");
+  });
+});

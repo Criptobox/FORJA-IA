@@ -56,37 +56,67 @@ function tieneAtributo(attrs: string, nombre: string): boolean {
   return new RegExp(`(?:^|\\s)${nombre}(?:\\s*=|\\s|$)`, "i").test(attrs);
 }
 
-/** El HTML sin el contenido de <script> y <style>, para no confundir
- * cadenas de JS con etiquetas reales. Conserva las etiquetas de apertura. */
+/** El HTML sin el contenido de <script> y <style> ni los comentarios, para
+ * no confundir cadenas de JS con etiquetas reales. Conserva las etiquetas.
+ *
+ * Es un recorrido carácter a carácter y no una expresión regular a
+ * propósito: el cierre de un script admite de todo antes del `>`
+ * (`</script\t\n foo>`) y un comentario puede no cerrarse nunca; con
+ * regex siempre queda un caso fuera. */
 function sinCodigo(html: string): string {
-  // `</script >` también cierra; y un comentario sin cerrar llega hasta el final
-  return hastaQueNoCambie(
-    html
-      .replace(/(<script\b[^>]*>)[\s\S]*?(<\/script\s*>)/gi, "$1$2")
-      .replace(/(<style\b[^>]*>)[\s\S]*?(<\/style\s*>)/gi, "$1$2"),
-    (t) => t.replace(/<!--[\s\S]*?(?:-->|$)/g, "")
-  );
-}
-
-/** Aplica `f` hasta que el texto deja de cambiar: quitar una etiqueta puede
- *  juntar los trozos de otra («<scr<b>ipt>»), y una sola pasada la dejaría. */
-function hastaQueNoCambie(texto: string, f: (t: string) => string): string {
-  let antes = texto;
-  for (let i = 0; i < 20; i++) {
-    const despues = f(antes);
-    if (despues === antes) return despues;
-    antes = despues;
+  const bajo = html.toLowerCase();
+  let out = "";
+  let i = 0;
+  while (i < html.length) {
+    if (bajo.startsWith("<!--", i)) {
+      const fin = bajo.indexOf("-->", i + 4);
+      i = fin < 0 ? html.length : fin + 3; // sin cerrar: hasta el final
+      continue;
+    }
+    const bloque = ["script", "style"].find((t) => bajo.startsWith(`<${t}`, i) && !/[a-z0-9-]/.test(bajo[i + t.length + 1] ?? ""));
+    if (bloque) {
+      const finApertura = bajo.indexOf(">", i);
+      if (finApertura < 0) {
+        out += html.slice(i);
+        break;
+      }
+      out += html.slice(i, finApertura + 1);
+      const cierre = bajo.indexOf(`</${bloque}`, finApertura + 1);
+      if (cierre < 0) break; // sin cierre: el resto era código
+      const finCierre = bajo.indexOf(">", cierre);
+      out += `</${bloque}>`;
+      i = finCierre < 0 ? html.length : finCierre + 1;
+      continue;
+    }
+    out += html[i];
+    i++;
   }
-  return antes;
+  return out;
 }
 
-/** Solo el texto visible (para medir longitudes, nunca para pintarlo). */
+/** Solo el texto visible, para medir longitudes (nunca se pinta). Recorrido
+ *  carácter a carácter: todo lo que va de un `<` a su `>` fuera, y un `<` sin
+ *  cerrar se lleva el resto. Nada con forma de etiqueta sobrevive. */
 function textoPlano(html: string, sep = ""): string {
-  return hastaQueNoCambie(html, (t) => t.replace(/<[^>]*>/g, sep)).replace(/[<>]/g, sep);
+  let out = "";
+  let dentro = false;
+  for (const c of html) {
+    if (dentro) {
+      if (c === ">") {
+        dentro = false;
+        out += sep;
+      }
+    } else if (c === "<") {
+      dentro = true;
+    } else if (c !== ">") {
+      out += c;
+    }
+  }
+  return out;
 }
 
 function css(html: string): string {
-  const bloques = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]);
+  const bloques = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style[^>]*>/gi)].map((m) => m[1]);
   const enLinea = [...html.matchAll(/\bstyle\s*=\s*"([^"]*)"/gi)].map((m) => m[1]);
   return [...bloques, ...enLinea].join("\n");
 }
