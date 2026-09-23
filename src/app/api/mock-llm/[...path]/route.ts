@@ -49,6 +49,7 @@ const MODELOS = [
   "mock-generica-terca",
   "mock-iconos-emoji",
   "mock-proyecto-repo",
+  "mock-app",
   "mock-3d-mal-puesto",
   "mock-3d",
   "mock-2d-mal-puesto",
@@ -399,6 +400,58 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8"><title>Solo</title></head>',
       "<body><h1>Todo en uno</h1></body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-app`: si el prompt trae la instrucción del Modo App, entrega una
+  // lista de tareas en módulos ES (index.html + styles.css + js/store.js +
+  // js/app.js) que guarda en localStorage. Sirve para comprobar que la
+  // instrucción viaja, que la vista previa monta los módulos y que los datos
+  // sobreviven a recargar la vista previa. Sin la instrucción, un HTML suelto.
+  if (modelo === "mock-app") {
+    const conModoApp = msgs.some(
+      (m) => typeof m.content === "string" && (m.content as string).includes("Modo App: esto es una aplicación")
+    );
+    if (!conModoApp) {
+      return ["Aquí tienes tu página.", "", "```html", "<!DOCTYPE html>", "<html><body><h1>Sin modo app</h1></body></html>", "```"].join("\n");
+    }
+    return [
+      "Lista de tareas con módulos ES y datos guardados.",
+      "",
+      "```html — index.html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Tareas</title>',
+      '<link rel="stylesheet" href="styles.css"></head>',
+      '<body><main><h1>Tareas</h1>',
+      '<form id="f"><label for="t">Nueva tarea</label><input id="t" name="t"><button type="submit">Añadir</button></form>',
+      '<ul id="lista"></ul><p id="total" aria-live="polite"></p></main>',
+      '<script type="module" src="js/app.js"></script></body></html>',
+      "```",
+      "",
+      "```css — styles.css",
+      ":root{--acento:#f97316} body{font-family:system-ui;margin:2rem} h1{color:var(--acento)}",
+      "```",
+      "",
+      "```js — js/store.js",
+      'const CLAVE = "tareas:v1";',
+      'export function leer(){ try { return JSON.parse(localStorage.getItem(CLAVE) || "[]"); } catch { return []; } }',
+      "export function guardar(t){ localStorage.setItem(CLAVE, JSON.stringify(t)); }",
+      "```",
+      "",
+      "```js — js/app.js",
+      'import { leer, guardar } from "./store.js";',
+      "let tareas = leer();",
+      "function pintar(){",
+      '  const ul = document.getElementById("lista"); ul.innerHTML = "";',
+      '  for (const t of tareas){ const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); }',
+      '  document.getElementById("total").textContent = tareas.length + " tareas";',
+      "}",
+      'document.getElementById("f").addEventListener("submit", (e) => {',
+      '  e.preventDefault(); const i = document.getElementById("t");',
+      "  if (!i.value.trim()) return; tareas = [...tareas, i.value.trim()]; guardar(tareas); i.value = \"\"; pintar();",
+      "});",
+      "pintar();",
       "```",
     ].join("\n");
   }

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { runInNewContext } from "node:vm";
 import {
   MAX_ALMACENES,
@@ -95,6 +95,7 @@ function ejecutarPuente(semilla?: Record<string, string>) {
   const win: Record<string, unknown> = {
     __FORJA_ALMACEN__: semilla,
     addEventListener: () => {},
+    Promise,
     setTimeout,
     clearTimeout,
     parent: { postMessage: (m: unknown) => enviados.push(JSON.parse(JSON.stringify(m))) },
@@ -109,37 +110,33 @@ function ejecutarPuente(semilla?: Record<string, string>) {
 }
 
 describe("puente de consola: localStorage persistente", () => {
-  it("arranca con la semilla y avisa al padre de cada cambio", () => {
-    vi.useFakeTimers();
-    try {
+  it("arranca con la semilla y avisa al padre de cada cambio", async () => {
       const { win, enviados } = ejecutarPuente({ tareas: "[1]" });
       expect(win.localStorage.getItem("tareas")).toBe("[1]");
       win.localStorage.setItem("tareas", "[1,2]");
       win.localStorage.setItem("tema", "oscuro");
-      vi.advanceTimersByTime(200);
+      await Promise.resolve();
+      await Promise.resolve();
       const almacenes = enviados.filter((m) => (m as { almacen?: unknown }).almacen);
       // agrupado: dos escrituras seguidas, un solo aviso
       expect(almacenes).toHaveLength(1);
       expect(almacenes[0]).toEqual({ source: SANDBOX_ORIGIN, almacen: { tareas: "[1,2]", tema: "oscuro" } });
       // sessionStorage no persiste por definición
       win.sessionStorage.setItem("x", "1");
-      vi.advanceTimersByTime(200);
+      await Promise.resolve();
       expect(enviados.filter((m) => (m as { almacen?: unknown }).almacen)).toHaveLength(1);
-    } finally {
-      vi.useRealTimers();
-    }
+      // una escritura nueva, un aviso nuevo, sin esperar a ningún temporizador
+      win.localStorage.removeItem("tema");
+      await Promise.resolve();
+      expect(enviados.filter((m) => (m as { almacen?: unknown }).almacen)).toHaveLength(2);
   });
 
-  it("sin semilla sigue siendo memoria pura: no manda nada", () => {
-    vi.useFakeTimers();
-    try {
-      const { win, enviados } = ejecutarPuente();
-      win.localStorage.setItem("a", "1");
-      vi.advanceTimersByTime(200);
-      expect(enviados.some((m) => (m as { almacen?: unknown }).almacen)).toBe(false);
-      expect(JSON.stringify(enviados)).toMatch(/no persiste/);
-    } finally {
-      vi.useRealTimers();
-    }
+  it("sin semilla sigue siendo memoria pura: no manda nada", async () => {
+    const { win, enviados } = ejecutarPuente();
+    win.localStorage.setItem("a", "1");
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(enviados.some((m) => (m as { almacen?: unknown }).almacen)).toBe(false);
+    expect(JSON.stringify(enviados)).toMatch(/no persiste/);
   });
 });

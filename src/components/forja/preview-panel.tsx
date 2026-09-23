@@ -131,6 +131,25 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<Dispositivo>("desktop");
   const [tab, setTab] = useState<"preview" | "code" | "map">("preview");
+  const anchoDispositivo = DISPOSITIVOS.find((d) => d.id === device)?.ancho ?? null;
+  /** ancho útil del lienzo, para escalar un dispositivo que no cabe */
+  const lienzoRef = useRef<HTMLDivElement>(null);
+  const [anchoLienzo, setAnchoLienzo] = useState(0);
+  useEffect(() => {
+    const el = lienzoRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const medir = () => {
+      const cs = getComputedStyle(el);
+      setAnchoLienzo(el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+    };
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+    // el lienzo solo existe en la pestaña de vista previa: se vuelve a
+    // observar cuando reaparece
+  }, [tab]);
+  const escala = anchoDispositivo && anchoLienzo > 0 && anchoDispositivo > anchoLienzo ? anchoLienzo / anchoDispositivo : 1;
   const [reloadKey, setReloadKey] = useState(0);
   const [painted, setPainted] = useState(code);
 
@@ -598,21 +617,33 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           {painted}
         </pre>
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto bg-muted/40 p-0 sm:p-3">
-          <div
-            className={cn(
-              "mx-auto bg-white shadow-sm transition-[width] duration-300 sm:rounded-lg sm:border sm:border-border/60",
-              "h-full max-w-full"
-            )}
-            style={{ width: DISPOSITIVOS.find((d) => d.id === device)?.ancho ?? "100%" }}
-          >
-            <iframe
-              ref={iframeRef}
-              title="Vista previa de la página generada"
-              sandbox="allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock"
-              className="size-full border-0"
-            />
+        <div ref={lienzoRef} className="relative min-h-0 flex-1 overflow-auto bg-muted/40 p-0 sm:p-3">
+          {/* Con un ancho de dispositivo mayor que el panel, la página se
+              pinta a su ancho REAL y se escala para caber (como las DevTools):
+              recortarla mostraría la maqueta de un ancho que no es el pedido. */}
+          <div className="mx-auto h-full" style={{ width: anchoDispositivo ? anchoDispositivo * escala : "100%" }}>
+            <div
+              className="bg-white shadow-sm sm:rounded-lg sm:ring-1 sm:ring-border/60"
+              style={{
+                width: anchoDispositivo ?? "100%",
+                height: `${100 / escala}%`,
+                transform: escala < 1 ? `scale(${escala})` : undefined,
+                transformOrigin: "0 0",
+              }}
+            >
+              <iframe
+                ref={iframeRef}
+                title="Vista previa de la página generada"
+                sandbox="allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock"
+                className="size-full border-0"
+              />
+            </div>
           </div>
+          {anchoDispositivo && escala < 1 && (
+            <span className="pointer-events-none absolute bottom-2 right-3 rounded-full bg-background/90 px-2 py-0.5 font-mono text-[10px] text-muted-foreground shadow-sm">
+              {anchoDispositivo}px · {Math.round(escala * 100)}%
+            </span>
+          )}
 
           {editando && (
             <div className="pointer-events-none sticky top-2 z-10 flex justify-center px-2">

@@ -301,12 +301,19 @@ export const CONSOLE_BRIDGE = `(function(){
   function memoria(conSemilla){
     var d={};
     if(conSemilla&&persiste){for(var k0 in semilla){if(Object.prototype.hasOwnProperty.call(semilla,k0)&&typeof semilla[k0]==='string')d[k0]=semilla[k0];}}
-    var aviso=null;
+    /* Varias escrituras seguidas salen en un solo aviso, pero en una
+       microtarea y no con un temporizador: si Forja repinta el iframe justo
+       después (recargar, streaming), un setTimeout pendiente muere con el
+       documento y esa última escritura se perdería. pagehide vacía lo que
+       quede por si acaso. */
+    var pendiente=false;
+    function enviar(){ if(!pendiente)return; pendiente=false; try{parent.postMessage({source:O,almacen:d},'*');}catch(e){} }
     function cambio(){
-      if(!conSemilla||!persiste)return;
-      if(aviso)clearTimeout(aviso);
-      aviso=setTimeout(function(){try{parent.postMessage({source:O,almacen:d},'*');}catch(e){}},150);
+      if(!conSemilla||!persiste||pendiente)return;
+      pendiente=true;
+      Promise.resolve().then(enviar);
     }
+    if(conSemilla&&persiste){ try{ window.addEventListener('pagehide',enviar); }catch(e){} }
     return {
       getItem:function(k){return Object.prototype.hasOwnProperty.call(d,String(k))?d[String(k)]:null;},
       setItem:function(k,v){d[String(k)]=String(v);cambio();},
