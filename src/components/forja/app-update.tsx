@@ -23,6 +23,8 @@ export function useVersionNueva() {
   useEffect(() => {
     const ctrl = new AbortController();
     let vivo = true;
+    /** hay una comprobación en marcha que este efecto puede matar */
+    let enVuelo = false;
 
     const comprobar = async () => {
       if (!vivo || document.visibilityState !== "visible") return;
@@ -30,7 +32,9 @@ export function useVersionNueva() {
       if (!tocaComprobar(ahora, ultima.current, CADA_MS)) return;
       ultima.current = ahora;
 
+      enVuelo = true;
       const servida = await copiaServida(fetch, ctrl.signal);
+      enVuelo = false;
       if (!vivo || !servida) return;
       if (!hayCopiaNueva({ version: APP_VERSION, commit: APP_COMMIT }, servida)) return;
       setNueva(servida);
@@ -42,6 +46,10 @@ export function useVersionNueva() {
     const id = window.setInterval(alVolver, CADA_MS);
     return () => {
       vivo = false;
+      // Si la comprobación muere con el efecto (en desarrollo React lo monta
+      // dos veces), no cuenta como hecha: si no, la siguiente se saltaba
+      // 15 minutos y el aviso no salía nunca.
+      if (enVuelo) ultima.current = 0;
       ctrl.abort();
       document.removeEventListener("visibilitychange", alVolver);
       window.clearInterval(id);

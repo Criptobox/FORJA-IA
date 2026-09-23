@@ -109,3 +109,44 @@ describe("streamChat con tool_calls fragmentados en el stream", () => {
     expect(String(capturadas[0][0].args.content)).toContain("<h1>Fragmentado</h1>");
   });
 });
+
+describe("streamChat con varias tool_calls sin index (respuesta completa, no streaming)", () => {
+  it("dos llamadas cuyos ids tienen los mismos dígitos llegan las dos, en orden", async () => {
+    // Sin `index` la ranura sale de los dígitos del id: «call_x_5» y
+    // «call_y_5» caían en la misma y la segunda pisaba a la primera.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          choices: [
+            {
+              index: 0,
+              message: {
+                content: "",
+                tool_calls: [
+                  { id: "call_mide_snapshot_diff_5", type: "function", function: { name: "snapshot_diff", arguments: '{"a":"s1"}' } },
+                  { id: "call_mide_ask_memory_5", type: "function", function: { name: "ask_memory", arguments: '{"q":"hero"}' } },
+                ],
+              },
+            },
+          ],
+        })
+      )
+    );
+    const capturadas: { id: string; name: string }[][] = [];
+    await streamChat({
+      providerId: "openai",
+      config: cfg(),
+      modelId: "x",
+      messages: [{ role: "user", content: "mide" }],
+      settings: { ...DEFAULT_SETTINGS, stream: false },
+      signal: new AbortController().signal,
+      tools: TOOL_CATALOG,
+      onDelta: () => {},
+      onDone: () => {},
+      onToolCalls: (calls) => capturadas.push(calls.map((c) => ({ id: c.id, name: c.name }))),
+    });
+    expect(capturadas).toHaveLength(1);
+    expect(capturadas[0].map((c) => c.name)).toEqual(["snapshot_diff", "ask_memory"]);
+  });
+});

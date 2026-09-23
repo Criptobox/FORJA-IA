@@ -472,6 +472,14 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
         existing.argsText += lite.argsText;
         if (lite.name && !existing.name) existing.name = lite.name;
         if (!existing.id && lite.id) existing.id = lite.id;
+      } else if (existing) {
+        // OTRA llamada que cae en la misma ranura: sin `index`, dos ids con
+        // los mismos dígitos («call_x_5» y «call_y_5») daban la misma clave y
+        // la segunda pisaba a la primera — una herramienta desaparecía en
+        // silencio. Va a una ranura libre; el orden lo conserva el Map.
+        let libre = key + 1_000_000;
+        while (toolCallsAcc.has(libre)) libre += 1_000_000;
+        toolCallsAcc.set(libre, { ...lite });
       } else {
         toolCallsAcc.set(key, { ...lite });
       }
