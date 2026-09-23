@@ -104,7 +104,7 @@ producir el código real.
    background:#0F172A;color:#F8FAFC;font:600 11px/1 system-ui;padding:6px 10px;
    border-radius:999px;opacity:.85;pointer-events:none">MAQUETA · FORJA IA</div>
 5. Accesibilidad mínima: contraste 4.5:1 en texto, alt en imágenes, un solo
-   h1, <html lang=\"es\">, meta viewport y <title>: el Inspector los comprueba.
+   h1, <html lang="es">, meta viewport y <title>: el Inspector los comprueba.
 6. El HTML debe verse bien al abrirlo directamente en un iframe o pestaña.
 7. EXTENSIÓN: la manda el PLANO DE CONTENIDO del mensaje, no tu criterio.
    Ahorra en CSS (clases reutilizadas, sin utilidades repetidas), NUNCA en

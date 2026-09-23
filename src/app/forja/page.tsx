@@ -87,7 +87,7 @@ export default function ForjaEstudio() {
 
         {error && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-[12.5px] text-red-600 dark:text-red-400">
-            No se pudo cargar el motor (/motor-forja.mjs): {error}
+            No se pudo cargar el motor: {error}
           </div>
         )}
 

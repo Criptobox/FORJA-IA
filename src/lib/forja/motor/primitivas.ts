@@ -153,7 +153,7 @@ export function elegirPrimitivas(
   const elegidas: IdPrimitiva[] = [];
   const disciplina: string[] = [];
 
-  const entra = (id: IdPrimitiva, puntos = 0, motivo = ""): boolean => {
+  const entra = (id: IdPrimitiva, _puntos = 0, motivo = ""): boolean => {
     if (elegidas.length >= techo) {
       disciplina.push(`${id} fuera de techo (${techo} por intensidad ${nivel})`);
       return false;

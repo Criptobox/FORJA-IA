@@ -390,7 +390,7 @@ export function crearAdaptadorForja(
             `${clave(objetivo)}: ${e instanceof Error ? e.message : String(e)}`
           );
           const red = esErrorDeRed(e);
-          const fatal = esErrorFatal(e);
+          const _fatal = esErrorFatal(e);
           // red → reintentar el mismo (queda intento por gastar);
           // fatal o no-red → el mismo no va a cambiar de opinión: salir.
           if (!(red && intento < intentosRed - 1)) break;

@@ -20,14 +20,20 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 const aqui = dirname(fileURLToPath(import.meta.url));
 const rutaBundle = resolve(process.argv[2] ?? resolve(aqui, "../../../host-forja-ia/public/motor-forja.mjs"));
-const mod = await import(`file://${rutaBundle}`);
+// En los tests de la app (tests/unit/motor-verificacion.test.ts) el motor
+// llega ya importado desde src/lib/forja/motor; por línea de comandos, un
+// paquete construido, como siempre.
+const inyectado = globalThis.__FORJA_MOTOR__;
+const mod = inyectado ?? await import(`file://${rutaBundle}`);
+const fallos = [];
+const log = inyectado ? () => {} : (...a) => console.log(...a);
 let pasados = 0, fallados = 0;
 
 function check(nombre, cond, detalle = "") {
-  if (cond) { pasados++; console.log(`  ✓ ${nombre}`); }
-  else { fallados++; console.log(`  ✗ ${nombre}${detalle ? ` — ${detalle}` : ""}`); }
+  if (cond) { pasados++; log(`  ✓ ${nombre}`); }
+  else { fallados++; fallos.push(nombre); log(`  ✗ ${nombre}${detalle ? ` — ${detalle}` : ""}`); }
 }
-function bloque(titulo) { console.log(`\n── ${titulo} ──`); }
+function bloque(titulo) { log(`\n── ${titulo} ──`); }
 
 const BRIEF_LOCAL =
   "Web para la barbería El Navajazo en Ponce. 3 barberos, cortes desde $15, arreglo de barba $12, " +
@@ -296,5 +302,6 @@ bloque("v4.7.2 · Composition Engine");
   check("el contrato describe la composición", /COMPOSITION BLUEPRINT/.test(seccionCompositionBlueprint(c)));
 }
 
-console.log(`\n═══ RESULTADO v4.7.2: ${pasados} pasados · ${fallados} fallados ═══`);
-process.exit(fallados > 0 ? 1 : 0);
+log(`\n═══ RESULTADO v4.7.2: ${pasados} pasados · ${fallados} fallados ═══`);
+if (inyectado) globalThis.__FORJA_VERIF__ = { pasados, fallados, fallos };
+else process.exit(fallados > 0 ? 1 : 0);

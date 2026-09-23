@@ -82,7 +82,7 @@ export interface ResultadoParchesMovimiento {
 /* -------------------------------- medición ---------------------------------- */
 
 /** Los rangos §9 por categoría (en ms). Ambiente = infinite (exenta). */
-const ESCALA: Record<Exclude<CategoriaMovimiento, "ambiente" | "reduced">, [number, number]> = {
+const _ESCALA: Record<Exclude<CategoriaMovimiento, "ambiente" | "reduced">, [number, number]> = {
   microinteraccion: [150, 300],
   componente: [250, 600],
   reveal: [500, 1000],
@@ -97,7 +97,7 @@ function dentroDeEscala(ms: number): boolean {
   return false;
 }
 
-function clasificar(ms: number, esAnimacion: boolean, contextoHover: boolean): CategoriaMovimiento {
+function clasificar(ms: number, _esAnimacion: boolean, contextoHover: boolean): CategoriaMovimiento {
   if (contextoHover && ms <= 400) return "microinteraccion";
   if (ms <= 300) return "microinteraccion";
   if (ms <= 600) return "componente";

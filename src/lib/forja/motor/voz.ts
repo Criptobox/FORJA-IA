@@ -127,7 +127,7 @@ export function textoComandos(cs: ComandoSemantico[]): string {
 /** Aplica comandos semánticos a un ADN 2.0. No reescribe el ADN: lo AJUSTA
  * (ejes de sensación + listas afectadas), respetando prohibiciones duras. */
 export function aplicarComandos(adn: AdnVisual2, comandos: ComandoSemantico[]): AdnVisual2 {
-  let a = sanearAdn2({ ...adn });
+  const a = sanearAdn2({ ...adn });
   const deltaPorDimension = new Map<string, number>();
   for (const c of comandos) {
     const peso = c.direccion === "subir" ? c.intensidad : c.direccion === "bajar" ? -c.intensidad : 0;

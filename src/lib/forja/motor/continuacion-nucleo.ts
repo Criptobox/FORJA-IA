@@ -72,7 +72,7 @@ export function esTruncadoEstructural(texto: string): boolean {
   const ultima = t.lastIndexOf("<");
   if (ultima !== -1 && ultima > t.length - 80) {
     const cola = t.slice(ultima);
-    if (!cola.includes(">") && /^[a-zA-Z!\/]/.test(cola.slice(1))) return true;
+    if (!cola.includes(">") && /^[a-zA-Z!/]/.test(cola.slice(1))) return true;
   }
   return false;
 }

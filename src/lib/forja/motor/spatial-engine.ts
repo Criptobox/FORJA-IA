@@ -128,7 +128,7 @@ export function construirPlanEspacial(e: ExperienciaDna, r: RecetaExperiencia): 
   // 5 · navegación (siempre arriba)
   capas.push({ id: "navegacion", z: 10, x: "0", y: "0", contenido: r.navegacion.minimal ? "navegación mínima (logo + 2 acciones)" : "navegación estándar" });
 
-  const perspectiva = PERSPECTIVAS[String(Math.max(1, Math.min(8, capas.length)))] ?? "1600px";
+  const _perspectiva = PERSPECTIVAS[String(Math.max(1, Math.min(8, capas.length)))] ?? "1600px";
   const objetoFocal: ObjetoFocal | undefined = tieneObjeto
     ? {
         type: r.objeto.tipo === "objeto-3d" ? "3d" : r.objeto.tipo === "ui-producto" ? "ui" : r.objeto.tipo === "escena" ? "escena" : "product",

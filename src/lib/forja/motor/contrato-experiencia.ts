@@ -23,7 +23,7 @@ import type { SeleccionExperiencia, OpcionesExperiencia } from "./motor-creativo
 import { seleccionarExperiencia, cssDeterminista, scriptDeterminista } from "./motor-creativo";
 import { clonarExperiencia, type ExperienciaDna, type ModoEspacial } from "./experience-dna";
 import { FAMILIAS, type FamiliaExperiencia } from "./familias-experiencia";
-import { defHero, type TipoHero } from "./hero-engine";
+import { defHero } from "./hero-engine";
 
 /* -------------------------------- tipos ------------------------------------ */
 

@@ -211,7 +211,7 @@ export function consultarRegistros(rs: RegistroGeneracion[]): ConsultasRegistro 
   const porModelo = new Map<string, { suma: number; n: number }>();
   const porSkill = new Map<string, { suma: number; n: number }>();
   const porDireccion = new Map<string, { suma: number; n: number }>();
-  let totalIter = 0;
+  let _totalIter = 0;
   let llamadasTotales = 0;
 
   for (const r of cerrados) {
@@ -235,7 +235,7 @@ export function consultarRegistros(rs: RegistroGeneracion[]): ConsultasRegistro 
       e.n += 1;
       porDireccion.set(d, e);
     }
-    totalIter += r.iteraciones;
+    _totalIter += r.iteraciones;
     llamadasTotales += r.llamadas;
   }
 

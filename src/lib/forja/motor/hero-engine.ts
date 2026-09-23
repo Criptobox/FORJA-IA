@@ -195,7 +195,7 @@ export function elegirHero(
   const alternativas = puntuados.slice(1, 3).map((p) => p.d.tipo);
   // composición: la primera que el historial no haya quemado, si no la 1ª
   const usadas = new Set(historialHeroes.slice(-2));
-  const comp = ganador.composiciones.find((c, i) => (i === 0 ? true : !usadas.has(`${ganador.tipo}#${i}`))) ?? ganador.composiciones[0];
+  const comp = ganador.composiciones.find((_c, i) => (i === 0 ? true : !usadas.has(`${ganador.tipo}#${i}`))) ?? ganador.composiciones[0];
   return {
     tipo: ganador.tipo,
     composicion: comp,

@@ -25,19 +25,25 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 const aqui = dirname(fileURLToPath(import.meta.url));
 const rutaBundle = resolve(process.argv[2] ?? resolve(aqui, "../../../host-forja-ia/public/motor-forja.mjs"));
-const mod = await import(`file://${rutaBundle}`);
+// En los tests de la app (tests/unit/motor-verificacion.test.ts) el motor
+// llega ya importado desde src/lib/forja/motor; por línea de comandos, un
+// paquete construido, como siempre.
+const inyectado = globalThis.__FORJA_MOTOR__;
+const mod = inyectado ?? await import(`file://${rutaBundle}`);
+const fallos = [];
+const log = inyectado ? () => {} : (...a) => console.log(...a);
 let pasados = 0, fallados = 0;
 
 function check(nombre, cond, detalle = "") {
-  if (cond) { pasados++; console.log(`  ✓ ${nombre}${detalle ? " — " + detalle : ""}`); }
-  else { fallados++; console.error(`  ✗ ${nombre}${detalle ? " — " + detalle : ""}`); }
+  if (cond) { pasados++; log(`  ✓ ${nombre}${detalle ? " — " + detalle : ""}`); }
+  else { fallados++; fallos.push(nombre); log(`  ✗ ${nombre}${detalle ? " — " + detalle : ""}`); }
 }
 
 /* HTML «revista» (denso en prosa, sin 3D) y HTML «espacial» */
 const REVISTA = `<html lang="es"><head><title>Blog</title><style>body{max-width:680px;margin:0 auto}p{line-height:1.8}</style></head><body><main><h1>El pan lento</h1><p>${"El fermento natural exige paciencia y observación constante del clima, la harina y el tiempo de trabajo. ".repeat(4)}</p><p>${"Cada masa guarda su propia historia de humedad, temperatura y manos que la trabajan con oficio. ".repeat(4)}</p><p>${"La corteza cruje cuando el almidón se asienta y el vapor escapa por las grietas del pan recién hecho. ".repeat(4)}</p><section><h2>El horno</h2><p>${"Un horno de leña tarda cuatro horas en alcanzar su punto y otras tantas en soltar el calor acumulado. ".repeat(3)}</p></section></main></body></html>`;
 const ESPACIAL = `<html lang="es"><head><title>IA</title><style>:root{--depth-1:20px}.escena{perspective:1600px;transform-style:preserve-3d}.objeto{transform:translateZ(60px)}.card{transition:transform .4s;animation:flota 6s ease-in-out infinite}@keyframes flota{50%{transform:translateY(8px)}}.reveal{opacity:0;transition:opacity .9s}</style></head><body><section class="escena"><div class="objeto">objeto 3D</div><div class="card">card flotante</div><div class="card">métrica</div><h1>IA Forge</h1><button>Probar</button></section><section class="reveal">segunda escena</section></body></html>`;
 
-console.log("\n═══ 1 · §1/§3/§23 — fin del sesgo editorial ═══");
+log("\n═══ 1 · §1/§3/§23 — fin del sesgo editorial ═══");
 {
   const sel = mod.seleccionarFamilia("Landing premium para una startup de IA, futurista, con 3D, animaciones y sensación tecnológica");
   check("moderno+3D NO elige editorial", sel.familia !== "editorial", `→ ${sel.familia}`);
@@ -51,7 +57,7 @@ console.log("\n═══ 1 · §1/§3/§23 — fin del sesgo editorial ═══
   check("3 visiones con arquetipos distintos", new Set(vs.map((v) => v.arquetipo)).size === 3, vis.map((v) => v.arquetipo).join(", "));
 }
 
-console.log("\n═══ 2 · §23 — regla de seguridad creativa en el prompt del Director ═══");
+log("\n═══ 2 · §23 — regla de seguridad creativa en el prompt del Director ═══");
 {
   const adn = mod.adn2DesdeAdn1(null, "landing premium futurista con 3D para startup de IA");
   const prompt = mod.promptDirector2("landing premium futurista con 3D para startup de IA", adn);
@@ -61,7 +67,7 @@ console.log("\n═══ 2 · §23 — regla de seguridad creativa en el prompt 
   check("el prompt de fusion pide base y concepto", mod.promptDirectorFusion2([], []).includes("Base: A|B|C"));
 }
 
-console.log("\n═══ 3 · §2 — Experience DNA ═══");
+log("\n═══ 3 · §2 — Experience DNA ═══");
 {
   const { dna, razones } = mod.sintetizarExperienciaDna("Landing premium futurista con 3D y parallax para una startup de IA");
   check("3D → modo espacial 3d", dna.spatial.mode === "3d", dna.spatial.mode);
@@ -75,7 +81,7 @@ console.log("\n═══ 3 · §2 — Experience DNA ═══");
   check("seccionExperienciaDna es contrato legible", mod.seccionExperienciaDna(dna).includes("spatial:") && mod.seccionExperienciaDna(dna).includes("surface:"));
 }
 
-console.log("\n═══ 4 · §4 — Experience Recipes ═══");
+log("\n═══ 4 · §4 — Experience Recipes ═══");
 {
   check("7 recetas del doc", mod.RECETAS.length === 7, mod.RECETAS.map((r) => r.id).join(", "));
   const sel = mod.recetaParaFamilia("spatial", "landing de producto con 3D");
@@ -86,10 +92,10 @@ console.log("\n═══ 4 · §4 — Experience Recipes ═══");
   check("cinematic → CINEMATIC_PRODUCT", cin.receta.id === "cinematic_product");
 }
 
-console.log("\n═══ 5 · §5 — Spatial Engine ═══");
+log("\n═══ 5 · §5 — Spatial Engine ═══");
 {
   const { dna } = mod.sintetizarExperienciaDna("landing premium con 3D y parallax para startup de IA");
-  const receta = mod.recetaParaFamilia("spatial", "producto 3D").receta;
+  const _receta = mod.recetaParaFamilia("spatial", "producto 3D").receta;
   const plan = mod.construirPlanEspacial(dna, mod.recetaParaFamilia("3d-showcase", "objeto 3D central").receta);
   check("capas con z-index semántico ascendente", plan.layers.every((l, i) => i === 0 || plan.layers[i - 1].z <= l.z), plan.layers.map((l) => `z${l.z}:${l.id}`).join(" "));
   check("objeto focal tipo 3D con 3d-showcase", plan.focalObject && plan.focalObject.type === "3d", plan.focalObject?.type);
@@ -99,7 +105,7 @@ console.log("\n═══ 5 · §5 — Spatial Engine ═══");
   check("cssEscenario con preserve-3d", mod.cssEscenario(plan).includes("preserve-3d"));
 }
 
-console.log("\n═══ 6 · §8/§9 — Motion Engine ═══");
+log("\n═══ 6 · §8/§9 — Motion Engine ═══");
 {
   check("16 primitivas del doc", mod.PRIMITIVAS.length === 16);
   check("catálogo 0-4 con nombres", mod.CATALOGO_INTENSIDAD.length === 5 && mod.CATALOGO_INTENSIDAD[4].nombre === "immersive");
@@ -114,7 +120,7 @@ console.log("\n═══ 6 · §8/§9 — Motion Engine ═══");
   check("intención sobria → intensidad baja", suave.intensidad <= 2, `${suave.intensidad}/4`);
 }
 
-console.log("\n═══ 7 · §6 — Hero Engine ═══");
+log("\n═══ 7 · §6 — Hero Engine ═══");
 {
   const { dna } = mod.sintetizarExperienciaDna("showcase 3D de un producto tech");
   const h1 = mod.elegirHero(dna, "3d-showcase", "showcase 3D de un producto tech");
@@ -127,7 +133,7 @@ console.log("\n═══ 7 · §6 — Hero Engine ═══");
   check("10 tipos de hero", ["HERO_SPATIAL","HERO_3D_OBJECT","HERO_PRODUCT","HERO_CINEMATIC","HERO_INTERACTIVE","HERO_SPLIT","HERO_FLOATING_CARDS","HERO_FULLSCREEN","HERO_SCROLL_REVEAL","HERO_MINIMAL"].every((t) => mod.defHero(t)));
 }
 
-console.log("\n═══ 8 · §7 — Card System ═══");
+log("\n═══ 8 · §7 — Card System ═══");
 {
   check("14 variantes del doc", mod.CARDS.length === 14);
   const { dna } = mod.sintetizarExperienciaDna("saas premium con interacción tilt y magnetic");
@@ -140,7 +146,7 @@ console.log("\n═══ 8 · §7 — Card System ═══");
   check("sin blur en el ADN → sin glass", !sobrio.variantes.includes("CARD_GLASS"));
 }
 
-console.log("\n═══ 9 · §11/§12 — editorial bias + métricas ═══");
+log("\n═══ 9 · §11/§12 — editorial bias + métricas ═══");
 {
   const sR = mod.senalesHtml(REVISTA);
   const sE = mod.senalesHtml(ESPACIAL);
@@ -154,7 +160,7 @@ console.log("\n═══ 9 · §11/§12 — editorial bias + métricas ═══
   check("coherencia con ADN medida (no máximo)", typeof desvio.desviacion === "number" && desvio.resumen.length > 0, desvio.resumen.slice(0, 70));
 }
 
-console.log("\n═══ 10 · §13 — Anti-repetición ═══");
+log("\n═══ 10 · §13 — Anti-repetición ═══");
 {
   mod.reiniciarAntiRepeticion();
   ["HERO_3D_OBJECT", "HERO_FLOATING_CARDS", "HERO_SPATIAL", "HERO_3D_OBJECT"].forEach((h, i) =>
@@ -169,7 +175,7 @@ console.log("\n═══ 10 · §13 — Anti-repetición ═══");
   mod.reiniciarAntiRepeticion();
 }
 
-console.log("\n═══ 11 · §18 — Design tokens de experiencia ═══");
+log("\n═══ 11 · §18 — Design tokens de experiencia ═══");
 {
   const { dna } = mod.sintetizarExperienciaDna("landing premium con 3D y parallax");
   const css = mod.tokensExperienciaCss(dna);
@@ -180,7 +186,7 @@ console.log("\n═══ 11 · §18 — Design tokens de experiencia ═══")
   check("experiencia plana: depth reducido", Number(flat.match(/--depth-4:\s*(\d+)px/)?.[1] ?? 99) <= 50);
 }
 
-console.log("\n═══ 12 · §19 — Responsive Experience Plan ═══");
+log("\n═══ 12 · §19 — Responsive Experience Plan ═══");
 {
   const { dna } = mod.sintetizarExperienciaDna("experiencia 3D inmersiva con parallax y cards flotantes");
   const receta = mod.recetaParaFamilia("spatial", "3D parallax").receta;
@@ -192,7 +198,7 @@ console.log("\n═══ 12 · §19 — Responsive Experience Plan ═══");
   check("seccionPlanResponsivo legible", mod.seccionPlanResponsivo(plan).includes("Se MANTIENE") && mod.seccionPlanResponsivo(plan).includes("Se ELIMINA"));
 }
 
-console.log("\n═══ 13 · §10/§20 — Puerta de rendimiento ═══");
+log("\n═══ 13 · §10/§20 — Puerta de rendimiento ═══");
 {
   const d1 = mod.evaluarPuerta({ intencionExigeWebgl: true, pesoActivosKb: 900, nodosAnimados: 30, costeGpu: "alto", movilPrimero: false }, "webgl");
   check("WebGL con peso+GPU alto → degrada", d1.modo !== "webgl", d1.razon);
@@ -205,7 +211,7 @@ console.log("\n═══ 13 · §10/§20 — Puerta de rendimiento ═══");
   check("cascada exacta del doc", JSON.stringify(mod.CASCADA) === JSON.stringify(["webgl", "3d", "2.5d", "2d"]));
 }
 
-console.log("\n═══ 14 · §24/§25 — Reference DNA ═══");
+log("\n═══ 14 · §24/§25 — Reference DNA ═══");
 {
   const dna = mod.extraerAdnReferencia("Referencia 2: dark canvas con technical grid, oversized typography, un central 3D object, minimal navigation, floating metrics y composición cinematográfica");
   check("paleta oscura detectada", dna.palette.some((p) => p.toLowerCase().includes("oscuro")));
@@ -222,7 +228,7 @@ console.log("\n═══ 14 · §24/§25 — Reference DNA ═══");
   check("inspiración incluye principios del Reference DNA", insp.referencias.some((r) => !r.startsWith("descripcion:")));
 }
 
-console.log("\n═══ 15 · §21/§22 + MVP completo ═══");
+log("\n═══ 15 · §21/§22 + MVP completo ═══");
 {
   const { dna } = mod.sintetizarExperienciaDna("landing premium futurista con 3D y parallax para startup de IA");
   const hallazgos = mod.auditarExperiencia(REVISTA, dna);
@@ -270,5 +276,6 @@ console.log("\n═══ 15 · §21/§22 + MVP completo ═══");
   check("§29: con intención 3D fuerte el objeto puede repetir (el doc: «si la intención lo permite»)", conIntencion.tipo === "HERO_3D_OBJECT");
 }
 
-console.log(`\n${"═".repeat(60)}\nRESULTADO: ${pasados} pasados · ${fallados} fallados\n${"═".repeat(60)}`);
-process.exit(fallados ? 1 : 0);
+log(`\n${"═".repeat(60)}\nRESULTADO: ${pasados} pasados · ${fallados} fallados\n${"═".repeat(60)}`);
+if (inyectado) globalThis.__FORJA_VERIF__ = { pasados, fallados, fallos };
+else process.exit(fallados ? 1 : 0);

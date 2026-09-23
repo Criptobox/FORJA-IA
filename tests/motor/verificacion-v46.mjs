@@ -19,12 +19,18 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 const aqui = dirname(fileURLToPath(import.meta.url));
 const rutaBundle = resolve(process.argv[2] ?? resolve(aqui, "../../../host-forja-ia/public/motor-forja.mjs"));
-const mod = await import(`file://${rutaBundle}`);
+// En los tests de la app (tests/unit/motor-verificacion.test.ts) el motor
+// llega ya importado desde src/lib/forja/motor; por línea de comandos, un
+// paquete construido, como siempre.
+const inyectado = globalThis.__FORJA_MOTOR__;
+const mod = inyectado ?? await import(`file://${rutaBundle}`);
+const fallos = [];
+const log = inyectado ? () => {} : (...a) => console.log(...a);
 let pasados = 0, fallados = 0;
 
 function check(nombre, cond, detalle = "") {
-  if (cond) { pasados++; console.log(`  ✓ ${nombre}${detalle ? " — " + detalle : ""}`); }
-  else { fallados++; console.error(`  ✗ ${nombre}${detalle ? " — " + detalle : ""}`); }
+  if (cond) { pasados++; log(`  ✓ ${nombre}${detalle ? " — " + detalle : ""}`); }
+  else { fallados++; fallos.push(nombre); log(`  ✗ ${nombre}${detalle ? " — " + detalle : ""}`); }
 }
 
 const BRIEFS = {
@@ -34,7 +40,7 @@ const BRIEFS = {
   editorial: "Blog de artículos sobre cerámica artesanal, con revista y noticias del taller",
 };
 
-console.log("\n═══ 1 · Idea A — primitivas compiladas ═══");
+log("\n═══ 1 · Idea A — primitivas compiladas ═══");
 try {
   check("elige primitivas para saas 3D (tilt+magnetic+reveal…)", mod.elegirPrimitivas !== undefined);
   const { sintetizarExperienciaDna } = mod;
@@ -56,9 +62,9 @@ try {
   check("sección de prompt manda USAR, no re-inventar", sec.includes("NO re-inventes"));
   const techo1 = mod.elegirPrimitivas(sintetizarExperienciaDna("Web estática simple sin nada").dna, recetaS.receta, heroS, "");
   check("techo por intensidad: poco movimiento → pocas primitivas", techo1.primitivas.length <= 2, `${techo1.primitivas.length}`);
-} catch (e) { fallados++; console.error("  ✗ escenario A lanzó:", e.message); }
+} catch (e) { fallados++; fallos.push(`escenario A lanzó: ${e.message}`); log("  ✗ escenario A lanzó:", e.message); }
 
-console.log("\n═══ 2 · Idea B — learning loop del Genoma ═══");
+log("\n═══ 2 · Idea B — learning loop del Genoma ═══");
 try {
   mod.reiniciarAprendizaje();
   check("reiniciar + registrar resultado", mod.registrarResultadoAprendizaje !== undefined);
@@ -100,9 +106,9 @@ try {
   mod.cargarMemoriaAprendizaje(mod.deserializarAprendizaje(s));
   check("persistencia round-trip", mod.obtenerMemoriaAprendizaje().length === 8);
   check("resumen por vertical", mod.recomendarPorVertical().includes("panadería"));
-} catch (e) { fallados++; console.error("  ✗ escenario B lanzó:", e.message); }
+} catch (e) { fallados++; fallos.push(`escenario B lanzó: ${e.message}`); log("  ✗ escenario B lanzó:", e.message); }
 
-console.log("\n═══ 3 · Idea C — objeto 3D paramétrico ═══");
+log("\n═══ 3 · Idea C — objeto 3D paramétrico ═══");
 try {
   check("catálogo de 8 formas", mod.catalogoObjetos3d().length === 8);
   const formas = new Set();
@@ -125,9 +131,9 @@ try {
   check("sin objeto en experiencia plana/tipográfica", mod.elegirObjeto3d(mod.sintetizarExperienciaDna("Blog editorial simple").dna, "editorial", "Blog editorial simple", []) !== undefined || true);
   const selEd = mod.seleccionarExperiencia(BRIEFS.editorial);
   check("seleccionarExperiencia editorial: sin objeto (flat)", selEd.objeto === null || selEd.dna.spatial.depth < 0.5, selEd.objeto ? selEd.objeto.id : "ninguno");
-} catch (e) { fallados++; console.error("  ✗ escenario C lanzó:", e.message); }
+} catch (e) { fallados++; fallos.push(`escenario C lanzó: ${e.message}`); log("  ✗ escenario C lanzó:", e.message); }
 
-console.log("\n═══ 4 · Idea D — motion QA medido ═══");
+log("\n═══ 4 · Idea D — motion QA medido ═══");
 try {
   const htmlMalo = `<html lang="es"><head><style>
     body { margin: 0 }
@@ -161,9 +167,9 @@ try {
   const rS = mod.parchesMovimiento(htmlSinStagger, infS, planMov);
   check("stagger pedido y ausente → utilidad .forja-stagger", rS.parches.some((p) => p.tipo === "stagger-utilidad") && rS.html.includes("forja-stagger"));
   check("resumen del motion QA", mod.resumenMovimiento(inf).includes("Motion QA"));
-} catch (e) { fallados++; console.error("  ✗ escenario D lanzó:", e.message); }
+} catch (e) { fallados++; fallos.push(`escenario D lanzó: ${e.message}`); log("  ✗ escenario D lanzó:", e.message); }
 
-console.log("\n═══ 5 · Idea E — contrato exportable/editable ═══");
+log("\n═══ 5 · Idea E — contrato exportable/editable ═══");
 try {
   const sel = mod.seleccionarExperiencia(BRIEFS.saas);
   const contrato = mod.exportarContrato(sel, BRIEFS.saas, "4.6.0");
@@ -189,9 +195,9 @@ try {
   // edición inválida no rompe
   const malo2 = mod.aplicarEdicionContrato({ ...contrato, edicion: { familia: "fantasma" } });
   check("edición inválida → rechazo limpio sin lanzar", !malo2.ok && malo2.sel === null);
-} catch (e) { fallados++; console.error("  ✗ escenario E lanzó:", e.message); }
+} catch (e) { fallados++; fallos.push(`escenario E lanzó: ${e.message}`); log("  ✗ escenario E lanzó:", e.message); }
 
-console.log("\n═══ 6 · Idea F — Arena entre familias ═══");
+log("\n═══ 6 · Idea F — Arena entre familias ═══");
 try {
   const asig = mod.asignarFamiliasArena(BRIEFS.saas);
   const { A, B, C } = asig.porLetra;
@@ -221,9 +227,9 @@ try {
   const sec = mod.seccionFamiliaAsignada("spatial");
   check("bloque de familia asignada para el maquetador", sec.includes("FAMILIA ASIGNADA") && sec.includes("VOCABULARIO"));
   check("resumen de asignación", mod.resumenAsignacionFamilias(asig).includes("A="));
-} catch (e) { fallados++; console.error("  ✗ escenario F lanzó:", e.message); }
+} catch (e) { fallados++; fallos.push(`escenario F lanzó: ${e.message}`); log("  ✗ escenario F lanzó:", e.message); }
 
-console.log("\n═══ 7 · INTEGRACIÓN — motor creativo, contrato textual y MVP ═══");
+log("\n═══ 7 · INTEGRACIÓN — motor creativo, contrato textual y MVP ═══");
 try {
   // 7a · la selección completa
   const sel = mod.seleccionarExperiencia(BRIEFS.panaderia);
@@ -267,7 +273,8 @@ try {
   check("mensajeMaqueta lleva HTML de primitivas", msg.includes("PRIMITIVAS COMPILADAS"));
   check("mensajeMaqueta lleva CSS determinista completa", msg.includes("Objeto 3D forjado por FORJA") && msg.includes("Primitivas compiladas FORJA"));
   check("mensajeMaqueta lleva script capado si toca", msg.includes("SCRIPTS CAPADOS") || !mod.scriptDeterminista(sel));
-} catch (e) { fallados++; console.error("  ✗ escenario INTEGRACIÓN lanzó:", e.message); }
+} catch (e) { fallados++; fallos.push(nombre); log("  ✗ escenario INTEGRACIÓN lanzó:", e.message); }
 
-console.log(`\n═══ RESULTADO v4.6: ${pasados} pasados · ${fallados} fallados ═══`);
-process.exit(fallados ? 1 : 0);
+log(`\n═══ RESULTADO v4.6: ${pasados} pasados · ${fallados} fallados ═══`);
+if (inyectado) globalThis.__FORJA_VERIF__ = { pasados, fallados, fallos };
+else process.exit(fallados ? 1 : 0);

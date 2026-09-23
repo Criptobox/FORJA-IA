@@ -201,7 +201,7 @@ export function parchearHtml(html: string, candidatos: ParcheDeterminista[]): Re
         }
         case "alt": {
           // solo <img> sin alt; alt genérico pero descriptivo del src
-          h = h.replace(/<img((?:(?!alt\s*=)[^>])*)>/gi, (m, attrs: string) => {
+          h = h.replace(/<img((?:(?!alt\s*=)[^>])*)>/gi, (_m, attrs: string) => {
             const src = attrs.match(/\ssrc\s*=\s*["']?([^"'\s>]+)/i)?.[1];
             return `<img${attrs} alt="${altGenerico(src)}">`;
           });

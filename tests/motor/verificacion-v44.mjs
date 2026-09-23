@@ -23,22 +23,28 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 const aqui = dirname(fileURLToPath(import.meta.url));
 const rutaBundle = resolve(process.argv[2] ?? resolve(aqui, "../../../host-forja-ia/public/motor-forja.mjs"));
-const mod = await import(`file://${rutaBundle}`);
+// En los tests de la app (tests/unit/motor-verificacion.test.ts) el motor
+// llega ya importado desde src/lib/forja/motor; por línea de comandos, un
+// paquete construido, como siempre.
+const inyectado = globalThis.__FORJA_MOTOR__;
+const mod = inyectado ?? await import(`file://${rutaBundle}`);
+const fallos = [];
+const log = inyectado ? () => {} : (...a) => console.log(...a);
 let pasados = 0, fallados = 0;
 
 function check(nombre, cond, detalle = "") {
-  if (cond) { pasados++; console.log(`  ✓ ${nombre}${detalle ? " — " + detalle : ""}`); }
-  else { fallados++; console.error(`  ✗ ${nombre}${detalle ? " — " + detalle : ""}`); }
+  if (cond) { pasados++; log(`  ✓ ${nombre}${detalle ? " — " + detalle : ""}`); }
+  else { fallados++; fallos.push(nombre); log(`  ✗ ${nombre}${detalle ? " — " + detalle : ""}`); }
 }
 
 /* 1 · complejidad */
-console.log("\n[1] complejidadDe (determinista)");
+log("\n[1] complejidadDe (determinista)");
 check("landing corta → simple", mod.complejidadDe("Landing para un taller", false) === "simple");
 check("mensaje largo → media/compleja", mod.complejidadDe("x".repeat(300), false) !== "simple");
 check("edición + alcance → compleja", mod.complejidadDe("tienda con galería y blog", true) === "compleja");
 
 /* 2 · reparto */
-console.log("\n[2] presupuestoDefecto (reparto por fases)");
+log("\n[2] presupuestoDefecto (reparto por fases)");
 const rSimple = mod.presupuestoDefecto("simple", "FREE");
 const rComp = mod.presupuestoDefecto("compleja", "LAB");
 const suma = (r) => Object.values(r).reduce((a, b) => a + b, 0);
@@ -48,7 +54,7 @@ check("compleja+LAB > simple+FREE", suma(rComp) > suma(rSimple));
 check("implementation es la fase mayor", rComp.implementation >= rComp.planning && rComp.implementation >= rComp.qa);
 
 /* 3 · autorizar/gastar */
-console.log("\n[3] presupuesto autorizar/gastar");
+log("\n[3] presupuesto autorizar/gastar");
 const p = mod.crearPresupuesto(mod.presupuestoDefecto("media", "SMART"), "SMART");
 const a1 = p.autorizar("implementation", 8000);
 check("1ª autorización ok", a1.ok);
@@ -60,14 +66,14 @@ check("exceso de fase roba reserve (rescate)", p.informe().rescates === 1);
 check("uso del total ≤ 1", p.informe().uso <= 1);
 
 /* 4 · estimar */
-console.log("\n[4] presupuesto estimar (techo pagable)");
+log("\n[4] presupuesto estimar (techo pagable)");
 const p2 = mod.crearPresupuesto(mod.presupuestoDefecto("simple", "FREE"), "FREE");
 const est = p2.estimar("implementation", 16384);
 check("nunca pide más del cupo de la fase", est <= p2.informe().porFase.implementation.cupo);
 check("nunca por debajo del mínimo vital", est >= 256);
 
 /* 5 · compilador de contexto */
-console.log("\n[5] compilarContexto (dedupe + relevancia + techo)");
+log("\n[5] compilarContexto (dedupe + relevancia + techo)");
 const ctx = mod.compilarContexto({
   mensaje: "landing para panadería artesanal con carrito",
   objetivo: "generar la página",
@@ -94,7 +100,7 @@ check("recorta al techo (ahorro medido)", ctxGrande.stats.caracteresFinal < ctxG
 check("relevancia: CTA/contraste puntúa sobre horarios", ctx.bloques.some((b) => b.linea.includes("contrastar")));
 
 /* 6 · enrutador determinista */
-console.log("\n[6] detectarParches + parchearHtml (motor no-LLM)");
+log("\n[6] detectarParches + parchearHtml (motor no-LLM)");
 const htmlRoto = `<html><head><style>body{width:1280px}@keyframes giro{to{transform:rotate(1turn)}}</style></head><body><img src="horno-artesanal.jpg"><a href="https://x.com" target="_blank">X</a><button tabindex="3">ok</button></body></html>`;
 const candidatos = mod.detectarParches(htmlRoto, null);
 const tipos = new Set(candidatos.map((c) => c.tipo));
@@ -116,7 +122,7 @@ const ahorro = mod.ahorroEstimado(parcheado.parches);
 check("ahorro estimado del router", ahorro.tokensEvitados > 0);
 
 /* 7 · salida temprana */
-console.log("\n[7] decidirSiguientePaso (early exit)");
+log("\n[7] decidirSiguientePaso (early exit)");
 const informeBueno = { veredicto: "PASS", hallazgos: [], criticos: 0, avisos: 0, mejoras: 0, identidad: 98, resumen: "ok" };
 const informeRegular = {
   veredicto: "FAIL", criticos: 0, avisos: 4, mejoras: 0, identidad: 80, resumen: "avisos",
@@ -132,7 +138,7 @@ const d3 = mod.decidirSiguientePaso(informeTope, 3, 3, htmlLimpio);
 check("tope de iteraciones → parar", d3.tipo === "parar" && d3.motivo.includes("tope"));
 
 /* 8 · caché multinivel */
-console.log("\n[8] crearCacheMultinivel (L1/L3/L6)");
+log("\n[8] crearCacheMultinivel (L1/L3/L6)");
 const c = mod.crearCacheMultinivel({});
 const kA = mod.claveArquitectura("landing panadería");
 c.guardarJSON(mod.NIVEL.arquitectura, kA, { identidad: "pan honesto" });
@@ -147,7 +153,7 @@ check("miss devuelve null", c.obtener(mod.NIVEL.patron, "no-existe") === null);
 check("stats con aciertos por nivel", c.stats().aciertos >= 3);
 
 /* 9 · ROI */
-console.log("\n[9] crearLibroROI (ganancia/tokens)");
+log("\n[9] crearLibroROI (ganancia/tokens)");
 const roi = mod.crearLibroROI();
 roi.registrar({ operacion: "revisor", rol: "revisor", modelo: "m", tokens: 1000, llamadas: 1, scoreAntes: 60, scoreDespues: 90 });
 roi.registrar({ operacion: "bucle-mejora", rol: "codificador", modelo: "m", tokens: 4000, llamadas: 2, scoreAntes: 90, scoreDespues: 91 });
@@ -164,7 +170,7 @@ check("roiAJSON/roiDesdeJSON ida y vuelta", mod.roiDesdeJSON(mod.roiAJSON([{ ope
 void j;
 
 /* 10 · MVP completo con mock (sin red) */
-console.log("\n[10] ejecutarMvpForja con capa de eficiencia (mock, sin red)");
+log("\n[10] ejecutarMvpForja con capa de eficiencia (mock, sin red)");
 const llamadas = { n: 0 };
 const mock = async (a) => {
   llamadas.n++;
@@ -195,5 +201,6 @@ check("2ª pasada: ADN servido del caché L3", res2.traza.some((t) => t.includes
 check("caché multinivel registró aciertos", res2.registro.eficiencia.cache.includes("acierto"));
 
 /* resultado */
-console.log(`\n═══ RESULTADO: ${pasados} pasados · ${fallados} fallados ═══`);
-process.exit(fallados ? 1 : 0);
+log(`\n═══ RESULTADO: ${pasados} pasados · ${fallados} fallados ═══`);
+if (inyectado) globalThis.__FORJA_VERIF__ = { pasados, fallados, fallos };
+else process.exit(fallados ? 1 : 0);

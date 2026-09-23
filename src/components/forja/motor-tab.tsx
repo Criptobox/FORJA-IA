@@ -9,9 +9,16 @@ import { Activity, Database, HeartPulse, PiggyBank, Ruler, Scissors, Timer, Wand
 import { Button } from "@/components/ui/button";
 import { Chip, Salida } from "./ui-forja";
 import type { Motor } from "@/lib/forja/motor-client";
+import type { ConfigForja, InformeRevisorVisual, RolForja } from "@/lib/forja/motor";
 
+/** Config mínima para las demos: sin modelo por rol (usan el mock). */
+const CFG_DEMO: ConfigForja = { porRol: { disenador: null, codificador: null, revisor: null }, habilidades: [] };
+
+// Más de 200 caracteres a propósito: por debajo, el detector no trata el
+// texto como página (así no confunde un fragmento corto con un corte), y la
+// demo «cortada» salía como si estuviera completa.
 const PAGINA_TRUNCADA =
-  `<html lang="es"><head><style>body{margin:0;font-family:system-ui}h1{color:#F97316;padding:24px}\n/* el CSS sigue…`;
+  `<html lang="es"><head><meta charset="utf-8"><title>Obrador</title><style>:root{--acento:#F97316;--fondo:#fffaf5}body{margin:0;font-family:system-ui;background:var(--fondo)}h1{color:var(--acento);padding:24px;font-size:clamp(2rem,5vw,3.5rem)}\n/* el CSS sigue…`;
 const COLA = `*/main{max-width:960px;margin:0 auto}</style></head><body><h1>Forjado a fuego lento</h1><p>Contenido real.</p></body></html>`;
 
 export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any }) {
@@ -21,8 +28,8 @@ export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
   /* 1 · presupuesto por rol (con la config real de Ajustes) */
   const demoTokens = () => {
     const { techoTokens, sanearTokensRol, MAX_TOKENS_DEFECTO } = motor;
-    const cfg = { porRol: {}, habilidades: [], ...(cfgUsuario ?? {}) };
-    const filas = ["disenador", "codificador", "revisor"].map((rol) => {
+    const cfg: ConfigForja = { ...CFG_DEMO, ...(cfgUsuario ?? {}) };
+    const filas = (["disenador", "codificador", "revisor"] as const satisfies readonly RolForja[]).map((rol) => {
       const propio = cfg?.maxTokensPorRol?.[rol];
       return `techoTokens(cfg, "${rol}".padEnd(13)) → ${String(techoTokens(cfg, rol)).padStart(6)} tokens${propio ? `  ← tu Ajustes` : ""}`;
     });
@@ -34,7 +41,7 @@ export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
   };
 
   /* 2 · continuación de núcleo (2º cinturón) */
-  const demoContinuacion = (completa: boolean) => {
+  const demoContinuacion = async (completa: boolean) => {
     const { esTruncadoEstructural, continuarSalidaTruncada } = motor;
     const texto = completa ? PAGINA_TRUNCADA + COLA : PAGINA_TRUNCADA;
     const truncado = esTruncadoEstructural(texto);
@@ -45,7 +52,7 @@ export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
       );
       return;
     }
-    const res = continuarSalidaTruncada(texto, () => COLA);
+    const res = await continuarSalidaTruncada({ salida: texto, continuarCon: async () => COLA });
     const sana = !esTruncadoEstructural(res.texto);
     pone(
       "continuacion",
@@ -67,7 +74,7 @@ export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
       return "<veredicto>aprobado</veredicto><resumen>Cumple.</resumen>";
     };
     const deps = () => ({ llamarModelo: mock, memoria: { reglas: [] }, cache, onProgreso: () => {} });
-    const cfg = { porRol: {}, habilidades: [], perfil: "ligero" };
+    const cfg: ConfigForja = { ...CFG_DEMO, perfil: "ligero" };
     const pet = { mensaje: "Web para una panadería artesanal en Valencia" };
     await ejecutarForja(pet, cfg, deps(), { providerId: "m", modelId: "mock" });
     const l1 = { ...n };
@@ -82,13 +89,15 @@ export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
   const demoSalud = () => {
     const { crearSaludProveedores } = motor;
     const salud = crearSaludProveedores();
-    salud.exito("deepseek:chat", 2040);
-    salud.exito("deepseek:chat", 2210);
-    salud.fallo("openrouter:qwen3-coder:free", "429");
-    salud.fallo("openrouter:qwen3-coder:free", "429");
-    salud.exito("zai:glm-4.7-flash", 204);
+    salud.anotarExito("deepseek:chat", 2040);
+    salud.anotarExito("deepseek:chat", 2210);
+    salud.anotarFallo("openrouter:qwen3-coder:free", null, "429");
+    salud.anotarFallo("openrouter:qwen3-coder:free", null, "429");
+    salud.anotarExito("zai:glm-4.7-flash", 204);
     const cadena = ["deepseek:chat", "openrouter:qwen3-coder:free", "zai:glm-4.7-flash"];
-    const orden = salud.ordenar(cadena);
+    // la clave es «proveedor:modelo»; el modelo puede llevar «:» (qwen3-coder:free)
+    const aModelo = (c: string) => ({ providerId: c.slice(0, c.indexOf(":")), modelId: c.slice(c.indexOf(":") + 1) });
+    const orden = salud.ordenar(cadena.map(aModelo)).map((m) => `${m.providerId}:${m.modelId}`);
     pone(
       "salud",
       `éxitos: deepseek 2040ms/2210ms · zai 204ms · fallos: openrouter ×2 (429)\n\ncadena: ${cadena.join(" → ")}\norden de suplentes tras la evidencia:\n${orden.map((m: string, i: number) => `${i + 1}. ${m}${i === 0 ? "  ← primario, intocable" : ""}`).join("\n")}`
@@ -170,7 +179,7 @@ ${p.resumen()}`
     const c = crearCacheMultinivel({});
     c.guardarJSON(NV.arquitectura, claveArquitectura("Landing panadería"), { identidad: "horno lento, pan honesto" });
     c.guardar(NV.qa, claveQA("<html>…pagina v3…</html>"), "PASS 0 críticos 0 avisos");
-    const hitAdn = c.obtenerJSON(NV.arquitectura, claveArquitectura("Landing panadería"));
+    const hitAdn = c.obtenerJSON<{ identidad: string }>(NV.arquitectura, claveArquitectura("Landing panadería"));
     const hitQa = c.obtener(NV.qa, claveQA("<html>…pagina v3…</html>"));
     const miss = c.obtener(NV.patron, claveArquitectura("no existe"));
     const s = c.stats();
@@ -207,11 +216,11 @@ coste: 0 tokens · ahorro estimado: ${ahorro.llamadasEvitadas} llamada(s) / ${ah
   /* 9 · salida temprana */
   const demoTemprana = () => {
     const { decidirSiguientePaso } = motor;
-    const informeBueno = {
-      veredicto: "PASS", hallazgos: [], criticos: 0, avisos: 0, mejoras: 0, identidad: 97, score: 96, resumen: "Entrega aprobada.",
+    const informeBueno: InformeRevisorVisual = {
+      veredicto: "PASS", hallazgos: [], criticos: 0, avisos: 0, mejoras: 0, identidad: 97, resumen: "Entrega aprobada.",
     };
-    const informeRegular = {
-      veredicto: "FAIL", score: 58, criticos: 1, avisos: 2, mejoras: 1, identidad: 74, resumen: "Falta lang y hay crítico de contraste.",
+    const informeRegular: InformeRevisorVisual = {
+      veredicto: "FAIL", criticos: 1, avisos: 2, mejoras: 1, identidad: 74, resumen: "Falta lang y hay crítico de contraste.",
       hallazgos: [
         { severidad: "critico", categoria: "accesibilidad", titulo: "<html> sin lang", detalle: "sin idioma declarado", causaProbable: "generador rápido", correccion: "añadir lang=es" },
       ],

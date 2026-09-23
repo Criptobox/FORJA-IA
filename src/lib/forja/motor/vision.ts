@@ -204,7 +204,7 @@ export function chequeosEstaticos(html: string): HallazgoVision[] {
       severidad: "critico",
       categoria: "accesibilidad",
       titulo: `Imagenes sin atributo alt (${sinAlt})`,
-      detalle: `Un lector de pantalla no sabe qué muestran. Añade alt descriptivo (o alt=\"\" si es decorativa). Ejemplos: ${ejemplosSinAlt.join(" · ")}`,
+      detalle: `Un lector de pantalla no sabe qué muestran. Añade alt descriptivo (o alt="" si es decorativa). Ejemplos: ${ejemplosSinAlt.join(" · ")}`,
     });
   }
   if (sinDimensiones > 0) {
@@ -320,7 +320,7 @@ export function chequeosEstaticos(html: string): HallazgoVision[] {
     push(out, {
       severidad: "aviso",
       categoria: "seguridad",
-      titulo: `target=\"_blank\" sin rel=\"noopener\" (${blanksSinRel})`,
+      titulo: `target="_blank" sin rel="noopener" (${blanksSinRel})`,
       detalle:
         "La página abierta puede manipular la original (tabnabbing). Añade rel=\"noopener noreferrer\" a cada enlace externo.",
     }, limite);
@@ -330,7 +330,7 @@ export function chequeosEstaticos(html: string): HallazgoVision[] {
     push(out, {
       severidad: "mejora",
       categoria: "bug",
-      titulo: `Enlaces muertos href=\"#\" (${enlacesMuertos})`,
+      titulo: `Enlaces muertos href="#" (${enlacesMuertos})`,
       detalle: "Muchos enlaces apuntan a «#»: en una maqueta es aceptable, pero en la entrega final cada enlace debe ir a su sección o página.",
     }, limite);
   }

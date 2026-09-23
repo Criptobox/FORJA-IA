@@ -77,7 +77,7 @@ export function senalesHtml(html: string): SenalesHtml {
   const clamp = (n: number): number => Math.max(0, Math.min(1, n));
   const sinScripts = quitarEtiquetas(h, /<(script|style)[^>]*>[\s\S]*?<\/\1\s*>/gi);
   const texto = quitarEtiquetas(sinScripts, /<[^>]+>/g).replace(/</g, " ");
-  const textoLen = texto.replace(/\s+/g, " ").trim().length;
+  const _textoLen = texto.replace(/\s+/g, " ").trim().length;
   const totalLen = Math.max(1, h.length);
 
   // textDensity: cuánto del archivo es párrafo corrido
