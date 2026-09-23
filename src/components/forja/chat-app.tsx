@@ -1908,6 +1908,7 @@ export function ChatApp() {
               code={previewCode}
               source={previewMsg?.content ?? null}
               title={activeSession?.title ?? null}
+              almacenId={activeSession?.id ?? null}
               streaming={previewStreaming}
               onClose={() => setPreviewOpen(false)}
               map={activeSession?.projectMap ?? null}
@@ -1940,6 +1941,7 @@ export function ChatApp() {
               code={previewCode}
               source={previewMsg?.content ?? null}
               title={activeSession?.title ?? null}
+              almacenId={activeSession?.id ?? null}
               streaming={previewStreaming}
               onClose={() => setMobilePreviewOpen(false)}
               map={activeSession?.projectMap ?? null}

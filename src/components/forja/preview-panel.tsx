@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   Code2,
+  DatabaseZap,
   Download,
   ExternalLink,
   Eye,
@@ -14,6 +15,7 @@ import {
   RefreshCw,
   ScanSearch,
   Smartphone,
+  Tablet,
   TriangleAlert,
   X,
 } from "lucide-react";
@@ -42,6 +44,7 @@ import {
 } from "@/lib/forja/visual-qa";
 import { useFailures } from "@/lib/forja/failures";
 import { SANDBOX_ORIGIN, injectConsoleBridge } from "@/lib/forja/sandbox";
+import { borrarAlmacen, guardarAlmacen, leerAlmacen, sembrarAlmacen } from "@/lib/forja/preview-storage";
 import { injectEditPilot } from "@/lib/forja/editar-preview";
 import { toast } from "sonner";
 import {
@@ -52,6 +55,16 @@ import {
 } from "@/lib/forja/errores-en-vivo";
 import type { ProjectMap } from "@/lib/forja/types";
 import { RUTA_REGLAS_PROYECTO, serializarReglas } from "@/lib/forja/reglas-no";
+
+/** Tamaños de la vista previa. Los mismos anchos que mide Visual QA
+ *  (320/390/768), para que lo que se ve y lo que se mide coincidan. */
+type Dispositivo = "desktop" | "tablet" | "mobile" | "mobile-s";
+const DISPOSITIVOS: readonly { id: Dispositivo; nombre: string; aria: string; ancho: number | null; Icono: typeof Monitor }[] = [
+  { id: "desktop", nombre: "Escritorio", aria: "Vista escritorio", ancho: null, Icono: Monitor },
+  { id: "tablet", nombre: "Tablet", aria: "Vista tablet", ancho: 768, Icono: Tablet },
+  { id: "mobile", nombre: "Móvil", aria: "Vista móvil", ancho: 390, Icono: Smartphone },
+  { id: "mobile-s", nombre: "Móvil pequeño", aria: "Vista móvil pequeño", ancho: 320, Icono: Smartphone },
+];
 
 export interface PreviewPanelProps {
   code: string | null;
@@ -82,6 +95,9 @@ export interface PreviewPanelProps {
    *  la respuesta. Devuelve por qué no se pudo, si no se pudo — el motivo se
    *  enseña tal cual, no se traga. */
   onEditText?: (original: string, nuevo: string) => { ok: boolean; motivo?: string };
+  /** Identifica la conversación: lo que la página guarde en localStorage se
+   *  conserva bajo este id y vuelve al recargar. Sin él, no persiste. */
+  almacenId?: string | null;
 }
 
 /** Lo que un padre puede pedirle a un PreviewPanel montado, por ref. Hoy
@@ -110,9 +126,10 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   onRestoreSnapshot,
   onFixLive,
   onEditText,
+  almacenId,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [device, setDevice] = useState<Dispositivo>("desktop");
   const [tab, setTab] = useState<"preview" | "code" | "map">("preview");
   const [reloadKey, setReloadKey] = useState(0);
   const [painted, setPainted] = useState(code);
@@ -268,11 +285,46 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
 
   const qaProblemas = qaResultados.reduce((n, r) => n + (r.noRespondio || r.ok ? 0 : r.items.length), 0);
 
-  // Pintado imperativo en el iframe (evita re-montajes de React)
+  /* ------- datos de la app que sobreviven a recargar ------- */
+  const [hayDatos, setHayDatos] = useState(false);
+  const avisoLleno = useRef(false);
+  useEffect(() => {
+    setHayDatos(Object.keys(leerAlmacen(almacenId)).length > 0);
+    avisoLleno.current = false;
+  }, [almacenId]);
+
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      // solo del iframe que pintamos: otra ventana no escribe aquí
+      if (e.source !== iframeRef.current?.contentWindow) return;
+      const d = e.data as { source?: string; almacen?: unknown } | null;
+      if (!d || d.source !== SANDBOX_ORIGIN || !("almacen" in d) || !almacenId) return;
+      const r = guardarAlmacen(almacenId, d.almacen);
+      if (r.ok) setHayDatos(!r.vacio);
+      else if (!avisoLleno.current) {
+        avisoLleno.current = true;
+        toast.warning("Los datos de la vista previa no se guardaron", { description: r.motivo });
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [almacenId]);
+
+  const borrarDatos = () => {
+    borrarAlmacen(almacenId);
+    setHayDatos(false);
+    setReloadKey((k) => k + 1);
+    toast.success("Datos de la vista previa borrados");
+  };
+
+  // Pintado imperativo en el iframe (evita re-montajes de React). Los datos
+  // guardados se leen AQUÍ, al pintar, y no en el useMemo: si no, cada
+  // escritura de la página recargaría el iframe.
   useEffect(() => {
     const el = iframeRef.current;
-    if (el) el.srcdoc = paraPintar;
-  }, [paraPintar, reloadKey]);
+    if (!el) return;
+    el.srcdoc = almacenId && paraPintar ? sembrarAlmacen(paraPintar, leerAlmacen(almacenId)) : paraPintar;
+  }, [paraPintar, reloadKey, almacenId]);
 
   const openExternal = () => {
     const blob = new Blob([bundle], { type: "text/html" });
@@ -326,29 +378,23 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           </span>
         )}
         <div className="flex-1" />
-        <div className="flex shrink-0 rounded-lg border border-border/60 p-0.5">
-          <button
-            onClick={() => setDevice("desktop")}
-            aria-label="Vista escritorio"
-            title="Escritorio"
-            className={cn(
-              "rounded-md p-1 transition",
-              device === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Monitor className="size-3.5" />
-          </button>
-          <button
-            onClick={() => setDevice("mobile")}
-            aria-label="Vista móvil"
-            title="Móvil (390px)"
-            className={cn(
-              "rounded-md p-1 transition",
-              device === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Smartphone className="size-3.5" />
-          </button>
+        <div className="flex shrink-0 rounded-lg border border-border/60 p-0.5" role="group" aria-label="Tamaño de pantalla">
+          {DISPOSITIVOS.map((d) => (
+            <button
+              key={d.id}
+              onClick={() => setDevice(d.id)}
+              aria-label={d.aria}
+              aria-pressed={device === d.id}
+              title={d.ancho ? `${d.nombre} (${d.ancho}px)` : d.nombre}
+              className={cn(
+                "rounded-md p-1 transition",
+                d.id === "tablet" || d.id === "mobile-s" ? "hidden sm:block" : "",
+                device === d.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <d.Icono className={cn("size-3.5", d.id === "mobile-s" && "scale-90")} />
+            </button>
+          ))}
         </div>
         <Button
           variant="ghost"
@@ -368,6 +414,18 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
         <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => setReloadKey((k) => k + 1)} title="Recargar" aria-label="Recargar vista previa">
           <RefreshCw className="size-3.5" />
         </Button>
+        {hayDatos && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0 text-forja-cyan"
+            onClick={borrarDatos}
+            title="La app de la vista previa tiene datos guardados en este dispositivo. Pulsa para borrarlos y empezar de cero."
+            aria-label="Borrar datos guardados de la vista previa"
+          >
+            <DatabaseZap className="size-3.5" />
+          </Button>
+        )}
         {/* Tocar un texto de la vista previa y editarlo ahí mismo. El cambio
             se busca en el código de la respuesta y se guarda ahí — por eso
             sigue estando cuando descargas o subes a GitHub, no es un retoque
@@ -544,8 +602,9 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           <div
             className={cn(
               "mx-auto bg-white shadow-sm transition-[width] duration-300 sm:rounded-lg sm:border sm:border-border/60",
-              device === "mobile" ? "h-full w-[390px] max-w-full" : "h-full w-full"
+              "h-full max-w-full"
             )}
+            style={{ width: DISPOSITIVOS.find((d) => d.id === device)?.ancho ?? "100%" }}
           >
             <iframe
               ref={iframeRef}
