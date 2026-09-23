@@ -355,7 +355,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           size="icon"
           className={cn("relative size-8 shrink-0", qaAbierto && "bg-muted text-foreground")}
           onClick={() => (qaAbierto ? setQaAbierto(false) : void correrQA())}
-          title="QA visual: mide la página a 320 y 390 px (desbordes, texto pequeño, contraste)"
+          title={`QA visual: mide la página a ${QA_WIDTHS.join(", ")} px (desbordes, texto pequeño, contraste, accesibilidad)`}
           aria-label="QA visual"
         >
           <ScanSearch className="size-3.5" />
@@ -464,14 +464,14 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           <div className="mb-1.5 flex items-center justify-between gap-2">
             <p className="text-[11px] font-medium text-foreground/80">
               {qaCorriendo
-                ? "Midiendo la página a 320 y 390 px…"
+                ? `Midiendo la página a ${QA_WIDTHS.join(", ")} px…`
                 : qaProblemas === 0
                   ? qaResultados.length
-                    ? "Sin problemas medidos a los anchos móviles."
+                    ? "Sin problemas medidos en ningún ancho."
                     : qaAuto && !qaAuto.ok
                       ? `Medida automática a ${qaAuto.width}px: ${qaAuto.items.length} ${qaAuto.items.length === 1 ? "aviso" : "avisos"}.`
-                      : "Pulsa el icono de lupa para medir la página a 320 y 390 px."
-                  : `${qaProblemas} ${qaProblemas === 1 ? "problema medido" : "problemas medidos"} en móvil`}
+                      : `Pulsa el icono de lupa para medir la página a ${QA_WIDTHS.join(", ")} px.`
+                  : `${qaProblemas} ${qaProblemas === 1 ? "problema medido" : "problemas medidos"}`}
             </p>
             <button
               onClick={() => void correrQA()}

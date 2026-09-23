@@ -76,3 +76,6 @@ server.log
 
 # capturas de verificación local
 tmp/
+
+# caché incremental de TypeScript
+*.tsbuildinfo
