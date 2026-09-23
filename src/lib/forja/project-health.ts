@@ -6,6 +6,8 @@ import type { QAResult, QATipo } from "./visual-qa";
 import type { FailureEntry } from "./failures";
 import { scanSecurity } from "./security-center";
 import { auditarWeb } from "./web-audit";
+import { auditarDetalle } from "./motor/qa-detalle";
+import { MIN_HTML_AUDITABLE } from "./motor-chat";
 
 export interface HealthMetric {
   id: string;
@@ -105,6 +107,22 @@ export function calculateProjectHealth(input: {
           ? propios.slice(0, 3).map((h) => h.arreglo).join(" · ")
           : "Sin hallazgos en el código",
     });
+  }
+
+  // Detalle de contenido y acabado, medido por el motor (qa-detalle.ts):
+  // secciones, densidad de contenido, piezas por colección, estados,
+  // responsive. Una página corta no se mide: no es una landing a medias.
+  if (html.length >= MIN_HTML_AUDITABLE) {
+    const d = auditarDetalle(html);
+    const criticos = d.hallazgos.filter((h) => h.gravedad === "critico");
+    metrics.push({
+      id: "detail",
+      label: "Contenido y acabado",
+      score: d.puntuacion,
+      detail: criticos.length ? criticos.slice(0, 2).map((h) => h.titulo).join(" · ") : d.resumen,
+    });
+  } else {
+    metrics.push({ id: "detail", label: "Contenido y acabado", score: null, detail: html ? "Página demasiado corta para medir el detalle" : "Sin código para inspeccionar" });
   }
 
   const available = metrics.filter((m) => m.score != null).map((m) => m.score as number);

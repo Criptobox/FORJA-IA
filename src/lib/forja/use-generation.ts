@@ -154,6 +154,7 @@ import { normalizarPermisos } from "./tool-permissions";
 import type { AjustesGenerados } from "./use-system-prompt";
 import type { SandboxSeed } from "./sandbox";
 import { textoParaModelo } from "./senalar";
+import { resumenRevisionDetalle, revisionDeDetalle } from "./motor-chat";
 
 
 /** Cuántas veces puede saltar de modelo una MISMA respuesta.
@@ -202,7 +203,7 @@ const MOTIVO_PARADA: Record<string, string> = {
  * piezas que tocan la pantalla (avisos con botón, Sandbox abierto, refs cuyo
  * dueño es el marco). Todo lo demás se lo sirve el store. */
 export interface CtxGeneracion {
-  composeSettings: (sessionId?: string) => AjustesGenerados;
+  composeSettings: (sessionId?: string, opts?: { sinPlano?: boolean }) => AjustesGenerados;
   piezasDelPrompt: (sessionId?: string) => EntradaPrompt;
   updateProjectMap: (sessionId: string, content: string) => void;
   /** seed del Sandbox abierto: checkpoint y continuación lo leen FRESCO de ctx
@@ -1496,6 +1497,47 @@ export function useGeneration(ctx: CtxGeneracion) {
                   relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
                   return;
                 }
+                // ——— Y si funciona y no es genérica, pero le falta CONTENIDO
+                //     respecto al plano que el motor le dio al crearla ———
+                //
+                // El plano viajó en el prompt (motor-chat.ts); aquí se
+                // comprueba que se cumplió, con el MISMO plano (se recalcula
+                // del mismo encargo: es determinista). Solo lo crítico gasta
+                // una vuelta; los avisos no.
+                const sesionAhora = useForja.getState().sessions.find((x) => x.id === sessionId);
+                const encargo =
+                  [...(sesionAhora?.messages ?? [])].reverse().find((m) => m.role === "user" && !m.instruction)?.content ?? "";
+                const cssProyecto = Object.entries(proyecto.files)
+                  .filter(([ruta]) => /\.css$/i.test(ruta))
+                  .map(([, css]) => `<style>${css}</style>`)
+                  .join("\n");
+                const detalle = revisionDeDetalle(`${proyecto.files[proyecto.entry] ?? ""}\n${cssProyecto}`, encargo);
+                if (detalle?.reparacion) {
+                  const criticos = detalle.informe.hallazgos.filter((h) => h.gravedad === "critico");
+                  for (const h of criticos.slice(0, 2)) {
+                    useFailures.getState().record("sandbox", `Detalle: ${h.titulo}`, h.correccion, "warn");
+                  }
+                  if (!quedan) {
+                    toast.warning("A la página le falta contenido", {
+                      description: resumenRevisionDetalle(detalle.informe),
+                      duration: 9000,
+                    });
+                    return;
+                  }
+                  addMessage(sessionId, {
+                    id: uid(),
+                    role: "user",
+                    content: detalle.reparacion,
+                    createdAt: Date.now(),
+                    instruction: true,
+                  });
+                  toast.warning("A la página le falta contenido", {
+                    description: `${resumenRevisionDetalle(detalle.informe)} Ampliándola (${revisiones + 1} de ${MAX_REVISIONES}).`,
+                    duration: 8000,
+                  });
+                  relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
+                  return;
+                }
                 if (salida.ejecutado) {
                   toast.success("El agente probó su código", {
                     description: `${resumenRevision(salida)}${inf?.hecho ? ` ${resumenBotones(inf)}` : ""}`,
@@ -1833,14 +1875,16 @@ export function useGeneration(ctx: CtxGeneracion) {
       /** Una llamada suelta, sin streaming: aquí solo interesa el texto final. */
       const preguntar = async (
         quien: { providerId: ProviderId; modelId: string },
-        prompt: string
+        prompt: string,
+        /** los ejecutores ven SOLO su trozo: tampoco el plano del encargo */
+        soloSuTrozo = false
       ): Promise<string> =>
         streamChat({
           providerId: quien.providerId,
           config: useForja.getState().providers[quien.providerId],
           modelId: quien.modelId,
           messages: [{ role: "user", content: prompt }],
-          settings: { ...composeSettings(sessionId), stream: false },
+          settings: { ...composeSettings(sessionId, { sinPlano: soloSuTrozo }), stream: false },
           signal: controller.signal,
           onDelta: () => {},
           onDone: () => {},
@@ -1876,7 +1920,7 @@ export function useGeneration(ctx: CtxGeneracion) {
             try {
               // El ejecutor recibe SU trozo y nada más: ni la conversación, ni
               // lo de los demás. Más barato y menos superficie.
-              const texto = await preguntar(quien, promptDeEjecutor(sub));
+              const texto = await preguntar(quien, promptDeEjecutor(sub), true);
               useHealth.getState().recordSuccess(makeModelKey(quien.providerId, quien.modelId));
               return { sub, quien, texto, ms: Date.now() - t0 };
             } catch (err) {

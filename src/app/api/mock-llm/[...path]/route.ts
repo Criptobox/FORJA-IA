@@ -50,6 +50,7 @@ const MODELOS = [
   "mock-iconos-emoji",
   "mock-proyecto-repo",
   "mock-app",
+  "mock-fino",
   "mock-3d-mal-puesto",
   "mock-3d",
   "mock-2d-mal-puesto",
@@ -400,6 +401,30 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8"><title>Solo</title></head>',
       "<body><h1>Todo en uno</h1></body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-fino`: una landing LARGA (más de 2.000 caracteres) pero con dos
+  // secciones y poco texto. El motor la audita contra el plano de contenido y
+  // pide ampliarla; al recibir esa reparación, entrega una página corta que
+  // ya no se audita. Sirve para comprobar el bucle entero sin depender de un
+  // modelo real.
+  if (modelo === "mock-fino") {
+    const pideReparar = msgs.some(
+      (m) => typeof m.content === "string" && (m.content as string).includes("REPARACIÓN DE DETALLE")
+    );
+    if (pideReparar) {
+      return ["Ampliada.", "", "```html", '<!DOCTYPE html><html lang="es"><body><h1>Barbería ampliada</h1></body></html>', "```"].join("\n");
+    }
+    const relleno = "<p>" + "Cortes clásicos y modernos con cita previa. ".repeat(30) + "</p>";
+    return [
+      "Aquí tienes tu landing.",
+      "",
+      "```html",
+      '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Barbería</title>',
+      "<style>body{font-family:system-ui;margin:0}a:hover{color:#f97316}a:focus-visible{outline:2px solid}@media (max-width:600px){h1{font-size:2rem}}</style></head>",
+      `<body><main><section id="hero"><h1>Barbería Norte</h1>${relleno}</section><section id="oferta"><h2>Servicios</h2>${relleno}</section></main></body></html>`,
       "```",
     ].join("\n");
   }

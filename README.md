@@ -38,6 +38,15 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 - **Tamaños de pantalla**: escritorio, tablet (768), móvil (390) y móvil pequeño (320). Si el dispositivo no cabe en el panel se pinta a su ancho real y se escala, como en las DevTools.
 - **Auditoría web**: SEO (meta description, Open Graph, encabezados), rendimiento (imágenes sin tamaño o sin lazy, scripts bloqueantes, fuentes) y accesibilidad de código (campos sin etiqueta, foco invisible, tabindex positivo…). Llega al agente con el arreglo de cada hallazgo y suma a Project Health, sin bloquear la publicación.
 
+## 🔥 El motor creativo, integrado en el chat
+
+El motor de diseño (plano de contenido, iconografía, QA de detalle, ADN, jueces…) vivía aparte y llegaba al Estudio como un paquete precompilado sin tipos. Ahora es código de la app en `src/lib/forja/motor/`, compilado y comprobado con el resto, con sus 319 pruebas funcionales en CI.
+
+- **Plano de contenido al crear una página**: el motor saca del encargo los datos reales (precios, teléfono, ciudad, horarios, servicios) y fija qué secciones tiene que haber y con cuántas piezas. Viaja en el prompt junto a un juego de iconos SVG del sector.
+- **QA de detalle contra ese plano**: al terminar, la página se audita contra el mismo plano; si le faltan secciones o contenido, Forja pide ampliarla (una llamada, por el mismo bucle que corrige errores de consola).
+- **Contenido y acabado en Project Health**, con la puntuación del motor.
+- El Estudio (`/forja`) usa el mismo módulo que el chat.
+
 ## ✨ Características
 
 | | |
