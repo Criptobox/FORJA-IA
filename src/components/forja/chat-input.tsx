@@ -443,6 +443,7 @@ export function ChatInput({
             </button>
             <textarea
               ref={ref}
+              data-compositor
               value={value}
               onChange={(e) => onChange(e.target.value)}
               onKeyDown={keyDown}

@@ -11,6 +11,7 @@ import {
   FileText,
   Map as MapIcon,
   Monitor,
+  MousePointerClick,
   Paintbrush,
   Pencil,
   RefreshCw,
@@ -47,6 +48,7 @@ import { useFailures } from "@/lib/forja/failures";
 import { SANDBOX_ORIGIN, injectConsoleBridge } from "@/lib/forja/sandbox";
 import { borrarAlmacen, guardarAlmacen, leerAlmacen, sembrarAlmacen } from "@/lib/forja/preview-storage";
 import { injectEditPilot } from "@/lib/forja/editar-preview";
+import { normalizarSenalado, type ElementoSenalado } from "@/lib/forja/senalar";
 import { aHex, cssDeCambios, injectEstiloPilot, type CambioEstilo, type SeleccionEstilo } from "@/lib/forja/editor-estilos";
 import { toast } from "sonner";
 import {
@@ -103,6 +105,9 @@ export interface PreviewPanelProps {
   /** Guarda en el código de la respuesta los estilos tocados en la vista
    *  previa (bloque `data-forja-ajustes`). Devuelve por qué no, si no. */
   onEditStyle?: (cambios: CambioEstilo[]) => { ok: boolean; motivo?: string };
+  /** Tocaste un elemento en modo «señalar»: va al chat como referencia para
+   *  que la IA sepa exactamente qué cambiar. */
+  onSenalar?: (e: ElementoSenalado) => void;
 }
 
 /** Lo que un padre puede pedirle a un PreviewPanel montado, por ref. Hoy
@@ -133,6 +138,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   onEditText,
   almacenId,
   onEditStyle,
+  onSenalar,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<Dispositivo>("desktop");
@@ -241,6 +247,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
 
   /* ------- tocar un elemento y cambiar su estilo ------- */
   const [estilando, setEstilando] = useState(false);
+  const [senalando, setSenalando] = useState(false);
   const [seleccion, setSeleccion] = useState<SeleccionEstilo | null>(null);
   const [tokens, setTokens] = useState<Record<string, string>>({});
   /** cambios sin guardar: selector → propiedad → valor */
@@ -257,10 +264,11 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
       /* iframe sin cargar: el «listo» reintenta */
     }
   };
+  // el mismo piloto sirve a los dos modos: estilo y señalar
   useEffect(() => {
-    enviarAEstilo({ op: "toggle", on: estilando });
+    enviarAEstilo({ op: "toggle", on: estilando || senalando, modo: senalando ? "senalar" : "estilo" });
     if (!estilando) setSeleccion(null);
-  }, [estilando]);
+  }, [estilando, senalando]);
   // lo que llevas tocado se ve YA, antes de guardarlo
   useEffect(() => {
     enviarAEstilo({ op: "vivo", css: cssDeCambios(cambiosBorrador) });
@@ -277,17 +285,20 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
       const d = e.data as { source?: string; type?: string; tokens?: Record<string, string> } & Partial<SeleccionEstilo> | null;
       if (!d || d.source !== "forja-estilo") return;
       if (d.type === "listo") {
-        if (estilando) enviarAEstilo({ op: "toggle", on: true });
+        if (estilando || senalando) enviarAEstilo({ op: "toggle", on: true, modo: senalando ? "senalar" : "estilo" });
         if (cambiosBorrador.length) enviarAEstilo({ op: "vivo", css: cssDeCambios(cambiosBorrador) });
       } else if (d.type === "tokens" && d.tokens && typeof d.tokens === "object") {
         setTokens(d.tokens);
+      } else if (d.type === "senalado") {
+        const el = normalizarSenalado(d, `sen-${Date.now().toString(36)}`);
+        if (el) onSenalar?.(el);
       } else if (d.type === "seleccion" && typeof d.selector === "string" && d.estilos) {
         setSeleccion({ selector: d.selector, etiqueta: String(d.etiqueta ?? ""), estilos: d.estilos });
       }
     };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
-  }, [estilando, cambiosBorrador]);
+  }, [estilando, senalando, cambiosBorrador, onSenalar]);
 
   const cambiarEstilo = (selector: string, prop: string, valor: string) =>
     setBorrador((b) => ({ ...b, [selector]: { ...(b[selector] ?? {}), [prop]: valor } }));
@@ -456,9 +467,11 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   return (
     <div className={cn("panel-in flex h-full min-w-0 flex-col bg-background", className)}>
       {/* Barra de herramientas */}
-      <div className="flex h-11 shrink-0 items-center gap-1 border-b border-border/60 bg-card/60 px-2">
+      {/* En un móvil no caben todos los botones: la barra se desplaza de lado
+          (sin barra de scroll visible) y «Cerrar» queda fijo a la derecha. */}
+      <div className="flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b border-border/60 bg-card/60 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Eye className="ml-1 size-3.5 shrink-0 text-forja-cyan" />
-        <span className="whitespace-nowrap text-xs font-medium">
+        <span className="hidden whitespace-nowrap text-xs font-medium sm:inline">
           {tab === "map" ? "Mapa del proyecto" : "Vista previa"}
         </span>
         {streaming && tab !== "map" && (
@@ -519,6 +532,23 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
             <DatabaseZap className="size-3.5" />
           </Button>
         )}
+        {onSenalar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("size-8 shrink-0", senalando && "bg-primary text-primary-foreground hover:bg-primary/90")}
+            onClick={() => {
+              setEditando(false);
+              setEstilando(false);
+              setSenalando((v) => !v);
+            }}
+            title={senalando ? "Dejar de señalar" : "Señalar a la IA: toca un botón o un apartado y escribe en el chat qué cambiar"}
+            aria-label={senalando ? "Dejar de señalar" : "Señalar un elemento a la IA"}
+            aria-pressed={senalando}
+          >
+            <MousePointerClick className="size-3.5" />
+          </Button>
+        )}
         {/* Tocar un texto de la vista previa y editarlo ahí mismo. El cambio
             se busca en el código de la respuesta y se guarda ahí — por eso
             sigue estando cuando descargas o subes a GitHub, no es un retoque
@@ -529,6 +559,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           className={cn("size-8 shrink-0", editando && "bg-muted text-foreground")}
           onClick={() => {
             setEstilando(false);
+            setSenalando(false);
             setEditando((v) => !v);
           }}
           title={editando ? "Dejar de editar" : "Editar: toca un texto de la vista previa para cambiarlo"}
@@ -544,6 +575,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
             className={cn("size-8 shrink-0", estilando && "bg-muted text-foreground")}
             onClick={() => {
               setEditando(false);
+              setSenalando(false);
               setEstilando((v) => !v);
             }}
             title={estilando ? "Dejar de editar estilos" : "Estilos: toca un elemento para cambiar color, tamaño, espaciado… o cambia los tokens de la página"}
@@ -622,7 +654,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           </Button>
         )}
         {onClose && (
-          <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={onClose} title="Cerrar vista previa" aria-label="Cerrar vista previa">
+          <Button variant="ghost" size="icon" className="sticky right-0 size-8 shrink-0 bg-card" onClick={onClose} title="Cerrar vista previa" aria-label="Cerrar vista previa">
             <X className="size-4" />
           </Button>
         )}
@@ -750,6 +782,13 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
             </span>
           )}
 
+          {senalando && (
+            <div className="pointer-events-none absolute inset-x-0 top-2 z-10 flex justify-center px-2">
+              <div className="rounded-full border border-primary/40 bg-background/95 px-3 py-1.5 text-[11px] font-medium text-foreground shadow-lg backdrop-blur">
+                Toca lo que quieras cambiar · aparece en el chat para que le digas a la IA qué hacer
+              </div>
+            </div>
+          )}
           {editando && (
             <div className="pointer-events-none sticky top-2 z-10 flex justify-center px-2">
               <div className="pointer-events-none rounded-full border border-primary/40 bg-background/95 px-3 py-1.5 text-[11px] font-medium text-foreground shadow-lg backdrop-blur">

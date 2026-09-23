@@ -12,6 +12,7 @@ import {
   Download,
   FileText,
   GraduationCap,
+  MousePointerClick,
   Languages,
   Pencil,
   Play,
@@ -22,6 +23,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
+import { etiquetaCorta } from "@/lib/forja/senalar";
 import { Markdown } from "./markdown";
 import { SparkleAvatar } from "./sparkle-avatar";
 import { AgentAnswer, AgentTraceView } from "./agent-trace";
@@ -267,6 +269,21 @@ export const MessageItem = memo(function MessageItem({
                       title={`${d.chars.toLocaleString("es")} caracteres enviados al modelo`}
                     >
                       <FileText className="size-3.5 text-forja-cyan" /> {d.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* Elementos señalados en la vista previa: el HTML solo lo lee el modelo */}
+              {msg.senalados && msg.senalados.length > 0 && (
+                <div className="flex flex-wrap justify-end gap-1.5">
+                  {msg.senalados.map((e) => (
+                    <span
+                      key={e.id}
+                      className="flex max-w-full items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-2 py-1 font-mono text-[11px] text-muted-foreground"
+                      title={e.selector}
+                    >
+                      <MousePointerClick className="size-3.5 shrink-0 text-primary" />
+                      <span className="truncate">{etiquetaCorta(e)}</span>
                     </span>
                   ))}
                 </div>

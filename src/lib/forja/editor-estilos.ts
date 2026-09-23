@@ -232,7 +232,7 @@ export const ESTILO_PILOT_CSS = `
 export const ESTILO_PILOT_SCRIPT = `(function(){
 if (window.__forjaEstilo) return;
 window.__forjaEstilo = true;
-var activo = false, sel = null, vivo = null;
+var activo = false, sel = null, vivo = null, modo = "estilo";
 var PROPS = ${JSON.stringify(PROPS_EDITABLES)};
 function prohibido(el){ return !el || el.nodeType !== 1 || /^(HTML|BODY|SCRIPT|STYLE|HEAD|META|LINK)$/.test(el.tagName); }
 function idValido(id){ return /^[A-Za-z][A-Za-z0-9_-]*$/.test(id || ""); }
@@ -266,12 +266,36 @@ function tokens(){
   } catch(e){}
   return out;
 }
+/* Modo «señalar»: lo que se toca va al chat como referencia para la IA.
+   Un icono dentro de un botón señala el BOTÓN; y se manda también el
+   apartado que lo contiene, por si se quiere ampliar a toda la sección. */
+function limpio(el){
+  var c = el.cloneNode(true);
+  var todos = [c].concat(Array.prototype.slice.call(c.querySelectorAll ? c.querySelectorAll("[class]") : []));
+  for (var i = 0; i < todos.length; i++) { if (todos[i].classList) { todos[i].classList.remove("forja-estilo-hover"); todos[i].classList.remove("forja-estilo-sel"); if (!todos[i].className) todos[i].removeAttribute("class"); } }
+  return c.outerHTML || "";
+}
+function info(el){
+  return { etiqueta: el.tagName.toLowerCase(), selector: selectorDe(el), texto: (el.innerText || el.textContent || el.getAttribute("aria-label") || el.getAttribute("alt") || "").trim().slice(0, 300), html: limpio(el).slice(0, 4000) };
+}
+function senalar(el){
+  var objetivo = (el.closest && el.closest("button,a,label,summary,[role=button],input,select,textarea")) || el;
+  var seccion = objetivo.parentElement && objetivo.parentElement.closest ? objetivo.parentElement.closest("section,article,header,footer,nav,aside,form,li,figure,main") : null;
+  if (seccion && (seccion === document.body || seccion === document.documentElement)) seccion = null;
+  var m = info(objetivo);
+  m.type = "senalado";
+  if (seccion) m.seccion = info(seccion);
+  objetivo.classList.add("forja-estilo-sel");
+  setTimeout(function(){ objetivo.classList.remove("forja-estilo-sel"); }, 900);
+  enviar(m);
+}
 function enviar(m){ m.source = "forja-estilo"; try { parent.postMessage(m, "*"); } catch(e){} }
 function over(ev){ if (activo && !prohibido(ev.target)) ev.target.classList.add("forja-estilo-hover"); }
 function out(ev){ if (ev.target && ev.target.classList) ev.target.classList.remove("forja-estilo-hover"); }
 function click(ev){
   if (!activo || prohibido(ev.target)) return;
   ev.preventDefault(); ev.stopPropagation();
+  if (modo === "senalar") { ev.target.classList.remove("forja-estilo-hover"); senalar(ev.target); return; }
   if (sel) sel.classList.remove("forja-estilo-sel");
   sel = ev.target;
   sel.classList.remove("forja-estilo-hover");
@@ -288,7 +312,8 @@ window.addEventListener("message", function(e){
   if (!d || d.source !== "forja-estilo-cmd") return;
   if (d.op === "toggle") {
     activo = !!d.on;
-    if (activo) enviar({ type: "tokens", tokens: tokens() });
+    modo = d.modo === "senalar" ? "senalar" : "estilo";
+    if (activo && modo === "estilo") enviar({ type: "tokens", tokens: tokens() });
     else if (sel) { sel.classList.remove("forja-estilo-sel"); sel = null; }
   } else if (d.op === "vivo" && typeof d.css === "string") {
     if (!vivo) { vivo = document.createElement("style"); vivo.setAttribute("data-forja-vivo", ""); (document.body || document.documentElement).appendChild(vivo); }

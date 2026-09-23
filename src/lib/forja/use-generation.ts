@@ -153,6 +153,7 @@ import { useAgentTools } from "./use-agent-tools";
 import { normalizarPermisos } from "./tool-permissions";
 import type { AjustesGenerados } from "./use-system-prompt";
 import type { SandboxSeed } from "./sandbox";
+import { textoParaModelo } from "./senalar";
 
 
 /** Cuántas veces puede saltar de modelo una MISMA respuesta.
@@ -570,9 +571,15 @@ export function useGeneration(ctx: CtxGeneracion) {
           role: m.role,
           // los documentos adjuntos viajan como texto de contexto del mensaje,
           // tal cual: son archivos que mandaste a propósito
-          content: m.docTexts?.length
-            ? `${escudo.contenidos[i]}\n\n${m.docTexts.map((d) => `[Documento: ${d.name}]\n${d.text}`).join("\n\n")}`
-            : escudo.contenidos[i],
+          // …y los elementos señalados en la vista previa, con su HTML: es
+          // lo que dice a qué se refiere «cambia esto» sin adivinar
+          content: [
+            escudo.contenidos[i],
+            m.docTexts?.length ? m.docTexts.map((d) => `[Documento: ${d.name}]\n${d.text}`).join("\n\n") : "",
+            m.senalados?.length ? textoParaModelo(m.senalados) : "",
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
           ...(m.attachments?.length ? { attachments: m.attachments } : {}),
         }))
       );

@@ -410,6 +410,12 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // instrucción viaja, que la vista previa monta los módulos y que los datos
   // sobreviven a recargar la vista previa. Sin la instrucción, un HTML suelto.
   if (modelo === "mock-app") {
+    // si el último mensaje trae un elemento señalado en la vista previa,
+    // confirma cuál le llegó: así el E2E comprueba que viajó al modelo
+    const ultimoUsuario = [...msgs].reverse().find((m) => m.role === "user");
+    const textoUltimo = typeof ultimoUsuario?.content === "string" ? (ultimoUsuario.content as string) : "";
+    const senal = /Selector: `([^`]+)`/.exec(textoUltimo);
+    if (senal) return `Entendido: cambiaré el elemento \`${senal[1]}\`.`;
     const conModoApp = msgs.some(
       (m) => typeof m.content === "string" && (m.content as string).includes("Modo App: esto es una aplicación")
     );
