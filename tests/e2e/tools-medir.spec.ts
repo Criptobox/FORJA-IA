@@ -114,6 +114,9 @@ test("el agente mide su propio cambio, compara archivos y consulta la memoria", 
   // ——— el peso del HTML se compara con su signo
   expect(texto).toMatch(/Peso del HTML: [-+]?\d+ bytes|Peso del HTML: igual/);
 
+  // ——— el aspecto también se compara: captura de cada ejecución y su firma
+  expect(texto).toMatch(/Aspecto: (cambió un \d+ % de la página|sin cambios visibles)/);
+
   // ——— snapshot_diff: el punto guardado tenía la página rota
   expect(texto).toContain("index.html");
   expect(texto).toContain("Total:");
