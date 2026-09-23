@@ -13,6 +13,7 @@ import {
   Monitor,
   MousePointerClick,
   Paintbrush,
+  Rocket,
   Pencil,
   RefreshCw,
   ScanSearch,
@@ -48,6 +49,7 @@ import { useFailures } from "@/lib/forja/failures";
 import { SANDBOX_ORIGIN, injectConsoleBridge } from "@/lib/forja/sandbox";
 import { borrarAlmacen, guardarAlmacen, leerAlmacen, sembrarAlmacen } from "@/lib/forja/preview-storage";
 import { injectEditPilot } from "@/lib/forja/editar-preview";
+import { PublicarNetlify } from "./publicar-netlify";
 import { normalizarSenalado, type ElementoSenalado } from "@/lib/forja/senalar";
 import { aHex, cssDeCambios, injectEstiloPilot, type CambioEstilo, type SeleccionEstilo } from "@/lib/forja/editor-estilos";
 import { toast } from "sonner";
@@ -455,6 +457,15 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
 
   /** El proyecto entero en un ZIP: es lo que hace falta cuando la respuesta
    *  trae index.html + styles.css + app.js y solo se veía el primero. */
+  /** Lo que se publica: los archivos de la respuesta, con un index.html en
+   *  la raíz siempre (es lo que sirve un hosting estático). */
+  const zipParaPublicar = () => {
+    const lista = archivos.map((f) => ({ path: f.path, data: encodeText(f.text) }));
+    if (!archivos.some((f) => f.path === "index.html") && bundle) lista.push({ path: "index.html", data: encodeText(bundle) });
+    return new Uint8Array(writeZip(lista));
+  };
+  const [publicarAbierto, setPublicarAbierto] = useState(false);
+
   const descargarZip = () => {
     const zip = writeZip(archivos.map((f) => ({ path: f.path, data: encodeText(f.text) })));
     guardar(
@@ -604,6 +615,17 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           aria-label="Mapa del proyecto"
         >
           <MapIcon className="size-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8 shrink-0"
+          onClick={() => setPublicarAbierto(true)}
+          disabled={!bundle || !!streaming}
+          title="Publicar en Netlify: una URL pública para compartir"
+          aria-label="Publicar en Netlify"
+        >
+          <Rocket className="size-3.5" />
         </Button>
         <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={openExternal} title="Abrir en pestaña nueva" aria-label="Abrir en pestaña nueva">
           <ExternalLink className="size-3.5" />
@@ -834,6 +856,12 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           )}
         </div>
       )}
+      <PublicarNetlify
+        open={publicarAbierto}
+        onOpenChange={setPublicarAbierto}
+        conversacionId={almacenId}
+        construirZip={zipParaPublicar}
+      />
     </div>
   );
 });
