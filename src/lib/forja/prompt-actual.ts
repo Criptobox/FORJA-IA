@@ -29,6 +29,7 @@ import {
 import { INSTRUCCION_EVIDENCIA } from "./evidencia";
 import { INSTRUCCION_VARIOS_ARCHIVOS, pideVariosArchivos } from "./multi-archivo";
 import { esEncargoDeApp, INSTRUCCION_APP } from "./modo-app";
+import { instruccionReferencia, pideDisenoDeReferencia } from "./referencia-visual";
 import { esEncargoDeTiendaOCatalogo, INSTRUCCION_TIENDA_INTERACTIVA } from "./catalogo-interactivo";
 import { buildDesignArchitecture, designArchitecturePrompt } from "./design-architect";
 
@@ -205,6 +206,13 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     if (!forjaWebActivo) {
       diseno = promptDireccion(eleccionDireccion);
     }
+  }
+  // Una imagen adjunta en un encargo de diseño ES la dirección: imponer
+  // además una de las curadas daría al modelo dos estilos que se pisan.
+  const imagenesDelTurno = ultimoDelUsuario?.attachments?.length ?? 0;
+  if (!trivial && pideDisenoDeReferencia(promptUsuario, imagenesDelTurno)) {
+    diseno = instruccionReferencia(imagenesDelTurno);
+    disenoId = "referencia adjunta";
   }
 
   // ——— FORJA WEB: arquitectura de diseño del Cerebro ———
