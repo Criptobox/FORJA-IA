@@ -40,9 +40,13 @@ export function useSystemPrompt() {
 
   /** Instrucciones finales, ya montadas. */
   const composeSettings = useCallback(
-    (sessionId?: string): AjustesGenerados => {
+    (sessionId?: string, opts: { sinPlano?: boolean } = {}): AjustesGenerados => {
       const st = useForja.getState();
-      const { prompt } = construirPrompt(piezasDelPrompt(sessionId));
+      // `sinPlano`: el plano de contenido lleva datos del encargo ENTERO; a
+      // quien solo debe ver un trozo (los ejecutores de la orquesta) no se le
+      // manda, o se le colaría por el prompt de sistema lo que se le oculta.
+      const piezas = piezasDelPrompt(sessionId);
+      const { prompt } = construirPrompt(opts.sinPlano ? { ...piezas, plano: null } : piezas);
       // El ahorro también recorta lo que ENTRA: el historial es casi siempre
       // más gordo que las instrucciones (40 mensajes de fábrica), así que
       // limitarlo es lo que de verdad baja la cuenta.

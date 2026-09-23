@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   Code2,
+  DatabaseZap,
   Download,
   ExternalLink,
   Eye,
@@ -10,10 +11,14 @@ import {
   FileText,
   Map as MapIcon,
   Monitor,
+  MousePointerClick,
+  Paintbrush,
+  Rocket,
   Pencil,
   RefreshCw,
   ScanSearch,
   Smartphone,
+  Tablet,
   TriangleAlert,
   X,
 } from "lucide-react";
@@ -42,7 +47,12 @@ import {
 } from "@/lib/forja/visual-qa";
 import { useFailures } from "@/lib/forja/failures";
 import { SANDBOX_ORIGIN, injectConsoleBridge } from "@/lib/forja/sandbox";
+import { borrarAlmacen, guardarAlmacen, leerAlmacen, sembrarAlmacen } from "@/lib/forja/preview-storage";
 import { injectEditPilot } from "@/lib/forja/editar-preview";
+import { PublicarNetlify } from "./publicar-netlify";
+import { normalizarSenalado, type ElementoSenalado } from "@/lib/forja/senalar";
+import { cssDeCambios, injectEstiloPilot, type CambioEstilo, type SeleccionEstilo } from "@/lib/forja/editor-estilos";
+import { PanelEstilos } from "./panel-estilos";
 import { toast } from "sonner";
 import {
   registrarError,
@@ -52,6 +62,16 @@ import {
 } from "@/lib/forja/errores-en-vivo";
 import type { ProjectMap } from "@/lib/forja/types";
 import { RUTA_REGLAS_PROYECTO, serializarReglas } from "@/lib/forja/reglas-no";
+
+/** Tamaños de la vista previa. Los mismos anchos que mide Visual QA
+ *  (320/390/768), para que lo que se ve y lo que se mide coincidan. */
+type Dispositivo = "desktop" | "tablet" | "mobile" | "mobile-s";
+const DISPOSITIVOS: readonly { id: Dispositivo; nombre: string; aria: string; ancho: number | null; Icono: typeof Monitor }[] = [
+  { id: "desktop", nombre: "Escritorio", aria: "Vista escritorio", ancho: null, Icono: Monitor },
+  { id: "tablet", nombre: "Tablet", aria: "Vista tablet", ancho: 768, Icono: Tablet },
+  { id: "mobile", nombre: "Móvil", aria: "Vista móvil", ancho: 390, Icono: Smartphone },
+  { id: "mobile-s", nombre: "Móvil pequeño", aria: "Vista móvil pequeño", ancho: 320, Icono: Smartphone },
+];
 
 export interface PreviewPanelProps {
   code: string | null;
@@ -82,6 +102,15 @@ export interface PreviewPanelProps {
    *  la respuesta. Devuelve por qué no se pudo, si no se pudo — el motivo se
    *  enseña tal cual, no se traga. */
   onEditText?: (original: string, nuevo: string) => { ok: boolean; motivo?: string };
+  /** Identifica la conversación: lo que la página guarde en localStorage se
+   *  conserva bajo este id y vuelve al recargar. Sin él, no persiste. */
+  almacenId?: string | null;
+  /** Guarda en el código de la respuesta los estilos tocados en la vista
+   *  previa (bloque `data-forja-ajustes`). Devuelve por qué no, si no. */
+  onEditStyle?: (cambios: CambioEstilo[]) => { ok: boolean; motivo?: string };
+  /** Tocaste un elemento en modo «señalar»: va al chat como referencia para
+   *  que la IA sepa exactamente qué cambiar. */
+  onSenalar?: (e: ElementoSenalado) => void;
 }
 
 /** Lo que un padre puede pedirle a un PreviewPanel montado, por ref. Hoy
@@ -110,10 +139,32 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   onRestoreSnapshot,
   onFixLive,
   onEditText,
+  almacenId,
+  onEditStyle,
+  onSenalar,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [device, setDevice] = useState<Dispositivo>("desktop");
   const [tab, setTab] = useState<"preview" | "code" | "map">("preview");
+  const anchoDispositivo = DISPOSITIVOS.find((d) => d.id === device)?.ancho ?? null;
+  /** ancho útil del lienzo, para escalar un dispositivo que no cabe */
+  const lienzoRef = useRef<HTMLDivElement>(null);
+  const [anchoLienzo, setAnchoLienzo] = useState(0);
+  useEffect(() => {
+    const el = lienzoRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const medir = () => {
+      const cs = getComputedStyle(el);
+      setAnchoLienzo(el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+    };
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+    // el lienzo solo existe en la pestaña de vista previa: se vuelve a
+    // observar cuando reaparece
+  }, [tab]);
+  const escala = anchoDispositivo && anchoLienzo > 0 && anchoDispositivo > anchoLienzo ? anchoLienzo / anchoDispositivo : 1;
   const [reloadKey, setReloadKey] = useState(0);
   const [painted, setPainted] = useState(code);
 
@@ -152,7 +203,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
    *  del iframe sin que se enterara nadie. Solo en lo que se PINTA; lo que se
    *  descarga o se abre en pestaña sigue yendo limpio. */
   const paraPintar = useMemo(
-    () => (bundle ? injectEditPilot(injectConsoleBridge(injectVisualQA(bundle))) : ""),
+    () => (bundle ? injectEstiloPilot(injectEditPilot(injectConsoleBridge(injectVisualQA(bundle)))) : ""),
     [bundle]
   );
 
@@ -196,6 +247,79 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
   }, [editando, onEditText]);
+
+  /* ------- tocar un elemento y cambiar su estilo ------- */
+  const [estilando, setEstilando] = useState(false);
+  const [senalando, setSenalando] = useState(false);
+  const [seleccion, setSeleccion] = useState<SeleccionEstilo | null>(null);
+  const [tokens, setTokens] = useState<Record<string, string>>({});
+  /** cambios sin guardar: selector → propiedad → valor */
+  const [borrador, setBorrador] = useState<Record<string, Record<string, string>>>({});
+  const cambiosBorrador = useMemo<CambioEstilo[]>(
+    () => Object.entries(borrador).map(([selector, props]) => ({ selector, props })),
+    [borrador]
+  );
+
+  const enviarAEstilo = (m: Record<string, unknown>) => {
+    try {
+      iframeRef.current?.contentWindow?.postMessage({ source: "forja-estilo-cmd", ...m }, "*");
+    } catch {
+      /* iframe sin cargar: el «listo» reintenta */
+    }
+  };
+  // el mismo piloto sirve a los dos modos: estilo y señalar
+  useEffect(() => {
+    enviarAEstilo({ op: "toggle", on: estilando || senalando, modo: senalando ? "senalar" : "estilo" });
+    if (!estilando) setSeleccion(null);
+  }, [estilando, senalando]);
+  // lo que llevas tocado se ve YA, antes de guardarlo
+  useEffect(() => {
+    enviarAEstilo({ op: "vivo", css: cssDeCambios(cambiosBorrador) });
+  }, [cambiosBorrador]);
+  // otra respuesta, otro documento: lo pendiente de la anterior no aplica
+  useEffect(() => {
+    setBorrador({});
+    setSeleccion(null);
+  }, [source]);
+
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if (e.source !== iframeRef.current?.contentWindow) return;
+      const d = e.data as { source?: string; type?: string; tokens?: Record<string, string> } & Partial<SeleccionEstilo> | null;
+      if (!d || d.source !== "forja-estilo") return;
+      if (d.type === "listo") {
+        if (estilando || senalando) enviarAEstilo({ op: "toggle", on: true, modo: senalando ? "senalar" : "estilo" });
+        if (cambiosBorrador.length) enviarAEstilo({ op: "vivo", css: cssDeCambios(cambiosBorrador) });
+      } else if (d.type === "tokens" && d.tokens && typeof d.tokens === "object") {
+        setTokens(d.tokens);
+      } else if (d.type === "senalado") {
+        const el = normalizarSenalado(d, `sen-${Date.now().toString(36)}`);
+        if (el) onSenalar?.(el);
+      } else if (d.type === "seleccion" && typeof d.selector === "string" && d.estilos) {
+        setSeleccion({ selector: d.selector, etiqueta: String(d.etiqueta ?? ""), estilos: d.estilos });
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [estilando, senalando, cambiosBorrador, onSenalar]);
+
+  const cambiarEstilo = (selector: string, prop: string, valor: string) =>
+    setBorrador((b) => ({ ...b, [selector]: { ...(b[selector] ?? {}), [prop]: valor } }));
+  const valorActual = (selector: string, prop: string, delPiloto?: string) =>
+    borrador[selector]?.[prop] ?? delPiloto ?? "";
+
+  const guardarEstilos = () => {
+    if (!cambiosBorrador.length) return;
+    const r = onEditStyle?.(cambiosBorrador);
+    if (!r) return;
+    if (!r.ok) {
+      toast.error("No se pudo guardar el estilo", { description: r.motivo });
+      return;
+    }
+    setBorrador({});
+    setSeleccion(null);
+    toast.success("Estilo guardado en el código", { description: "Va en un bloque «data-forja-ajustes» al final de la página." });
+  };
 
   /* ------- errores mientras TÚ la usas ------- */
   const [erroresVivos, setErroresVivos] = useState<ErrorEnVivo[]>([]);
@@ -268,11 +392,46 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
 
   const qaProblemas = qaResultados.reduce((n, r) => n + (r.noRespondio || r.ok ? 0 : r.items.length), 0);
 
-  // Pintado imperativo en el iframe (evita re-montajes de React)
+  /* ------- datos de la app que sobreviven a recargar ------- */
+  const [hayDatos, setHayDatos] = useState(false);
+  const avisoLleno = useRef(false);
+  useEffect(() => {
+    setHayDatos(Object.keys(leerAlmacen(almacenId)).length > 0);
+    avisoLleno.current = false;
+  }, [almacenId]);
+
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      // solo del iframe que pintamos: otra ventana no escribe aquí
+      if (e.source !== iframeRef.current?.contentWindow) return;
+      const d = e.data as { source?: string; almacen?: unknown } | null;
+      if (!d || d.source !== SANDBOX_ORIGIN || !("almacen" in d) || !almacenId) return;
+      const r = guardarAlmacen(almacenId, d.almacen);
+      if (r.ok) setHayDatos(!r.vacio);
+      else if (!avisoLleno.current) {
+        avisoLleno.current = true;
+        toast.warning("Los datos de la vista previa no se guardaron", { description: r.motivo });
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [almacenId]);
+
+  const borrarDatos = () => {
+    borrarAlmacen(almacenId);
+    setHayDatos(false);
+    setReloadKey((k) => k + 1);
+    toast.success("Datos de la vista previa borrados");
+  };
+
+  // Pintado imperativo en el iframe (evita re-montajes de React). Los datos
+  // guardados se leen AQUÍ, al pintar, y no en el useMemo: si no, cada
+  // escritura de la página recargaría el iframe.
   useEffect(() => {
     const el = iframeRef.current;
-    if (el) el.srcdoc = paraPintar;
-  }, [paraPintar, reloadKey]);
+    if (!el) return;
+    el.srcdoc = almacenId && paraPintar ? sembrarAlmacen(paraPintar, leerAlmacen(almacenId)) : paraPintar;
+  }, [paraPintar, reloadKey, almacenId]);
 
   const openExternal = () => {
     const blob = new Blob([bundle], { type: "text/html" });
@@ -299,6 +458,15 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
 
   /** El proyecto entero en un ZIP: es lo que hace falta cuando la respuesta
    *  trae index.html + styles.css + app.js y solo se veía el primero. */
+  /** Lo que se publica: los archivos de la respuesta, con un index.html en
+   *  la raíz siempre (es lo que sirve un hosting estático). */
+  const zipParaPublicar = () => {
+    const lista = archivos.map((f) => ({ path: f.path, data: encodeText(f.text) }));
+    if (!archivos.some((f) => f.path === "index.html") && bundle) lista.push({ path: "index.html", data: encodeText(bundle) });
+    return new Uint8Array(writeZip(lista));
+  };
+  const [publicarAbierto, setPublicarAbierto] = useState(false);
+
   const descargarZip = () => {
     const zip = writeZip(archivos.map((f) => ({ path: f.path, data: encodeText(f.text) })));
     guardar(
@@ -311,9 +479,11 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   return (
     <div className={cn("panel-in flex h-full min-w-0 flex-col bg-background", className)}>
       {/* Barra de herramientas */}
-      <div className="flex h-11 shrink-0 items-center gap-1 border-b border-border/60 bg-card/60 px-2">
+      {/* En un móvil no caben todos los botones: la barra se desplaza de lado
+          (sin barra de scroll visible) y «Cerrar» queda fijo a la derecha. */}
+      <div className="flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b border-border/60 bg-card/60 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <Eye className="ml-1 size-3.5 shrink-0 text-forja-cyan" />
-        <span className="whitespace-nowrap text-xs font-medium">
+        <span className="hidden whitespace-nowrap text-xs font-medium sm:inline">
           {tab === "map" ? "Mapa del proyecto" : "Vista previa"}
         </span>
         {streaming && tab !== "map" && (
@@ -326,36 +496,30 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           </span>
         )}
         <div className="flex-1" />
-        <div className="flex shrink-0 rounded-lg border border-border/60 p-0.5">
-          <button
-            onClick={() => setDevice("desktop")}
-            aria-label="Vista escritorio"
-            title="Escritorio"
-            className={cn(
-              "rounded-md p-1 transition",
-              device === "desktop" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Monitor className="size-3.5" />
-          </button>
-          <button
-            onClick={() => setDevice("mobile")}
-            aria-label="Vista móvil"
-            title="Móvil (390px)"
-            className={cn(
-              "rounded-md p-1 transition",
-              device === "mobile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Smartphone className="size-3.5" />
-          </button>
+        <div className="flex shrink-0 rounded-lg border border-border/60 p-0.5" role="group" aria-label="Tamaño de pantalla">
+          {DISPOSITIVOS.map((d) => (
+            <button
+              key={d.id}
+              onClick={() => setDevice(d.id)}
+              aria-label={d.aria}
+              aria-pressed={device === d.id}
+              title={d.ancho ? `${d.nombre} (${d.ancho}px)` : d.nombre}
+              className={cn(
+                "rounded-md p-1 transition",
+                d.id === "tablet" || d.id === "mobile-s" ? "hidden sm:block" : "",
+                device === d.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <d.Icono className={cn("size-3.5", d.id === "mobile-s" && "scale-90")} />
+            </button>
+          ))}
         </div>
         <Button
           variant="ghost"
           size="icon"
           className={cn("relative size-8 shrink-0", qaAbierto && "bg-muted text-foreground")}
           onClick={() => (qaAbierto ? setQaAbierto(false) : void correrQA())}
-          title="QA visual: mide la página a 320 y 390 px (desbordes, texto pequeño, contraste)"
+          title={`QA visual: mide la página a ${QA_WIDTHS.join(", ")} px (desbordes, texto pequeño, contraste, accesibilidad)`}
           aria-label="QA visual"
         >
           <ScanSearch className="size-3.5" />
@@ -368,6 +532,35 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
         <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => setReloadKey((k) => k + 1)} title="Recargar" aria-label="Recargar vista previa">
           <RefreshCw className="size-3.5" />
         </Button>
+        {hayDatos && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0 text-forja-cyan"
+            onClick={borrarDatos}
+            title="La app de la vista previa tiene datos guardados en este dispositivo. Pulsa para borrarlos y empezar de cero."
+            aria-label="Borrar datos guardados de la vista previa"
+          >
+            <DatabaseZap className="size-3.5" />
+          </Button>
+        )}
+        {onSenalar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("size-8 shrink-0", senalando && "bg-primary text-primary-foreground hover:bg-primary/90")}
+            onClick={() => {
+              setEditando(false);
+              setEstilando(false);
+              setSenalando((v) => !v);
+            }}
+            title={senalando ? "Dejar de señalar" : "Señalar a la IA: toca un botón o un apartado y escribe en el chat qué cambiar"}
+            aria-label={senalando ? "Dejar de señalar" : "Señalar un elemento a la IA"}
+            aria-pressed={senalando}
+          >
+            <MousePointerClick className="size-3.5" />
+          </Button>
+        )}
         {/* Tocar un texto de la vista previa y editarlo ahí mismo. El cambio
             se busca en el código de la respuesta y se guarda ahí — por eso
             sigue estando cuando descargas o subes a GitHub, no es un retoque
@@ -376,13 +569,34 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           variant="ghost"
           size="icon"
           className={cn("size-8 shrink-0", editando && "bg-muted text-foreground")}
-          onClick={() => setEditando((v) => !v)}
+          onClick={() => {
+            setEstilando(false);
+            setSenalando(false);
+            setEditando((v) => !v);
+          }}
           title={editando ? "Dejar de editar" : "Editar: toca un texto de la vista previa para cambiarlo"}
           aria-label={editando ? "Dejar de editar la vista previa" : "Editar la vista previa"}
           aria-pressed={editando}
         >
           <Pencil className="size-3.5" />
         </Button>
+        {onEditStyle && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("size-8 shrink-0", estilando && "bg-muted text-foreground")}
+            onClick={() => {
+              setEditando(false);
+              setSenalando(false);
+              setEstilando((v) => !v);
+            }}
+            title={estilando ? "Dejar de editar estilos" : "Estilos: toca un elemento para cambiar color, tamaño, espaciado… o cambia los tokens de la página"}
+            aria-label={estilando ? "Dejar de editar estilos" : "Editar estilos de la vista previa"}
+            aria-pressed={estilando}
+          >
+            <Paintbrush className="size-3.5" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
@@ -402,6 +616,17 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           aria-label="Mapa del proyecto"
         >
           <MapIcon className="size-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8 shrink-0"
+          onClick={() => setPublicarAbierto(true)}
+          disabled={!bundle || !!streaming}
+          title="Publicar en Netlify: una URL pública para compartir"
+          aria-label="Publicar en Netlify"
+        >
+          <Rocket className="size-3.5" />
         </Button>
         <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={openExternal} title="Abrir en pestaña nueva" aria-label="Abrir en pestaña nueva">
           <ExternalLink className="size-3.5" />
@@ -452,26 +677,38 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           </Button>
         )}
         {onClose && (
-          <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={onClose} title="Cerrar vista previa" aria-label="Cerrar vista previa">
+          <Button variant="ghost" size="icon" className="sticky right-0 size-8 shrink-0 bg-card" onClick={onClose} title="Cerrar vista previa" aria-label="Cerrar vista previa">
             <X className="size-4" />
           </Button>
         )}
       </div>
 
       {/* Contenido */}
+      {estilando && tab === "preview" && (
+        <PanelEstilos
+          seleccion={seleccion}
+          tokens={tokens}
+          valor={valorActual}
+          onCambio={cambiarEstilo}
+          pendientes={cambiosBorrador.length}
+          onGuardar={guardarEstilos}
+          onDescartar={() => setBorrador({})}
+        />
+      )}
+
       {qaAbierto && tab !== "map" && (
         <div className="shrink-0 border-b border-border/60 bg-muted/30 px-3 py-2">
           <div className="mb-1.5 flex items-center justify-between gap-2">
             <p className="text-[11px] font-medium text-foreground/80">
               {qaCorriendo
-                ? "Midiendo la página a 320 y 390 px…"
+                ? `Midiendo la página a ${QA_WIDTHS.join(", ")} px…`
                 : qaProblemas === 0
                   ? qaResultados.length
-                    ? "Sin problemas medidos a los anchos móviles."
+                    ? "Sin problemas medidos en ningún ancho."
                     : qaAuto && !qaAuto.ok
                       ? `Medida automática a ${qaAuto.width}px: ${qaAuto.items.length} ${qaAuto.items.length === 1 ? "aviso" : "avisos"}.`
-                      : "Pulsa el icono de lupa para medir la página a 320 y 390 px."
-                  : `${qaProblemas} ${qaProblemas === 1 ? "problema medido" : "problemas medidos"} en móvil`}
+                      : `Pulsa el icono de lupa para medir la página a ${QA_WIDTHS.join(", ")} px.`
+                  : `${qaProblemas} ${qaProblemas === 1 ? "problema medido" : "problemas medidos"}`}
             </p>
             <button
               onClick={() => void correrQA()}
@@ -540,21 +777,41 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           {painted}
         </pre>
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto bg-muted/40 p-0 sm:p-3">
-          <div
-            className={cn(
-              "mx-auto bg-white shadow-sm transition-[width] duration-300 sm:rounded-lg sm:border sm:border-border/60",
-              device === "mobile" ? "h-full w-[390px] max-w-full" : "h-full w-full"
-            )}
-          >
-            <iframe
-              ref={iframeRef}
-              title="Vista previa de la página generada"
-              sandbox="allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock"
-              className="size-full border-0"
-            />
+        <div ref={lienzoRef} className="relative min-h-0 flex-1 overflow-auto bg-muted/40 p-0 sm:p-3">
+          {/* Con un ancho de dispositivo mayor que el panel, la página se
+              pinta a su ancho REAL y se escala para caber (como las DevTools):
+              recortarla mostraría la maqueta de un ancho que no es el pedido. */}
+          <div className="mx-auto h-full" style={{ width: anchoDispositivo ? anchoDispositivo * escala : "100%" }}>
+            <div
+              className="bg-white shadow-sm sm:rounded-lg sm:ring-1 sm:ring-border/60"
+              style={{
+                width: anchoDispositivo ?? "100%",
+                height: `${100 / escala}%`,
+                transform: escala < 1 ? `scale(${escala})` : undefined,
+                transformOrigin: "0 0",
+              }}
+            >
+              <iframe
+                ref={iframeRef}
+                title="Vista previa de la página generada"
+                sandbox="allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock"
+                className="size-full border-0"
+              />
+            </div>
           </div>
+          {anchoDispositivo && escala < 1 && (
+            <span className="pointer-events-none absolute bottom-2 right-3 rounded-full bg-background/90 px-2 py-0.5 font-mono text-[10px] text-muted-foreground shadow-sm">
+              {anchoDispositivo}px · {Math.round(escala * 100)}%
+            </span>
+          )}
 
+          {senalando && (
+            <div className="pointer-events-none absolute inset-x-0 top-2 z-10 flex justify-center px-2">
+              <div className="rounded-full border border-primary/40 bg-background/95 px-3 py-1.5 text-[11px] font-medium text-foreground shadow-lg backdrop-blur">
+                Toca lo que quieras cambiar · aparece en el chat para que le digas a la IA qué hacer
+              </div>
+            </div>
+          )}
           {editando && (
             <div className="pointer-events-none sticky top-2 z-10 flex justify-center px-2">
               <div className="pointer-events-none rounded-full border border-primary/40 bg-background/95 px-3 py-1.5 text-[11px] font-medium text-foreground shadow-lg backdrop-blur">
@@ -600,6 +857,12 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           )}
         </div>
       )}
+      <PublicarNetlify
+        open={publicarAbierto}
+        onOpenChange={setPublicarAbierto}
+        conversacionId={almacenId}
+        construirZip={zipParaPublicar}
+      />
     </div>
   );
 });

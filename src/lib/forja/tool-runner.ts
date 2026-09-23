@@ -16,6 +16,7 @@ import { htmlATexto, tituloDeHtml, extraerSeleccion, MAX_TEXTO_URL } from "./htm
 import type { ReplOutcome } from "./js-repl";
 import type { QAResult } from "./visual-qa";
 import type { RunSnapshot } from "./regression";
+import { firmaDeCaptura } from "./firma-visual";
 import { compareRuns, comparables, resumenRegresion } from "./regression";
 import type { ProjectMap } from "./types";
 import { buscarEnMapa, resumenMemoria, MAX_RESULTADOS_MEMORIA } from "./project-map";
@@ -90,7 +91,7 @@ export interface ToolContext {
   /** Ejecuta el proyecto actual y devuelve los logs + errores. La
    * implementación vive en `sandbox-studio.tsx` y se inyecta aquí para
    * no romper la separación. */
-  runProject?: (opts?: { qa?: boolean; screenshot?: boolean }) => Promise<RunOutcome>;
+  runProject?: (opts?: { qa?: boolean; screenshot?: boolean; firma?: boolean }) => Promise<RunOutcome>;
   /** Consulta la cuota del proveedor/modelo actual. La implementación
    * vive en `quota-panel.tsx` o similar; aquí solo se usa. */
   getQuota?: () => QuotaSnapshot | null;
@@ -904,11 +905,12 @@ async function runRunRegression(call: ToolCall, ctx: ToolContext): Promise<ToolR
   // gracia de medir un cambio de diseño es ver qué pasó a 320 px.
   const qa = boolArgDef(call, "include_qa", true);
   const antes = ctx.lastRun ?? null;
-  const outcome = await ctx.runProject({ qa });
+  const outcome = await ctx.runProject({ qa, firma: true });
   if (!outcome.ejecutado) {
     return toolOk(call, outcome.reason ?? "No se pudo ejecutar el proyecto, así que no hay nada que comparar.");
   }
   const despues = snapshotDeOutcome(outcome);
+  despues.firma = outcome.screenshot?.ok && outcome.screenshot.dataUrl ? await firmaDeCaptura(outcome.screenshot.dataUrl) : null;
   ctx.lastConsole = { lines: (outcome.consola ?? []).slice(-MAX_CONSOLA), fecha: Date.now() };
   ctx.lastRun = despues;
 

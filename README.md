@@ -18,7 +18,6 @@
 
 Forja IA es un chat de IA **100% local y privado**: tus claves API se guardan únicamente en tu dispositivo (localStorage), las peticiones van directas al proveedor o por el proxy incluido, y no existe ningún sistema de cuentas. Trae tu propia clave (BYOK) de AiHubMix, Gemini, Groq, OpenRouter y más — y Forja IA se encarga de mostrarte **solo los modelos gratis disponibles**, con radar de ofertas, failover automático y vista previa web en tiempo real de lo que la IA construye.
 
-## ✨ Características
 ## 🚀 Web Studio 4.20
 
 La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya existen, sin reemplazarlas:
@@ -31,6 +30,24 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 - **QA conectado al trabajo**: una medición real puede alimentar el panel de salud y crear pendientes verificables.
 - **Privacidad intacta**: estas funciones no añaden cuentas ni telemetría.
 
+## 🧩 Diseñador web y apps
+
+- **Modo App**: si pides una aplicación (gestor, dashboard, CRM, kanban, inventario…) y no una página de presentación, la IA entrega una app **sin build** en módulos ES: `store.js` con persistencia versionada, rutas por hash, una vista por pantalla, `manifest.webmanifest` e icono. CRUD completo, validación, estados vacío/carga/error y exportar/importar JSON.
+- **Datos que sobreviven a recargar**: lo que la app de la vista previa guarda en `localStorage` se conserva por conversación (hasta 256 KB) sin darle al iframe acceso a Forja. Un botón lo borra.
+- **Editor de estilos**: toca un elemento de la vista previa y cambia color, fondo, tamaño, peso, relleno, radio, alineación o interletrado, o cambia los **tokens** de `:root`. Se ve en vivo y al guardar va al código en un bloque `<style data-forja-ajustes>` legible.
+- **Tamaños de pantalla**: escritorio, tablet (768), móvil (390) y móvil pequeño (320). Si el dispositivo no cabe en el panel se pinta a su ancho real y se escala, como en las DevTools.
+- **Auditoría web**: SEO (meta description, Open Graph, encabezados), rendimiento (imágenes sin tamaño o sin lazy, scripts bloqueantes, fuentes) y accesibilidad de código (campos sin etiqueta, foco invisible, tabindex positivo…). Llega al agente con el arreglo de cada hallazgo y suma a Project Health, sin bloquear la publicación.
+
+## 🔥 El motor creativo, integrado en el chat
+
+El motor de diseño (plano de contenido, iconografía, QA de detalle, ADN, jueces…) vivía aparte y llegaba al Estudio como un paquete precompilado sin tipos. Ahora es código de la app en `src/lib/forja/motor/`, compilado y comprobado con el resto, con sus 319 pruebas funcionales en CI.
+
+- **Plano de contenido al crear una página**: el motor saca del encargo los datos reales (precios, teléfono, ciudad, horarios, servicios) y fija qué secciones tiene que haber y con cuántas piezas. Viaja en el prompt junto a un juego de iconos SVG del sector.
+- **QA de detalle contra ese plano**: al terminar, la página se audita contra el mismo plano; si le faltan secciones o contenido, Forja pide ampliarla (una llamada, por el mismo bucle que corrige errores de consola).
+- **Contenido y acabado en Project Health**, con la puntuación del motor.
+- El Estudio (`/forja`) usa el mismo módulo que el chat.
+
+## ✨ Características
 
 | | |
 |---|---|
@@ -70,7 +87,7 @@ La evolución 4.20 añade una capa de trabajo web sobre las herramientas que ya 
 | 🎞 **Modo presentación** (`/presentar`) | Convierte el HTML de la vista previa en diapositivas (por `<section>` o `<h2>`), a pantalla completa con flechas, teclado y mando por QR. |
 | 🧩 **Skills por URL** | Instala skills desde cualquier .md/.json en raw.githubusercontent o un gist. |
 | 🛡 **Permisos de las Skills** | Antes de instalar, Forja analiza el texto y te muestra qué declara hacer: generar código, cargar recursos de internet (y de qué dominios), pedir claves o enviar datos a servidores. Lo de riesgo no se instala sin aceptación expresa de dos pasos, el permiso queda visible en la lista para siempre y viaja al system prompt como techo: la skill no puede colar claves ni envíos de datos por encima del usuario. |
-| 🧪 **Tests** | 1 076 tests unitarios (Vitest) y 131+ escenarios E2E con Playwright, **todos en CI en cada push** (`npm run test` / `npm run test:e2e`). |
+| 🧪 **Tests** | 2 300+ tests unitarios (Vitest) y 100+ archivos de escenarios E2E con Playwright, **todos en CI en cada push** (`npm run test` / `npm run test:e2e`). |
 | 🧠 **Mapa del proyecto** | Memoria compacta por sesión que se inyecta en el contexto: continúa proyectos gastando muchos menos tokens. |
 | 🪪 **Ficha del proyecto** | La portada del mapa convertida en tarjeta de un vistazo: pila con nº de archivos, punto de entrada, archivo núcleo, notas y páginas huérfanas — calculada del código, nunca inventada. El agente la lee ANTES de trabajar: llega al proyecto con la pila y las decisiones ya dentro. |
 | 🖼 **Imágenes multimodales** | Adjunta hasta 6 imágenes por mensaje (se redimensionan en local). |

@@ -28,11 +28,10 @@ import { FichaTab } from "@/components/forja/ficha-tab";
 import { AdnTab } from "@/components/forja/adn-tab";
 import { JuecesTab, AntigenericoTab } from "@/components/forja/calidad-tabs";
 import { MotorTab } from "@/components/forja/motor-tab";
-import { cargarMotor, type Motor } from "@/lib/forja/motor-client";
+import { cargarMotor, MOTOR_VERSION, type Motor } from "@/lib/forja/motor-client";
+import { APP_VERSION } from "@/lib/forja/app-version";
 import { useForja } from "@/lib/forja/store";
 
-const VERSION_FORJA = "4.3.1";
-const NOMBRE_VERSION = "El Taller a Medida";
 
 // Pestañas válidas: el sidebar puede abrir el Estudio directamente en
 // cualquiera de ellas con /forja?tab=… — sin pestañas del navegador.
@@ -76,7 +75,7 @@ export default function ForjaEstudio() {
           </div>
           <div className="flex items-center gap-2">
             <Chip tono="fuego">
-              v{VERSION_FORJA} · {NOMBRE_VERSION}
+              v{APP_VERSION} · motor #{MOTOR_VERSION}
             </Chip>
             <Button asChild size="sm" variant="outline" className="gap-1.5">
               <Link href="/">
@@ -88,7 +87,7 @@ export default function ForjaEstudio() {
 
         {error && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-[12.5px] text-red-600 dark:text-red-400">
-            No se pudo cargar el motor (/motor-forja.mjs): {error}
+            No se pudo cargar el motor: {error}
           </div>
         )}
 

@@ -29,6 +29,8 @@ export interface ChatMessage {
   attachments?: Attachment[];
   /** documentos adjuntos con texto extraído (PDF, TXT…) */
   docTexts?: DocText[];
+  /** elementos señalados en la vista previa: la petición se refiere a ellos */
+  senalados?: import("./senalar").ElementoSenalado[];
   /** imagen generada por IA (modo imagen / Pollinations) */
   generatedImage?: { url: string; prompt: string };
   /** % de contexto ahorrado por la compresión en esta respuesta (si > 0) */

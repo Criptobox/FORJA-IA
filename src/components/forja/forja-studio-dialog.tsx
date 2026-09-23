@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { ProjectMap } from "@/lib/forja/types";
-import { WEB_STUDIO_STAGES } from "@/lib/forja/web-studio";
+import { evaluarEtapas, WEB_STUDIO_STAGES } from "@/lib/forja/web-studio";
 import { buildCerebroPlanWithKnowledge } from "@/lib/forja/cerebro-web";
 import { calculateProjectHealth, type ProjectHealth } from "@/lib/forja/project-health";
 import { scanSecurity, type SecurityReport } from "@/lib/forja/security-center";
@@ -39,6 +39,9 @@ export function ForjaStudioDialog({
   const [brief, setBrief] = useState("");
   const [stage, setStage] = useState<"brief"|"plan"|"build"|"qa"|"fix"|"regression"|"publish">("brief");
   const [qa, setQa] = useState<QAResult[] | null>(null);
+  /** todas las medidas de esta sesión del Studio: la regresión es la segunda */
+  const [historialQa, setHistorialQa] = useState<QAResult[][]>([]);
+  const [iniciado, setIniciado] = useState(false);
   const [qaRunning, setQaRunning] = useState(false);
   const [security, setSecurity] = useState<SecurityReport | null>(null);
   const [starting, setStarting] = useState(false);
@@ -61,6 +64,7 @@ export function ForjaStudioDialog({
       let r = onRunVisualQA ? await onRunVisualQA() : [];
       if (!r.length) r = await runVisualQA(frame.current, QA_WIDTHS);
       setQa(r);
+      setHistorialQa((h) => [...h, r]);
       const bad = r.filter(x => !x.noRespondio && !x.ok).flatMap(x => x.items.map(i => `Visual QA ${x.width}px: ${i.detalle}`));
       bad.slice(0, 8).forEach(item => tasks.add(item, "qa"));
       setStage("qa");
@@ -81,12 +85,26 @@ export function ForjaStudioDialog({
         hasExistingProject: true,
       });
       onStart?.(plan.prompt);
+      setIniciado(true);
       setStage("plan");
       onOpenChange(false);
     } finally {
       setStarting(false);
     }
   };
+
+  const estado = useMemo(
+    () =>
+      evaluarEtapas({
+        brief,
+        iniciado,
+        hayHtml: !!html,
+        qa: historialQa.map((m) => m.map((r) => ({ ok: r.ok, noRespondio: r.noRespondio, hallazgos: r.items.length }))),
+        tareasQaAbiertas: tasks.tasks.filter((t) => t.source === "qa" && t.status !== "done").length,
+        bloqueos: health.blockers.length + (security?.findings.filter((f) => f.severity === "high").length ?? 0),
+      }),
+    [brief, iniciado, html, historialQa, tasks.tasks, health.blockers.length, security]
+  );
 
   const todo = tasks.tasks.filter(t => t.status === "todo");
   const doing = tasks.tasks.filter(t => t.status === "doing");
@@ -121,10 +139,18 @@ export function ForjaStudioDialog({
                   hijo grid/flex no se encoge por debajo del contenido de sus
                   descendientes aunque tengan overflow-x-auto, y los 7 botones
                   de etapa empujaban todo el diálogo fuera de la pantalla. */}
+              {estado.siguiente && (
+                <p className="mb-2 text-[11px] text-muted-foreground">
+                  <span className="font-medium text-foreground">Siguiente: {WEB_STUDIO_STAGES.find((x) => x.id === estado.siguiente)?.label}</span> — {estado.motivo}
+                </p>
+              )}
               <div className="flex gap-1 overflow-x-auto pb-1">
                 {WEB_STUDIO_STAGES.map((s, i) => (
                   <button key={s.id} onClick={() => setStage(s.id)} className={cn("flex min-w-max items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] transition", stage === s.id ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted")}>
-                    {i > 0 && <ArrowRight className="size-3 opacity-40" />}{s.label}
+                    {i > 0 && <ArrowRight className="size-3 opacity-40" />}
+                    {estado.etapas[s.id] === "hecha" && <CheckCircle2 className="size-3 text-emerald-500" aria-label="hecha" />}
+                    {estado.etapas[s.id] === "bloqueada" && <CircleAlert className="size-3 text-amber-500" aria-label="bloqueada" />}
+                    {s.label}
                   </button>
                 ))}
               </div>

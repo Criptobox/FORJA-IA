@@ -12,6 +12,7 @@
  * Puro y testeable: la captura vive en sandbox-studio, aquí solo la matemática.
  */
 import type { QAResult } from "./visual-qa";
+import { compararFirmas, lineaVisual, type DiferenciaVisual, type FirmaVisual } from "./firma-visual";
 
 export interface RunSnapshot {
   /** epoch ms de la ejecución */
@@ -25,6 +26,8 @@ export interface RunSnapshot {
   /** tamaño del HTML del PROYECTO, sin el medidor de QA ni el piloto que
    * Forja le inyecta para poder observarlo (esos bytes no son del usuario) */
   htmlBytes: number;
+  /** firma de la captura de la página (`firma-visual.ts`), si se hizo */
+  firma?: FirmaVisual | null;
 }
 
 export interface RegressionDiff {
@@ -43,6 +46,10 @@ export interface RegressionDiff {
     regressed: string[];
   };
   html: { antes: number; despues: number };
+  /** cuánto cambió el aspecto; null si falta la captura de algún lado */
+  visual: DiferenciaVisual | null;
+  /** si hubo captura en cada lado, para explicar por qué no se comparó */
+  capturas: { antes: boolean; despues: boolean };
   /** una línea honesta: «mejora», «empeora», «igual» o «sin datos suficientes» */
   veredicto: string;
   /** nivel para el color: ok | mal | igual | sin-datos */
@@ -122,6 +129,8 @@ export function compareRuns(before: RunSnapshot, after: RunSnapshot): Regression
       regressed: qaRegressed,
     },
     html: { antes: before.htmlBytes, despues: after.htmlBytes },
+    visual: compararFirmas(before.firma, after.firma),
+    capturas: { antes: !!before.firma, despues: !!after.firma },
     veredicto,
     nivel,
   };
@@ -181,5 +190,7 @@ export function resumenRegresion(d: RegressionDiff): string {
       ? `Peso del HTML: igual (${d.html.despues} bytes).`
       : `Peso del HTML: ${signo}${delta} bytes (${d.html.antes} → ${d.html.despues}).`
   );
+  // sin captura en ningún lado (el Sandbox manual no la hace) no se dice nada
+  if (d.capturas.antes || d.capturas.despues) out.push(lineaVisual(d.visual, d.capturas));
   return out.filter((l, i, a) => !(l === "" && a[i - 1] === "")).join("\n").trim();
 }

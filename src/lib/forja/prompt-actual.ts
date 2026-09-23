@@ -28,6 +28,9 @@ import {
 } from "./design-directions";
 import { INSTRUCCION_EVIDENCIA } from "./evidencia";
 import { INSTRUCCION_VARIOS_ARCHIVOS, pideVariosArchivos } from "./multi-archivo";
+import { esEncargoDeApp, INSTRUCCION_APP } from "./modo-app";
+import { instruccionReferencia, pideDisenoDeReferencia } from "./referencia-visual";
+import { piezaPlanoContenido } from "./motor-chat";
 import { esEncargoDeTiendaOCatalogo, INSTRUCCION_TIENDA_INTERACTIVA } from "./catalogo-interactivo";
 import { buildDesignArchitecture, designArchitecturePrompt } from "./design-architect";
 
@@ -87,6 +90,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     .find((m) => m.role === "user");
   const trivial = esTurnoTrivial(ultimoDelUsuario?.content ?? "");
   const promptUsuario = ultimoDelUsuario?.content ?? "";
+  const modoApp = !trivial && esEncargoDeApp(promptUsuario);
 
   const activas = st.skills.filter((s) => s.enabled);
   const skills = activas.length
@@ -95,7 +99,9 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
         // Solo si de verdad se pidió un proyecto de varios archivos: el
         // resto de encargos se quedan en un solo archivo, que es lo que
         // hace que la vista previa en vivo funcione sin fricción.
-        !trivial && pideVariosArchivos(promptUsuario) ? INSTRUCCION_VARIOS_ARCHIVOS : null,
+        // El Modo App ya trae su propia estructura de archivos (más
+        // completa): con los dos, el modelo recibiría dos plantillas.
+        modoApp ? INSTRUCCION_APP : !trivial && pideVariosArchivos(promptUsuario) ? INSTRUCCION_VARIOS_ARCHIVOS : null,
         // Solo para tienda/menú/catálogo: sin esto la skill de desarrollador
         // web entrega una landing bonita pero sin carrito, detalle de
         // producto ni pedido que de verdad funcionen.
@@ -202,6 +208,17 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
       diseno = promptDireccion(eleccionDireccion);
     }
   }
+  // El motor decide el CONTENIDO de una página nueva: secciones con mínimos,
+  // datos del encargo que se usan tal cual e iconos SVG. Solo al crearla.
+  const plano = !trivial ? piezaPlanoContenido(promptUsuario) : null;
+
+  // Una imagen adjunta en un encargo de diseño ES la dirección: imponer
+  // además una de las curadas daría al modelo dos estilos que se pisan.
+  const imagenesDelTurno = ultimoDelUsuario?.attachments?.length ?? 0;
+  if (!trivial && pideDisenoDeReferencia(promptUsuario, imagenesDelTurno)) {
+    diseno = instruccionReferencia(imagenesDelTurno);
+    disenoId = "referencia adjunta";
+  }
 
   // ——— FORJA WEB: arquitectura de diseño del Cerebro ———
   // Usa la MISMA dirección ya elegida arriba (`directionId`) — nunca una
@@ -238,6 +255,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
       ? contexto.decisiones.length + contexto.errores.length
       : 0,
     diseno: disenoId,
+    ...(plano ? { plano: plano.resumen } : {}),
   };
 
   return {
@@ -253,6 +271,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     mapa,
     contexto: contextoFinal,
     diseno,
+    plano: plano?.texto ?? null,
     reglas,
     ahorro: !!st.settings.ahorro,
   };

@@ -47,3 +47,15 @@ describe("Project Health", () => {
     expect(safety?.detail).toMatch(/eval/);
   });
 });
+
+describe("Project Health — detalle del motor", () => {
+  it("una página corta no se mide: «—», no un suspenso", () => {
+    const h = calculateProjectHealth({ html: "<html><body><h1>x</h1></body></html>" });
+    expect(h.metrics.find((m) => m.id === "detail")?.score).toBeNull();
+  });
+  it("una página de tamaño real recibe la puntuación de detalle del motor", () => {
+    const html = `<html><body>${"<section><h2>S</h2><p>" + "texto ".repeat(80) + "</p></section>".repeat(1)}`.repeat(8) + "</body></html>";
+    const d = calculateProjectHealth({ html }).metrics.find((m) => m.id === "detail");
+    expect(typeof d?.score).toBe("number");
+  });
+});

@@ -49,6 +49,8 @@ const MODELOS = [
   "mock-generica-terca",
   "mock-iconos-emoji",
   "mock-proyecto-repo",
+  "mock-app",
+  "mock-fino",
   "mock-3d-mal-puesto",
   "mock-3d",
   "mock-2d-mal-puesto",
@@ -399,6 +401,88 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "<!DOCTYPE html>",
       '<html lang="es"><head><meta charset="utf-8"><title>Solo</title></head>',
       "<body><h1>Todo en uno</h1></body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-fino`: una landing LARGA (más de 2.000 caracteres) pero con dos
+  // secciones y poco texto. El motor la audita contra el plano de contenido y
+  // pide ampliarla; al recibir esa reparación, entrega una página corta que
+  // ya no se audita. Sirve para comprobar el bucle entero sin depender de un
+  // modelo real.
+  if (modelo === "mock-fino") {
+    const pideReparar = msgs.some(
+      (m) => typeof m.content === "string" && (m.content as string).includes("REPARACIÓN DE DETALLE")
+    );
+    if (pideReparar) {
+      return ["Ampliada.", "", "```html", '<!DOCTYPE html><html lang="es"><body><h1>Barbería ampliada</h1></body></html>', "```"].join("\n");
+    }
+    const relleno = "<p>" + "Cortes clásicos y modernos con cita previa. ".repeat(30) + "</p>";
+    return [
+      "Aquí tienes tu landing.",
+      "",
+      "```html",
+      '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Barbería</title>',
+      "<style>body{font-family:system-ui;margin:0}a:hover{color:#f97316}a:focus-visible{outline:2px solid}@media (max-width:600px){h1{font-size:2rem}}</style></head>",
+      `<body><main><section id="hero"><h1>Barbería Norte</h1>${relleno}</section><section id="oferta"><h2>Servicios</h2>${relleno}</section></main></body></html>`,
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-app`: si el prompt trae la instrucción del Modo App, entrega una
+  // lista de tareas en módulos ES (index.html + styles.css + js/store.js +
+  // js/app.js) que guarda en localStorage. Sirve para comprobar que la
+  // instrucción viaja, que la vista previa monta los módulos y que los datos
+  // sobreviven a recargar la vista previa. Sin la instrucción, un HTML suelto.
+  if (modelo === "mock-app") {
+    // si el último mensaje trae un elemento señalado en la vista previa,
+    // confirma cuál le llegó: así el E2E comprueba que viajó al modelo
+    const ultimoUsuario = [...msgs].reverse().find((m) => m.role === "user");
+    const textoUltimo = typeof ultimoUsuario?.content === "string" ? (ultimoUsuario.content as string) : "";
+    const senal = /Selector: `([^`]+)`/.exec(textoUltimo);
+    if (senal) return `Entendido: cambiaré el elemento \`${senal[1]}\`.`;
+    const conModoApp = msgs.some(
+      (m) => typeof m.content === "string" && (m.content as string).includes("Modo App: esto es una aplicación")
+    );
+    if (!conModoApp) {
+      return ["Aquí tienes tu página.", "", "```html", "<!DOCTYPE html>", "<html><body><h1>Sin modo app</h1></body></html>", "```"].join("\n");
+    }
+    return [
+      "Lista de tareas con módulos ES y datos guardados.",
+      "",
+      "```html — index.html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><title>Tareas</title>',
+      '<link rel="stylesheet" href="styles.css"></head>',
+      '<body><main><h1>Tareas</h1>',
+      '<form id="f"><label for="t">Nueva tarea</label><input id="t" name="t"><button type="submit">Añadir</button></form>',
+      '<ul id="lista"></ul><p id="total" aria-live="polite"></p></main>',
+      '<script type="module" src="js/app.js"></script></body></html>',
+      "```",
+      "",
+      "```css — styles.css",
+      ":root{--acento:#f97316} body{font-family:system-ui;margin:2rem} h1{color:var(--acento)}",
+      "```",
+      "",
+      "```js — js/store.js",
+      'const CLAVE = "tareas:v1";',
+      'export function leer(){ try { return JSON.parse(localStorage.getItem(CLAVE) || "[]"); } catch { return []; } }',
+      "export function guardar(t){ localStorage.setItem(CLAVE, JSON.stringify(t)); }",
+      "```",
+      "",
+      "```js — js/app.js",
+      'import { leer, guardar } from "./store.js";',
+      "let tareas = leer();",
+      "function pintar(){",
+      '  const ul = document.getElementById("lista"); ul.innerHTML = "";',
+      '  for (const t of tareas){ const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); }',
+      '  document.getElementById("total").textContent = tareas.length + " tareas";',
+      "}",
+      'document.getElementById("f").addEventListener("submit", (e) => {',
+      '  e.preventDefault(); const i = document.getElementById("t");',
+      "  if (!i.value.trim()) return; tareas = [...tareas, i.value.trim()]; guardar(tareas); i.value = \"\"; pintar();",
+      "});",
+      "pintar();",
       "```",
     ].join("\n");
   }

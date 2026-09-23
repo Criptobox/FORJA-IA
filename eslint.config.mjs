@@ -35,7 +35,6 @@ const ignores = [
   "db/**",
   ".zscripts/**",
   "motor-forja/**",
-  "public/motor-forja.mjs",
   "assets/**",
 ];
 

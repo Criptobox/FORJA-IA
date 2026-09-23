@@ -113,7 +113,7 @@ export function AntigenericoTab({ motor }: { motor: Motor }) {
   }, [motor, html]);
 
   const texto = informe ? String(motor.textoInformeAntiGenerico(informe)) : "";
-  const catalogo: any[] = motor?.CATALOGO_ANTIPATRONES ?? [];
+  const catalogo = motor?.CATALOGO_ANTIPATRONES ?? [];
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">

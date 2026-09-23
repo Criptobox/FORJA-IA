@@ -292,13 +292,33 @@ export const CONSOLE_BRIDGE = `(function(){
      Se sustituye por uno en memoria. Dura lo que dura la vista previa —al
      recargar se vacía—, y se dice por consola una vez para que nadie crea que
      ahí se guardó algo de verdad. */
-  function memoria(){
+  /* Si la vista previa sembró datos guardados (window.__FORJA_ALMACEN__,
+     ver preview-storage.ts), el localStorage arranca con ellos y cada cambio
+     se le cuenta al panel, que lo guarda por conversación. Así una app de
+     prueba conserva sus datos al recargar sin darle origen propio. */
+  var semilla=window.__FORJA_ALMACEN__;
+  var persiste=!!semilla&&typeof semilla==='object';
+  function memoria(conSemilla){
     var d={};
+    if(conSemilla&&persiste){for(var k0 in semilla){if(Object.prototype.hasOwnProperty.call(semilla,k0)&&typeof semilla[k0]==='string')d[k0]=semilla[k0];}}
+    /* Varias escrituras seguidas salen en un solo aviso, pero en una
+       microtarea y no con un temporizador: si Forja repinta el iframe justo
+       después (recargar, streaming), un setTimeout pendiente muere con el
+       documento y esa última escritura se perdería. pagehide vacía lo que
+       quede por si acaso. */
+    var pendiente=false;
+    function enviar(){ if(!pendiente)return; pendiente=false; try{parent.postMessage({source:O,almacen:d},'*');}catch(e){} }
+    function cambio(){
+      if(!conSemilla||!persiste||pendiente)return;
+      pendiente=true;
+      Promise.resolve().then(enviar);
+    }
+    if(conSemilla&&persiste){ try{ window.addEventListener('pagehide',enviar); }catch(e){} }
     return {
       getItem:function(k){return Object.prototype.hasOwnProperty.call(d,String(k))?d[String(k)]:null;},
-      setItem:function(k,v){d[String(k)]=String(v);},
-      removeItem:function(k){delete d[String(k)];},
-      clear:function(){d={};},
+      setItem:function(k,v){d[String(k)]=String(v);cambio();},
+      removeItem:function(k){delete d[String(k)];cambio();},
+      clear:function(){d={};cambio();},
       key:function(i){var ks=Object.keys(d);return i<ks.length?ks[i]:null;},
       get length(){return Object.keys(d).length;}
     };
@@ -308,7 +328,7 @@ export const CONSOLE_BRIDGE = `(function(){
     var ok=false;
     try{ var s=window[n]; s.setItem('__forja__','1'); s.removeItem('__forja__'); ok=true; }catch(e){ ok=false; }
     if(!ok){
-      try{ Object.defineProperty(window,n,{value:memoria(),configurable:true,writable:false}); simulados.push(n); }catch(e){}
+      try{ Object.defineProperty(window,n,{value:memoria(n==='localStorage'),configurable:true,writable:false}); simulados.push(n); }catch(e){}
     }
   });
   /* document.cookie también lanza en un origen opaco. Se neutraliza para que
@@ -345,7 +365,7 @@ export const CONSOLE_BRIDGE = `(function(){
      «al pulsar Guardar» le dice al modelo dónde mirar; un stack trace suelto,
      no. Va en captura para enterarse ANTES de que el manejador reviente. */
   if(simulados.length){
-    send('info',['Forja: '+simulados.join(' y ')+' simulados en memoria dentro de la vista previa (el iframe no tiene origen propio). La página funciona; lo que guardes aquí no persiste.']);
+    send('info',['Forja: '+simulados.join(' y ')+' simulados en memoria dentro de la vista previa (el iframe no tiene origen propio). '+(persiste?'localStorage lo guarda Forja para esta conversación: sobrevive a recargar.':'La página funciona; lo que guardes aquí no persiste.')]);
   }
 
   document.addEventListener('click',function(e){

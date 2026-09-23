@@ -239,7 +239,13 @@ function responder(token){
 window.addEventListener("message", function(e){
   var d = e.data;
   if (!d || d.type !== "forja-qa-run") return;
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ responder(d.token); }); });
+  /* Dos fotogramas no bastan: con el iframe tapado (un diálogo encima) el
+     navegador puede retrasar el reflow y se medía el ancho ANTERIOR. Se
+     espera a ver el ancho pedido, con un tope para no colgarse. */
+  var t0 = Date.now();
+  function listo(){ return !d.ancho || Math.abs(window.innerWidth - d.ancho) <= 1 || Date.now() - t0 > 1000; }
+  function esperar(){ if (listo()) requestAnimationFrame(function(){ responder(d.token); }); else setTimeout(esperar, 16); }
+  requestAnimationFrame(esperar);
 });
 function auto(){ setTimeout(function(){ responder(0); }, 300); }
 if (document.readyState === "complete") auto();
@@ -286,7 +292,7 @@ function medirAncho(
     window.addEventListener("message", onMsg);
     frame.style.width = `${width}px`;
     try {
-      win.postMessage({ type: "forja-qa-run", token }, "*");
+      win.postMessage({ type: "forja-qa-run", token, ancho: width }, "*");
     } catch {
       fin({ width, ok: true, items: [], at: Date.now(), noRespondio: true });
       return;

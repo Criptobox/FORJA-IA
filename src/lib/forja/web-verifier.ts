@@ -4,6 +4,8 @@
  * los archivos con evidencia de ejecución que llega de `run_project`.
  * Es deliberadamente puro para poder probarlo sin React ni navegador.
  */
+import { auditarWeb } from "./web-audit";
+
 export type VerificationSeverity = "error" | "warning" | "info";
 export type VerificationSource = "static" | "runtime" | "visual";
 
@@ -107,6 +109,17 @@ export function verifyWebProject(
         add(findings, "missing-local-asset", "error", "static", `Referencia local no encontrada: ${p}.`, htmlPath);
       }
     }
+    // SEO, rendimiento y accesibilidad de código: nunca bloquean (son
+    // heurísticas), pero el agente las ve con el arreglo en la misma línea.
+    // SEO y rendimiento son optimizaciones → «info»; la accesibilidad es
+    // corrección (alguien no puede usar la página) → conserva su aviso.
+    const cssDelProyecto = Object.entries(files)
+      .filter(([p]) => /\.css$/i.test(p))
+      .map(([, c]) => `<style>${c}</style>`)
+      .join("\n");
+    for (const h of auditarWeb(`${html}\n${cssDelProyecto}`).hallazgos) {
+      add(findings, h.id, h.categoria === "accesibilidad" ? h.severidad : "info", "static", `${h.mensaje} Arreglo: ${h.arreglo}`, htmlPath, h.evidencia);
+    }
   }
 
   for (const [path, content] of Object.entries(files)) {
@@ -144,6 +157,10 @@ export function verifyWebProject(
   } else add(findings, "visual-missing", "warning", "visual", "No hay evidencia de QA visual.");
 
   const passed = findings.every((f) => f.severity !== "error") && runtimeChecked && visualChecked;
+  // errores primero: los resúmenes recortan la lista y un aviso de SEO no
+  // puede dejar fuera de la vista un error de ejecución
+  const rango = { error: 0, warning: 1, info: 2 } as const;
+  findings.sort((a, b) => rango[a.severity] - rango[b.severity]);
   return {
     passed,
     evidenceComplete: runtimeChecked && visualChecked,

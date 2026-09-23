@@ -69,7 +69,7 @@ interface CollectedLog {
  */
 export async function runProjectInMemory(
   files: Record<string, string>,
-  opts: { qa?: boolean; botones?: boolean; screenshot?: boolean } = {}
+  opts: { qa?: boolean; botones?: boolean; screenshot?: boolean; firma?: boolean } = {}
 ): Promise<RunOutcome> {
   // 1. Construir el mapa que espera `buildRunHtml`: Map<path, Uint8Array>.
   const fileMap = new Map<string, Uint8Array>();
@@ -120,7 +120,9 @@ export async function runProjectInMemory(
   // de que se le inyecte nada.
   const htmlBytes = built.htmlBytes;
   let html = injectPilot(injectVisualQA(built.html));
-  if (opts.screenshot) html = injectScreenshot(html);
+  // `firma`: la misma captura, pero al ancho móvil de siempre (no ensancha
+  // el iframe): la regresión compara el aspecto sin alterar su QA a 390 px.
+  if (opts.screenshot || opts.firma) html = injectScreenshot(html);
 
   // 5. Crear un iframe OCULTO en el body, ejecutar y recoger logs.
   return new Promise<RunOutcome>((resolve) => {
@@ -230,7 +232,7 @@ export async function runProjectInMemory(
       }
       // Resultado del capturador (si se pidió). Uno solo: no hace falta
       // acumular como el QA, que puede llegar a varios anchos.
-      if (d.type === "forja-shot-result" && opts.screenshot) {
+      if (d.type === "forja-shot-result" && (opts.screenshot || opts.firma)) {
         const sd = e.data as { ok?: boolean; dataUrl?: string; error?: string };
         screenshotResult = sd.ok && sd.dataUrl
           ? { ok: true, dataUrl: sd.dataUrl }

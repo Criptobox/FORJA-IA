@@ -17,33 +17,8 @@
  * con un LLM); esto es lo máximo que se puede armar sin uno, pero ya no es
  * la misma página vacía repetida en cada intento. */
 
-type Motor = Record<string, any>;
-
-interface SeccionPlan {
-  id: string;
-  nombre: string;
-  coleccion: boolean;
-  minItems: number;
-}
-
-interface HechosBrief {
-  precios: string[];
-  telefonos: string[];
-  correos: string[];
-  ciudades: string[];
-  horarios: string[];
-  enumeraciones: string[];
-  cantidades: string[];
-  marca: string;
-}
-
-interface PlanoContenido {
-  vertical: string;
-  nivel: string;
-  secciones: SeccionPlan[];
-  hechos: HechosBrief;
-  resumen: string;
-}
+import type { Motor } from "./motor-client";
+import type { PlanoContenido, SeccionPlan } from "./motor";
 
 /** Bancos de copy por vertical — genérico pero variado, nunca un dato que
  * parezca real (fechas, cifras, nombres propios de personas). */

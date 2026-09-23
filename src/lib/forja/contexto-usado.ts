@@ -43,6 +43,8 @@ export interface ContextoUsado {
   memorias?: number;
   /** dirección de diseño inyectada (id), si el turno era de UI */
   diseno?: string;
+  /** plano de contenido del motor, resumido («10 secciones · detalle produccion») */
+  plano?: string;
   /** caracteres del prompt de sistema, ya montado */
   chars: number;
 }
@@ -76,7 +78,8 @@ export function hayContexto(c: ContextoUsado): boolean {
     c.documentos > 0 ||
     c.imagenes > 0 ||
     !!c.memorias ||
-    !!c.diseno
+    !!c.diseno ||
+    !!c.plano
   );
 }
 
@@ -125,6 +128,7 @@ export function detalleContexto(c: ContextoUsado): string[] {
   if (c.fallos) out.push(`${c.fallos} regla(s) aprendida(s) de fallos anteriores`);
   if (c.memorias) out.push(`${c.memorias} decisión(es)/error(es) de la memoria del proyecto`);
   if (c.diseno) out.push(`Dirección de diseño aplicada: ${c.diseno}`);
+  if (c.plano) out.push(`Plano de contenido del motor: ${c.plano}`);
   if (c.documentos) out.push(`${c.documentos} documento(s) adjunto(s), como texto`);
   if (c.imagenes) out.push(`${c.imagenes} imagen(es) adjunta(s)`);
   if (c.mensajes) out.push(`${c.mensajes} mensaje(s) anteriores de esta conversación`);

@@ -16,6 +16,7 @@ export const BUILTIN_SKILLS: SkillItem[] = [
 - Añade micro-animaciones, transiciones suaves y estados hover/focus. Cuida la tipografía y el espaciado.
 - Empieza tu respuesta con una frase breve y luego el código dentro de un bloque \`\`\`html completo empezando por <!DOCTYPE html>.
 - No cortes el código: termínalo siempre con </html>.
+- Forja lo audita después: meta description y og:*, un solo <h1>, <main>, <label> por campo, :focus-visible, <img> con width/height y loading="lazy", scripts con defer.
 - Si no te dan indicaciones de estilo, escoge uno que encaje con el tema y dilo en una frase antes del código.`,
   },
   {

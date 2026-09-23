@@ -57,6 +57,9 @@ import { conKit } from "@/lib/forja/efectos";
 import { OnboardingDialog } from "./onboarding";
 import { PreviewPanel, type PreviewPanelHandle } from "./preview-panel";
 import { aplicarEdicionTexto } from "@/lib/forja/editar-preview";
+import { aplicarAjustesEnFuente, type CambioEstilo } from "@/lib/forja/editor-estilos";
+import { agregarSenalado, etiquetaCorta, type ElementoSenalado } from "@/lib/forja/senalar";
+import { SenaladosBar } from "./senalados-bar";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/forja/use-media-query";
 import { Welcome } from "./welcome";
 import { registerServiceWorker } from "./pwa";
@@ -176,6 +179,8 @@ export function ChatApp() {
   const setSettings = useForja((s) => s.setSettings);
 
   const [input, setInput] = useState("");
+  /** elementos señalados en la vista previa, pendientes de enviar con el próximo mensaje */
+  const [senalados, setSenalados] = useState<ElementoSenalado[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   /** la sugerencia del modo agente se ofrece una vez por sesión de uso */
   const [agentSugerido, setAgentSugerido] = useState(false);
@@ -762,8 +767,10 @@ export function ChatApp() {
           createdAt: Date.now(),
           ...(attachments.length ? { attachments } : {}),
           ...(docs.length ? { docTexts: docs } : {}),
+          ...(senalados.length ? { senalados } : {}),
         });
         setInput("");
+        setSenalados([]);
         clearDraft();
         stickToBottomRef.current = true;
         if (repo && isMostlyRepoLink(text)) {
@@ -833,7 +840,7 @@ export function ChatApp() {
 
       proceder();
     },
-    [input, attachments, docs, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo]
+    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo]
   );
 
   /** Los errores que salieron mientras USABAS la página van al modelo.
@@ -872,6 +879,29 @@ export function ChatApp() {
         return { ok: false, motivo: "no hay ninguna vista previa abierta" };
       }
       const r = aplicarEdicionTexto(previewMsg.content, original, nuevo);
+      if (!r.ok || r.contenido == null) return { ok: false, motivo: r.motivo };
+      updateMessage(activeSession.id, previewMsg.id, { content: r.contenido });
+      return { ok: true };
+    },
+    [activeSession, previewMsg, updateMessage]
+  );
+
+  /** Tocaste algo en la vista previa en modo «señalar»: queda como etiqueta
+   *  encima del compositor y el foco va a escribir qué cambiar. En móvil se
+   *  cierra la hoja de la vista previa: si no, no se ve dónde escribir. */
+  const senalarDePreview = useCallback((e: ElementoSenalado) => {
+    setSenalados((l) => agregarSenalado(l, e));
+    setMobilePreviewOpen(false);
+    requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>("textarea[data-compositor]")?.focus());
+  }, []);
+
+  /** Guarda en la respuesta los estilos tocados en la vista previa. */
+  const editarEstiloDePreview = useCallback(
+    (cambios: CambioEstilo[]): { ok: boolean; motivo?: string } => {
+      if (!activeSession || !previewMsg) {
+        return { ok: false, motivo: "no hay ninguna vista previa abierta" };
+      }
+      const r = aplicarAjustesEnFuente(previewMsg.content, cambios);
       if (!r.ok || r.contenido == null) return { ok: false, motivo: r.motivo };
       updateMessage(activeSession.id, previewMsg.id, { content: r.contenido });
       return { ok: true };
@@ -1748,6 +1778,7 @@ export function ChatApp() {
           )}
         </div>
       )}
+      <SenaladosBar senalados={senalados} onChange={setSenalados} />
       <ChatInput
         value={input}
         onChange={setInput}
@@ -1776,6 +1807,8 @@ export function ChatApp() {
         placeholder={
           imageMode
             ? "Describe la imagen que quieres generar…"
+            : senalados.length
+              ? `¿Qué quieres cambiar de ${senalados.length === 1 ? etiquetaCorta(senalados[0]) : `estos ${senalados.length} elementos`}?`
             : previewOpen
               ? "Pide cambios para la página… se verán en la vista previa"
               : settings.consensus
@@ -1908,6 +1941,7 @@ export function ChatApp() {
               code={previewCode}
               source={previewMsg?.content ?? null}
               title={activeSession?.title ?? null}
+              almacenId={activeSession?.id ?? null}
               streaming={previewStreaming}
               onClose={() => setPreviewOpen(false)}
               map={activeSession?.projectMap ?? null}
@@ -1923,6 +1957,8 @@ export function ChatApp() {
               onRestoreSnapshot={(i) => activeSession && restoreMapSnapshot(activeSession.id, i)}
               onFixLive={arreglarErroresEnVivo}
               onEditText={editarTextoDePreview}
+              onEditStyle={editarEstiloDePreview}
+              onSenalar={senalarDePreview}
             />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -1940,6 +1976,7 @@ export function ChatApp() {
               code={previewCode}
               source={previewMsg?.content ?? null}
               title={activeSession?.title ?? null}
+              almacenId={activeSession?.id ?? null}
               streaming={previewStreaming}
               onClose={() => setMobilePreviewOpen(false)}
               map={activeSession?.projectMap ?? null}
@@ -1955,6 +1992,8 @@ export function ChatApp() {
               onRestoreSnapshot={(i) => activeSession && restoreMapSnapshot(activeSession.id, i)}
               onFixLive={arreglarErroresEnVivo}
               onEditText={editarTextoDePreview}
+              onEditStyle={editarEstiloDePreview}
+              onSenalar={senalarDePreview}
             />
           )}
         </SheetContent>

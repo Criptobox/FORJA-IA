@@ -64,3 +64,29 @@ describe("web-verifier", () => {
     expect(v.passed).toBe(false);
   });
 });
+
+describe("web-verifier + auditoría web", () => {
+  it("los hallazgos de SEO/rendimiento/accesibilidad llegan como avisos y no tumban un PASS", () => {
+    const v = verifyWebProject({
+      "index.html": '<!doctype html><html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Forja</title><script src="app.js"></script></head><body><h2>Sin h1</h2><input placeholder="Nombre"></body></html>',
+      "app.js": "console.log(1)",
+    }, { executed: true, errors: 0, qa: { ok: true, noRespondio: false, items: [] } });
+    const ids = v.findings.map((f) => f.id);
+    expect(ids).toEqual(expect.arrayContaining(["seo-meta-description", "seo-sin-h1", "perf-script-bloqueante", "a11y-campo-sin-etiqueta"]));
+    expect(v.findings.every((f) => f.severity !== "error")).toBe(true);
+    expect(v.passed).toBe(true);
+  });
+
+  it("lee el CSS de los archivos del proyecto, no solo el <style> del HTML", () => {
+    const v = verifyWebProject({
+      "index.html": '<!doctype html><html lang="es"><head><link rel="stylesheet" href="styles.css"><title>x</title></head><body><h1>x</h1></body></html>',
+      "styles.css": "button{outline:none}",
+    });
+    expect(v.findings.some((f) => f.id === "a11y-foco-invisible")).toBe(true);
+  });
+
+  it("los errores van primero aunque haya muchos avisos", () => {
+    const v = verifyWebProject({ "index.html": "<html><body><h3>x</h3><img src='nope.png'></body></html>" });
+    expect(v.findings[0].severity).toBe("error");
+  });
+});

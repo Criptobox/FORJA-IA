@@ -1,4 +1,4 @@
-# Prism AI — CI: compilar, tests unitarios y E2E en cada push.
+# Forja IA — CI: compilar, tests unitarios y E2E en cada push.
 #
 # Los E2E vigilan cosas que ningún test unitario puede comprobar: que la puerta
 # de la revisión bloquea de verdad la subida de una credencial, que el Sandbox

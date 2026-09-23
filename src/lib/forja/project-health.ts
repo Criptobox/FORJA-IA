@@ -5,6 +5,9 @@ import type { ProjectMap } from "./types";
 import type { QAResult, QATipo } from "./visual-qa";
 import type { FailureEntry } from "./failures";
 import { scanSecurity } from "./security-center";
+import { auditarWeb } from "./web-audit";
+import { auditarDetalle } from "./motor/qa-detalle";
+import { MIN_HTML_AUDITABLE } from "./motor-chat";
 
 export interface HealthMetric {
   id: string;
@@ -84,6 +87,43 @@ export function calculateProjectHealth(input: {
     });
     if (altos.length) blockers.push(`Posible secreto/API key embebido en el código (${altos.length})`);
   } else metrics.push({ id: "safety", label: "Seguridad básica", score: null, detail: "Sin código para inspeccionar" });
+
+  // SEO y rendimiento leídos del código: bajan la nota pero no bloquean la
+  // publicación (son heurísticas, no mediciones).
+  const auditoria = auditarWeb(html);
+  for (const [id, label, cat] of [
+    ["seo", "SEO", "seo"],
+    ["performance", "Rendimiento", "rendimiento"],
+    ["a11y-code", "Accesibilidad (código)", "accesibilidad"],
+  ] as const) {
+    const propios = auditoria.hallazgos.filter((h) => h.categoria === cat);
+    metrics.push({
+      id,
+      label,
+      score: auditoria.puntuacion[cat],
+      detail: auditoria.puntuacion[cat] == null
+        ? "Sin código para inspeccionar"
+        : propios.length
+          ? propios.slice(0, 3).map((h) => h.arreglo).join(" · ")
+          : "Sin hallazgos en el código",
+    });
+  }
+
+  // Detalle de contenido y acabado, medido por el motor (qa-detalle.ts):
+  // secciones, densidad de contenido, piezas por colección, estados,
+  // responsive. Una página corta no se mide: no es una landing a medias.
+  if (html.length >= MIN_HTML_AUDITABLE) {
+    const d = auditarDetalle(html);
+    const criticos = d.hallazgos.filter((h) => h.gravedad === "critico");
+    metrics.push({
+      id: "detail",
+      label: "Contenido y acabado",
+      score: d.puntuacion,
+      detail: criticos.length ? criticos.slice(0, 2).map((h) => h.titulo).join(" · ") : d.resumen,
+    });
+  } else {
+    metrics.push({ id: "detail", label: "Contenido y acabado", score: null, detail: html ? "Página demasiado corta para medir el detalle" : "Sin código para inspeccionar" });
+  }
 
   const available = metrics.filter((m) => m.score != null).map((m) => m.score as number);
   return { score: available.length ? Math.round(available.reduce((a, b) => a + b, 0) / available.length) : null, metrics, blockers };
