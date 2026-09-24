@@ -16,6 +16,7 @@
  *     tasks.json           — Task DNA: qué se encargó, qué modelo, qué pasó
  *     design-tokens.json   — qué dirección visual se usó (variación forzada)
  *     negative-rules.json  — reglas «no tocar» (puente con reglas-no.ts)
+ *     DESIGN.md            — contrato de diseño legible (dirección fijada)
  *
  * Persistencia local: UNA clave de localStorage (`forja-memoria-v1`) con un
  * registro por sesión. Se exporta a los cinco JSON con `aArchivosForja()`
@@ -25,6 +26,8 @@
  * Este módulo es puro (strings in, objects out, storage inyectable) para
  * que se pueda testear sin React y sin navegador.
  */
+import { aDesignMd, direccionPorId } from "./design-directions";
+import { direccionDelProyecto } from "./contrato-diseno";
 
 /* ------------------------------------------------------------------ */
 /* tipos                                                              */
@@ -218,6 +221,10 @@ export function addDiseno(
   ahora = Date.now()
 ): MemoriaProyecto {
   if (!direccion.trim()) return m;
+  // Con el contrato de diseño, cada retoque vuelve a declarar la misma
+  // dirección: apilarla otra vez sacaría de la lista las anteriores sin
+  // aportar nada.
+  if (m.disenos[0]?.direccion === direccion.trim()) return m;
   return {
     ...m,
     disenos: push(
@@ -281,7 +288,18 @@ export function aArchivosForja(m: MemoriaProyecto): Record<string, string> {
   if (m.tareas.length) volcar("tasks.json", m.tareas);
   if (m.disenos.length) volcar("design-tokens.json", m.disenos);
   if (m.reglas.length) volcar("negative-rules.json", m.reglas);
+  // El contrato de diseño legible por personas (Plan Maestro 2026 §5): la
+  // misma dirección que manda en el prompt, como documento del repo.
+  const fijada = direccionDelProyecto(m.disenos);
+  if (fijada) out[`${CARPETA_FORJA}DESIGN.md`] = aDesignMd(fijada);
   return out;
+}
+
+/** La dirección que declara un `DESIGN.md` generado por Forja
+ *  («> Dirección: **Nombre** (id).»), o null si no es uno de los nuestros. */
+export function direccionDeDesignMd(md: string | undefined): string | null {
+  const m = md?.match(/^> Dirección: \*\*[^*]+\*\* \(([a-z0-9-]+)\)/m);
+  return m && direccionPorId(m[1]) ? m[1] : null;
 }
 
 function parseLista<T>(crudo: string | undefined): T[] {
@@ -328,9 +346,15 @@ export function deArchivosForja(files: Record<string, string>): MemoriaProyecto 
       creadoEl: creado(t.creadoEl),
       estado: (["pending", "running", "done", "failed"].includes(t.estado) ? t.estado : "done") as TareaMemoria["estado"],
     }));
-  const disenos = parseLista<DisenoUsado>(buscar("design-tokens.json"))
+  let disenos = parseLista<DisenoUsado>(buscar("design-tokens.json"))
     .filter((d) => typeof d?.direccion === "string" && d.direccion.trim())
     .map((d) => ({ ...d, creadoEl: creado(d.creadoEl) }));
+  // Un repo que solo trae el DESIGN.md (o alguien borró el JSON) recupera
+  // igualmente la dirección fijada.
+  if (!disenos.length) {
+    const id = direccionDeDesignMd(buscar("DESIGN.md"));
+    if (id) disenos = [{ id: "design-md", direccion: id, resumen: "leída de .forja/DESIGN.md", creadoEl: 0 }];
+  }
   const reglas = parseLista<ReglaMemoria>(buscar("negative-rules.json"))
     .filter((r) => typeof r?.patron === "string" && r.patron.trim())
     .map((r) => ({ ...r, creadoEl: creado(r.creadoEl), activa: r.activa !== false }));

@@ -85,10 +85,50 @@ Medición sobre una conversación típica de Web Studio: 5 vueltas sobre una pá
 3. **Ventana de historial adaptativa.** Hoy son 40 mensajes fijos (12 en modo ahorro). Se podría calcular a partir de la ventana real del modelo elegido (`limites-medidos.ts`).
 4. **Task Ledger (§13).** Registrar tokens y coste por tipo de tarea para saber qué recortar con datos y no por intuición.
 
-## 5. Orden propuesto para los siguientes sprints
+## 5. Sprint 2 — hecho
+
+### Context Engine L0–L5 (`nivel-contexto.ts`)
+
+Cada turno se clasifica en un nivel. Ante la duda, el turno sube a L3, que es lo que viajaba antes del cambio.
+
+| Nivel | Ejemplo | Diseño que viaja | Design Architect (FORJA WEB) | Memoria |
+|---|---|---|---|---|
+| L0 trivial | «hola» | nada | no | no |
+| L1 pregunta | «¿qué hace renderMenu?» | nada | no | Auto Context |
+| L2 retoque | «cambia el botón a verde» | contrato compacto (~650 caracteres) | no | Auto Context |
+| L3 feature | «hazme una landing», «añade reservas» | bloque completo (~4.000 caracteres) | sí (~2.200) | Auto Context |
+| L4 proyecto | «refactoriza la arquitectura» | completo | sí | Auto Context + memoria completa |
+| L5 auditoría | «audita el proyecto» | completo | sí | Auto Context + memoria completa |
+
+Ahorro con FORJA WEB:
+
+- En una pregunta dejan de viajar unos 2.200 caracteres por turno.
+- En un retoque se mandan unos 650 en lugar de 2.200.
+
+El nivel aparece en el desglose de «contexto usado» de cada respuesta.
+
+### Contrato de diseño (`contrato-diseno.ts`)
+
+- **Error corregido:**
+  - Qué fallaba: la memoria guardaba el *nombre* de la dirección y la rotación comparaba con el *id*. Nunca coincidían, así que la rotación nunca evitaba repetir y el proyecto no tenía una dirección fijada.
+  - Cómo queda: ahora se leen las dos formas.
+- **Identidad fijada:** una vez elegida, la dirección del proyecto se mantiene en los encargos nuevos. Solo cambia si el usuario escribe una palabra de estilo o pide expresamente otra cosa («otro estilo», «rediséñala», «nueva web»). Es la regla del §5: «NO cambiar la identidad aprobada sin autorización».
+- **Retoques:** antes no llevaban ningún dato de diseño y el modelo podía inventarse colores. Ahora llevan el contrato compacto: paleta, tipografía, radios, sombras y espaciado.
+- **`.forja/DESIGN.md`:** el export a repositorio genera el documento. Al importar un repositorio que solo traiga el `DESIGN.md`, la dirección se recupera igualmente.
+
+### Ventana de historial adaptativa
+
+Ya existía antes de este sprint:
+
+- `ventanaReferencia()` más `limites-medidos.ts` recortan de forma proactiva cuando el contexto entra en zona roja.
+- Usan el tope real del modelo cuando ya se ha medido.
+
+Por eso no se ha duplicado.
+
+## 6. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 
-- **Sprint 2:** Context Engine L0–L5, DESIGN.md por proyecto (lectura y escritura en `.forja/`) y Project Map con grafo de imports.
+- **Sprint 2 (pendiente):** Project Map con grafo de imports y ranking de archivos. Con eso, L1 y L2 enviarían solo los archivos relacionados en lugar de los 12 del mapa.
 - **Sprint 3:** interfaz `ModelProvider` y tabla de capacidades (§59–60). Budget Engine único con los límites del §58 y el modo FREE-ONLY automático al llegar al tope.
 - **Sprint 4 y siguientes:** Design First con aprobación, fusión de Vision QA, escalera de recuperación y gates de publicación.
