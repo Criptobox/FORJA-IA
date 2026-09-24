@@ -33,7 +33,7 @@ export interface ChatMessage {
   senalados?: import("./senalar").ElementoSenalado[];
   /** imagen generada por IA (modo imagen / Pollinations) */
   generatedImage?: { url: string; prompt: string };
-  /** % de contexto ahorrado por la compresión en esta respuesta (si > 0) */
+  /** % de contexto ahorrado en esta respuesta (compresión + versiones superadas de archivos que no se reenvían), si > 0 */
   ctxSaved?: number;
   /** nº de datos personales enmascarados en lo que se envió (escudo PII) */
   piiMasked?: number;

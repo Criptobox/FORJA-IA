@@ -139,6 +139,7 @@ import { soloAdjuntosDelTurno } from "./adjuntos-historial";
 import { esTurnoTrivial } from "./turno-trivial";
 import { useFailures } from "./failures";
 import { compressHistory, savingsPercent, type CompressionMode } from "./compress";
+import { podarVersionesSuperadas } from "./versiones-superadas";
 import { modoEfectivo, sumarUso, type UsoProveedor } from "./cache-prompt";
 import { CONTEXTO_VACIO, hayContexto, type ContextoUsado } from "./contexto-usado";
 import { checkpointAuto } from "./snapshots";
@@ -616,7 +617,12 @@ export function useGeneration(ctx: CtxGeneracion) {
       for (let i = base.length - 1; i >= 0; i--) {
         if (base[i].role === "user") { protectIdx = i; break; }
       }
-      const comp = compressHistory(base, compMode, protectIdx);
+      // Las versiones viejas de un archivo que ya tiene otra más nueva no
+      // viajan: es, con diferencia, lo que más pesa en una conversación de
+      // Web Studio (ver `versiones-superadas.ts`). Va antes de comprimir y
+      // es independiente de ella: no reescribe código, solo quita copias.
+      const poda = podarVersionesSuperadas(base, protectIdx);
+      const comp = compressHistory(poda.mensajes, compMode, protectIdx);
 
       // ——— Qué contexto viaja de verdad (PLAN-EVOLUCION §12, «Auto Context») ———
       // Las piezas del prompt ya vienen contadas de `entradaPromptActual`; aquí
@@ -644,8 +650,9 @@ export function useGeneration(ctx: CtxGeneracion) {
           ]
         : comp.messages;
       const origChars = base.reduce((a, m) => a + m.content.length, 0);
+      const ahorroTotal = comp.savedChars + poda.ahorrados;
       const savedPct =
-        comp.savedChars > 400 && origChars > 0 ? savingsPercent(origChars, comp.savedChars) : 0;
+        ahorroTotal > 400 && origChars > 0 ? savingsPercent(origChars, ahorroTotal) : 0;
 
       const controller = new AbortController();
       abortRef.current = controller;

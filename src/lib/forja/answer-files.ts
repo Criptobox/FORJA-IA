@@ -139,19 +139,30 @@ function deDentro(codigo: string): string | null {
   return null;
 }
 
+/** Un bloque de código con nombre, y dónde está dentro del texto. */
+export interface BloqueArchivo extends AnswerFile {
+  /** posición de la primera comilla de apertura de la cerca */
+  inicio: number;
+  /** posición justo después de la cerca de cierre (o fin del texto) */
+  fin: number;
+}
+
 /**
- * Saca los archivos de una respuesta. El último bloque con un mismo nombre
- * gana: cuando el modelo corrige un archivo, lo que vale es la última versión.
+ * Recorre los bloques de código de un texto y les pone nombre, con su
+ * posición. Es la misma lectura que usa `filesFromAnswer`, expuesta para quien
+ * necesita saber DÓNDE está cada archivo (`versiones-superadas.ts`).
  */
-export function filesFromAnswer(content: string | null | undefined): AnswerFile[] {
+export function bloquesConNombre(content: string | null | undefined): BloqueArchivo[] {
   if (!content) return [];
 
-  const porRuta = new Map<string, AnswerFile>();
+  const bloques: BloqueArchivo[] = [];
   const usadosPorDefecto = new Map<string, number>();
 
-  CERCA.lastIndex = 0;
+  // Regex propia por llamada: `CERCA` es global y compartida, y dos lecturas
+  // anidadas se pisarían el `lastIndex`.
+  const cerca = new RegExp(CERCA.source, "g");
   let m: RegExpExecArray | null;
-  while ((m = CERCA.exec(content))) {
+  while ((m = cerca.exec(content))) {
     const info = m[1] ?? "";
     const codigo = (m[2] ?? "").replace(/\s+$/, "");
     if (!codigo.trim()) continue;
@@ -173,7 +184,21 @@ export function filesFromAnswer(content: string | null | undefined): AnswerFile[
       ruta = n === 1 ? base : numerar(base, n);
     }
 
-    porRuta.set(ruta, { path: ruta, text: codigo, inferido });
+    bloques.push({ path: ruta, text: codigo, inferido, inicio: m.index, fin: m.index + m[0].length });
+  }
+  return bloques;
+}
+
+/**
+ * Saca los archivos de una respuesta. El último bloque con un mismo nombre
+ * gana: cuando el modelo corrige un archivo, lo que vale es la última versión.
+ */
+export function filesFromAnswer(content: string | null | undefined): AnswerFile[] {
+  if (!content) return [];
+
+  const porRuta = new Map<string, AnswerFile>();
+  for (const b of bloquesConNombre(content)) {
+    porRuta.set(b.path, { path: b.path, text: b.text, inferido: b.inferido });
   }
 
   const salida = [...porRuta.values()];

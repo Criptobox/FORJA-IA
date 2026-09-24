@@ -92,7 +92,11 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   const promptUsuario = ultimoDelUsuario?.content ?? "";
   const modoApp = !trivial && esEncargoDeApp(promptUsuario);
 
-  const activas = st.skills.filter((s) => s.enabled);
+  // En un turno trivial («hola», «gracias») las skills no viajan: son
+  // instrucciones para HACER un trabajo —la de desarrollador web ronda los
+  // 1.800 caracteres— y un saludo no tiene trabajo que hacer. Mismo criterio
+  // que la plantilla del agente, más abajo. Las reglas «no tocar» sí viajan.
+  const activas = trivial ? [] : st.skills.filter((s) => s.enabled);
   const skills = activas.length
     ? [
         activas.map((s) => `### Skill activa: ${s.name}\n${s.instructions}`).join("\n\n"),
