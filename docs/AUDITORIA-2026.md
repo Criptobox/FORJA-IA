@@ -116,6 +116,20 @@ El nivel aparece en el desglose de «contexto usado» de cada respuesta.
 - **Retoques:** antes no llevaban ningún dato de diseño y el modelo podía inventarse colores. Ahora llevan el contrato compacto: paleta, tipografía, radios, sombras y espaciado.
 - **`.forja/DESIGN.md`:** el export a repositorio genera el documento. Al importar un repositorio que solo traiga el `DESIGN.md`, la dirección se recupera igualmente.
 
+### Grafo de archivos y contexto por foco (`grafo-proyecto.ts`)
+
+- **Última versión de cada archivo:** se toma de la conversación con la misma lectura de nombres que usan la vista previa y el ZIP.
+- **Grafo de dependencias entre archivos:** se construye a partir de `<script src>`, `<link href>`, `import … from`, `import()`, `require()`, `@import` y `url()` de CSS. Resuelve rutas relativas entre carpetas y los imports sin extensión.
+- **Archivos relevantes para una petición:** son los que nombra la petición o, si no nombra ninguno, aquellos cuyo contenido casa con sus palabras. A esos se suman sus vecinos en el grafo, el HTML de entrada y todas las hojas de estilo.
+- **Solo en preguntas y retoques (L1/L2):** los demás archivos no se reenvían. En su lugar va un marcador con su nombre, para que el modelo sepa que existen y pueda pedirlos.
+- **Qué nunca se quita:**
+  - Nada, si la petición no da pistas o si casi todos los archivos casan con ella.
+  - Nada, en proyectos de menos de 4 archivos.
+  - La pregunta viva.
+- **Qué se ve:**
+  - El desglose de «contexto usado» dice qué archivos no se enviaron.
+  - La etiqueta `ctx −N %` suma este ahorro.
+
 ### Ventana de historial adaptativa
 
 Ya existía antes de este sprint:
@@ -129,6 +143,5 @@ Por eso no se ha duplicado.
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 
-- **Sprint 2 (pendiente):** Project Map con grafo de imports y ranking de archivos. Con eso, L1 y L2 enviarían solo los archivos relacionados en lugar de los 12 del mapa.
 - **Sprint 3:** interfaz `ModelProvider` y tabla de capacidades (§59–60). Budget Engine único con los límites del §58 y el modo FREE-ONLY automático al llegar al tope.
 - **Sprint 4 y siguientes:** Design First con aprobación, fusión de Vision QA, escalera de recuperación y gates de publicación.

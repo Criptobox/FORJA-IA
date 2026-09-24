@@ -140,6 +140,8 @@ import { esTurnoTrivial } from "./turno-trivial";
 import { useFailures } from "./failures";
 import { compressHistory, savingsPercent, type CompressionMode } from "./compress";
 import { podarVersionesSuperadas } from "./versiones-superadas";
+import { archivosRelevantes, archivosVigentes, podarIrrelevantes } from "./grafo-proyecto";
+import { nivelDeContexto } from "./nivel-contexto";
 import { modoEfectivo, sumarUso, type UsoProveedor } from "./cache-prompt";
 import { CONTEXTO_VACIO, hayContexto, type ContextoUsado } from "./contexto-usado";
 import { checkpointAuto } from "./snapshots";
@@ -622,7 +624,22 @@ export function useGeneration(ctx: CtxGeneracion) {
       // Web Studio (ver `versiones-superadas.ts`). Va antes de comprimir y
       // es independiente de ella: no reescribe código, solo quita copias.
       const poda = podarVersionesSuperadas(base, protectIdx);
-      const comp = compressHistory(poda.mensajes, compMode, protectIdx);
+      // En preguntas y retoques (L1/L2) tampoco viajan los archivos que no
+      // tienen que ver con lo que se pide: solo los nombrados o que casan
+      // con sus palabras, sus vecinos en el grafo de imports, la entrada y
+      // el CSS. Sin pistas claras no se quita nada (`grafo-proyecto.ts`).
+      // el texto tal cual lo escribió el usuario, sin documentos ni señalados
+      const pregunta = [...previos].reverse().find((m) => m.role === "user")?.content ?? "";
+      const nivelTurno = nivelDeContexto({ texto: pregunta, trivial: esTurnoTrivial(pregunta) });
+      const foco =
+        nivelTurno === 1 || nivelTurno === 2
+          ? podarIrrelevantes(
+              poda.mensajes,
+              archivosRelevantes(pregunta, archivosVigentes(poda.mensajes)),
+              protectIdx
+            )
+          : { mensajes: poda.mensajes, omitidos: [] as string[], ahorrados: 0 };
+      const comp = compressHistory(foco.mensajes, compMode, protectIdx);
 
       // ——— Qué contexto viaja de verdad (PLAN-EVOLUCION §12, «Auto Context») ———
       // Las piezas del prompt ya vienen contadas de `entradaPromptActual`; aquí
@@ -638,6 +655,7 @@ export function useGeneration(ctx: CtxGeneracion) {
         documentos: numDocs,
         imagenes: numAdjuntos,
         chars: construirPrompt(piezas).prompt.length,
+        ...(foco.omitidos.length ? { omitidos: foco.omitidos } : {}),
       };
       // Con semilla se añaden DESPUÉS de comprimir: lo que llevaba escrito el
       // modelo caído y la orden de empalmar son justo lo que no se puede
@@ -650,7 +668,7 @@ export function useGeneration(ctx: CtxGeneracion) {
           ]
         : comp.messages;
       const origChars = base.reduce((a, m) => a + m.content.length, 0);
-      const ahorroTotal = comp.savedChars + poda.ahorrados;
+      const ahorroTotal = comp.savedChars + poda.ahorrados + foco.ahorrados;
       const savedPct =
         ahorroTotal > 400 && origChars > 0 ? savingsPercent(origChars, ahorroTotal) : 0;
 
