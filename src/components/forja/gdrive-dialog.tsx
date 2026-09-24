@@ -13,14 +13,15 @@
  * sufrió un usuario real con el flujo anterior.
  */
 import { useEffect, useState } from "react";
-import { Check, Cloud, Copy, ExternalLink, FileText, Loader2, LogOut, RefreshCw, Settings2 } from "lucide-react";
+import { Check, Cloud, Copy, ExternalLink, FileText, FolderSync, Loader2, LogOut, RefreshCw, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatBytes, quotaPercent } from "@/lib/forja/gdrive-oauth";
 import { gdGetCreds, gdListRecentFiles, type GDriveAccount, type GDriveCreds, type GDriveFile } from "@/lib/forja/gdrive";
-import { kbHasResource, kbUpsertResource } from "@/lib/forja/kb-index";
+import { kbGetResources, kbHasResource, kbUpsertResource } from "@/lib/forja/kb-index";
+import { driveFileToKBResource, enrichFromForjaIndex, gdListFolderTree, gdReadKBFile, parseDriveId } from "@/lib/forja/gdrive-kb";
 import { useGdriveAccounts, useGdriveCredsStatus, type GdriveCredsStatus } from "./gdrive-connect";
 import { GDrivePickerButton } from "./gdrive-picker-button";
 import { cn } from "@/lib/utils";
@@ -285,6 +286,9 @@ function AccountFiles({ account, creds }: { account: GDriveAccount; creds: GDriv
                     license: "",
                     status: "nuevo",
                     indexedAt: new Date().toISOString(),
+                    sourceKind: "drive",
+                    sourceProvider: "google-drive",
+                    remoteId: f.id,
                   });
                   setAddedIds((prev) => new Set(prev).add(f.id));
                   toast.success("Añadido a la Knowledge Base");
@@ -298,6 +302,82 @@ function AccountFiles({ account, creds }: { account: GDriveAccount; creds: GDriv
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+/** Indexa una carpeta entera (la raíz de un área: «DISEÑO», …) de esta
+ * cuenta. Solo guarda metadata en el índice local; el contenido se lee
+ * bajo demanda cuando el Cerebro o el agente lo necesitan. Volver a
+ * indexar la misma carpeta actualiza los recursos (mismo id de Drive) sin
+ * duplicarlos y conserva la categoría/etiquetas que se editaron a mano. */
+function DriveFolderIndexer({ account, creds }: { account: GDriveAccount; creds: GDriveCreds | null }) {
+  const [link, setLink] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState("");
+
+  const run = async () => {
+    const folderId = parseDriveId(link);
+    if (!folderId) {
+      setStatus("Pega el enlace o el id de una carpeta de Drive.");
+      return;
+    }
+    setBusy(true);
+    setStatus("Recorriendo la carpeta…");
+    try {
+      const tree = await gdListFolderTree(account, creds, folderId, {
+        onProgress: (n) => setStatus(`Recorriendo la carpeta… ${n} archivo(s)`),
+      });
+      const now = new Date().toISOString();
+      let resources = tree.files.map((f) => driveFileToKBResource(f, account.email, now));
+      const indexFile = tree.files.find((f) => /(^|\/)29-INDICES\/INDEX\.json$/i.test(f.path));
+      let enriched = 0;
+      if (indexFile) {
+        try {
+          const bytes = await gdReadKBFile({ id: indexFile.id, accountEmail: account.email, mimeType: indexFile.mimeType, name: indexFile.name });
+          ({ resources, enriched } = enrichFromForjaIndex(resources, new TextDecoder().decode(bytes)));
+        } catch {
+          /* sin índice propio: la ruta ya clasifica */
+        }
+      }
+      const previous = new Map(kbGetResources().map((r) => [r.id, r]));
+      let added = 0;
+      for (const r of resources) {
+        const old = previous.get(r.id);
+        if (!old) added++;
+        // lo que la persona corrigió a mano en «Conocimiento» manda sobre lo deducido de la ruta
+        kbUpsertResource(old ? { ...r, category: old.category || r.category, tags: [...new Set([...old.tags, ...r.tags])], license: old.license || r.license, indexedAt: old.indexedAt } : r);
+      }
+      const msg = `${tree.rootName}: ${resources.length} archivo(s), ${added} nuevo(s)${enriched ? `, ${enriched} con etiquetas de INDEX.json` : ""}${tree.truncated ? " — se paró en el tope; indexa subcarpetas por separado" : ""}.`;
+      setStatus(msg);
+      toast.success("Carpeta indexada", { description: msg });
+    } catch (e) {
+      setStatus(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-2 space-y-1.5">
+      <p className="text-[11px] font-medium text-muted-foreground">Indexar una carpeta como conocimiento</p>
+      <div className="flex gap-1.5">
+        <Input
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          placeholder="Enlace o id de la carpeta (p. ej. DISEÑO)"
+          className="h-7 text-[11px]"
+          disabled={busy}
+        />
+        <Button type="button" size="sm" variant="outline" className="h-7 shrink-0 gap-1 text-[10.5px]" onClick={() => void run()} disabled={busy || !link.trim()}>
+          {busy ? <Loader2 className="size-3 animate-spin" /> : <FolderSync className="size-3" />}
+          Indexar
+        </Button>
+      </div>
+      {status && <p className="text-[10.5px] text-muted-foreground">{status}</p>}
+      <p className="text-[10px] text-muted-foreground">
+        Se guarda solo el índice; Forja lee cada archivo cuando lo necesita. 99-INBOX no se indexa (pendiente de análisis o licencia).
+      </p>
     </div>
   );
 }
@@ -352,7 +432,7 @@ function AccountRow({
           onClick={() => setExpanded((v) => !v)}
           className="text-[11px] text-forja-violet underline underline-offset-2"
         >
-          {expanded ? "Ocultar archivos" : "Ver archivos"}
+          {expanded ? "Ocultar archivos" : "Ver archivos · indexar carpeta"}
         </button>
         {creds && (
           <GDrivePickerButton
@@ -377,6 +457,9 @@ function AccountRow({
                   license: "",
                   status: "nuevo",
                   indexedAt: now,
+                  sourceKind: "drive",
+                  sourceProvider: "google-drive",
+                  remoteId: f.id,
                 });
                 nuevos++;
               }
@@ -399,7 +482,12 @@ function AccountRow({
           <LogOut className="size-3" /> Desconectar
         </button>
       </div>
-      {expanded && <AccountFiles account={account} creds={creds} />}
+      {expanded && (
+        <>
+          <DriveFolderIndexer account={account} creds={creds} />
+          <AccountFiles account={account} creds={creds} />
+        </>
+      )}
     </div>
   );
 }

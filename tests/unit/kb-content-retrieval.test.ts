@@ -1,12 +1,17 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { readKBResource, retrieveKBContent, kbContentContext } from "@/lib/forja/kb-content-retrieval";
+import { readKBResource, retrieveKBContent, kbContentContext, interleaveByProvider } from "@/lib/forja/kb-content-retrieval";
 import type { KBResource } from "@/lib/forja/kb-index";
 import type { KBRetrievalResult } from "@/lib/forja/knowledge-retrieval";
 
 const readMock = vi.fn();
+const driveReadMock = vi.fn();
 
 vi.mock("@/lib/forja/mega-provider", () => ({
   createMegaProvider: () => ({ read: readMock }),
+}));
+
+vi.mock("@/lib/forja/gdrive-kb", () => ({
+  gdReadKBFile: (r: unknown) => driveReadMock(r),
 }));
 
 function megaResource(overrides: Partial<KBResource> = {}): KBResource {
@@ -56,20 +61,56 @@ function hitFor(resource: KBResource, score = 5): KBRetrievalResult {
 }
 
 describe("readKBResource", () => {
-  beforeEach(() => readMock.mockReset());
+  beforeEach(() => { readMock.mockReset(); driveReadMock.mockReset(); });
 
-  it("un recurso que no viene de MEGA no finge tener un lector remoto", async () => {
-    const hit = await readKBResource(driveResource());
+  it("un recurso sin proveedor remoto legible no finge tener un lector", async () => {
+    const hit = await readKBResource(driveResource({ sourceProvider: "url", sourceKind: "url", name: "a.md", mimeType: "text/markdown" }));
     expect(hit.content).toBeUndefined();
     expect(hit.skipped).toMatch(/no tiene un lector remoto/);
     expect(readMock).not.toHaveBeenCalled();
+    expect(driveReadMock).not.toHaveBeenCalled();
   });
 
-  it("un binario no se descarga como si fuera código, aunque venga de MEGA", async () => {
-    const hit = await readKBResource(megaResource({ name: "logo.png", mimeType: "image/png" }));
-    expect(hit.content).toBeUndefined();
-    expect(hit.skipped).toMatch(/binario/);
+  it("lee una ficha .md de Google Drive con su cuenta", async () => {
+    driveReadMock.mockReset();
+    driveReadMock.mockResolvedValue(new TextEncoder().encode("# Contraste\nMínimo 4.5:1"));
+    const r = driveResource({ id: "d-md", name: "contraste.md", mimeType: "text/markdown", remoteId: "d-md" });
+    const hit = await readKBResource(r);
+    expect(driveReadMock).toHaveBeenCalledWith(r);
+    expect(hit.content).toContain("4.5:1");
+    expect(hit.reasons).toContain("contenido remoto Google Drive");
+  });
+
+  it("lee .jsonl de Drive (datasets) y recursos antiguos sin sourceProvider", async () => {
+    driveReadMock.mockReset();
+    driveReadMock.mockResolvedValue(new TextEncoder().encode('{"id":"dd-001"}'));
+    const jsonl = await readKBResource(driveResource({ name: "design-decisions.jsonl", mimeType: "application/octet-stream" }));
+    expect(jsonl.content).toContain("dd-001");
+    const antiguo = await readKBResource(driveResource({ name: "notas.md", mimeType: "text/markdown", sourceProvider: undefined, sourceKind: "upload" }));
+    expect(antiguo.content).toContain("dd-001");
+  });
+
+  it("un Google Doc nativo se considera texto", async () => {
+    driveReadMock.mockReset();
+    driveReadMock.mockResolvedValue(new TextEncoder().encode("texto del doc"));
+    const hit = await readKBResource(driveResource({ name: "Guía", mimeType: "application/vnd.google-apps.document" }));
+    expect(hit.content).toBe("texto del doc");
+  });
+
+  it("MEGA es solo código: un .txt o .csv de MEGA no se lee", async () => {
+    const hit = await readKBResource(megaResource({ name: "notas.txt" }));
+    expect(hit.skipped).toMatch(/solo para código/);
     expect(readMock).not.toHaveBeenCalled();
+  });
+
+  it("un binario no se descarga como si fuera texto, venga de MEGA o de Drive", async () => {
+    const hit = await readKBResource(megaResource({ name: "logo.js.png", mimeType: "image/png" }));
+    expect(hit.skipped).toMatch(/binario|solo para código/);
+    const img = await readKBResource(driveResource());
+    expect(img.content).toBeUndefined();
+    expect(img.skipped).toMatch(/binario/);
+    expect(readMock).not.toHaveBeenCalled();
+    expect(driveReadMock).not.toHaveBeenCalled();
   });
 
   it("respeta el límite de tamaño por metadato sin llegar a descargar", async () => {
@@ -89,7 +130,29 @@ describe("readKBResource", () => {
 });
 
 describe("retrieveKBContent", () => {
-  beforeEach(() => readMock.mockReset());
+  beforeEach(() => { readMock.mockReset(); driveReadMock.mockReset(); });
+
+  it("alterna Drive y MEGA para que el código no se coma el cupo del conocimiento", async () => {
+    readMock.mockResolvedValue(new TextEncoder().encode("codigo"));
+    driveReadMock.mockResolvedValue(new TextEncoder().encode("ficha"));
+    const results = [
+      hitFor(megaResource({ id: "m1", name: "A.tsx" }), 9),
+      hitFor(megaResource({ id: "m2", name: "B.tsx" }), 8),
+      hitFor(megaResource({ id: "m3", name: "C.tsx" }), 7),
+      hitFor(driveResource({ id: "d1", name: "jerarquia.md", mimeType: "text/markdown" }), 3),
+    ];
+    const hits = await retrieveKBContent(results, { maxFiles: 2 });
+    expect(hits.filter((h) => h.content).map((h) => h.resource.id)).toEqual(["m1", "d1"]);
+    const sinBalance = await retrieveKBContent(results, { maxFiles: 2, balanceProviders: false });
+    expect(sinBalance.filter((h) => h.content).map((h) => h.resource.id)).toEqual(["m1", "m2"]);
+  });
+
+  it("interleaveByProvider conserva el orden dentro de cada proveedor", () => {
+    const r = [hitFor(megaResource({ id: "m1" })), hitFor(megaResource({ id: "m2" })), hitFor(driveResource({ id: "d1" })), hitFor(driveResource({ id: "d2" }))];
+    expect(interleaveByProvider(r).map((x) => x.resource.id)).toEqual(["m1", "d1", "m2", "d2"]);
+    const solo = [hitFor(megaResource({ id: "m1" }))];
+    expect(interleaveByProvider(solo)).toBe(solo);
+  });
 
   it("no agota el cupo de `maxFiles` en candidatos sin lector remoto: sigue buscando hasta encontrar código real", async () => {
     readMock.mockResolvedValue(new TextEncoder().encode("export const x = 1;"));
@@ -144,6 +207,11 @@ describe("retrieveKBContent", () => {
 });
 
 describe("kbContentContext", () => {
+  it("nombra la cuenta de Drive de la que sale cada ficha", () => {
+    const ctx = kbContentContext([{ resource: driveResource({ name: "contraste.md" }), score: 5, reasons: [], content: "Mínimo 4.5:1" }]);
+    expect(ctx).toContain("Fuente: Google Drive (ana@example.com)");
+  });
+
   it("renderiza solo contenido recuperado, conserva la ruta y nombra el proveedor real", () => {
     const ctx = kbContentContext([
       { resource: megaResource(), score: 8, reasons: ["nombre"], content: "export function ProductCard() {}" },

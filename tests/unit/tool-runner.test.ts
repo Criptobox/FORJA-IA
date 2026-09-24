@@ -93,6 +93,68 @@ describe("kb_search", () => {
   });
 });
 
+describe("kb_read", () => {
+  const ficha = {
+    id: "d-contraste",
+    name: "contraste.md",
+    mimeType: "text/markdown",
+    sizeBytes: 900,
+    accountEmail: "diseno@example.com",
+    webViewLink: "",
+    category: "color",
+    tags: ["wcag"],
+    technology: "",
+    license: "original-forja",
+    status: "clasificado" as const,
+    indexedAt: "2026-01-01T00:00:00.000Z",
+    relativePath: "DISEÑO/07-COLOR/contraste/contraste.md",
+    sourceProvider: "google-drive" as const,
+    remoteId: "d-contraste",
+  };
+
+  it("lee el contenido de un recurso indexado con el lector inyectado", async () => {
+    const r = await runTool(
+      call("kb_read", { id: "d-contraste", max_chars: 800 }),
+      ctx({ kbResources: [ficha], kbRead: async (res, max) => ({ resource: res, score: 1, reasons: [], content: `max=${max} Mínimo 4.5:1` }) })
+    );
+    expect(r.ok).toBe(true);
+    expect(r.content).toContain("DISEÑO/07-COLOR/contraste/contraste.md");
+    expect(r.content).toContain("diseno@example.com");
+    expect(r.content).toContain("max=800 Mínimo 4.5:1");
+  });
+
+  it("no lee ids que no estén en el índice (nada de archivos arbitrarios de Drive)", async () => {
+    let llamado = false;
+    const r = await runTool(
+      call("kb_read", { id: "1otroIdCualquiera" }),
+      ctx({ kbResources: [ficha], kbRead: async (res) => { llamado = true; return { resource: res, score: 1, reasons: [], content: "x" }; } })
+    );
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("kb_search");
+    expect(llamado).toBe(false);
+  });
+
+  it("si no se pudo leer, dice por qué", async () => {
+    const r = await runTool(
+      call("kb_read", { id: "d-contraste" }),
+      ctx({ kbResources: [ficha], kbRead: async (res) => ({ resource: res, score: 0, reasons: [], skipped: "cuenta no conectada" }) })
+    );
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("cuenta no conectada");
+  });
+
+  it("sin id, error de argumento", async () => {
+    const r = await runTool(call("kb_read", {}), ctx({ kbResources: [ficha] }));
+    expect(r.ok).toBe(false);
+    expect(r.content).toContain("id");
+  });
+
+  it("kb_search enseña el id que kb_read necesita", async () => {
+    const r = await runTool(call("kb_search", { query: "contraste" }), ctx({ kbResources: [ficha] }));
+    expect(r.content).toContain("id: d-contraste");
+  });
+});
+
 describe("kb_project_search", () => {
   const proyecto = {
     version: 1 as const,

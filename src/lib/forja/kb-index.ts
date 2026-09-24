@@ -181,7 +181,7 @@ export function kbSearch(resources: KBResource[], q: string, limit = 8): KBResou
   const puntuados = resources
     .map((r) => {
       const texto = normalizarKB(
-        [r.name, r.category, r.tags.join(" "), r.technology, r.license].join(" ")
+        [r.name, r.category, r.tags.join(" "), r.technology, r.license, r.relativePath ?? ""].join(" ")
       );
       const puntos = terminos.reduce((acc, t) => acc + (texto.includes(t) ? 10 : 0), 0);
       return { r, puntos };
@@ -201,12 +201,12 @@ export function renderKbSearch(results: KBResource[], q: string, total: number):
   if (!results.length) {
     return `Hay ${total} recurso(s) indexados, pero ninguno casa con «${q}». Prueba otra palabra o revisa qué hay indexado en «Conocimiento» antes de asumir que no existe.`;
   }
-  const out = [`${results.length} recurso(s) de la Knowledge Base para «${q}»:`, ""];
+  const out = [`${results.length} recurso(s) de la Knowledge Base para «${q}» (lee el contenido con kb_read y el id):`, ""];
   for (const r of results) {
     const detalle = [r.category || "sin categoría", r.technology, r.tags.join(", ")]
       .filter(Boolean)
       .join(" · ");
-    out.push(`· ${r.name} — ${detalle} (${r.accountEmail})`);
+    out.push(`· ${r.name} — ${detalle} (${r.accountEmail}) · id: ${r.id}`);
     if (r.webViewLink) out.push(`    ${r.webViewLink}`);
   }
   return out.join("\n");

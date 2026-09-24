@@ -1,8 +1,9 @@
 /**
  * Forja IA — contrato unificado de almacenamiento.
  *
- * Google Drive: referencias/documentos/Knowledge Base.
- * MEGA: código, repos, componentes, datasets y recetas.
+ * Google Drive (varias cuentas, una por área): conocimiento, referencias,
+ * documentos, imágenes, datasets y licencias.
+ * MEGA: SOLO código — repos, componentes, plantillas y recetas de Forja.
  * El Cerebro habla con este contrato y no con SDKs concretos.
  */
 
@@ -39,7 +40,7 @@ export interface StorageProvider {
 
 export const STORAGE_ROLES: Record<StorageProviderId, string[]> = {
   "google-drive": ["knowledge", "references", "documents", "images", "datasets", "licenses"],
-  mega: ["code", "repositories", "components", "templates", "datasets", "forja-recipes"],
+  mega: ["code", "repositories", "components", "templates", "forja-recipes"],
 };
 
 /** MEGA queda como contrato hasta conectar una sesión/SDK real. No finge una implementación. */
