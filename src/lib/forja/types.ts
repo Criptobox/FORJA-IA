@@ -294,6 +294,10 @@ export interface AppSettings {
   /** Techo de llamadas a modelos DE PAGO por día natural. `null` = sin techo,
    * que es una opción legítima para quien sabe lo que hace. Ver `gasto.ts`. */
   topeLlamadasPago?: number | null;
+  /** Presupuesto en dinero (USD) medido con los tokens del proveedor y el
+   * catálogo de precios: mensual, diario y por tarea. `null` en un campo =
+   * sin ese límite. Al llegar, solo modelos gratis. Ver `presupuesto-dinero.ts`. */
+  presupuestoUsd?: { mensual: number | null; diario: number | null; tarea: number | null };
   /** Proveedores a los que NO se manda nada, aunque tengan clave puesta.
    * Corta también los caminos automáticos —failover, panel, ejecutores—, que
    * son los que eligen por ti. Ver `vetados.ts`. */
@@ -335,6 +339,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   // Encendido de fábrica: apagado no protege a quien no sabe que existe, que
   // es justo quien se lleva el susto en la factura.
   topeLlamadasPago: 200,
+  // Los límites del Plan Maestro 2026 §58: gastar dinero es siempre una
+  // decisión, así que de fábrica hay techo.
+  presupuestoUsd: { mensual: 5, diario: 1, tarea: 0.5 },
   proveedoresVetados: [],
   // Todo concedido de salida: ver el porqué en `PERMISOS_POR_DEFECTO`.
   permisosAgente: { lee_proyecto: true, escribe_proyecto: true, ejecuta: true, red: true },

@@ -104,8 +104,10 @@ test("el medidor enseña el número del prompt que de verdad se manda", async ({
   expect(medido).toBeGreaterThan(0);
   await page.keyboard.press("Escape");
 
-  // 2. lo que sale por el cable
-  const sys = await systemPromptDe(page, "hola");
+  // 2. lo que sale por el cable. Con un encargo, no con un saludo: en un
+  // turno trivial («hola») las skills no viajan (`prompt-actual.ts`), y el
+  // medidor enseña el prompt de un turno normal.
+  const sys = await systemPromptDe(page, "explica qué es flexbox");
 
   // El medidor mide el prompt SIN la sesión abierta (todavía no hay mapa),
   // así que el que viaja puede traer piezas de más, nunca de menos.

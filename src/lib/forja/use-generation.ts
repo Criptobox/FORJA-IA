@@ -31,7 +31,15 @@ import {
 } from "./types";
 import { PROVIDER_MAP } from "./providers";
 import { streamChat } from "./chat-client";
-import { esSoloFiltroSeguridad, isQuotaError, pickFailoverCandidate, sanearOrdenFallback } from "./free-models";
+import { esSoloFiltroSeguridad, isFreeModel, isQuotaError, pickFailoverCandidate, sanearOrdenFallback } from "./free-models";
+import {
+  guardarLibro,
+  iniciarTarea,
+  leerLibro,
+  normalizarLimites,
+  resumenPresupuesto,
+  veredictoDinero,
+} from "./presupuesto-dinero";
 import {
   buildTaskChain,
   classifyTask,
@@ -471,7 +479,11 @@ export function useGeneration(ctx: CtxGeneracion) {
 
       // Turno nuevo de verdad (ni failover, ni continuación, ni revisión):
       // el expediente empieza en blanco.
-      if (depth === 0 && continuaciones === 0 && revisiones === 0) intentosRef.current = [];
+      if (depth === 0 && continuaciones === 0 && revisiones === 0) {
+        intentosRef.current = [];
+        // …y el contador de gasto POR TAREA también (presupuesto-dinero.ts)
+        guardarLibro(iniciarTarea(leerLibro(), `${sessionId}:${Date.now()}`));
+      }
 
       // clave fresca del store (importante tras un failover que cambió el modelo)
       const freshKey = session.modelKey ?? state.settings.defaultModelKey ?? undefined;
@@ -488,18 +500,28 @@ export function useGeneration(ctx: CtxGeneracion) {
       // ——— cadena de candidatos ———
       type Candidate = { providerId: ProviderId; modelId: string };
       let chain: Candidate[] = [];
+      // Presupuesto en dinero agotado (mensual, diario o de esta tarea):
+      // FORJA pasa a SOLO GRATIS. Los de pago salen de la cadena aquí, antes
+      // de gastar un intento en ellos; `streamChat` los cortaría igualmente.
+      const presupuesto = veredictoDinero(
+        leerLibro(),
+        normalizarLimites(state.settings.presupuestoUsd),
+        Date.now()
+      );
+      const sinPresupuesto = !presupuesto.ok;
+      const health = useHealth.getState();
+      // el bloqueo mira modelo Y proveedor: si la cuota del proveedor está agotada,
+      // no se dan tumbos entre sus modelos — se salta directo al siguiente proveedor
+      // …y un modelo que «Probar modelos» confirmó que el proveedor no
+      // reconoce no entra en la cadena: Auto lo elegía igual y fallaba en el
+      // primer intento, gastando un salto para nada.
+      const rotos = useModelosRotos.getState().rotos;
+      const bloqueado = (pid: ProviderId, mid: string) =>
+        (sinPresupuesto && !isFreeModel(pid, mid)) ||
+        estaRoto(rotos, makeModelKey(pid, mid)) ||
+        cooldownRemaining(health.entries[makeModelKey(pid, mid)]) > 0 ||
+        providerCooldownRemaining(health.providerEntries[pid]) > 0;
       if (auto || forjaWeb) {
-        const health = useHealth.getState();
-        // el bloqueo mira modelo Y proveedor: si la cuota del proveedor está agotada,
-        // no se dan tumbos entre sus modelos — se salta directo al siguiente proveedor
-        // …y un modelo que «Probar modelos» confirmó que el proveedor no
-        // reconoce no entra en la cadena: Auto lo elegía igual y fallaba en el
-        // primer intento, gastando un salto para nada.
-        const rotos = useModelosRotos.getState().rotos;
-        const bloqueado = (pid: ProviderId, mid: string) =>
-          estaRoto(rotos, makeModelKey(pid, mid)) ||
-          cooldownRemaining(health.entries[makeModelKey(pid, mid)]) > 0 ||
-          providerCooldownRemaining(health.providerEntries[pid]) > 0;
         chain = buildTaskChain(
           task.kind,
           state.providers,
@@ -532,6 +554,26 @@ export function useGeneration(ctx: CtxGeneracion) {
         const resolved = resolveModel(freshKey);
         if (!resolved) return;
         chain = [resolved];
+        // El modelo elegido a mano es de pago y no queda presupuesto: en vez
+        // de un error seco, responde el mejor gratis para este encargo.
+        if (sinPresupuesto && !isFreeModel(resolved.providerId, resolved.modelId)) {
+          const gratis = buildTaskChain(task.kind, state.providers, bloqueado, 6, null, useUsage.getState().byModel);
+          if (gratis.length) {
+            chain = gratis;
+            if (depth === 0) {
+              toast.warning("Presupuesto alcanzado: responde un modelo gratis", {
+                description: `${presupuesto.motivo ?? ""} Esta vez responde ${gratis[0].modelId}.`,
+                duration: 8000,
+              });
+            }
+          }
+        }
+      }
+      if (depth === 0 && presupuesto.ok && presupuesto.avisar) {
+        toast.message("Presupuesto casi agotado", {
+          description: resumenPresupuesto(leerLibro(), normalizarLimites(state.settings.presupuestoUsd), Date.now()),
+          duration: 6000,
+        });
       }
 
       // Con semilla se escribe DENTRO de la burbuja del modelo caído: así el

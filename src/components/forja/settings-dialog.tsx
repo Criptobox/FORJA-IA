@@ -62,6 +62,15 @@ import { APP_BUILT, APP_COMMIT, APP_VERSION, buildLabel } from "@/lib/forja/app-
 import { sinSecretos, textoDiagnostico } from "@/lib/forja/diagnostics";
 import { useHealth } from "@/lib/forja/health";
 import { PROVIDERS } from "@/lib/forja/providers";
+import {
+  guardarLibro,
+  leerLibro,
+  LIBRO_VACIO,
+  LIMITES_POR_DEFECTO,
+  normalizarLimites,
+  resumenPresupuesto,
+  type LimitesDinero,
+} from "@/lib/forja/presupuesto-dinero";
 import { lockVault, removeVaultPin, setVaultPin, useVault } from "@/lib/forja/vault";
 import { PANTALLA_ESTRECHA, useMediaQuery } from "@/lib/forja/use-media-query";
 import type { ProviderId } from "@/lib/forja/types";
@@ -474,14 +483,13 @@ export function SettingsDialog({
                   equipo pueden sumar cientos de llamadas sin que nada te avise.
                 </p>
               )}
-              {/* Sin convertir llamadas en dinero: los precios varían por
-                  proveedor, por modelo y con el tiempo, y no se pueden saber
-                  desde aquí. Un «≈ 2,40 $» inventado sería peor que esto. */}
               <p className="mt-2 text-[10.5px] leading-relaxed text-muted-foreground/80">
-                Se cuentan llamadas, no euros: los precios de cada proveedor no se pueden saber
-                desde tu dispositivo y un importe inventado sería peor que un número honesto.
+                Cuenta llamadas, también las de modelos sin precio conocido. El límite en dinero
+                va justo debajo.
               </p>
             </div>
+
+            <PresupuestoDinero />
 
             {settings.agentMode && (
               <div className="rounded-xl border border-border/60 px-4 py-3">
@@ -764,6 +772,83 @@ export function SettingsDialog({
 }
 
 /** Selector de acento personalizado: cualquier color + dos tonos complementarios generados */
+/** Presupuesto en dinero (Plan Maestro 2026 §58): mensual, diario y por
+ *  tarea. Vacío = sin ese límite. Al llegar a cualquiera, solo gratis. */
+function PresupuestoDinero() {
+  const guardado = useForja((s) => s.settings.presupuestoUsd);
+  const setSettings = useForja((s) => s.setSettings);
+  const limites = normalizarLimites(guardado);
+  const activo = limites.mensual != null || limites.diario != null || limites.tarea != null;
+  // Se recalcula en cada render: el libro vive fuera de React y los límites
+  // cambian al escribir. `ahora` se fija al abrir y al reiniciar.
+  const [ahora, setAhora] = useState(() => Date.now());
+  const resumen = resumenPresupuesto(leerLibro(), limites, ahora);
+  const poner = (campo: keyof LimitesDinero, valor: string) => {
+    const v = valor.trim() === "" ? null : Number(valor.replace(",", "."));
+    setSettings({ presupuestoUsd: { ...limites, [campo]: v != null && Number.isFinite(v) && v >= 0 ? v : null } });
+  };
+  const campos: Array<[keyof LimitesDinero, string]> = [
+    ["mensual", "al mes"],
+    ["diario", "al día"],
+    ["tarea", "por tarea"],
+  ];
+  return (
+    <div className="rounded-xl border border-border/60 px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <Label className="text-[13px]">Presupuesto en dinero</Label>
+          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+            Se mide con los tokens que reporta el proveedor y el catálogo de precios. Al llegar a
+            cualquier límite, FORJA pasa a solo modelos gratis. La llamada que cruza el límite se
+            paga entera: el importe solo se sabe al terminar.
+          </p>
+        </div>
+        <Switch
+          aria-label="Presupuesto en dinero"
+          checked={activo}
+          onCheckedChange={(v) =>
+            setSettings({ presupuestoUsd: v ? { ...LIMITES_POR_DEFECTO } : { mensual: null, diario: null, tarea: null } })
+          }
+        />
+      </div>
+      {activo && (
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {campos.map(([campo, etiqueta]) => (
+            <label key={campo} className="flex flex-col gap-1 text-[11px] text-muted-foreground">
+              <span>$ {etiqueta}</span>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                placeholder="sin límite"
+                value={limites[campo] ?? ""}
+                onChange={(e) => poner(campo, e.target.value)}
+                className="h-8 text-right text-xs"
+                aria-label={`Presupuesto ${etiqueta} en dólares`}
+              />
+            </label>
+          ))}
+        </div>
+      )}
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <p className="text-[11px] tabular-nums text-muted-foreground">{resumen}</p>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-[11px]"
+          onClick={() => {
+            guardarLibro(LIBRO_VACIO);
+            setAhora(Date.now());
+            toast.success("Contador de gasto reiniciado");
+          }}
+        >
+          Reiniciar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function AppearanceCustom() {
   const settings = useForja((s) => s.settings);
   const setSettings = useForja((s) => s.setSettings);

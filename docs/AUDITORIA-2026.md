@@ -139,9 +139,30 @@ Ya existía antes de este sprint:
 
 Por eso no se ha duplicado.
 
-## 6. Orden propuesto para los siguientes sprints
+## 6. Sprint 3 — Budget Engine en dinero (`presupuesto-dinero.ts`)
+
+- **Límites de fábrica** (§58):
+
+  | Límite | Importe |
+  |---|---|
+  | Mensual | 5 $ |
+  | Diario | 1 $ |
+  | Por tarea | 0,50 $ |
+
+  Se editan en Ajustes → Chat → Presupuesto en dinero, y un campo vacío significa «sin límite». «Tarea» es un envío del usuario con todo lo que desencadena: failover, continuaciones, revisiones y el orquestador.
+- **Qué se cuenta:** solo el dinero medido, es decir, los tokens que reporta el proveedor multiplicados por el precio fechado de `precios.ts`.
+  - Una llamada de pago sin cuenta o sin precio no suma dinero. Queda contada como «sin importe conocido», y para esas sigue valiendo el techo de llamadas de `gasto.ts`.
+- **Qué pasa al llegar al límite** (FREE ONLY):
+  - `streamChat` corta cualquier llamada de pago antes de que salga, incluidas las de los caminos automáticos.
+  - Auto y FORJA WEB sacan los modelos de pago de su cadena.
+  - Si el modelo elegido a mano es de pago, responde el mejor gratis para ese encargo y se avisa.
+- **Aviso previo:** desde el 80 % de cualquier límite, al empezar cada tarea.
+- **Límite conocido:** el importe de una llamada solo se sabe cuando termina. La llamada que cruza el límite se paga entera y es la última; se explica en Ajustes.
+- **Duplicados:** `gasto.ts` (techo de llamadas) se mantiene como segunda barrera. Los demás módulos de coste del motor (`perfiles.ts`, `presupuesto-tokens.ts`, `token-roi.ts`) quedan para fusionarse cuando se haga el Task Ledger.
+
+## 7. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 
-- **Sprint 3:** interfaz `ModelProvider` y tabla de capacidades (§59–60). Budget Engine único con los límites del §58 y el modo FREE-ONLY automático al llegar al tope.
+- **Sprint 3 (pendiente):** interfaz `ModelProvider` y tabla de capacidades (§59–60). Fallback inteligente por tipo de error (§61).
 - **Sprint 4 y siguientes:** Design First con aprobación, fusión de Vision QA, escalera de recuperación y gates de publicación.
