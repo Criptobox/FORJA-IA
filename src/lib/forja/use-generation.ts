@@ -160,6 +160,8 @@ import {
   usaParches,
 } from "./retoque-parche";
 import { bloquesConNombre } from "./answer-files";
+import { hallazgosQA, hayQueCorregirQA, promptDeQA, resumenQA } from "./qa-responsive";
+import { reglaDeQA } from "./visual-qa";
 import { nivelDeContexto } from "./nivel-contexto";
 import { ordenarParaVision, useCapacidades } from "./capacidades";
 import { esFalloDeImagen } from "./model-probe";
@@ -1627,6 +1629,39 @@ export function useGeneration(ctx: CtxGeneracion) {
                   toast.warning("Botones que fallan", {
                     description: `${resumenBotones(inf)} Corrigiéndolo solo (${revisiones + 1} de ${MAX_REVISIONES}).`,
                     duration: 7000,
+                  });
+                  relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
+                  return;
+                }
+                // ——— Y si funciona pero se rompe en el MÓVIL ———
+                //
+                // El medidor de `visual-qa.ts` ya corría a 390 px en esta misma
+                // ejecución, pero de lo que medía solo se usaban las señas de
+                // «genérica». Scroll horizontal, botones fuera de pantalla o sin
+                // nombre y contraste ilegible se medían y se tiraban. Ahora los
+                // graves vuelven al modelo (`qa-responsive.ts`).
+                const qaMovil = hallazgosQA(salida.qa);
+                if (hayQueCorregirQA(qaMovil)) {
+                  for (const h of qaMovil.filter((x) => x.severidad !== "baja").slice(0, 3)) {
+                    useFailures.getState().record("sandbox", `Móvil: ${h.etiqueta}`, reglaDeQA(h.tipo), "warn");
+                  }
+                  if (!quedan) {
+                    toast.warning("La página sigue fallando en el móvil", {
+                      description: resumenQA(qaMovil),
+                      duration: 9000,
+                    });
+                    return;
+                  }
+                  addMessage(sessionId, {
+                    id: uid(),
+                    role: "user",
+                    content: promptDeQA(qaMovil, salida.qa?.width ?? 390, proyecto.entry),
+                    createdAt: Date.now(),
+                    instruction: true,
+                  });
+                  toast.warning("Falla en el móvil", {
+                    description: `${resumenQA(qaMovil)}. Corrigiéndolo solo (${revisiones + 1} de ${MAX_REVISIONES}).`,
+                    duration: 8000,
                   });
                   relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
                   return;
