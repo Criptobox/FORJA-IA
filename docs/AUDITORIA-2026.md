@@ -192,7 +192,21 @@ El Estudio (`/forja`) ya proponía antes de construir. El chat, que es donde se 
 - **Cuándo no sale:** en retoques, apps, con imagen de referencia, en proyectos con identidad ya fijada (salvo que se pida otro estilo), con «directo» en el encargo o si se apaga en Ajustes → Chat.
 - **Pruebas:** `tests/e2e/propuesta-diseno.spec.ts` comprueba que la propuesta no hace ninguna petición y que lo elegido llega al prompt. Los E2E que prueban la construcción desactivan la propuesta en su configuración de arranque.
 
-## 8. Orden propuesto para los siguientes sprints
+## 8. Sprint 5 — Builder: retoques por parche y Quality Gate (`retoque-parche.ts`)
+
+- **Bug corregido en `patch.ts`**: cuando el SEARCH solo casaba ignorando la sangría (el caso más frecuente con modelos gratis), la coincidencia flexible volvía a escribir el **SEARCH** en lugar del REPLACE. El parche contaba como aplicado y el archivo quedaba igual. Afectaba también a la herramienta `apply_patch` del agente. Tiene test que lo reproduce.
+- **Retoques por parche en el chat** (§63):
+  - **Cuándo:** en un retoque (L2), sin agente y sobre archivos de más de 1.500 caracteres.
+  - **Qué se pide:** bloques SEARCH/REPLACE bajo el nombre del archivo.
+  - **Qué pasa al llegar la respuesta:** se aplican sobre la última versión y el archivo completo se añade a la respuesta localmente, sin gastar tokens, para que la vista previa, el ZIP y el historial sigan viendo archivos enteros.
+  - **Ahorro:** en una página de 20.000 caracteres, la salida de un retoque pasa de ~20.000 a ~500-1.000 caracteres (en torno al 95 %). Además es más rápido y no da ocasión de cambiar lo que nadie pidió.
+- **Rollback** (§22): si algún bloque de un archivo no casa, ese archivo no se toca y se pide completo en un segundo intento. Nunca queda un archivo a medio parchear.
+- **Quality Gate** (§62):
+  - **Qué detecta:** un archivo entregado con partes omitidas («<!-- resto del código igual -->», «// ... existing code ...») que mide mucho menos que su versión anterior.
+  - **Qué hace:** no se acepta, se neutraliza en la respuesta (la versión anterior sigue siendo la buena) y se pide bien. Antes, ese archivo sustituía a la página entera.
+- **Pruebas:** `tests/e2e/retoque-parche.spec.ts` comprueba los dos caminos en el navegador con un mock: parche aplicado y parche que no casa.
+
+## 9. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 
