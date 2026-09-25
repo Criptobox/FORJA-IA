@@ -241,7 +241,27 @@ La revisión automática (consola, botones, móvil, genérica/dirección, conten
   - E2E en `qa-movil.spec.ts`: un modelo terco que nunca arregla el desbordamiento en móvil. La 2ª corrección la hace otro modelo, que sí lo arregla.
   - `generico.spec` pasa de esperar 2 correcciones a esperar 1: con un solo modelo configurado ya no se repite la petición que falló.
 
-## 11. Orden propuesto para los siguientes sprints
+## 11. Sprint 8 — Comprobaciones antes de publicar (`pre-publicacion.ts`)
+
+Publicar en Netlify subía el ZIP tal cual: nada impedía sacar a una URL pública una página con una clave de API en el código, un `<script src>` a un archivo que no existe o «Teléfono: pendiente» a la vista.
+
+- **La cadena del §41**, en siete etapas: Build → Pruebas → Seguridad → SEO → Accesibilidad → Rendimiento → Datos del negocio.
+- **No se ha inventado ninguna comprobación.** Todo sale de piezas que ya existían:
+  - el verificador del agente (`web-verifier.ts`, el mismo de `verify_project`);
+  - la auditoría estática (`web-audit.ts`);
+  - la ejecución real de la página en un iframe (`runProjectInMemory` con QA).
+  - Lo único nuevo es la detección de **datos pendientes** en el texto visible: «pendiente», «por confirmar», «lorem ipsum», teléfonos 555…
+- **Qué bloquea y qué avisa:**
+  - Bloquean: sin página de entrada, un archivo local enlazado que no existe, errores al ejecutarla y credenciales en el código.
+  - Solo avisan: SEO, accesibilidad, rendimiento y datos pendientes.
+  - Sin ejecución, la etapa Pruebas sale como «sin dato», nunca como «bien».
+- **Human-in-the-loop** (§66): un bloqueo desactiva el botón de publicar, pero se puede publicar igualmente marcando «Lo he revisado y quiero publicar igualmente». Esa marca no se arrastra a la siguiente vez.
+- **Pruebas:**
+  - `tests/unit/pre-publicacion.test.ts` usa el verificador real.
+  - `tests/e2e/pre-publicacion.spec.ts` con `mock-con-clave` comprueba que Seguridad bloquea, que Datos avisa, que el botón queda desactivado hasta decidir y que no sale ninguna llamada a Netlify.
+- **Pendiente:** el enlace de despliegue del Sandbox (`/d#…`) y GitHub Pages (Repo Studio) todavía no pasan por estas comprobaciones. `puertaPublicacion()` es pura y se puede conectar ahí igual.
+
+## 12. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 

@@ -65,6 +65,7 @@ const MODELOS = [
   "mock-diagnostica",
   "mock-parche",
   "mock-movil-roto",
+  "mock-con-clave",
   "mock-movil-terco-free",
   "mock-movil-arregla-free",
   "mock-visual-review",
@@ -366,6 +367,32 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<p style="font-size:13px;margin:0 16px 12px">Terraza con vistas a La Caleta.</p>',
       '<h2 style="font-size:26px;margin:16px">La carta</h2>',
       banda,
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-con-clave`: una página correcta a la vista pero con una clave de API
+  // dentro del código y el teléfono sin dar («pendiente»). Sirve para
+  // comprobar que las comprobaciones antes de publicar la paran.
+  if (modelo === "mock-con-clave") {
+    return [
+      "Aquí tienes la página.",
+      "",
+      "**index.html**",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Cafetería La Ola</title>',
+      '<meta name="description" content="Café de especialidad frente al mar en Cádiz"></head>',
+      '<body style="margin:0;font-family:Georgia,serif;color:#1b1b1b;background:#fffaf2">',
+      '<main><h1 style="font-size:44px;margin:24px 16px">Café de especialidad frente al mar</h1>',
+      '<p style="font-size:17px;margin:0 16px 12px;font-family:system-ui">Tostamos cada semana en Cádiz.</p>',
+      '<h2 style="font-size:26px;margin:16px">Contacto</h2>',
+      '<p style="font-size:15px;margin:0 16px;font-family:system-ui">Teléfono: pendiente</p></main>',
+      // la clave se arma por trozos: escrita entera, el propio repo tendría una
+      // «credencial» en su código (y la higiene del repo la caza, con razón)
+      `<script>const MAPS_KEY = "${"AI" + "za"}SyD-ejemploDeClaveQueNoDeberiaEstarAqui";</script>`,
       "</body></html>",
       "```",
     ].join("\n");
