@@ -32,6 +32,8 @@ async function seed(page: Page, model: string) {
             // sustituye lo que el JSON persistido trae — omitir la clave
             // deja los valores por defecto (las builtin, activas) tal cual.
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: `custom::${m}`,
               accessCode: "",
               agentModes: [],

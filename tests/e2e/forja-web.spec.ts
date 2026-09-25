@@ -29,6 +29,8 @@ test.describe("FORJA WEB (preset seleccionable)", () => {
           favorites: [],
           radarSeenIds: [],
           settings: {
+            // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+            propuestaDiseno: false,
             defaultModelKey: "custom::mock-mini-free",
             systemPrompt: "Eres Forja IA (test).",
             temperature: 0.7,
@@ -93,6 +95,8 @@ test.describe("FORJA WEB (preset seleccionable)", () => {
             favorites: [],
             radarSeenIds: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: "forja::web",
               systemPrompt: "Eres Forja IA (test).",
               temperature: 0.7,

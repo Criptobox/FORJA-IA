@@ -21,6 +21,7 @@ import { compareRuns, comparables, resumenRegresion } from "./regression";
 import type { ProjectMap } from "./types";
 import { buscarEnMapa, resumenMemoria, MAX_RESULTADOS_MEMORIA } from "./project-map";
 import { kbSearch, renderKbSearch, type KBResource } from "./kb-index";
+import { readKBResource, type KBContentHit } from "./kb-content-retrieval";
 import { retrieveProjectKnowledge, projectKnowledgeContext } from "./kb-project-retrieval";
 import type { KBRepoAnalysis } from "./kb-repo-analyzer";
 import { compararProyectos, resumenProyectos } from "./diff-proyectos";
@@ -125,6 +126,9 @@ export interface ToolContext {
    * `kbResources`: se inyecta fresco en cada llamada y, si no viene, la
    * herramienta lo trata como «sin proyectos» en vez de fallar. */
   kbProjectManifests?: readonly KBRepoAnalysis[];
+  /** Lector de contenido para `kb_read`. Por defecto el real
+   * (`readKBResource`: Drive o MEGA); los tests lo sustituyen. */
+  kbRead?: (resource: KBResource, maxChars: number) => Promise<KBContentHit>;
   /** Le enseña una captura al modelo con visión y devuelve su crítica.
    * La implementación real vive en `use-agent-tools.ts` (necesita el
    * proveedor/modelo/clave de la conversación en curso, que el runner no
@@ -279,6 +283,8 @@ export async function runTool(
         return runAskMemory(call, ctx);
       case "kb_search":
         return runKbSearch(call, ctx);
+      case "kb_read":
+        return await runKbRead(call, ctx);
       case "kb_project_search":
         return runKbProjectSearch(call, ctx);
       case "research":
@@ -988,6 +994,24 @@ function runKbSearch(call: ToolCall, ctx: ToolContext): ToolResult {
   const limite = numArg(call, "limit", 1, 20) ?? 8;
   const resultados = kbSearch([...resources], q, limite);
   return toolOk(call, renderKbSearch(resultados, q, resources.length));
+}
+
+/** Lee el contenido de UN recurso ya indexado (Drive o MEGA). Solo acepta
+ * ids que estén en el índice: el modelo no puede pedir un archivo arbitrario
+ * de Drive inventándose un id. */
+async function runKbRead(call: ToolCall, ctx: ToolContext): Promise<ToolResult> {
+  const id = strArg(call, "id")?.trim();
+  if (!id) return argError(call, "id");
+  const resource = (ctx.kbResources ?? []).find((r) => r.id === id);
+  if (!resource) {
+    return toolError(call, `No hay ningún recurso con id «${id}» en la Knowledge Base. Usa kb_search primero y copia el id que te devuelva.`);
+  }
+  const maxChars = numArg(call, "max_chars", 500, 30000) ?? 12000;
+  const read = ctx.kbRead ?? ((r: KBResource, max: number) => readKBResource(r, { maxCharsPerFile: max }));
+  const hit = await read(resource, maxChars);
+  if (!hit.content) return toolError(call, `No se leyó «${resource.name}»: ${hit.skipped ?? "sin contenido"}`);
+  const ruta = resource.relativePath || resource.name;
+  return toolOk(call, `${ruta} (${resource.accountEmail || resource.sourceProvider || "KB"})\n\n${hit.content}`);
 }
 
 /** Busca componentes/archivos reutilizables entre los ZIP/repositorios ya

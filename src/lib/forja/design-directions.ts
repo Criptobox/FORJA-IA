@@ -215,8 +215,9 @@ const SEÑALES: Record<string, RegExp> = {
 
 export interface EleccionDireccion {
   direccion: DireccionVisual;
-  /** cómo se decidió: la del usuario (palabra clave) o la del sistema (rotación) */
-  origen: "usuario" | "sistema";
+  /** cómo se decidió: la del usuario (palabra clave), la del sistema
+   *  (rotación) o la ya fijada del proyecto (`contrato-diseno.ts`) */
+  origen: "usuario" | "sistema" | "proyecto";
 }
 
 /** Elige la dirección visual para un encargo de UI.
@@ -346,7 +347,9 @@ export function promptDireccion(e: EleccionDireccion): string {
   const anuncio =
     e.origen === "sistema"
       ? "Has decidido tú (el encargo no traía estilo claro): anúncialo en UNA frase al responder («He elegido una dirección X porque…»). Si te piden otra cosa, cámbiala sin quejarte."
-      : "El encargo trae la dirección clara: respétala sin anunciarla.";
+      : e.origen === "proyecto"
+        ? "Es la dirección ya fijada de este proyecto: mantenla para que todo siga siendo coherente. No la anuncies; solo se cambia si el usuario lo pide."
+        : "El encargo trae la dirección clara: respétala sin anunciarla.";
   return [
     "## DIRECCIÓN DE DISEÑO (obligatoria, decide ANTES de escribir una línea de UI)",
     `Dirección: ${d.nombre} — ${d.cuando}.`,

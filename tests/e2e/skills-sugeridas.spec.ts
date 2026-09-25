@@ -27,6 +27,8 @@ async function seed(page: import("@playwright/test").Page) {
             favorites: [],
             radarSeenIds: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: "custom::mock-mini-free",
               accessCode: "",
               agentModes: [],
@@ -134,9 +136,18 @@ test("no insiste: la misma skill no se propone dos veces", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page.getByText("Desarrollador web experto").first()).toBeVisible({ timeout: 15_000 });
 
-  // se descarta sin activar y se vuelve a pedir lo mismo. Hay que esperar a
-  // que los avisos se vayan solos: mientras están, tapan el compositor.
-  await expect(page.locator("[data-sonner-toast]")).toHaveCount(0, { timeout: 20_000 });
+  // se descarta sin activar y se vuelve a pedir lo mismo. Los avisos tapan el
+  // compositor, así que se cierran. No basta con esperar: con el contrato de
+  // diseño, la revisión automática vigila la dirección también en sus propias
+  // correcciones, y la página fija del mock agota los intentos. El último
+  // aviso («se acabaron los intentos») se queda hasta que alguien lo cierra.
+  const toasts = page.locator("[data-sonner-toast]");
+  await expect(async () => {
+    for (const cerrar of await page.getByRole("button", { name: "Close toast" }).all()) {
+      await cerrar.click({ force: true }).catch(() => {});
+    }
+    await expect(toasts).toHaveCount(0, { timeout: 1_000 });
+  }).toPass({ timeout: 30_000 });
   await input.fill("hazme otra página web");
   await page.keyboard.press("Enter");
   await page.waitForTimeout(2500);

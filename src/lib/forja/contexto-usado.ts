@@ -45,6 +45,13 @@ export interface ContextoUsado {
   diseno?: string;
   /** plano de contenido del motor, resumido («10 secciones · detalle produccion») */
   plano?: string;
+  /** archivos que no viajaron en este turno por no estar relacionados con
+   *  lo que se pedía (`grafo-proyecto.ts`, solo en L1/L2) */
+  omitidos?: string[];
+  /** nivel de contexto del turno («L2 · retoque»), `nivel-contexto.ts` */
+  nivel?: string;
+  /** la dirección viajó solo como contrato compacto (tokens), no entera */
+  disenoCompacto?: boolean;
   /** caracteres del prompt de sistema, ya montado */
   chars: number;
 }
@@ -127,7 +134,14 @@ export function detalleContexto(c: ContextoUsado): string[] {
   if (c.reglas) out.push(`${c.reglas} regla(s) «no tocar»`);
   if (c.fallos) out.push(`${c.fallos} regla(s) aprendida(s) de fallos anteriores`);
   if (c.memorias) out.push(`${c.memorias} decisión(es)/error(es) de la memoria del proyecto`);
-  if (c.diseno) out.push(`Dirección de diseño aplicada: ${c.diseno}`);
+  if (c.nivel) out.push(`Nivel de contexto: ${c.nivel}`);
+  if (c.omitidos?.length) out.push(`Archivos no enviados por no estar relacionados: ${c.omitidos.join(", ")}`);
+  if (c.diseno)
+    out.push(
+      c.disenoCompacto
+        ? `Contrato de diseño del proyecto (solo tokens): ${c.diseno}`
+        : `Dirección de diseño aplicada: ${c.diseno}`
+    );
   if (c.plano) out.push(`Plano de contenido del motor: ${c.plano}`);
   if (c.documentos) out.push(`${c.documentos} documento(s) adjunto(s), como texto`);
   if (c.imagenes) out.push(`${c.imagenes} imagen(es) adjunta(s)`);

@@ -28,6 +28,8 @@ async function seed(page: Page) {
             radarSeenIds: [],
             skills: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: `custom::${model}`,
               accessCode: "",
               agentModes: [],
@@ -110,6 +112,8 @@ test("si se acaban los intentos y SIGUE genérica, se dice en vez de callarse", 
             radarSeenIds: [],
             skills: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: "custom::mock-generica-terca",
               accessCode: "",
               agentModes: [],
@@ -180,6 +184,8 @@ test("una página que ya está bien no se toca", async ({ page }) => {
             radarSeenIds: [],
             skills: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: "custom::mock-efectos",
               accessCode: "",
               agentModes: [],

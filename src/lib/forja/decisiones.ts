@@ -36,6 +36,12 @@ export interface EstadoIntento {
   modeloMuerto?: boolean;
   /** la petición estaba mal hecha por nosotros: es lo ÚNICO que se para */
   peticionInvalida?: boolean;
+  /** la cortó un límite TUYO antes de salir (presupuesto, techo de llamadas,
+   *  proveedor vetado): el modelo está bien, lo que no toca es pagar */
+  limiteLocal?: boolean;
+  /** ¿este candidato es gratis? Para saltar a uno que no cueste tras un
+   *  `limiteLocal`. Sin él, se sigue por el siguiente de la lista. */
+  esGratis?: (c: Candidato) => boolean;
   /** modelo «Auto»: recorre la cadena en cualquier fallo */
   auto: boolean;
   /** saltos ya dados por esta misma respuesta */
@@ -131,6 +137,18 @@ export function esPeticionInvalida(status: number, mensaje: string): boolean {
   return TEXTO_PETICION_INVALIDA.test(mensaje);
 }
 
+/** Frases de los cortes que pone la propia app ANTES de llamar al proveedor
+ *  (`chat-client.ts`): presupuesto en dinero, techo de llamadas de pago y
+ *  proveedor vetado. No hay código HTTP porque la petición no llegó a salir,
+ *  y sin esto se tomaban por «el proveedor no responde» (Plan Maestro 2026
+ *  §61: un error de límite no se trata como uno de proveedor). */
+const TEXTO_LIMITE_LOCAL =
+  /(presupuesto (?:mensual|de hoy|de esta tarea) alcanzado|has llegado al techo de [\d.,]+ llamadas de pago|está vetado: tú decidiste)/i;
+
+export function esLimiteLocal(mensaje: string): boolean {
+  return TEXTO_LIMITE_LOCAL.test(mensaje);
+}
+
 /**
  * Siguiente candidato de la cadena.
  *
@@ -172,6 +190,15 @@ export function decidirTrasError(e: EstadoIntento): Decision {
   // modelo esperando, y no usarlo es justo lo que molestaba.
   if (e.peticionInvalida) return { tipo: "parar" };
 
+  // Un límite tuyo (presupuesto, techo, veto): se sigue por el siguiente
+  // candidato GRATIS de la cadena; si no hay, el failover ya solo elige
+  // modelos gratis (`pickFailoverCandidate`).
+  if (e.limiteLocal) {
+    const gratis = e.cadena.findIndex((c, i) => i > e.indice && (e.esGratis?.(c) ?? true));
+    if (gratis >= 0 && (e.auto || e.depth < e.maxSaltos)) return { tipo: "siguiente", indice: gratis };
+    return e.depth < e.maxSaltos ? { tipo: "failover" } : { tipo: "parar" };
+  }
+
   if (hayMas && (e.auto || e.depth < e.maxSaltos)) return { tipo: "siguiente", indice };
 
   if (e.depth >= e.maxSaltos) return { tipo: "parar" };
@@ -200,14 +227,16 @@ export function decidirTrasError(e: EstadoIntento): Decision {
  *  TODOS los avisos del failover decían «cuota gratis agotada», también cuando
  *  el proveedor estaba caído o la clave era de pago. Decirle a alguien con una
  *  clave Pro que se le acabó la cuota gratis manda a mirar donde no es. */
-export type MotivoFailover = "cuota" | "caido" | "retirado" | "grande" | "otro";
+export type MotivoFailover = "cuota" | "caido" | "retirado" | "grande" | "limite" | "otro";
 
 export function motivoDelFallo(
   status: number,
   mensajeCuota: boolean,
   modeloMuerto = false,
-  demasiadoGrande = false
+  demasiadoGrande = false,
+  limiteLocal = false
 ): MotivoFailover {
+  if (limiteLocal) return "limite";
   if (status === 402 || status === 429 || mensajeCuota) return "cuota";
   if (modeloMuerto) return "retirado";
   if (demasiadoGrande) return "grande";
@@ -222,6 +251,7 @@ export function tituloFailover(motivo: MotivoFailover, proveedor: string): strin
   // Decir «falló» de un modelo retirado manda a mirar la clave, que está bien.
   if (motivo === "retirado") return `Ese modelo ya no existe en ${proveedor}`;
   if (motivo === "grande") return `La conversación no le cabe a ese modelo`;
+  if (motivo === "limite") return `Límite de gasto: sigue un modelo gratis`;
   return `${proveedor} falló`;
 }
 
@@ -231,6 +261,7 @@ export function tituloSinAlternativa(motivo: MotivoFailover, proveedor: string):
   if (motivo === "caido") return `${proveedor} no está respondiendo`;
   if (motivo === "retirado") return `Ese modelo ya no existe en ${proveedor}`;
   if (motivo === "grande") return `La conversación no le cabe a ese modelo`;
+  if (motivo === "limite") return `Límite de gasto alcanzado y ningún modelo gratis disponible`;
   return `${proveedor} falló`;
 }
 

@@ -38,6 +38,7 @@ describe("TOOL_CATALOG", () => {
       "get_quota",
       "git_snapshot",
       "kb_project_search",
+      "kb_read",
       "kb_search",
       "list_files",
       "read_console",

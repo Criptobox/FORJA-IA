@@ -28,6 +28,8 @@ import {
   type UsoProveedor,
 } from "./cache-prompt";
 import { permitido, motivoVetado } from "./vetados";
+import { costeDeModelo } from "./precios";
+import { anotarGasto, guardarLibro, leerLibro, normalizarLimites, veredictoDinero } from "./presupuesto-dinero";
 import {
   contarLlamada,
   normalizarTope,
@@ -410,6 +412,13 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
     Date.now()
   );
   if (!veredicto.ok) throw new Error(veredicto.motivo ?? "Techo de llamadas alcanzado");
+  // Y el presupuesto en dinero (mensual, diario, por tarea). Mismo sitio y
+  // mismo porqué: los caminos automáticos también pasan por aquí.
+  const dePago = !isFreeModel(providerId, modelId);
+  if (dePago) {
+    const vd = veredictoDinero(leerLibro(), normalizarLimites(settings.presupuestoUsd), Date.now());
+    if (!vd.ok) throw new Error(vd.motivo ?? "Presupuesto alcanzado");
+  }
 
   let content = "";
   let reasoning = "";
@@ -764,6 +773,13 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
   // El uso se avisa antes de cerrar: es lo que el proveedor dice que gastó, y
   // el llamador lo guarda junto a la métrica de esta llamada.
   if (uso) streamOpts.onUsage?.(uso);
+  // Lo que ha costado, si es de pago: tokens del proveedor × precio del
+  // catálogo. Sin cuenta o sin precio no se inventa un importe: se anota
+  // como llamada sin importe conocido.
+  if (dePago) {
+    const { coste } = costeDeModelo(providerId, modelId, uso);
+    guardarLibro(anotarGasto(leerLibro(), coste?.total ?? null, Date.now()));
+  }
   streamOpts.onDone(content);
   return content;
 }

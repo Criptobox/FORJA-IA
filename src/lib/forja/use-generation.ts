@@ -31,7 +31,15 @@ import {
 } from "./types";
 import { PROVIDER_MAP } from "./providers";
 import { streamChat } from "./chat-client";
-import { esSoloFiltroSeguridad, isQuotaError, pickFailoverCandidate, sanearOrdenFallback } from "./free-models";
+import { esSoloFiltroSeguridad, isFreeModel, isQuotaError, pickFailoverCandidate, sanearOrdenFallback } from "./free-models";
+import {
+  guardarLibro,
+  iniciarTarea,
+  leerLibro,
+  normalizarLimites,
+  resumenPresupuesto,
+  veredictoDinero,
+} from "./presupuesto-dinero";
 import {
   buildTaskChain,
   classifyTask,
@@ -117,6 +125,7 @@ import {
   esDemasiadoGrande,
   esModeloMuerto,
   esPeticionInvalida,
+  esLimiteLocal,
   limiteDelMensaje,
   decidirTrasVacio,
   motivoDelFallo,
@@ -139,6 +148,11 @@ import { soloAdjuntosDelTurno } from "./adjuntos-historial";
 import { esTurnoTrivial } from "./turno-trivial";
 import { useFailures } from "./failures";
 import { compressHistory, savingsPercent, type CompressionMode } from "./compress";
+import { podarVersionesSuperadas } from "./versiones-superadas";
+import { archivosRelevantes, archivosVigentes, podarIrrelevantes } from "./grafo-proyecto";
+import { nivelDeContexto } from "./nivel-contexto";
+import { ordenarParaVision, useCapacidades } from "./capacidades";
+import { esFalloDeImagen } from "./model-probe";
 import { modoEfectivo, sumarUso, type UsoProveedor } from "./cache-prompt";
 import { CONTEXTO_VACIO, hayContexto, type ContextoUsado } from "./contexto-usado";
 import { checkpointAuto } from "./snapshots";
@@ -468,7 +482,11 @@ export function useGeneration(ctx: CtxGeneracion) {
 
       // Turno nuevo de verdad (ni failover, ni continuación, ni revisión):
       // el expediente empieza en blanco.
-      if (depth === 0 && continuaciones === 0 && revisiones === 0) intentosRef.current = [];
+      if (depth === 0 && continuaciones === 0 && revisiones === 0) {
+        intentosRef.current = [];
+        // …y el contador de gasto POR TAREA también (presupuesto-dinero.ts)
+        guardarLibro(iniciarTarea(leerLibro(), `${sessionId}:${Date.now()}`));
+      }
 
       // clave fresca del store (importante tras un failover que cambió el modelo)
       const freshKey = session.modelKey ?? state.settings.defaultModelKey ?? undefined;
@@ -482,21 +500,36 @@ export function useGeneration(ctx: CtxGeneracion) {
         ? ({ kind: "web", label: "sistema completo" } as const)
         : classifyTask(lastUserPrompt(session.messages));
 
+      // Imágenes del turno, leídas del mensaje enviado (el borrador ya está
+      // vacío a estas alturas): deciden si hace falta un modelo que vea.
+      const imagenesTurno =
+        [...session.messages].reverse().find((m) => m.role === "user")?.attachments?.length ?? 0;
+
       // ——— cadena de candidatos ———
       type Candidate = { providerId: ProviderId; modelId: string };
       let chain: Candidate[] = [];
+      // Presupuesto en dinero agotado (mensual, diario o de esta tarea):
+      // FORJA pasa a SOLO GRATIS. Los de pago salen de la cadena aquí, antes
+      // de gastar un intento en ellos; `streamChat` los cortaría igualmente.
+      const presupuesto = veredictoDinero(
+        leerLibro(),
+        normalizarLimites(state.settings.presupuestoUsd),
+        Date.now()
+      );
+      const sinPresupuesto = !presupuesto.ok;
+      const health = useHealth.getState();
+      // el bloqueo mira modelo Y proveedor: si la cuota del proveedor está agotada,
+      // no se dan tumbos entre sus modelos — se salta directo al siguiente proveedor
+      // …y un modelo que «Probar modelos» confirmó que el proveedor no
+      // reconoce no entra en la cadena: Auto lo elegía igual y fallaba en el
+      // primer intento, gastando un salto para nada.
+      const rotos = useModelosRotos.getState().rotos;
+      const bloqueado = (pid: ProviderId, mid: string) =>
+        (sinPresupuesto && !isFreeModel(pid, mid)) ||
+        estaRoto(rotos, makeModelKey(pid, mid)) ||
+        cooldownRemaining(health.entries[makeModelKey(pid, mid)]) > 0 ||
+        providerCooldownRemaining(health.providerEntries[pid]) > 0;
       if (auto || forjaWeb) {
-        const health = useHealth.getState();
-        // el bloqueo mira modelo Y proveedor: si la cuota del proveedor está agotada,
-        // no se dan tumbos entre sus modelos — se salta directo al siguiente proveedor
-        // …y un modelo que «Probar modelos» confirmó que el proveedor no
-        // reconoce no entra en la cadena: Auto lo elegía igual y fallaba en el
-        // primer intento, gastando un salto para nada.
-        const rotos = useModelosRotos.getState().rotos;
-        const bloqueado = (pid: ProviderId, mid: string) =>
-          estaRoto(rotos, makeModelKey(pid, mid)) ||
-          cooldownRemaining(health.entries[makeModelKey(pid, mid)]) > 0 ||
-          providerCooldownRemaining(health.providerEntries[pid]) > 0;
         chain = buildTaskChain(
           task.kind,
           state.providers,
@@ -507,6 +540,9 @@ export function useGeneration(ctx: CtxGeneracion) {
           // aprendía: recordaba el último acierto y nada más.
           useUsage.getState().byModel
         );
+        // Con imágenes en el turno, primero los que ven (capacidades.ts): los
+        // que ya dijeron «no admito imágenes» salen, los que lo parecen suben.
+        if (imagenesTurno > 0) chain = ordenarParaVision(chain, useCapacidades.getState().sinVision);
         if (chain.length === 0) {
           toast.error(`${forjaWeb ? "FORJA WEB" : "Auto"} no tiene modelos disponibles`, {
             description: "Conecta al menos un proveedor gratis (Gemini, Groq, OpenRouter…) en Ajustes.",
@@ -529,6 +565,26 @@ export function useGeneration(ctx: CtxGeneracion) {
         const resolved = resolveModel(freshKey);
         if (!resolved) return;
         chain = [resolved];
+        // El modelo elegido a mano es de pago y no queda presupuesto: en vez
+        // de un error seco, responde el mejor gratis para este encargo.
+        if (sinPresupuesto && !isFreeModel(resolved.providerId, resolved.modelId)) {
+          const gratis = buildTaskChain(task.kind, state.providers, bloqueado, 6, null, useUsage.getState().byModel);
+          if (gratis.length) {
+            chain = gratis;
+            if (depth === 0) {
+              toast.warning("Presupuesto alcanzado: responde un modelo gratis", {
+                description: `${presupuesto.motivo ?? ""} Esta vez responde ${gratis[0].modelId}.`,
+                duration: 8000,
+              });
+            }
+          }
+        }
+      }
+      if (depth === 0 && presupuesto.ok && presupuesto.avisar) {
+        toast.message("Presupuesto casi agotado", {
+          description: resumenPresupuesto(leerLibro(), normalizarLimites(state.settings.presupuestoUsd), Date.now()),
+          duration: 6000,
+        });
       }
 
       // Con semilla se escribe DENTRO de la burbuja del modelo caído: así el
@@ -556,7 +612,7 @@ export function useGeneration(ctx: CtxGeneracion) {
       // la burbuja de la semilla se reinyecta aparte, con su instrucción de
       // continuar: si entrara aquí además, el modelo la vería dos veces
       const previos = session.messages.filter(
-        (m) => m.role !== "system" && !m.error && m.id !== semilla?.assistantId
+        (m) => m.role !== "system" && !m.error && m.id !== semilla?.assistantId && !m.propuestaDiseno
       );
 
       // Escudo PII (inspirado en OrcaRouter): enmascara correos/teléfonos/
@@ -616,7 +672,27 @@ export function useGeneration(ctx: CtxGeneracion) {
       for (let i = base.length - 1; i >= 0; i--) {
         if (base[i].role === "user") { protectIdx = i; break; }
       }
-      const comp = compressHistory(base, compMode, protectIdx);
+      // Las versiones viejas de un archivo que ya tiene otra más nueva no
+      // viajan: es, con diferencia, lo que más pesa en una conversación de
+      // Web Studio (ver `versiones-superadas.ts`). Va antes de comprimir y
+      // es independiente de ella: no reescribe código, solo quita copias.
+      const poda = podarVersionesSuperadas(base, protectIdx);
+      // En preguntas y retoques (L1/L2) tampoco viajan los archivos que no
+      // tienen que ver con lo que se pide: solo los nombrados o que casan
+      // con sus palabras, sus vecinos en el grafo de imports, la entrada y
+      // el CSS. Sin pistas claras no se quita nada (`grafo-proyecto.ts`).
+      // el texto tal cual lo escribió el usuario, sin documentos ni señalados
+      const pregunta = [...previos].reverse().find((m) => m.role === "user")?.content ?? "";
+      const nivelTurno = nivelDeContexto({ texto: pregunta, trivial: esTurnoTrivial(pregunta) });
+      const foco =
+        nivelTurno === 1 || nivelTurno === 2
+          ? podarIrrelevantes(
+              poda.mensajes,
+              archivosRelevantes(pregunta, archivosVigentes(poda.mensajes)),
+              protectIdx
+            )
+          : { mensajes: poda.mensajes, omitidos: [] as string[], ahorrados: 0 };
+      const comp = compressHistory(foco.mensajes, compMode, protectIdx);
 
       // ——— Qué contexto viaja de verdad (PLAN-EVOLUCION §12, «Auto Context») ———
       // Las piezas del prompt ya vienen contadas de `entradaPromptActual`; aquí
@@ -632,6 +708,7 @@ export function useGeneration(ctx: CtxGeneracion) {
         documentos: numDocs,
         imagenes: numAdjuntos,
         chars: construirPrompt(piezas).prompt.length,
+        ...(foco.omitidos.length ? { omitidos: foco.omitidos } : {}),
       };
       // Con semilla se añaden DESPUÉS de comprimir: lo que llevaba escrito el
       // modelo caído y la orden de empalmar son justo lo que no se puede
@@ -644,8 +721,9 @@ export function useGeneration(ctx: CtxGeneracion) {
           ]
         : comp.messages;
       const origChars = base.reduce((a, m) => a + m.content.length, 0);
+      const ahorroTotal = comp.savedChars + poda.ahorrados + foco.ahorrados;
       const savedPct =
-        comp.savedChars > 400 && origChars > 0 ? savingsPercent(origChars, comp.savedChars) : 0;
+        ahorroTotal > 400 && origChars > 0 ? savingsPercent(origChars, ahorroTotal) : 0;
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -876,13 +954,23 @@ export function useGeneration(ctx: CtxGeneracion) {
             const aborted = err instanceof DOMException && err.name === "AbortError";
             if (aborted) throw err;
             const status = statusFromError(err);
-            useHealth.getState().recordFailure(
-              makeModelKey(candidate.providerId, candidate.modelId),
-              status,
-              retryAfterFromError(err)
-            );
-            settle(candidate, false, 0);
             const msg = err instanceof Error ? err.message : String(err);
+            // Un límite tuyo (presupuesto, techo, veto) no es un fallo del
+            // modelo: no lo manda al banquillo ni cuenta contra su historial.
+            const limiteLocal = esLimiteLocal(msg);
+            // «Este modelo no admite imágenes»: se apunta para que Auto no lo
+            // vuelva a elegir en un turno con imágenes.
+            if (imagenesTurno > 0 && esFalloDeImagen(msg)) {
+              useCapacidades.getState().marcarSinVision(makeModelKey(candidate.providerId, candidate.modelId));
+            }
+            if (!limiteLocal) {
+              useHealth.getState().recordFailure(
+                makeModelKey(candidate.providerId, candidate.modelId),
+                status,
+                retryAfterFromError(err)
+              );
+              settle(candidate, false, 0);
+            }
             // ¿El proveedor ha dicho que ese modelo ya no existe? Es una
             // categoría aparte de «falló»: la petición estaba bien y lo que
             // falta es el modelo. Antes caía en el mismo saco que una petición
@@ -989,6 +1077,8 @@ export function useGeneration(ctx: CtxGeneracion) {
               mensajeCuota: isQuotaError(msg),
               modeloMuerto: muerto,
               peticionInvalida: esPeticionInvalida(status, msg),
+              limiteLocal,
+              esGratis: (c) => isFreeModel(c.providerId as ProviderId, c.modelId),
               auto: auto || forjaWeb,
               depth,
               maxSaltos: MAX_SALTOS,
@@ -1008,7 +1098,9 @@ export function useGeneration(ctx: CtxGeneracion) {
               toast.warning(
                 forjaWeb
                   ? "Forja IA: buscando otra fuente disponible"
-                  : grande
+                  : limiteLocal
+                    ? "Límite de gasto: sigue un modelo gratis"
+                    : grande
                     ? `La conversación no le cabe a ${candidate.modelId}`
                     : muerto
                       ? `${candidate.modelId} ya no existe`
@@ -1039,7 +1131,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                 depth,
                 continuaciones,
                 content,
-                motivoDelFallo(status, isQuotaError(msg), muerto, grande)
+                motivoDelFallo(status, isQuotaError(msg), muerto, grande, limiteLocal)
               );
             }
             break;
@@ -1047,6 +1139,9 @@ export function useGeneration(ctx: CtxGeneracion) {
 
           // ——— éxito del stream ———
           paint(true);
+          if (imagenesTurno > 0) {
+            useCapacidades.getState().confirmarVision(makeModelKey(candidate.providerId, candidate.modelId));
+          }
           const finalSplit = separarEtiquetasPensamiento(content, reasoning);
           content = finalSplit.contenido;
           reasoning = finalSplit.razonamiento;

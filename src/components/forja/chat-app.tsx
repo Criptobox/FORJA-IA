@@ -37,6 +37,7 @@ import {
 import { Sidebar } from "./sidebar";
 import { ChatInput } from "./chat-input";
 import { MessageItem } from "./message";
+import { PropuestaCard } from "./propuesta-card";
 import { ModelPicker } from "./model-picker";
 import { SettingsDialog } from "./settings-dialog";
 import { PromptLibrary } from "./prompt-library";
@@ -132,7 +133,9 @@ import {
   obtenerSnapshot,
   archivosDeSnapshot,
 } from "@/lib/forja/snapshots";
-import { deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } from "@/lib/forja/memoria-proyecto";
+import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } from "@/lib/forja/memoria-proyecto";
+import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
+import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
 import {
   buscarContexto as buscarContextoTurno,
@@ -681,6 +684,41 @@ export function ChatApp() {
   );
   aplicarArchivosAgenteRef.current = aplicarArchivosAgente;
 
+  /** Construir tras la propuesta de diseño: fija la dirección elegida en el
+   *  mensaje del usuario (y en la memoria del proyecto, como contrato), añade
+   *  los ajustes al encargo y ahora sí, genera. */
+  const construirDesdePropuesta = useCallback(
+    (propuestaId: string, direccionId: string | null, ajustes: string) => {
+      const st = useForja.getState();
+      const sid = st.activeSessionId;
+      const ses = sid ? st.sessions.find((x) => x.id === sid) : null;
+      if (!sid || !ses) return;
+      const idx = ses.messages.findIndex((x) => x.id === propuestaId);
+      const prop = ses.messages[idx]?.propuestaDiseno;
+      const usuario = [...ses.messages.slice(0, idx)].reverse().find((x) => x.role === "user");
+      if (!prop || !usuario) return;
+      updateMessage(sid, propuestaId, {
+        propuestaDiseno: {
+          ...prop,
+          resuelta: direccionId ? "elegida" : "directo",
+          ...(direccionId ? { elegida: direccionId } : {}),
+        },
+      });
+      updateMessage(sid, usuario.id, {
+        ...(ajustes ? { content: `${usuario.content}\n\nAjustes a la propuesta: ${ajustes}` } : {}),
+        ...(direccionId ? { direccionElegida: direccionId } : {}),
+        datosPendientes: datosPendientes(prop),
+      });
+      const elegida = direccionElegida(direccionId ?? undefined);
+      if (elegida) {
+        guardarMemoria(sid, addDiseno(leerMemoria(sid), elegida.nombre, "elegida en la propuesta de diseño"));
+      }
+      stickToBottomRef.current = true;
+      void runGeneration(sid);
+    },
+    [updateMessage, runGeneration]
+  );
+
   const send = useCallback(
     (textOverride?: string) => {
       const text = (textOverride ?? input).trim();
@@ -796,6 +834,29 @@ export function ChatApp() {
         }
         if (useForja.getState().settings.consensus) {
           void runConsensus(sessionId, text);
+          return;
+        }
+        // ——— Design First (Plan Maestro 2026 §4) ———
+        // Web nueva sin identidad fijada: primero la propuesta (0 tokens), y
+        // se construye cuando el usuario elige. Ver `propuesta-diseno.ts`.
+        const memoria = leerMemoria(sessionId);
+        if (
+          debeProponer({
+            texto: text,
+            hayDireccionFijada: !!direccionDelProyecto(memoria.disenos),
+            pideCambioDeEstilo: pideCambioDeEstilo(text),
+            imagenes: attachments.length,
+            activada: useForja.getState().settings.propuestaDiseno !== false,
+          })
+        ) {
+          const propuesta = construirPropuesta(text, idsRecientes(memoria.disenos));
+          addMessage(sessionId, {
+            id: uid(),
+            role: "assistant",
+            content: `Propuesta de diseño: ${propuesta.variantes.map((v) => v.nombre).join(" · ")}. Elige una para construir.`,
+            createdAt: Date.now(),
+            propuestaDiseno: propuesta,
+          });
           return;
         }
         void runGeneration(sessionId);
@@ -1677,6 +1738,13 @@ export function ChatApp() {
                     paddingBottom: 20,
                   }}
                 >
+                  {m.propuestaDiseno ? (
+                    <PropuestaCard
+                      propuesta={m.propuestaDiseno}
+                      deshabilitada={!!streamingMsgId}
+                      onConstruir={(id, ajustes) => construirDesdePropuesta(m.id, id, ajustes)}
+                    />
+                  ) : (
                   <MessageItem
                     msg={m}
                     streaming={streamingMsgId === m.id}
@@ -1710,6 +1778,7 @@ export function ChatApp() {
                     }
                     sandboxFiles={sandboxFilesMap}
                   />
+                  )}
                 </div>
               );
             })}

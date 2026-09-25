@@ -28,6 +28,8 @@ async function seed(page: Page, modelo: string, extra: Record<string, unknown> =
               radarSeenIds: [],
               skills: [],
               settings: {
+                // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+                propuestaDiseno: false,
                 defaultModelKey: `custom::${modelo}`,
                 accessCode: "",
                 agentModes: [],

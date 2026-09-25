@@ -19,6 +19,8 @@ async function sembrar(page: Page) {
             favorites: [],
             radarSeenIds: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: "custom::mock-mini-free",
               accessCode: "",
               agentModes: [],

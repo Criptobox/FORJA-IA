@@ -139,7 +139,8 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
     // Knowledge Base). v4.51: 22, con research (Research Agent: consulta la
     // Knowledge Base primero y solo recurre a la web si no basta). v4.54:
     // 23, con kb_project_search (busca componentes/archivos reutilizables
-    // entre los ZIP/repositorios ya analizados). La lista va exacta a
+    // entre los ZIP/repositorios ya analizados). 24, con kb_read (lee el
+    // contenido de un recurso de Drive o MEGA). La lista va exacta a
     // propósito: comprueba que el catálogo TRADUCIDO llega entero al
     // modelo, que es distinto de que exista en `tools-catalog.ts`.
     expect(names).toEqual([
@@ -152,6 +153,7 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
       "get_quota",
       "git_snapshot",
       "kb_project_search",
+      "kb_read",
       "kb_search",
       "list_files",
       "read_console",

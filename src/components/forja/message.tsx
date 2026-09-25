@@ -544,7 +544,7 @@ export const MessageItem = memo(function MessageItem({
           {!streaming && msg.ctxSaved != null && msg.ctxSaved > 0 && (
             <span
               className="shrink-0 whitespace-nowrap rounded-full bg-violet-500/10 px-1.5 text-[10px] font-medium text-violet-500"
-              title="Contexto comprimido al enviar el historial"
+              title="Contexto ahorrado al enviar el historial: compresión + versiones viejas de archivos que no se reenvían"
             >
               ctx −{msg.ctxSaved}%
             </span>

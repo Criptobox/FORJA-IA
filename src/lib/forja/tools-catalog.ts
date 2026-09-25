@@ -423,6 +423,19 @@ export const TOOL_CATALOG: readonly ToolDef[] = [
     },
   },
   {
+    name: "kb_read",
+    description:
+      "Lee el CONTENIDO de un recurso de la Knowledge Base por su id (el que devuelve kb_search): fichas de conocimiento .md, metadatos y decisiones .json, datasets .jsonl y documentos de Google Drive (cualquiera de las cuentas conectadas), o código de MEGA. Úsala después de kb_search cuando necesites lo que dice el recurso, no solo su nombre. Las imágenes, PDF y vídeos no se leen como texto: lee su .analysis.md o .metadata.json. Devuelve el texto recortado a un máximo; si no se puede leer, se te dice por qué.",
+    parameters: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Id del recurso, tal cual lo dio kb_search." },
+        max_chars: { type: "number", description: "Opcional. Máximo de caracteres a devolver (por defecto 12000, máximo 30000)." },
+      },
+      required: ["id"],
+    },
+  },
+  {
     name: "kb_project_search",
     description:
       "Busca componentes, patrones, tecnologías o archivos reutilizables entre los ZIP/repositorios que el usuario ya subió y Forja analizó localmente (Project Manifest). Úsala ANTES de escribir un componente desde cero cuando pueda existir ya en un proyecto indexado (ej. «necesito un FilterDrawer en React»). Devuelve solo los archivos relevantes, ordenados por relevancia — nunca el repositorio entero. Si no hay proyectos analizados o nada casa, se te dice — no se inventa un archivo que no exista.",

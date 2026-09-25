@@ -135,6 +135,8 @@ async function importOneFile(
       visualHashAlgorithm: visual?.algorithm,
       relativePath: getRelativePath(file),
       sourceKind: getSourceKind(file),
+      sourceProvider: "google-drive",
+      remoteId: uploaded.id,
       duplicateOf: visualDuplicateOf,
       // `relatedResourceIds` se deja SIN tocar aquí a propósito: es una
       // relación explícita que la persona confirma desde la cola de

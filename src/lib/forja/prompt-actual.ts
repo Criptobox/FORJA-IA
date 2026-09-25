@@ -33,6 +33,9 @@ import { instruccionReferencia, pideDisenoDeReferencia } from "./referencia-visu
 import { piezaPlanoContenido } from "./motor-chat";
 import { esEncargoDeTiendaOCatalogo, INSTRUCCION_TIENDA_INTERACTIVA } from "./catalogo-interactivo";
 import { buildDesignArchitecture, designArchitecturePrompt } from "./design-architect";
+import { nivelDeContexto, piezasPorNivel, ETIQUETA_NIVEL } from "./nivel-contexto";
+import { contratoCompacto, direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "./contrato-diseno";
+import { direccionElegida, instruccionPendientes } from "./propuesta-diseno";
 
 /** Textos de los estilos de salida. Fuera de la función para que se puedan
  *  medir sin montar nada. */
@@ -91,8 +94,18 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   const trivial = esTurnoTrivial(ultimoDelUsuario?.content ?? "");
   const promptUsuario = ultimoDelUsuario?.content ?? "";
   const modoApp = !trivial && esEncargoDeApp(promptUsuario);
+  // ——— Nivel de contexto (Plan Maestro 2026 §7) ———
+  // Una pregunta no necesita la dirección de diseño entera, y un retoque
+  // solo necesita sus tokens. Ver `nivel-contexto.ts`: ante la duda, L3, que
+  // es lo que viajaba antes.
+  const nivel = nivelDeContexto({ texto: promptUsuario, trivial });
+  const porNivel = piezasPorNivel(nivel);
 
-  const activas = st.skills.filter((s) => s.enabled);
+  // En un turno trivial («hola», «gracias») las skills no viajan: son
+  // instrucciones para HACER un trabajo —la de desarrollador web ronda los
+  // 1.800 caracteres— y un saludo no tiene trabajo que hacer. Mismo criterio
+  // que la plantilla del agente, más abajo. Las reglas «no tocar» sí viajan.
+  const activas = trivial ? [] : st.skills.filter((s) => s.enabled);
   const skills = activas.length
     ? [
         activas.map((s) => `### Skill activa: ${s.name}\n${s.instructions}`).join("\n\n"),
@@ -177,9 +190,12 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   const bloqueContexto = !trivial ? renderContextoParaPrompt(contexto) : null;
   // La memoria completa (renderMemoriaParaPrompt) solo se añade si el Auto
   // Context no encontró nada específico: dos bloques que dicen lo mismo es ruido.
+  // En L4/L5 (proyecto entero, auditoría) viajan las dos: el Auto Context
+  // dice lo pertinente a la pregunta y la memoria completa da el historial.
   const bloqueMemoria =
-    !bloqueContexto && !trivial ? renderMemoriaParaPrompt(memoria ?? { decisiones: [], errores: [], tareas: [], disenos: [], reglas: [] }) : null;
-  const contextoFinal = bloqueContexto ?? bloqueMemoria;
+    (!bloqueContexto || porNivel.memoriaCompleta) && !trivial
+      ? renderMemoriaParaPrompt(memoria ?? { decisiones: [], errores: [], tareas: [], disenos: [], reglas: [] }) : null;
+  const contextoFinal = [bloqueContexto, bloqueMemoria].filter(Boolean).join("\n\n") || null;
 
   // ——— Dirección de diseño (Pilar 2) ———
   // Solo para encargos de UI nueva, no para retoques: «cambia el botón» no
@@ -188,18 +204,33 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   // las direcciones ya usadas en este proyecto (variación forzada).
   //
   // Bajo FORJA WEB también hace falta una dirección aunque el prompt no use
-  // verbos de "crear UI" (p.ej. "arréglame esta web"): el Design Architect de
+  // verbos de "crear UI" (L3 y superiores; en un retoque L2 basta con el
+  // contrato compacto): el Design Architect de
   // más abajo necesita una, y tiene que ser la MISMA que esta — reelegirla
   // por separado (como hacía la versión anterior) podía darle al modelo dos
   // paletas/tipografías distintas en el mismo prompt.
+  //
+  // ——— Contrato de diseño (§5) ———
+  // Si el proyecto ya tiene dirección, esa manda, salvo que el usuario pida
+  // otra de forma expresa (por palabra de estilo o «otro estilo»). Antes la
+  // rotación comparaba nombres con ids y nunca sabía cuál era la del proyecto.
+  const disenosPrevios = memoria?.disenos ?? [];
+  const fijada = direccionDelProyecto(disenosPrevios);
+  const romperContrato = pideCambioDeEstilo(promptUsuario);
   let diseno: string | null = null;
   let disenoId: string | undefined = undefined;
+  let disenoCompacto = false;
   let eleccionDireccion: ReturnType<typeof elegirDireccion> | null = null;
-  if (!trivial && (esEncargoUINueva(promptUsuario) || forjaWebActivo)) {
-    eleccionDireccion = elegirDireccion(
-      promptUsuario,
-      (memoria?.disenos ?? []).slice(0, 4).map((d) => d.direccion)
-    );
+  if (!trivial && porNivel.diseno === "completo" && (esEncargoUINueva(promptUsuario) || forjaWebActivo)) {
+    eleccionDireccion = elegirDireccion(promptUsuario, idsRecientes(disenosPrevios));
+    // La elegida en la propuesta de diseño manda sobre todo lo demás: es la
+    // decisión explícita del usuario para ESTE encargo.
+    const elegida = direccionElegida(ultimoDelUsuario?.direccionElegida);
+    if (elegida) {
+      eleccionDireccion = { direccion: elegida, origen: "usuario" };
+    } else if (eleccionDireccion.origen === "sistema" && fijada && !romperContrato) {
+      eleccionDireccion = { direccion: fijada, origen: "proyecto" };
+    }
     disenoId = eleccionDireccion.direccion.nombre;
     // Bajo FORJA WEB, el bloque del Design Architect (más abajo) ya incluye
     // paleta, tipografía y composición de esta misma dirección — repetirlo
@@ -207,10 +238,19 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     if (!forjaWebActivo) {
       diseno = promptDireccion(eleccionDireccion);
     }
+  } else if (!trivial && porNivel.diseno === "contrato" && fijada) {
+    // Retoque sobre un proyecto con identidad: solo los tokens, ~500
+    // caracteres en vez de ~4.000. También bajo FORJA WEB, donde sustituye
+    // al bloque del Design Architect (ver `cerebroArquitectura`).
+    diseno = contratoCompacto(fijada);
+    disenoId = fijada.nombre;
+    disenoCompacto = true;
   }
   // El motor decide el CONTENIDO de una página nueva: secciones con mínimos,
   // datos del encargo que se usan tal cual e iconos SVG. Solo al crearla.
   const plano = !trivial ? piezaPlanoContenido(promptUsuario) : null;
+  // Lo que la propuesta detectó que falta: se dice al modelo que no lo invente.
+  const pendientes = !trivial ? instruccionPendientes(ultimoDelUsuario?.datosPendientes ?? []) : null;
 
   // Una imagen adjunta en un encargo de diseño ES la dirección: imponer
   // además una de las curadas daría al modelo dos estilos que se pisan.
@@ -218,6 +258,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   if (!trivial && pideDisenoDeReferencia(promptUsuario, imagenesDelTurno)) {
     diseno = instruccionReferencia(imagenesDelTurno);
     disenoId = "referencia adjunta";
+    disenoCompacto = false;
   }
 
   // ——— FORJA WEB: arquitectura de diseño del Cerebro ———
@@ -225,7 +266,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   // reelección independiente con `previousDirectionIds` vacío, que siempre
   // caería en la misma primera opción del catálogo (ver `design-architect.ts`).
   const cerebroArquitectura =
-    forjaWebActivo && !trivial
+    forjaWebActivo && !trivial && porNivel.arquitecturaWeb
       ? designArchitecturePrompt(
           buildDesignArchitecture({
             brief: promptUsuario,
@@ -255,6 +296,8 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
       ? contexto.decisiones.length + contexto.errores.length
       : 0,
     diseno: disenoId,
+    nivel: ETIQUETA_NIVEL[nivel],
+    ...(disenoCompacto ? { disenoCompacto: true } : {}),
     ...(plano ? { plano: plano.resumen } : {}),
   };
 
@@ -271,7 +314,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     mapa,
     contexto: contextoFinal,
     diseno,
-    plano: plano?.texto ?? null,
+    plano: [plano?.texto, pendientes].filter(Boolean).join("\n\n") || null,
     reglas,
     ahorro: !!st.settings.ahorro,
   };

@@ -16,4 +16,9 @@ describe("Contrato de almacenamiento", () => {
     expect(STORAGE_ROLES["google-drive"]).not.toContain("code");
     expect(STORAGE_ROLES.mega).not.toContain("knowledge");
   });
+
+  it("MEGA es solo código: los datasets y referencias viven en Drive", () => {
+    expect(STORAGE_ROLES.mega).not.toContain("datasets");
+    expect(STORAGE_ROLES["google-drive"]).toContain("datasets");
+  });
 });

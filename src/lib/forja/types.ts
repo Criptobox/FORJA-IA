@@ -31,9 +31,16 @@ export interface ChatMessage {
   docTexts?: DocText[];
   /** elementos señalados en la vista previa: la petición se refiere a ellos */
   senalados?: import("./senalar").ElementoSenalado[];
+  /** Propuesta de diseño antes de construir (`propuesta-diseno.ts`). Un
+   * mensaje con esto es una tarjeta local: no viaja al modelo. */
+  propuestaDiseno?: import("./propuesta-diseno").PropuestaDiseno;
+  /** En el mensaje del usuario: la dirección que eligió en la propuesta. */
+  direccionElegida?: string;
+  /** En el mensaje del usuario: datos que no dio y NO se deben inventar. */
+  datosPendientes?: string[];
   /** imagen generada por IA (modo imagen / Pollinations) */
   generatedImage?: { url: string; prompt: string };
-  /** % de contexto ahorrado por la compresión en esta respuesta (si > 0) */
+  /** % de contexto ahorrado en esta respuesta (compresión + versiones superadas de archivos que no se reenvían), si > 0 */
   ctxSaved?: number;
   /** nº de datos personales enmascarados en lo que se envió (escudo PII) */
   piiMasked?: number;
@@ -294,6 +301,13 @@ export interface AppSettings {
   /** Techo de llamadas a modelos DE PAGO por día natural. `null` = sin techo,
    * que es una opción legítima para quien sabe lo que hace. Ver `gasto.ts`. */
   topeLlamadasPago?: number | null;
+  /** Presupuesto en dinero (USD) medido con los tokens del proveedor y el
+   * catálogo de precios: mensual, diario y por tarea. `null` en un campo =
+   * sin ese límite. Al llegar, solo modelos gratis. Ver `presupuesto-dinero.ts`. */
+  presupuestoUsd?: { mensual: number | null; diario: number | null; tarea: number | null };
+  /** Antes de construir una web nueva, enseñar una propuesta de diseño (3
+   * direcciones, secciones y datos) para elegir. Cero tokens. */
+  propuestaDiseno?: boolean;
   /** Proveedores a los que NO se manda nada, aunque tengan clave puesta.
    * Corta también los caminos automáticos —failover, panel, ejecutores—, que
    * son los que eligen por ti. Ver `vetados.ts`. */
@@ -335,6 +349,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   // Encendido de fábrica: apagado no protege a quien no sabe que existe, que
   // es justo quien se lleva el susto en la factura.
   topeLlamadasPago: 200,
+  // Los límites del Plan Maestro 2026 §58: gastar dinero es siempre una
+  // decisión, así que de fábrica hay techo.
+  presupuestoUsd: { mensual: 5, diario: 1, tarea: 0.5 },
+  // Design First (§4): se ve y se elige antes de gastar en construir.
+  propuestaDiseno: true,
   proveedoresVetados: [],
   // Todo concedido de salida: ver el porqué en `PERMISOS_POR_DEFECTO`.
   permisosAgente: { lee_proyecto: true, escribe_proyecto: true, ejecuta: true, red: true },
