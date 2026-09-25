@@ -173,6 +173,18 @@ describe("las reglas de contenido viajan en el prompt", () => {
     expect(b).toMatch(/esto se mide después/i);
   });
 
+  it("no contradicen al plano: un dato real que falta va como marcador, no inventado", () => {
+    const reglas = REGLAS_DE_CONTENIDO.join("\n");
+    expect(reglas).toContain("[PRECIO]");
+    expect(reglas).not.toMatch(/plausible/i);
+  });
+
+  it("el bloque de dirección se mantiene acotado (viaja en toda creación web)", () => {
+    for (const d of DIRECCIONES) {
+      expect(promptDireccion({ direccion: d, origen: "sistema" }).length).toBeLessThan(4_200);
+    }
+  });
+
   it("son afirmaciones concretas, no buenos deseos", () => {
     for (const r of REGLAS_DE_CONTENIDO) {
       expect(r.length).toBeGreaterThan(40);
