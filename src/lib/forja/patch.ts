@@ -157,7 +157,7 @@ function contar(pajar: string, aguja: string): number {
  * el contenido pero a veces reproduce el bloque con otra indentación (tab
  * vs. espacios, o le sobra un nivel). Normalizar ambos lados a "sin sangría
  * en el borde" lo salva sin abrir la puerta a falsos positivos graves. */
-function coincidenciaFlexible(actual: string, search: string): string | null {
+function coincidenciaFlexible(actual: string, search: string, replace: string): string | null {
   const lineasActual = actual.split("\n");
   const patron = search
     .split("\n")
@@ -170,13 +170,18 @@ function coincidenciaFlexible(actual: string, search: string): string | null {
     let j = 0;
     while (j < patron.length && normaliza(lineasActual[i + j]) === patron[j]) j++;
     if (j === patron.length) {
-      // found: sustituye esas líneas conservando la sangría real de la
-      // PRIMERA línea del original (así el reemplazo hereda el estilo local)
+      // Encontrado: se sustituyen esas líneas por el REPLACE (antes se
+      // volvía a escribir el SEARCH: el parche contaba como aplicado y el
+      // archivo quedaba igual). El REPLACE se re-sangra: lo que traía de
+      // sangría respecto a la base del SEARCH se conserva, y esa base pasa a
+      // ser la sangría real del original, para que herede el estilo local.
       const sangria = lineasActual[i].match(/^\s*/)?.[0] ?? "";
-      const cuerpoReemplazo = search.split("\n");
-      // la primera línea del reemplazo hereda la sangría del original; el
-      // resto se respeta tal cual el modelo lo escribió
-      cuerpoReemplazo[0] = sangria + cuerpoReemplazo[0].trim();
+      const baseSearch = (search.split("\n").find((l) => l.trim()) ?? "").match(/^\s*/)?.[0] ?? "";
+      const cuerpoReemplazo = replace
+        .split("\n")
+        .map((l) =>
+          l.trim() === "" ? "" : l.startsWith(baseSearch) ? sangria + l.slice(baseSearch.length) : sangria + l.trimStart()
+        );
       return [
         ...lineasActual.slice(0, i),
         ...cuerpoReemplazo,
@@ -226,7 +231,7 @@ export function aplicarParches(actual: string, parches: readonly Parche[]): Resu
       return;
     }
     // 0 exactas: UN reintento flexible por sangría
-    const flexible = coincidenciaFlexible(resultado, p.search);
+    const flexible = coincidenciaFlexible(resultado, p.search, p.replace);
     if (flexible !== null) {
       resultado = flexible;
       aplicados++;

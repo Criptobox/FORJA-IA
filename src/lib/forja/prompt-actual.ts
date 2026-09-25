@@ -36,6 +36,8 @@ import { buildDesignArchitecture, designArchitecturePrompt } from "./design-arch
 import { nivelDeContexto, piezasPorNivel, ETIQUETA_NIVEL } from "./nivel-contexto";
 import { contratoCompacto, direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "./contrato-diseno";
 import { direccionElegida, instruccionPendientes } from "./propuesta-diseno";
+import { INSTRUCCION_PARCHE, usaParches } from "./retoque-parche";
+import { archivosVigentes } from "./grafo-proyecto";
 
 /** Textos de los estilos de salida. Fuera de la función para que se puedan
  *  medir sin montar nada. */
@@ -301,8 +303,23 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     ...(plano ? { plano: plano.resumen } : {}),
   };
 
+  // ——— Retoque por parche (Plan Maestro 2026 §63) ———
+  // En un retoque sobre archivos grandes que ya existen, la respuesta se pide
+  // en bloques SEARCH/REPLACE: una fracción de la salida. Se aplican al llegar
+  // (`use-generation.ts`), con vuelta al archivo completo si no casan.
+  const parche =
+    !trivial &&
+    usaParches({
+      nivel,
+      agente: !!st.settings.agentMode || forjaWebActivo,
+      archivos: archivosVigentes((sesionActual?.messages ?? []).filter((m) => !m.propuestaDiseno)),
+    })
+      ? INSTRUCCION_PARCHE
+      : null;
+
   return {
     usado,
+    parche,
     sistema: st.settings.systemPrompt.trim(),
     estilo,
     modos,

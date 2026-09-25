@@ -30,6 +30,7 @@ export type PiezaId =
   | "diseno"
   | "plano"
   | "reglas"
+  | "parche"
   | "ahorro";
 
 export interface PiezaPrompt {
@@ -64,6 +65,7 @@ const ETIQUETAS: Record<PiezaId, { label: string; donde: string }> = {
   diseno: { label: "Dirección de diseño", donde: "la dirección elegida del proyecto" },
   plano: { label: "Plano de contenido", donde: "el motor: secciones, datos del encargo e iconos" },
   reglas: { label: "Archivos protegidos", donde: "el mapa → No tocar" },
+  parche: { label: "Retoque por parche", donde: "solo en retoques sobre archivos grandes" },
   ahorro: { label: "Modo ahorro", donde: "Ajustes → Chat" },
 };
 
@@ -110,6 +112,8 @@ export interface EntradaPrompt {
   plano?: string | null;
   /** memoria negativa: los archivos que el agente no puede tocar */
   reglas?: string | null;
+  /** en un retoque: responder con bloques SEARCH/REPLACE (`retoque-parche.ts`) */
+  parche?: string | null;
   /** el modo ahorro cambia lo que entra, no solo lo que sale */
   ahorro?: boolean;
   /** qué contexto viajó, contado donde se construyen las piezas. No entra en
@@ -138,6 +142,9 @@ const ORDEN: PiezaId[] = [
   // tienen que poder matizar todo lo anterior, incluido el mapa —que termina
   // pidiendo entregar archivos completos—.
   "reglas",
+  // El parche, detrás de todo: sustituye al «entrega los archivos completos»
+  // del mapa, y lo más concreto va lo último para poder matizar lo anterior.
+  "parche",
 ];
 
 const SEPARADOR = "\n\n";
@@ -160,6 +167,7 @@ function trozos(e: EntradaPrompt): Partial<Record<PiezaId, string>> {
     diseno: e.diseno ?? "",
     plano: e.plano ?? "",
     reglas: e.reglas ?? "",
+    parche: e.parche ?? "",
   };
 }
 

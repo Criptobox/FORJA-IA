@@ -63,6 +63,7 @@ const MODELOS = [
   "mock-mide",
   "mock-verifica",
   "mock-diagnostica",
+  "mock-parche",
   "mock-visual-review",
   "mock-visual-review-sin-vision",
   "mock-llamada-en-texto",
@@ -330,6 +331,45 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       "</body></html>",
       "```",
     ].join("\n");
+  }
+
+  // `mock-parche`: la primera vez entrega una página completa con un botón
+  // azul. Cuando el prompt pide RETOQUE POR PARCHE, contesta con un bloque
+  // SEARCH/REPLACE (o con uno que no casa si el mensaje dice «fallar»); y si
+  // se le pide el archivo COMPLETO, lo entrega entero ya en verde. Sirve
+  // para comprobar que el chat aplica el parche y que hace rollback.
+  if (modelo === "mock-parche") {
+    const sistema = msgs.find((m) => m.role === "system");
+    const pidenParche =
+      typeof sistema?.content === "string" && (sistema.content as string).includes("RETOQUE POR PARCHE");
+    const pagina = (color: string) =>
+      [
+        "```html",
+        "<!DOCTYPE html>",
+        '<html lang="es"><head><meta charset="utf-8"><title>Cafetería</title></head>',
+        "<body>",
+        `  <button id="cta" style="background: ${color}; color: white">Reservar</button>`,
+        ...Array.from({ length: 60 }, (_, i) => `  <p>Párrafo de la carta número ${i}: café, tostadas y zumos.</p>`),
+        "</body></html>",
+        "```",
+      ].join("\n");
+    if (/COMPLETOS/.test(raw)) return `Aquí va el archivo completo.\n\n**index.html**\n\n${pagina("green")}`;
+    if (pidenParche) {
+      const buscar = /fallar/i.test(raw)
+        ? '  <button id="cta" style="background: purple">Esto no existe</button>'
+        : '  <button id="cta" style="background: blue; color: white">Reservar</button>';
+      return [
+        "Cambio el botón a verde.",
+        "",
+        "**index.html**",
+        "<<<<<<< SEARCH",
+        buscar,
+        "=======",
+        '  <button id="cta" style="background: green; color: white">Reservar</button>',
+        ">>>>>>> REPLACE",
+      ].join("\n");
+    }
+    return `Aquí tienes la página.\n\n**index.html**\n\n${pagina("blue")}`;
   }
 
   // `mock-iconos-emoji`: una página con botones cuyo ÚNICO contenido es un

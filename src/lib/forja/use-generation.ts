@@ -150,6 +150,16 @@ import { useFailures } from "./failures";
 import { compressHistory, savingsPercent, type CompressionMode } from "./compress";
 import { podarVersionesSuperadas } from "./versiones-superadas";
 import { archivosRelevantes, archivosVigentes, podarIrrelevantes } from "./grafo-proyecto";
+import {
+  aplicarRetoque,
+  archivosRecortados,
+  bloqueResultado,
+  neutralizarRecortados,
+  pedirArchivoCompleto,
+  pedirSinOmitir,
+  usaParches,
+} from "./retoque-parche";
+import { bloquesConNombre } from "./answer-files";
 import { nivelDeContexto } from "./nivel-contexto";
 import { ordenarParaVision, useCapacidades } from "./capacidades";
 import { esFalloDeImagen } from "./model-probe";
@@ -684,6 +694,15 @@ export function useGeneration(ctx: CtxGeneracion) {
       // el texto tal cual lo escribió el usuario, sin documentos ni señalados
       const pregunta = [...previos].reverse().find((m) => m.role === "user")?.content ?? "";
       const nivelTurno = nivelDeContexto({ texto: pregunta, trivial: esTurnoTrivial(pregunta) });
+      // Retoque por parche: la MISMA decisión que puso la instrucción en el
+      // prompt (`prompt-actual.ts`), con las versiones vigentes SIN el escudo
+      // PII (el parche se aplica sobre el archivo real, no sobre el enmascarado).
+      const vigentesTurno = archivosVigentes(previos);
+      const turnoConParches = usaParches({
+        nivel: nivelTurno,
+        agente: !!useForja.getState().settings.agentMode || forjaWeb,
+        archivos: vigentesTurno,
+      });
       const foco =
         nivelTurno === 1 || nivelTurno === 2
           ? podarIrrelevantes(
@@ -1356,6 +1375,32 @@ export function useGeneration(ctx: CtxGeneracion) {
             }
           }
 
+          // ——— Retoque por parche (retoque-parche.ts) ———
+          // Los bloques SEARCH/REPLACE se aplican aquí sobre la última versión
+          // de cada archivo, y el archivo completo se añade a la respuesta
+          // (localmente, sin gastar un token) para que la vista previa, el ZIP
+          // y el historial vean archivos enteros. Un archivo con algún bloque
+          // que no casa NO se toca: se pide completo justo después.
+          let retoqueFallido: ReturnType<typeof aplicarRetoque>["fallidos"] = [];
+          if (turnoConParches) {
+            const r = aplicarRetoque(content, vigentesTurno);
+            if (r.parcheados.length) {
+              content = `${content}\n\n${r.parcheados.map(bloqueResultado).join("\n\n")}`;
+              paint(true);
+            }
+            retoqueFallido = r.fallidos;
+          }
+          // Quality Gate (§62): un archivo entregado «con el resto igual» no
+          // se acepta — usarlo borraría lo omitido. Se neutraliza en la
+          // respuesta (la versión anterior sigue valiendo) y se pide bien.
+          const recortados = !useForja.getState().settings.agentMode && !forjaWeb
+            ? archivosRecortados(bloquesConNombre(content), vigentesTurno)
+            : [];
+          if (recortados.length) {
+            content = neutralizarRecortados(content, recortados);
+            paint(true);
+          }
+
           settle(candidate, true, elapsed);
           const uso = usoActual();
           // Las dos mitades del dinero: tokens dichos por el proveedor y
@@ -1386,6 +1431,36 @@ export function useGeneration(ctx: CtxGeneracion) {
             } satisfies FichaRespuesta,
           });
           updateProjectMap(sessionId, content);
+          if (recortados.length && quedanIntentos(revisiones)) {
+            addMessage(sessionId, {
+              id: uid(),
+              role: "user",
+              content: pedirSinOmitir(recortados),
+              createdAt: Date.now(),
+              instruction: true,
+            });
+            toast.warning("Archivo con partes omitidas", {
+              description: `${recortados.map((r) => r.path).join(", ")} llegó recortado («el resto igual»): no se aplica y se pide completo.`,
+              duration: 7000,
+            });
+            relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
+            return;
+          }
+          if (retoqueFallido.length && quedanIntentos(revisiones)) {
+            addMessage(sessionId, {
+              id: uid(),
+              role: "user",
+              content: pedirArchivoCompleto(retoqueFallido),
+              createdAt: Date.now(),
+              instruction: true,
+            });
+            toast.warning("El parche no casó", {
+              description: `${retoqueFallido.map((f) => f.path).join(", ")} se deja como estaba y se pide completo.`,
+              duration: 7000,
+            });
+            relanzar(sessionId, depth, continuaciones, undefined, revisiones + 1);
+            return;
+          }
           // ——— Task DNA + memoria del proyecto (plan técnico §4, Pilar 3) ———
           // Cada encargo terminado se guarda como tarea estructurada: objetivo,
           // modelo, reintentos y archivos. Es lo que alimenta la recomendación

@@ -105,6 +105,20 @@ describe("aplicarParches", () => {
     expect(r.resultado).toContain("  <h1>Nuevo</h1>");
   });
 
+  it("la coincidencia flexible aplica el REPLACE (no vuelve a escribir el SEARCH)", () => {
+    const archivo = "<main>\n    <section>\n      <h2>Precios</h2>\n      <p>Desde 10 €</p>\n    </section>\n</main>";
+    // el modelo copió el fragmento con otra sangría: no casa exacto
+    const r = aplicarParches(archivo, [
+      { search: "<section>\n  <h2>Precios</h2>\n  <p>Desde 10 €</p>", replace: "<section>\n  <h2>Tarifas</h2>\n  <p>Desde 12 €</p>" },
+    ]);
+    expect(r.ok).toBe(true);
+    expect(r.resultado).toContain("Tarifas");
+    expect(r.resultado).toContain("Desde 12 €");
+    expect(r.resultado).not.toContain("Precios");
+    // conserva la sangría del original
+    expect(r.resultado).toContain("    <section>\n      <h2>Tarifas</h2>\n      <p>Desde 12 €</p>\n    </section>");
+  });
+
   it("no toca nada del archivo si un bloque falla: los que aplican, aplican", () => {
     const r = aplicarParches(original, [
       { search: "<p>parrafo</p>", replace: "<p>ok</p>" },
