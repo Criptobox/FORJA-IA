@@ -920,7 +920,7 @@ html[data-accent="naranja"] {
 }
 .fj-v-generando-c .fj-logo { animation: fjStreamBreath 2s ease-in-out infinite; }
 
-/* Timeline de progreso (ForjaProgressTimeline): icono grande del yunque
+/* Timeline de progreso (hoy la usa el panel «Creando…», creacion-en-curso.tsx): icono grande del yunque
  * (fase activa) + filas con fases REALES de un mensaje en curso, sin
  * duraciones inventadas — ver ese componente. El círculo de estado de
  * cada fila es el mismo `.task-status` del mockup de marca (mismo tamaño,
@@ -1049,6 +1049,79 @@ html[data-accent="naranja"] {
 @keyframes fjPauseBadgePulse {
   0%, 100% { opacity: 0.85; transform: scale(1); }
   50%      { opacity: 1;    transform: scale(1.06); }
+}
+
+/* ——— Panel «Creando…» (creacion-en-curso.tsx) ———
+ * Mismo lenguaje que la maqueta de marca «Forja IA · Creando algo»: cabecera
+ * con punto vivo, título grande, «Paso N de M», el yunque del estado real y
+ * la línea de tiempo con el dato de cada paso. La barra de la fila en marcha
+ * es INDETERMINADA a propósito: no se sabe cuánto falta, y una barra que se
+ * llena en un tiempo fijo sería inventárselo. */
+.fj-creacion { padding-top: 12px; }
+.fj-creacion-cabecera {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 0 4px 10px; margin-bottom: 6px; border-bottom: 1px solid var(--border);
+}
+.fj-creacion-marca {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted-foreground);
+}
+.fj-creacion-punto {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--fj-mint); box-shadow: 0 0 8px var(--fj-mint);
+  animation: fjBlink 1.6s ease-in-out infinite;
+}
+@keyframes fjBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.fj-creacion-badge {
+  max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--border); background: color-mix(in oklab, var(--muted) 60%, transparent);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--muted-foreground);
+}
+.fj-creacion-titulo { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.fj-creacion-sub { font-size: 12px; color: var(--muted-foreground); margin-bottom: 4px; }
+.fj-creacion-sub strong { color: var(--fj-halo); font-weight: 600; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.fj-creacion-meta {
+  display: block; margin-top: 1px; font-size: 11px; color: var(--muted-foreground);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; overflow-wrap: anywhere;
+}
+.fj-timeline-row--done .fj-creacion-meta { color: color-mix(in oklab, var(--fj-mint) 80%, var(--foreground)); }
+.fj-creacion-barra {
+  display: block; position: relative; overflow: hidden; margin-top: 6px; height: 2px; border-radius: 1px;
+  background: color-mix(in oklab, var(--fj-halo) 12%, transparent);
+}
+.fj-creacion-barra::after {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 35%;
+  background: linear-gradient(90deg, transparent, var(--fj-halo), transparent);
+  animation: fjIndeterminada 1.4s ease-in-out infinite;
+}
+@keyframes fjIndeterminada { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+.fj-creacion-pie {
+  padding: 8px 4px 6px; margin-top: 4px; border-top: 1px solid var(--border);
+  font-size: 11px; color: var(--muted-foreground); font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+.fj-creacion-resumen {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-bottom: 8px;
+  font-size: 12px; color: var(--muted-foreground);
+}
+.fj-creacion-check {
+  display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--fj-mint); color: #fff;
+}
+.fj-creacion-mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; overflow-wrap: anywhere; }
+
+/* Escribiendo (charla normal): tres puntos ligeros, no el yunque de crear. */
+.fj-escribiendo { display: inline-flex; gap: 4px; align-items: center; padding: 4px 0; }
+.fj-escribiendo span {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--fj-halo);
+  animation: fjEscribiendo 1.2s ease-in-out infinite;
+}
+.fj-escribiendo span:nth-child(2) { animation-delay: 0.15s; }
+.fj-escribiendo span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes fjEscribiendo { 0%, 60%, 100% { opacity: 0.3; transform: scale(0.7); } 30% { opacity: 1; transform: scale(1.15); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fj-creacion-punto, .fj-creacion-barra::after, .fj-escribiendo span { animation: none !important; }
 }
 
 /* Quien pide menos movimiento en el sistema no ve ninguno de estos efectos. */

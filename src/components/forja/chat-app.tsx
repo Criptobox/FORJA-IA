@@ -687,6 +687,21 @@ export function ChatApp() {
   /** Construir tras la propuesta de diseño: fija la dirección elegida en el
    *  mensaje del usuario (y en la memoria del proyecto, como contrato), añade
    *  los ajustes al encargo y ahora sí, genera. */
+  /** Lo que se pidió para la respuesta en la posición `idx`: el último
+   *  mensaje de la persona antes de ella (saltando las instrucciones que
+   *  escribe la app), y si esa respuesta es una corrección automática. */
+  const encargoDe = (idx: number): { encargo: string; correccion: boolean } => {
+    const lista = activeSession?.messages ?? [];
+    let correccion: boolean | null = null;
+    for (let i = idx - 1; i >= 0; i--) {
+      const u = lista[i];
+      if (u.role !== "user") continue;
+      if (correccion === null) correccion = !!u.instruction;
+      if (!u.instruction) return { encargo: u.content, correccion };
+    }
+    return { encargo: "", correccion: !!correccion };
+  };
+
   const construirDesdePropuesta = useCallback(
     (propuestaId: string, direccionId: string | null, ajustes: string) => {
       const st = useForja.getState();
@@ -1747,6 +1762,7 @@ export function ChatApp() {
                   ) : (
                   <MessageItem
                     msg={m}
+                    {...(m.role === "assistant" ? encargoDe(vi.index) : {})}
                     streaming={streamingMsgId === m.id}
                     isLastAssistant={m.id === lastAssistantId && !streamingMsgId}
                     onRegenerate={m.role === "assistant" ? (k?: string) => regenerate(m.id, k) : undefined}

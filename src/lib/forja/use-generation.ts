@@ -109,7 +109,7 @@ import {
   resumenRevision,
   MAX_REVISIONES,
 } from "./auto-revision";
-import { runProjectInMemory } from "./sandbox-runner";
+import { ANCHO_MOVIL_RUNNER, runProjectInMemory } from "./sandbox-runner";
 import {
   avisoIntentosAgotados as avisoGenericoAgotado,
   MEDIDAS_VACIAS,
@@ -1706,7 +1706,9 @@ export function useGeneration(ctx: CtxGeneracion) {
                   addMessage(sessionId, {
                     id: uid(),
                     role: "user",
-                    content: promptDeQA(qaMovil, salida.qa?.width ?? 390, proyecto.entry),
+                    // el ancho del dispositivo probado, no el `clientWidth` medido
+                    // (que resta la barra de scroll y varía entre 375 y 390)
+                    content: promptDeQA(qaMovil, ANCHO_MOVIL_RUNNER, proyecto.entry),
                     createdAt: Date.now(),
                     instruction: true,
                   });

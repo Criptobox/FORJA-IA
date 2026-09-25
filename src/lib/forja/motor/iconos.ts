@@ -198,3 +198,41 @@ export function seccionIconografia(eleccion: EleccionIconos): string {
 export function resumenIconografia(eleccion: EleccionIconos): string {
   return `iconos=${eleccion.iconos.length}`;
 }
+
+/* ----------------------- iconos por referencia (0 tokens) ------------------ */
+
+/** La marca que escribe el modelo en vez del SVG entero:
+ *  `<i data-icono="taza"></i>` (con `class` y `aria-label` opcionales).
+ *  Escribir el SVG costaba ~250 caracteres por icono en la respuesta —el
+ *  token más caro— y otros tantos en el prompt para enseñárselo. */
+const MARCA_ICONO = /<i\b([^>]*?)\bdata-icono\s*=\s*["']([\w-]+)["']([^>]*)>\s*<\/i>/gi;
+
+function atributo(attrs: string, nombre: string): string | undefined {
+  const m = attrs.match(new RegExp(`\\b${nombre}\\s*=\\s*["']([^"']*)["']`, "i"));
+  return m?.[1];
+}
+
+/**
+ * Sustituye las marcas `data-icono` por su SVG real e incluye la CSS de los
+ * iconos si hace falta. Un id que no existe se deja tal cual: no se inventa
+ * un icono. Idempotente: un HTML sin marcas sale igual.
+ */
+export function expandirIconos(html: string): string {
+  if (!html || !/data-icono/i.test(html)) return html;
+  let usados = 0;
+  const out = html.replace(MARCA_ICONO, (entera, antes: string, id: string, despues: string) => {
+    if (!iconoPorId(id)) return entera;
+    usados++;
+    const attrs = `${antes} ${despues}`;
+    const extra = atributo(attrs, "class");
+    const tam = Number(atributo(attrs, "data-tamano"));
+    return svgIcono(id, {
+      clase: ["f-ico", extra].filter(Boolean).join(" "),
+      etiqueta: atributo(attrs, "aria-label"),
+      ...(Number.isFinite(tam) && tam > 0 ? { tamano: tam } : {}),
+    });
+  });
+  if (!usados || /\.f-ico\s*\{/.test(out)) return out;
+  const estilo = `<style>${CSS_ICONOS}</style>`;
+  return /<\/head>/i.test(out) ? out.replace(/<\/head>/i, `${estilo}</head>`) : `${estilo}\n${out}`;
+}

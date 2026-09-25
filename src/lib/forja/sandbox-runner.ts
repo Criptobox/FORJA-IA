@@ -67,6 +67,13 @@ interface CollectedLog {
  *   una imagen) y la mayoría de llamadas a `run_project`/`run_regression`
  *   no la necesitan.
  */
+/** Ancho del dispositivo con el que se ejecuta la página sin captura: un
+ *  móvil grande (390 = iPhone 14). Es el ancho que hay que DECIR al modelo:
+ *  el medidor reporta `clientWidth`, que resta la barra de scroll y sale 390
+ *  o ~375 según si ya ha aparecido — y un mensaje que dice un ancho distinto
+ *  cada vez, para el mismo móvil, confunde. */
+export const ANCHO_MOVIL_RUNNER = 390;
+
 export async function runProjectInMemory(
   files: Record<string, string>,
   opts: { qa?: boolean; botones?: boolean; screenshot?: boolean; firma?: boolean } = {}
@@ -152,7 +159,7 @@ export async function runProjectInMemory(
     // escritorio, no el ancho móvil que usa el QA por defecto. Solo se
     // ensancha cuando se pide screenshot: `run_project`/`run_regression`
     // normales siguen midiendo a 390px, que es lo que ya prueban.
-    iframe.style.width = opts.screenshot ? "1280px" : "390px";
+    iframe.style.width = opts.screenshot ? "1280px" : `${ANCHO_MOVIL_RUNNER}px`;
     iframe.style.height = opts.screenshot ? "800px" : "600px";
     iframe.style.opacity = "0";
     iframe.style.pointerEvents = "none";

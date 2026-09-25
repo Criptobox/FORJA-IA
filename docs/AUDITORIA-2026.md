@@ -261,7 +261,37 @@ Publicar en Netlify subía el ZIP tal cual: nada impedía sacar a una URL públi
   - `tests/e2e/pre-publicacion.spec.ts` con `mock-con-clave` comprueba que Seguridad bloquea, que Datos avisa, que el botón queda desactivado hasta decidir y que no sale ninguna llamada a Netlify.
 - **Pendiente:** el enlace de despliegue del Sandbox (`/d#…`) y GitHub Pages (Repo Studio) todavía no pasan por estas comprobaciones. `puertaPublicacion()` es pura y se puede conectar ahí igual.
 
-## 12. Orden propuesto para los siguientes sprints
+## 12. Panel «Creando…» con progreso real e iconos por referencia
+
+### Lo que se veía
+
+- Cualquier respuesta en curso, **también un «hola»**, enseñaba el yunque grande con «Pensando / Generando».
+- En los encargos de web, la prosa que el modelo escribe antes del código salía **encima** de la animación.
+- Los pasos eran dos y genéricos: no contaban cómo iba de verdad el trabajo.
+
+### Lo que se ve ahora (`progreso-creacion.ts` + `creacion-en-curso.tsx`)
+
+- **Solo al crear algo** (web o app nueva) sale un panel con el lenguaje de la maqueta de marca «Forja IA · Creando algo»: cabecera con punto vivo y el modelo, «Paso N de 5», el yunque en el estado real y la línea de tiempo.
+- **Pasos y datos reales**, sin duraciones inventadas; la barra de la fila en marcha es indeterminada a propósito:
+  1. **Entendiendo el encargo:** nivel del turno y secciones previstas del plano.
+  2. **Eligiendo modelo:** el modelo que responde.
+  3. **Pensando:** los caracteres de razonamiento, si el modelo los manda.
+  4. **Escribiendo archivos:** qué archivos van saliendo (el que está en curso lleva ✎), secciones escritas de las previstas y tokens aproximados.
+  5. **Entrega:** tiempo y tokens del proveedor.
+- **La prosa del modelo** va debajo del panel, en pequeño y recortada, y solo la parte anterior al primer bloque de código. El código a medio escribir nunca se ve en el chat.
+- **Al terminar**, el panel se pliega en una línea: «✓ Creado · index.html · 9 de 10 secciones · 4.100 tokens · 12,4 s».
+- **Charla, pregunta o retoque:** tres puntos ligeros, no el yunque de crear.
+- **Correcciones automáticas:** el panel se titula «Corrigiendo tu página».
+- `forja-progress-timeline.tsx` desaparece: lo sustituye este panel, que reutiliza sus estilos.
+
+### Iconos por referencia (ahorro de tokens sin perder diseño)
+
+- **Antes:** el plano de contenido llevaba los 8 SVG enteros más su CSS, unos 3.000 caracteres en cada creación, y el modelo los copiaba en su respuesta, así que cada icono se pagaba otra vez como salida.
+- **Ahora:** el prompt lleva solo los ids y el uso de cada icono. El modelo escribe `<i data-icono="taza"></i>` y `expandirIconos()` pone el SVG real y su CSS en `filesFromAnswer` (el embudo de la vista previa, el ZIP y la revisión automática) y en `bundlePreview`.
+- **Resultado:** el plano de «landing para cafetería» baja de **8.015 a 5.560 caracteres (−31 % de entrada)**, y cada icono usado ahorra unos 250 caracteres de salida.
+- **Casos límite:** un id que no existe se deja tal cual (no se inventa un icono), y un HTML sin marcas sale idéntico.
+
+## 13. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 
