@@ -311,9 +311,6 @@ export function aDesignMd(d: DireccionVisual, nombreProyecto?: string): string {
 /* el bloque del prompt                                               */
 /* ------------------------------------------------------------------ */
 
-/** Checklist anti-AI-slop: el modelo se autoevalúa ANTES de entregar
- * (plan §2.4, tercera fila). Cinco dimensiones, corrección antes de
- * mostrar. */
 /** Lo que separa una página profesional de una maqueta bonita: el CONTENIDO.
  *
  * Una página genérica se reconoce antes por lo que dice que por cómo se ve —
@@ -324,20 +321,25 @@ export function aDesignMd(d: DireccionVisual, nombreProyecto?: string): string {
  * texto de relleno, la ausencia de escala tipográfica y las tarjetas clonadas
  * vuelven al modelo como hallazgos, no como consejos. */
 export const REGLAS_DE_CONTENIDO = [
-  "CERO RELLENO. Ni «Lorem ipsum», ni «Característica 1», ni «Tu texto aquí». Cada frase se escribe PARA este encargo: nombres propios, cifras concretas, verbos del oficio. Si no sabes un dato, escribe algo específico y plausible — nunca un hueco.",
-  "TITULAR CON AFIRMACIÓN. El h1 dice qué es y para quién, no saluda. «Bienvenido a X» no es un titular.",
-  "JERARQUÍA MEDIBLE. Escala tipográfica de al menos cuatro escalones y el titular como mínimo al doble del cuerpo. Un solo tamaño repetido es una maqueta, no un diseño.",
-  "PAREJA TIPOGRÁFICA REAL. Display distinta del cuerpo, cargadas de Google Fonts. La fuente por defecto del navegador se nota.",
-  "NADA DE IMÁGENES PRESTADAS. Ni placehold.co ni unsplash aleatorio: SVG inline, gradientes o formas CSS propias. Lo de fuera no se ve sin internet.",
-  "COMPOSICIÓN CON UN PROTAGONISTA. Evita la fila de tres tarjetas idénticas y el hero centrado con un botón: son la composición por defecto de cualquier generador. Que un elemento domine y el resto lo acompañe.",
+  // Un dato REAL que no se tiene va como marcador, igual que pide el plano de
+  // contenido (`plano-contenido.ts`) y detecta la puerta de publicación: antes
+  // esta regla decía «escribe algo plausible» y el plano, en el mismo prompt,
+  // «nunca inventes cifras». El modelo recibía dos órdenes opuestas.
+  "CERO RELLENO. Ni «Lorem ipsum», ni «Característica 1», ni «Tu texto aquí»: cada frase se escribe PARA este encargo, con nombres y verbos del oficio. Un dato real que no tengas (precio, teléfono, horario) va como marcador [PRECIO], nunca inventado.",
+  "TITULAR CON AFIRMACIÓN. El h1 dice qué es y para quién; no saluda («Bienvenido a X» no es un titular).",
+  "JERARQUÍA MEDIBLE. Cuatro escalones tipográficos o más, y el titular al menos al doble del cuerpo.",
+  "SIN IMÁGENES PRESTADAS. Ni placehold.co ni Unsplash aleatorio: SVG inline, gradientes o formas CSS propias.",
+  "UN PROTAGONISTA. Ni fila de tres tarjetas idénticas ni hero centrado con un botón: un elemento domina y el resto lo acompaña.",
 ] as const;
 
+/** Checklist anti-AI-slop: el modelo se autoevalúa ANTES de entregar. Solo
+ *  las preguntas; lo que ya dicen las reglas de arriba no se repite. */
 export const CHECKLIST_ANTI_SLOP = [
-  "JERARQUÍA — ¿un solo elemento domina la vista y el ojo sabe a dónde ir? Si todo pesa igual, falla.",
-  "TIPOGRAFÍA — ¿la pareja tipográfica se usa con intención (pesos, tamaños, tracking) o es la de por defecto?",
-  "COLOR — ¿cada color tiene un porqué (acento en la acción principal, superficies diferenciadas)? ¿Hay al menos un contraste fuerte y deliberado?",
-  "ESPACIO — ¿la densidad es una decisión (aire generoso O denso alineado), no un accidente?",
-  "DETALLE MEMORABLE — ¿hay UN gesto visual que se recuerde (una forma, un patrón, una micro-interacción)? Si lo quitaras y la página siguiera igual de genérica, falla.",
+  "JERARQUÍA — ¿el ojo sabe a dónde ir primero?",
+  "TIPOGRAFÍA — ¿pesos, tamaños y tracking con intención, no los de por defecto?",
+  "COLOR — ¿el acento marca la acción principal y hay un contraste fuerte y deliberado?",
+  "ESPACIO — ¿la densidad es una decisión, no un accidente?",
+  "DETALLE MEMORABLE — ¿hay UN gesto visual que se recuerde? Si al quitarlo nada cambia, falla.",
 ].join("\n");
 
 /** El bloque de dirección de diseño que se inyecta en el system prompt
@@ -368,7 +370,7 @@ export function promptDireccion(e: EleccionDireccion): string {
     "### Contenido (esto se mide después en la página, no es un consejo)",
     ...REGLAS_DE_CONTENIDO.map((r) => `- ${r}`),
     "",
-    "Antes de entregar, corrígete contra esta checklist y arregla lo que falle:",
+    "Antes de entregar, repasa y arregla lo que falle:",
     CHECKLIST_ANTI_SLOP,
   ]
     .filter(Boolean)

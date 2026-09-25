@@ -146,7 +146,7 @@ import { buildImageUrl, preloadImage } from "./images";
 import { speak } from "./speech";
 import { escudoHistorial, PII_LABELS } from "./pii";
 import { soloAdjuntosDelTurno } from "./adjuntos-historial";
-import { esTurnoTrivial } from "./turno-trivial";
+import { esTurnoTrivial, historialSinCodigo } from "./turno-trivial";
 import { useFailures } from "./failures";
 import { compressHistory, savingsPercent, type CompressionMode } from "./compress";
 import { podarVersionesSuperadas } from "./versiones-superadas";
@@ -725,8 +725,15 @@ export function useGeneration(ctx: CtxGeneracion) {
         agente: !!useForja.getState().settings.agentMode || forjaWeb,
         archivos: vigentesTurno,
       });
+      // Un saludo (L0) no lleva código del historial: con la página delante
+      // —y más si se cortó— el modelo contestaba al «hola» reescribiéndola.
       const foco =
-        nivelTurno === 1 || nivelTurno === 2
+        nivelTurno === 0
+          ? (() => {
+              const s = historialSinCodigo(poda.mensajes, protectIdx);
+              return { mensajes: s.mensajes, omitidos: [] as string[], ahorrados: s.ahorrados };
+            })()
+          : nivelTurno === 1 || nivelTurno === 2
           ? podarIrrelevantes(
               poda.mensajes,
               archivosRelevantes(pregunta, archivosVigentes(poda.mensajes)),
@@ -1325,7 +1332,14 @@ export function useGeneration(ctx: CtxGeneracion) {
           // Con el modo agente esto lo lleva `agentStalled`, que entiende sus
           // etiquetas; aquí es para todo lo demás, que es como se pide una web
           // la mayoría de las veces.
-          if (!useForja.getState().settings.agentMode && !forjaWeb) {
+          //
+          // Y también con el agente encendido cuando el modelo NO usó sus
+          // etiquetas: `agentStalled` solo mira <step>/<answer>, así que una
+          // página en prosa + ```html cortada en el techo de tokens no la
+          // continuaba nadie, y el usuario acababa escribiendo «hola» para
+          // que el modelo la rehiciera (cortada otra vez en el mismo sitio).
+          const sinFormatoAgente = !parseAgentTrace(content).active;
+          if ((!useForja.getState().settings.agentMode && !forjaWeb) || sinFormatoAgente) {
             // Dos señales: lo que dice el proveedor y la forma del texto.
             // Con cualquiera de las dos se continúa — el proveedor acierta
             // donde la forma no ve nada (un corte a media frase), y la forma

@@ -291,6 +291,12 @@ Publicar en Netlify subía el ZIP tal cual: nada impedía sacar a una URL públi
 - **Resultado:** el plano de «landing para cafetería» baja de **8.015 a 5.560 caracteres (−31 % de entrada)**, y cada icono usado ahorra unos 250 caracteres de salida.
 - **Casos límite:** un id que no existe se deja tal cual (no se inventa un icono), y un HTML sin marcas sale idéntico.
 
+### Bloque de dirección: sin órdenes contradictorias y más corto
+
+- **Contradicción corregida:** la regla «CERO RELLENO» decía «si no sabes un dato, escribe algo plausible», y el plano de contenido, en el mismo prompt, «nunca inventes cifras, horarios ni precios: usa [PRECIO]». Ahora las dos piden el marcador, que es además lo que detecta la puerta de publicación.
+- **Segunda contradicción:** el acabado del plano seguía pidiendo «SVG inline», cuando el chat ya pide `<i data-icono>`. Ahora dice «iconos del juego que da el motor», válido para el chat y para el Estudio.
+- **Menos repetición:** fuera la regla de pareja tipográfica (la dirección ya nombra las fuentes y dice de dónde cargarlas), y la checklist anti-slop se queda en las cinco preguntas, sin repetir lo que dicen las reglas. El bloque baja de ~3.800–4.700 a ~3.200–4.100 caracteres según la dirección (unos 590 menos, −15 %).
+
 ## 13. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:

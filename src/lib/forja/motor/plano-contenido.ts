@@ -468,7 +468,7 @@ export function seccionPlanoContenido(plano: PlanoContenido): string {
   l.push("## Acabado exigido en TODA la página");
   l.push(`- Estados en CSS: ${plano.presupuesto.estadosExigidos.join(", ")} — visibles, no solo un cambio de opacidad.`);
   l.push("- Imágenes con aspect-ratio fijo y object-fit; nunca un <img> sin dimensión que salte el layout.");
-  l.push("- Iconos como SVG inline con currentColor y stroke coherente; nunca emojis como iconografía.");
+  l.push("- Iconos del juego que da el motor, con currentColor y trazo coherente; nunca emojis como iconografía.");
   l.push("- Todo dato tabular alineado (font-variant-numeric: tabular-nums en precios y cifras).");
   l.push("- Casos borde tratados: qué se ve si una lista está vacía, qué dice un error de formulario.");
   l.push("- Cada sección con un ancla (`id`) que coincide con los enlaces de la navegación.");

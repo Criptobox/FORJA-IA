@@ -69,7 +69,7 @@ function CodeBlock({
             <span className="size-2.5 rounded-full bg-[#febc2e]" />
             <span className="size-2.5 rounded-full bg-[#28c840]" />
           </span>
-          <span className="ml-1 font-mono text-[11px] uppercase tracking-wider text-white/55">
+          <span className="ml-1 whitespace-nowrap font-mono text-[11px] uppercase tracking-wider text-white/55">
             {lang}
           </span>
         </div>
@@ -77,17 +77,19 @@ function CodeBlock({
           {puedeColapsar && (
             <button
               onClick={() => setAbierto((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-white/55 transition hover:bg-white/10 hover:text-white"
+              className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-[11px] text-white/55 transition hover:bg-white/10 hover:text-white"
               aria-expanded={abierto}
               aria-label={abierto ? "Ocultar código" : "Ver código"}
             >
               {abierto ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
-              {abierto ? "Ocultar código" : `Ver código (${lineas} líneas)`}
+              {abierto ? "Ocultar código" : "Ver código"}
+              {/* en móvil no cabe en una línea: el número ya lo dice el resumen de abajo */}
+              {!abierto && <span className="hidden sm:inline">({lineas} líneas)</span>}
             </button>
           )}
           <button
             onClick={copy}
-            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-white/55 transition hover:bg-white/10 hover:text-white"
+            className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-[11px] text-white/55 transition hover:bg-white/10 hover:text-white"
             aria-label="Copiar código"
           >
             {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
