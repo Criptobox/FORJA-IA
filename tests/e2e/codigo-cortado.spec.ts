@@ -17,8 +17,8 @@ import { expect, test } from "./fixtures";
 
 const MODEL_ID = "mock-largo";
 
-async function seed(page: import("@playwright/test").Page) {
-  await page.addInitScript((model: string) => {
+async function seed(page: import("@playwright/test").Page, agentMode = false) {
+  await page.addInitScript(({ model, agentMode }: { model: string; agentMode: boolean }) => {
     const seed = {
       state: {
         sessions: [],
@@ -39,7 +39,7 @@ async function seed(page: import("@playwright/test").Page) {
           onlyFree: false,
           // apagado a propósito: el corte del modo agente ya lo cubre
           // agente-continua.spec.ts; esto es el camino normal
-          agentMode: false,
+          agentMode,
           agentMaxLoops: 3,
           accent: "violeta",
           accentCustom: "#8b5cf6",
@@ -65,7 +65,7 @@ async function seed(page: import("@playwright/test").Page) {
     } catch {
       /* frame sin acceso */
     }
-  }, MODEL_ID);
+  }, { model: MODEL_ID, agentMode });
 }
 
 test("una web cortada por longitud se completa y la vista previa la pinta entera", async ({
@@ -107,4 +107,21 @@ test("una web cortada por longitud se completa y la vista previa la pinta entera
     )
   );
   expect(pidioSeguir.length, "pidió la continuación").toBe(1);
+});
+
+// Caso real (captura del usuario): con el modo agente ENCENDIDO, el modelo
+// contestó en prosa + ```html, sin las etiquetas del agente, y se cortó en el
+// techo de tokens. `agentStalled` solo entiende <step>/<answer>, así que nadie
+// lo continuaba: el usuario escribió «hola» y el modelo rehízo la página.
+test("con el agente encendido, una web en prosa cortada también se continúa", async ({ page }) => {
+  await seed(page, true);
+  await page.goto("/");
+  const input = page.locator("textarea").first();
+  await expect(input).toBeVisible({ timeout: 30_000 });
+  await input.fill("Hazme una página larga");
+  await page.getByRole("button", { name: "Enviar mensaje" }).click();
+
+  const marco = page.frameLocator('iframe[title="Vista previa de la página generada"]');
+  await expect(marco.locator("h1")).toHaveText("Forja", { timeout: 45_000 });
+  await expect(marco.locator("p")).toContainText("tras empalmar los dos trozos");
 });

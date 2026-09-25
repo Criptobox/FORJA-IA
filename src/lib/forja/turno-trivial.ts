@@ -64,3 +64,65 @@ export function esTurnoTrivial(texto: string): boolean {
 
   return CORTESIA.test(n);
 }
+
+/* ------------------------------------------------------------------ */
+/* el historial de un saludo, sin código                              */
+/* ------------------------------------------------------------------ */
+
+/** Un bloque más corto que esto se deja: no pesa y puede ser la respuesta. */
+const MIN_CODIGO_SALUDO = 300;
+
+/** Lo que queda en lugar de cada bloque. Dice QUÉ había (para que el modelo
+ *  pueda mencionarlo) y que en este turno no se reescribe. */
+export function marcadorSaludo(lang: string, lineas: number, cortado: boolean): string {
+  const que = lang ? `${lang}, ` : "";
+  return `[código omitido (${que}${lineas} líneas${cortado ? ", se cortó a mitad" : ""}): este turno es un saludo — no lo reescribas; si quedó cortado, ofrece continuarlo]`;
+}
+
+/**
+ * En un turno trivial, el código del historial no viaja.
+ *
+ * Quitar la plantilla del agente y el mapa no bastaba: el modelo seguía viendo
+ * la página del turno anterior en el historial y, si se había cortado,
+ * contestaba al «hola» reescribiéndola entera (miles de tokens de salida que
+ * nadie pidió, y cortados otra vez en el mismo sitio). Sin el código delante
+ * no tiene qué reescribir. Se cubren también los bloques SIN cerrar, que son
+ * justo los de una respuesta cortada.
+ *
+ * La pregunta viva (`protegido`) no se toca.
+ */
+export function historialSinCodigo<T extends { role: string; content: string }>(
+  mensajes: readonly T[],
+  protegido = -1
+): { mensajes: T[]; ahorrados: number } {
+  let ahorrados = 0;
+  const out = mensajes.map((m, i) => {
+    if (i === protegido || m.role !== "assistant" || !m.content.includes("```")) return m;
+    const lineas = m.content.split("\n");
+    const res: string[] = [];
+    for (let k = 0; k < lineas.length; k++) {
+      const abre = lineas[k].match(/^[ \t]*```([^\n`]*)$/);
+      if (!abre) {
+        res.push(lineas[k]);
+        continue;
+      }
+      let fin = k + 1;
+      while (fin < lineas.length && !/^[ \t]*```\s*$/.test(lineas[fin])) fin++;
+      const cortado = fin >= lineas.length;
+      const cuerpo = lineas.slice(k + 1, fin);
+      const texto = cuerpo.join("\n");
+      if (texto.length < MIN_CODIGO_SALUDO) {
+        res.push(...lineas.slice(k, Math.min(fin + 1, lineas.length)));
+      } else {
+        const lang = (abre[1] ?? "").trim().split(/\s+/)[0] ?? "";
+        const nuevo = marcadorSaludo(lang, cuerpo.length, cortado);
+        ahorrados += texto.length - nuevo.length;
+        res.push(nuevo);
+      }
+      k = fin;
+    }
+    const content = res.join("\n");
+    return content === m.content ? m : { ...m, content };
+  });
+  return { mensajes: out, ahorrados: Math.max(0, ahorrados) };
+}
