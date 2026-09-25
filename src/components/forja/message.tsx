@@ -27,7 +27,9 @@ import { etiquetaCorta } from "@/lib/forja/senalar";
 import { Markdown } from "./markdown";
 import { SparkleAvatar } from "./sparkle-avatar";
 import { AgentAnswer, AgentTraceView } from "./agent-trace";
-import { ForjaProgressTimeline } from "./forja-progress-timeline";
+import { CreacionEnCurso } from "./creacion-en-curso";
+import { esEncargoDeCreacion, progresoCreacion } from "@/lib/forja/progreso-creacion";
+import { esEncargoDeApp } from "@/lib/forja/modo-app";
 import type { ChatMessage } from "@/lib/forja/types";
 import { MAX_RENDER_CHARS, splitModelKey, speechState } from "@/lib/forja/types";
 import { hayContexto, lineaContexto, detalleContexto } from "@/lib/forja/contexto-usado";
@@ -85,6 +87,8 @@ export const MessageItem = memo(function MessageItem({
   onDeshacer,
   sandboxFiles,
   branch,
+  encargo,
+  correccion,
 }: {
   msg: ChatMessage;
   streaming?: boolean;
@@ -107,6 +111,11 @@ export const MessageItem = memo(function MessageItem({
   sandboxFiles?: Record<string, string>;
   /** Versiones alternativas de esta respuesta, si se regeneró alguna vez. */
   branch?: { index: number; total: number; onPrev: () => void; onNext: () => void };
+  /** Lo que pidió la persona para esta respuesta: decide si es una creación
+   *  (panel «Creando…») o una charla (tres puntos). */
+  encargo?: string;
+  /** esta respuesta es una corrección automática, no el encargo original */
+  correccion?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -162,8 +171,25 @@ export const MessageItem = memo(function MessageItem({
     () => (!isUser && !msg.error && !trace.active ? proyectoDeLaRespuesta(shown) : null),
     [shown, isUser, msg.error, trace.active]
   );
-  const cercaIdx = proyecto && streaming ? shown.indexOf("```") : -1;
-  const introMientrasEscribe = cercaIdx >= 0 ? shown.slice(0, cercaIdx).trim() : null;
+  // ——— Panel «Creando…»: solo cuando se CREA algo (una web, una app) ———
+  // El progreso sale del stream real (`progreso-creacion.ts`). Un «hola» o
+  // una pregunta no lo llevan: llevan tres puntos.
+  const creacion = useMemo(
+    () =>
+      !isUser && !msg.error && !trace.active && (esEncargoDeCreacion(encargo ?? "") || !!proyecto)
+        ? progresoCreacion({
+            encargo: encargo ?? "",
+            contenido: msg.content,
+            razonamiento: msg.reasoning,
+            streaming: !!streaming,
+            modelo: msg.model,
+            ocultarModelo: msg.viaForjaWeb,
+            final: { ms: msg.ficha?.ms ?? msg.elapsedMs, tokensSalida: msg.ficha?.tokensSalida },
+          })
+        : null,
+    [isUser, msg.error, trace.active, encargo, proyecto, msg.content, msg.reasoning, streaming, msg.model, msg.viaForjaWeb, msg.ficha, msg.elapsedMs]
+  );
+  const tituloCreacion = correccion ? "Corrigiendo tu página" : esEncargoDeApp(encargo ?? "") ? "Creando tu app" : "Creando tu página";
   const reasoningShown = msg.reasoning && msg.reasoning.length > 4000 && !expanded
     ? msg.reasoning.slice(0, 4000) + "…"
     : msg.reasoning;
@@ -394,44 +420,21 @@ export const MessageItem = memo(function MessageItem({
                       ) : null;
                     })()}
                   </div>
-                ) : proyecto && streaming ? (
-                  <div className="stream-cursor-wrap">
-                    {introMientrasEscribe && <Markdown content={introMientrasEscribe} />}
-                    <ForjaProgressTimeline
-                      className="mt-2"
-                      heroState="generando"
-                      heroVariant="dots"
-                      steps={[
-                        {
-                          id: "pensando",
-                          label: msg.reasoning ? "Reflexionando…" : "Pensando…",
-                          status: "done",
-                        },
-                        {
-                          id: "generando",
-                          label: "Escribiendo tu página… se ve en vivo en la vista previa.",
-                          status: "running",
-                        },
-                      ]}
-                    />
+                ) : creacion && streaming ? (
+                  // Creando: el panel va ARRIBA y lo que el modelo escribe
+                  // antes del código, debajo y en pequeño. Nunca el código a
+                  // medio escribir: la página crece en la vista previa.
+                  <div>
+                    <CreacionEnCurso progreso={creacion} titulo={tituloCreacion} />
+                    {shown.split("```")[0].trim() && (
+                      <div className="mt-2 line-clamp-4 text-[12.5px] text-muted-foreground">
+                        <Markdown content={shown.split("```")[0].trim()} />
+                      </div>
+                    )}
                   </div>
                 ) : (
                 <div className={streaming ? "stream-cursor-wrap" : ""}>
-                  {streaming && (
-                    <ForjaProgressTimeline
-                      className="mb-2"
-                      heroState="generando"
-                      heroVariant="dots"
-                      steps={[
-                        {
-                          id: "pensando",
-                          label: msg.reasoning ? "Reflexionando…" : "Pensando…",
-                          status: "done",
-                        },
-                        { id: "generando", label: "Generando…", status: "running" },
-                      ]}
-                    />
-                  )}
+                  {creacion && !streaming && proyecto && <CreacionEnCurso progreso={creacion} />}
                   <Markdown content={shown} colapsarCodigoGrande={!!proyecto} />
                   {tooLong && (
                     <button
@@ -446,17 +449,17 @@ export const MessageItem = memo(function MessageItem({
                 </div>
                 )
               ) : streaming ? (
-                <ForjaProgressTimeline
-                  heroState="pensando"
-                  steps={[
-                    {
-                      id: "pensando",
-                      label: msg.reasoning ? "Reflexionando…" : "Pensando…",
-                      status: "running",
-                    },
-                    { id: "generando", label: "Generando…", status: "pending" },
-                  ]}
-                />
+                creacion ? (
+                  <CreacionEnCurso progreso={creacion} titulo={tituloCreacion} />
+                ) : (
+                  // Una charla («hola», una pregunta): tres puntos, no el
+                  // yunque de crear. Crear es lo que merece el panel.
+                  <span className="fj-escribiendo" role="status" aria-label="Escribiendo">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                )
               ) : null}
               {/* ——— Evidence Mode: chips de cita archivo:línea ——— */}
               {!streaming && citas.length > 0 && (

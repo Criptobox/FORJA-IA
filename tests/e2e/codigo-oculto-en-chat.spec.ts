@@ -74,8 +74,8 @@ test("mientras escribe, no se ve el HTML crudo creciendo: se ve el aviso de trab
   await page.keyboard.press("Enter");
 
   const respuesta = page.locator("[data-role='assistant']").last();
-  // el aviso de trabajo aparece MIENTRAS se escribe…
-  await expect(respuesta).toContainText("Escribiendo tu página", { timeout: 30_000 });
+  // el panel «Creando…» aparece MIENTRAS se escribe, con el paso real…
+  await expect(respuesta.getByTestId("creacion-en-curso")).toContainText("Escribiendo archivos", { timeout: 30_000 });
   // …y en ese mismo momento el HTML crudo NO está visible en el chat: ni
   // como texto suelto ni como un <pre> con el código a medio escribir
   await expect(respuesta).not.toContainText("<!DOCTYPE");
@@ -85,7 +85,9 @@ test("mientras escribe, no se ve el HTML crudo creciendo: se ve el aviso de trab
   await expect(page.getByRole("button", { name: "Ver código" }).first()).toBeVisible({
     timeout: 90_000,
   });
-  await expect(respuesta).not.toContainText("Escribiendo tu página");
+  await expect(respuesta.getByTestId("creacion-en-curso")).toHaveCount(0);
+  // …y queda el resumen de lo creado, en una línea
+  await expect(respuesta.getByTestId("creacion-resumen")).toContainText("Creado");
 });
 
 test("terminado, el código nace colapsado con un botón «Ver código», y se puede abrir", async ({

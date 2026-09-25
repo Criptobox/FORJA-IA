@@ -32,13 +32,17 @@ describe("piezaPlanoContenido", () => {
     expect(pieza.texto).toMatch(/612 345 678/);
     expect(pieza.texto).toMatch(/Valencia/);
   });
-  it("lleva iconos SVG del motor y su CSS, no emojis", () => {
+  it("lleva los iconos del motor POR REFERENCIA (ids + marca), no los SVG enteros", () => {
     expect(pieza.texto).toContain("# ICONOS");
-    expect(pieza.texto.match(/<svg class="f-ico"/g)?.length).toBeGreaterThanOrEqual(6);
-    expect(pieza.texto).toContain(".f-ico{");
+    expect(pieza.texto).toContain('<i data-icono="ID"></i>');
+    expect(pieza.texto.match(/`[\w-]+` \(/g)?.length).toBeGreaterThanOrEqual(6);
+    // ni un SVG ni su CSS en el prompt: los pone Forja al pintar
+    expect(pieza.texto).not.toContain("<svg");
+    expect(pieza.texto).not.toContain(".f-ico{");
   });
-  it("cabe: plano completo e iconos compactos, por debajo de 9.000 caracteres", () => {
-    expect(pieza.texto.length).toBeLessThan(9_000);
+  it("cabe: plano completo e iconos por referencia, por debajo de 6.500 caracteres", () => {
+    // con los SVG enteros eran ~8.000: los iconos por referencia ahorran ~2.500
+    expect(pieza.texto.length).toBeLessThan(6_500);
   });
   it("el nivel del chat tiene techo en producción (showcase se corta a medias)", () => {
     const largo = `${BARBERIA}. ${"Quiero una web muy completa con todo el detalle posible. ".repeat(8)}`;

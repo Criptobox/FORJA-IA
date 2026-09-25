@@ -466,6 +466,12 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
     return new Uint8Array(writeZip(lista));
   };
   const [publicarAbierto, setPublicarAbierto] = useState(false);
+  /** Lo mismo que va en el ZIP, como mapa, para comprobarlo antes de publicar. */
+  const archivosParaPublicar = useMemo(() => {
+    const m: Record<string, string> = Object.fromEntries(archivos.map((f) => [f.path, f.text]));
+    if (!m["index.html"] && bundle) m["index.html"] = bundle;
+    return m;
+  }, [archivos, bundle]);
 
   const descargarZip = () => {
     const zip = writeZip(archivos.map((f) => ({ path: f.path, data: encodeText(f.text) })));
@@ -862,6 +868,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
         onOpenChange={setPublicarAbierto}
         conversacionId={almacenId}
         construirZip={zipParaPublicar}
+        archivos={archivosParaPublicar}
       />
     </div>
   );

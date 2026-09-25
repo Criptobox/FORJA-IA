@@ -241,7 +241,57 @@ La revisión automática (consola, botones, móvil, genérica/dirección, conten
   - E2E en `qa-movil.spec.ts`: un modelo terco que nunca arregla el desbordamiento en móvil. La 2ª corrección la hace otro modelo, que sí lo arregla.
   - `generico.spec` pasa de esperar 2 correcciones a esperar 1: con un solo modelo configurado ya no se repite la petición que falló.
 
-## 11. Orden propuesto para los siguientes sprints
+## 11. Sprint 8 — Comprobaciones antes de publicar (`pre-publicacion.ts`)
+
+Publicar en Netlify subía el ZIP tal cual: nada impedía sacar a una URL pública una página con una clave de API en el código, un `<script src>` a un archivo que no existe o «Teléfono: pendiente» a la vista.
+
+- **La cadena del §41**, en siete etapas: Build → Pruebas → Seguridad → SEO → Accesibilidad → Rendimiento → Datos del negocio.
+- **No se ha inventado ninguna comprobación.** Todo sale de piezas que ya existían:
+  - el verificador del agente (`web-verifier.ts`, el mismo de `verify_project`);
+  - la auditoría estática (`web-audit.ts`);
+  - la ejecución real de la página en un iframe (`runProjectInMemory` con QA).
+  - Lo único nuevo es la detección de **datos pendientes** en el texto visible: «pendiente», «por confirmar», «lorem ipsum», teléfonos 555…
+- **Qué bloquea y qué avisa:**
+  - Bloquean: sin página de entrada, un archivo local enlazado que no existe, errores al ejecutarla y credenciales en el código.
+  - Solo avisan: SEO, accesibilidad, rendimiento y datos pendientes.
+  - Sin ejecución, la etapa Pruebas sale como «sin dato», nunca como «bien».
+- **Human-in-the-loop** (§66): un bloqueo desactiva el botón de publicar, pero se puede publicar igualmente marcando «Lo he revisado y quiero publicar igualmente». Esa marca no se arrastra a la siguiente vez.
+- **Pruebas:**
+  - `tests/unit/pre-publicacion.test.ts` usa el verificador real.
+  - `tests/e2e/pre-publicacion.spec.ts` con `mock-con-clave` comprueba que Seguridad bloquea, que Datos avisa, que el botón queda desactivado hasta decidir y que no sale ninguna llamada a Netlify.
+- **Pendiente:** el enlace de despliegue del Sandbox (`/d#…`) y GitHub Pages (Repo Studio) todavía no pasan por estas comprobaciones. `puertaPublicacion()` es pura y se puede conectar ahí igual.
+
+## 12. Panel «Creando…» con progreso real e iconos por referencia
+
+### Lo que se veía
+
+- Cualquier respuesta en curso, **también un «hola»**, enseñaba el yunque grande con «Pensando / Generando».
+- En los encargos de web, la prosa que el modelo escribe antes del código salía **encima** de la animación.
+- Los pasos eran dos y genéricos: no contaban cómo iba de verdad el trabajo.
+
+### Lo que se ve ahora (`progreso-creacion.ts` + `creacion-en-curso.tsx`)
+
+- **Solo al crear algo** (web o app nueva) sale un panel con el lenguaje de la maqueta de marca «Forja IA · Creando algo»: cabecera con punto vivo y el modelo, «Paso N de 5», el yunque en el estado real y la línea de tiempo.
+- **Pasos y datos reales**, sin duraciones inventadas; la barra de la fila en marcha es indeterminada a propósito:
+  1. **Entendiendo el encargo:** nivel del turno y secciones previstas del plano.
+  2. **Eligiendo modelo:** el modelo que responde.
+  3. **Pensando:** los caracteres de razonamiento, si el modelo los manda.
+  4. **Escribiendo archivos:** qué archivos van saliendo (el que está en curso lleva ✎), secciones escritas de las previstas y tokens aproximados.
+  5. **Entrega:** tiempo y tokens del proveedor.
+- **La prosa del modelo** va debajo del panel, en pequeño y recortada, y solo la parte anterior al primer bloque de código. El código a medio escribir nunca se ve en el chat.
+- **Al terminar**, el panel se pliega en una línea: «✓ Creado · index.html · 9 de 10 secciones · 4.100 tokens · 12,4 s».
+- **Charla, pregunta o retoque:** tres puntos ligeros, no el yunque de crear.
+- **Correcciones automáticas:** el panel se titula «Corrigiendo tu página».
+- `forja-progress-timeline.tsx` desaparece: lo sustituye este panel, que reutiliza sus estilos.
+
+### Iconos por referencia (ahorro de tokens sin perder diseño)
+
+- **Antes:** el plano de contenido llevaba los 8 SVG enteros más su CSS, unos 3.000 caracteres en cada creación, y el modelo los copiaba en su respuesta, así que cada icono se pagaba otra vez como salida.
+- **Ahora:** el prompt lleva solo los ids y el uso de cada icono. El modelo escribe `<i data-icono="taza"></i>` y `expandirIconos()` pone el SVG real y su CSS en `filesFromAnswer` (el embudo de la vista previa, el ZIP y la revisión automática) y en `bundlePreview`.
+- **Resultado:** el plano de «landing para cafetería» baja de **8.015 a 5.560 caracteres (−31 % de entrada)**, y cada icono usado ahorra unos 250 caracteres de salida.
+- **Casos límite:** un id que no existe se deja tal cual (no se inventa un icono), y un HTML sin marcas sale idéntico.
+
+## 13. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 

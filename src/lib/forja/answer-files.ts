@@ -16,6 +16,7 @@
 
 import { buildRunHtml, encodeText, pickEntryPath } from "./sandbox";
 import { faltanDelKit } from "./efectos";
+import { expandirIconos } from "./motor/iconos";
 
 export interface AnswerFile {
   path: string;
@@ -198,7 +199,10 @@ export function filesFromAnswer(content: string | null | undefined): AnswerFile[
 
   const porRuta = new Map<string, AnswerFile>();
   for (const b of bloquesConNombre(content)) {
-    porRuta.set(b.path, { path: b.path, text: b.text, inferido: b.inferido });
+    // Los iconos viajan por referencia (`data-icono`): aquí, que es el
+    // embudo de la vista previa, el ZIP y la revisión, se ponen los SVG.
+    const text = /\.html?$/i.test(b.path) ? expandirIconos(b.text) : b.text;
+    porRuta.set(b.path, { path: b.path, text, inferido: b.inferido });
   }
 
   const salida = [...porRuta.values()];
@@ -239,7 +243,8 @@ function numerar(base: string, n: number): string {
  * streaming eso es lo que se lleva escrito, y así la vista previa sigue
  * creciendo en vivo en vez de esperar al final.
  */
-export function bundlePreview(html: string, files: AnswerFile[]): string {
+export function bundlePreview(htmlCrudo: string, files: AnswerFile[]): string {
+  const html = expandirIconos(htmlCrudo);
   if (files.length < 2) return html; // un archivo suelto ya se pinta bien
   const entry = pickEntryPath(files.map((f) => f.path));
   if (!entry) return html;

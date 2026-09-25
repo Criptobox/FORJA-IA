@@ -19,7 +19,7 @@
 import { esEncargoUINueva } from "./design-directions";
 import { esEncargoDeApp } from "./modo-app";
 import { construirPlanoContenido, nivelDeDetalle, seccionPlanoContenido, type NivelDetalle, type PlanoContenido } from "./motor/plano-contenido";
-import { CSS_ICONOS, elegirIconos, iconoPorId, svgIcono } from "./motor/iconos";
+import { elegirIconos, iconoPorId } from "./motor/iconos";
 import { auditarDetalle, seccionReparacionDetalle, type InformeDetalle } from "./motor/qa-detalle";
 
 /** Iconos que viajan en el prompt: bastan para una página, y cada SVG son
@@ -50,24 +50,23 @@ export function planoDelEncargo(brief: string): PlanoContenido {
   return construirPlanoContenido(brief, { nivel: nivelChat(brief) });
 }
 
-/** Iconografía compacta: los SVG exactos del juego del sector y su CSS. */
+/** Iconografía por REFERENCIA: el modelo escribe `<i data-icono="id"></i>` y
+ *  Forja pone el SVG real al pintar (`expandirIconos`, en `answer-files.ts`).
+ *  Antes viajaban los SVG enteros (~3.000 caracteres) y el modelo los copiaba
+ *  en su respuesta, pagando otra vez cada icono como salida. */
 function seccionIconos(brief: string): string {
   const ids = elegirIconos(brief, MAX_ICONOS_PROMPT).iconos.slice(0, MAX_ICONOS_PROMPT);
-  const lineas = ids
+  const lista = ids
     .map((id) => {
       const def = iconoPorId(id);
-      return def ? `- \`${id}\` (${def.uso}): ${svgIcono(id)}` : "";
+      return def ? `\`${id}\` (${def.uso})` : "";
     })
     .filter(Boolean);
-  if (!lineas.length) return "";
+  if (!lista.length) return "";
   return [
-    "# ICONOS (SVG del motor: úsalos en vez de emojis)",
-    "Van inline con currentColor, así heredan el color y escalan con el texto. Copia el SVG tal cual y cambia solo la clase o el tamaño.",
-    ...lineas,
-    "CSS de apoyo (inclúyela en el <style>):",
-    "```css",
-    CSS_ICONOS.trim(),
-    "```",
+    "# ICONOS (del motor: úsalos en vez de emojis)",
+    'Escribe SOLO la marca, no el SVG: `<i data-icono="ID"></i>`. Forja la sustituye por el SVG y añade su CSS. Admite `class` (p. ej. `f-ico--acento`, o dentro de `<span class="f-ico-caja">`) y `aria-label` si el icono comunica algo por sí solo.',
+    `IDs disponibles: ${lista.join(" · ")}.`,
   ].join("\n");
 }
 
