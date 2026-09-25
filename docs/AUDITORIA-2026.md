@@ -179,7 +179,20 @@ Con una imagen adjunta, Auto elegía por encaje con la tarea sin mirar si el mod
 
 El resto de capacidades del §60 (CODING, REASONING, FAST…) sigue como encaje por nombre en `task-router.ts`. No se ha creado una tabla que nadie use.
 
-## 7. Orden propuesto para los siguientes sprints
+## 7. Sprint 4 — Design First en el chat (`propuesta-diseno.ts`)
+
+El Estudio (`/forja`) ya proponía antes de construir. El chat, que es donde se hacen las webs, construía directamente. Ahora, con una web nueva:
+
+- **Propuesta:** en vez de construir se enseña una tarjeta con tres direcciones visuales (paleta, tipografía y para qué encajan, la recomendada primero), las secciones del plano de contenido y los datos que dio el usuario frente a los que faltan.
+- **Coste cero:** todo sale del catálogo y del plano, que son deterministas. Ninguna llamada al modelo hasta que se pulsa «Construir».
+- **Al elegir:**
+  - La dirección viaja como elección del usuario y queda fijada como contrato del proyecto.
+  - Los ajustes se añaden al encargo.
+  - Los datos que faltan viajan con la orden de no inventarlos (§21).
+- **Cuándo no sale:** en retoques, apps, con imagen de referencia, en proyectos con identidad ya fijada (salvo que se pida otro estilo), con «directo» en el encargo o si se apaga en Ajustes → Chat.
+- **Pruebas:** `tests/e2e/propuesta-diseno.spec.ts` comprueba que la propuesta no hace ninguna petición y que lo elegido llega al prompt. Los E2E que prueban la construcción desactivan la propuesta en su configuración de arranque.
+
+## 8. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 

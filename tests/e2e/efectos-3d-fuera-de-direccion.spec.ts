@@ -29,6 +29,8 @@ async function seed(page: Page) {
             favorites: [],
             radarSeenIds: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: `custom::${model}`,
               accessCode: "",
               agentModes: [],
@@ -114,6 +116,8 @@ test("en una dirección experimental, el motor 3D NO se toca", async ({ page }) 
             favorites: [],
             radarSeenIds: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: "custom::mock-3d",
               accessCode: "",
               agentModes: [],

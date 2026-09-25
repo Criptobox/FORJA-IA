@@ -29,6 +29,8 @@ async function seed(page: Page) {
             radarSeenIds: [],
             skills: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: "anthropic::claude-opus-5",
               accessCode: "",
               agentModes: [],

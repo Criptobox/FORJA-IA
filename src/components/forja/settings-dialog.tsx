@@ -491,6 +491,22 @@ export function SettingsDialog({
 
             <PresupuestoDinero />
 
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-4 py-3">
+              <div className="min-w-0">
+                <Label className="text-[13px]">Propuesta de diseño antes de construir</Label>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Al pedir una web nueva, primero ves tres direcciones visuales, las secciones y los
+                  datos que faltan, y eliges. No gasta tokens: se construye cuando eliges. Escribe
+                  «directo» en el encargo para saltártela una vez.
+                </p>
+              </div>
+              <Switch
+                aria-label="Propuesta de diseño antes de construir"
+                checked={settings.propuestaDiseno !== false}
+                onCheckedChange={(v) => setSettings({ propuestaDiseno: v })}
+              />
+            </div>
+
             {settings.agentMode && (
               <div className="rounded-xl border border-border/60 px-4 py-3">
                 <Label className="text-[13px]">Permisos del agente</Label>

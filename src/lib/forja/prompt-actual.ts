@@ -35,6 +35,7 @@ import { esEncargoDeTiendaOCatalogo, INSTRUCCION_TIENDA_INTERACTIVA } from "./ca
 import { buildDesignArchitecture, designArchitecturePrompt } from "./design-architect";
 import { nivelDeContexto, piezasPorNivel, ETIQUETA_NIVEL } from "./nivel-contexto";
 import { contratoCompacto, direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "./contrato-diseno";
+import { direccionElegida, instruccionPendientes } from "./propuesta-diseno";
 
 /** Textos de los estilos de salida. Fuera de la función para que se puedan
  *  medir sin montar nada. */
@@ -222,7 +223,12 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   let eleccionDireccion: ReturnType<typeof elegirDireccion> | null = null;
   if (!trivial && porNivel.diseno === "completo" && (esEncargoUINueva(promptUsuario) || forjaWebActivo)) {
     eleccionDireccion = elegirDireccion(promptUsuario, idsRecientes(disenosPrevios));
-    if (eleccionDireccion.origen === "sistema" && fijada && !romperContrato) {
+    // La elegida en la propuesta de diseño manda sobre todo lo demás: es la
+    // decisión explícita del usuario para ESTE encargo.
+    const elegida = direccionElegida(ultimoDelUsuario?.direccionElegida);
+    if (elegida) {
+      eleccionDireccion = { direccion: elegida, origen: "usuario" };
+    } else if (eleccionDireccion.origen === "sistema" && fijada && !romperContrato) {
       eleccionDireccion = { direccion: fijada, origen: "proyecto" };
     }
     disenoId = eleccionDireccion.direccion.nombre;
@@ -243,6 +249,8 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
   // El motor decide el CONTENIDO de una página nueva: secciones con mínimos,
   // datos del encargo que se usan tal cual e iconos SVG. Solo al crearla.
   const plano = !trivial ? piezaPlanoContenido(promptUsuario) : null;
+  // Lo que la propuesta detectó que falta: se dice al modelo que no lo invente.
+  const pendientes = !trivial ? instruccionPendientes(ultimoDelUsuario?.datosPendientes ?? []) : null;
 
   // Una imagen adjunta en un encargo de diseño ES la dirección: imponer
   // además una de las curadas daría al modelo dos estilos que se pisan.
@@ -306,7 +314,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     mapa,
     contexto: contextoFinal,
     diseno,
-    plano: plano?.texto ?? null,
+    plano: [plano?.texto, pendientes].filter(Boolean).join("\n\n") || null,
     reglas,
     ahorro: !!st.settings.ahorro,
   };

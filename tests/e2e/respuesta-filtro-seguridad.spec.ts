@@ -34,6 +34,8 @@ async function seed(page: import("@playwright/test").Page, model: string) {
           favorites: [],
           radarSeenIds: [],
           settings: {
+            // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+            propuestaDiseno: false,
             defaultModelKey: `custom::${model}`,
             systemPrompt: "Eres Forja IA (test).",
             temperature: 0.7,

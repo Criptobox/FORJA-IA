@@ -26,6 +26,8 @@ async function seed(page: Page) {
             radarSeenIds: [],
             skills: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: `custom::${model}`,
               accessCode: "",
               agentModes: [],
@@ -122,6 +124,8 @@ test("un texto que aparece dos veces se rechaza con el motivo, no se adivina", a
             radarSeenIds: [],
             skills: [],
             settings: {
+              // estos specs prueban la CONSTRUCCIÓN; la propuesta de diseño tiene su propio spec
+              propuestaDiseno: false,
               defaultModelKey: "custom::mock-generica",
               accessCode: "",
               agentModes: [],
