@@ -20,6 +20,7 @@ import {
   esDemasiadoGrande,
   esPeticionInvalida,
   limiteDelMensaje,
+  esLimiteLocal,
 } from "../../src/lib/forja/decisiones";
 
 const CADENA = [
@@ -387,5 +388,52 @@ describe("la polaridad: solo para lo que es culpa nuestra", () => {
   it("el aviso del tamaño no dice «falló»: dice que no cabe", () => {
     expect(motivoDelFallo(413, false, false, true)).toBe("grande");
     expect(tituloFailover("grande", "Groq")).toMatch(/no le cabe/);
+  });
+});
+
+describe("límites propios (presupuesto, techo, veto) — Plan Maestro 2026 §61", () => {
+  const cadena = [
+    { providerId: "deepseek", modelId: "deepseek-chat" },
+    { providerId: "openai", modelId: "gpt-x" },
+    { providerId: "groq", modelId: "llama-free" },
+  ];
+  const base = {
+    status: 0,
+    mensajeCuota: false,
+    auto: true,
+    depth: 0,
+    maxSaltos: 3,
+    indice: 0,
+    cadena,
+    parcial: "",
+    rescatable: false,
+  };
+
+  it("reconoce los tres cortes locales por su texto, y nada más", () => {
+    expect(esLimiteLocal("Presupuesto de hoy alcanzado (1,00 $ de 1,00 $): FORJA pasa a solo modelos gratis.")).toBe(true);
+    expect(esLimiteLocal("Presupuesto mensual alcanzado (5,00 $ de 5,00 $)")).toBe(true);
+    expect(esLimiteLocal("Has llegado al techo de 200 llamadas de pago hoy.")).toBe(true);
+    expect(esLimiteLocal("«OpenAI» está vetado: tú decidiste que no reciba nada.")).toBe(true);
+    expect(esLimiteLocal("503 Service Unavailable")).toBe(false);
+  });
+
+  it("salta al siguiente GRATIS de la cadena, no al siguiente de pago", () => {
+    const d = decidirTrasError({
+      ...base,
+      limiteLocal: true,
+      esGratis: (c) => c.modelId.endsWith("-free"),
+    });
+    expect(d).toEqual({ tipo: "siguiente", indice: 2 });
+  });
+
+  it("sin gratis en la cadena, sale al failover (que solo elige gratis)", () => {
+    const d = decidirTrasError({ ...base, limiteLocal: true, esGratis: () => false });
+    expect(d).toEqual({ tipo: "failover" });
+  });
+
+  it("el motivo y los titulares no dicen que el proveedor esté caído", () => {
+    expect(motivoDelFallo(0, false, false, false, true)).toBe("limite");
+    expect(tituloFailover("limite", "DeepSeek")).not.toMatch(/no está respondiendo/);
+    expect(tituloSinAlternativa("limite", "DeepSeek")).toMatch(/gratis/);
   });
 });

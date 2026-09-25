@@ -125,6 +125,7 @@ import {
   esDemasiadoGrande,
   esModeloMuerto,
   esPeticionInvalida,
+  esLimiteLocal,
   limiteDelMensaje,
   decidirTrasVacio,
   motivoDelFallo,
@@ -150,6 +151,8 @@ import { compressHistory, savingsPercent, type CompressionMode } from "./compres
 import { podarVersionesSuperadas } from "./versiones-superadas";
 import { archivosRelevantes, archivosVigentes, podarIrrelevantes } from "./grafo-proyecto";
 import { nivelDeContexto } from "./nivel-contexto";
+import { ordenarParaVision, useCapacidades } from "./capacidades";
+import { esFalloDeImagen } from "./model-probe";
 import { modoEfectivo, sumarUso, type UsoProveedor } from "./cache-prompt";
 import { CONTEXTO_VACIO, hayContexto, type ContextoUsado } from "./contexto-usado";
 import { checkpointAuto } from "./snapshots";
@@ -497,6 +500,11 @@ export function useGeneration(ctx: CtxGeneracion) {
         ? ({ kind: "web", label: "sistema completo" } as const)
         : classifyTask(lastUserPrompt(session.messages));
 
+      // Imágenes del turno, leídas del mensaje enviado (el borrador ya está
+      // vacío a estas alturas): deciden si hace falta un modelo que vea.
+      const imagenesTurno =
+        [...session.messages].reverse().find((m) => m.role === "user")?.attachments?.length ?? 0;
+
       // ——— cadena de candidatos ———
       type Candidate = { providerId: ProviderId; modelId: string };
       let chain: Candidate[] = [];
@@ -532,6 +540,9 @@ export function useGeneration(ctx: CtxGeneracion) {
           // aprendía: recordaba el último acierto y nada más.
           useUsage.getState().byModel
         );
+        // Con imágenes en el turno, primero los que ven (capacidades.ts): los
+        // que ya dijeron «no admito imágenes» salen, los que lo parecen suben.
+        if (imagenesTurno > 0) chain = ordenarParaVision(chain, useCapacidades.getState().sinVision);
         if (chain.length === 0) {
           toast.error(`${forjaWeb ? "FORJA WEB" : "Auto"} no tiene modelos disponibles`, {
             description: "Conecta al menos un proveedor gratis (Gemini, Groq, OpenRouter…) en Ajustes.",
@@ -943,13 +954,23 @@ export function useGeneration(ctx: CtxGeneracion) {
             const aborted = err instanceof DOMException && err.name === "AbortError";
             if (aborted) throw err;
             const status = statusFromError(err);
-            useHealth.getState().recordFailure(
-              makeModelKey(candidate.providerId, candidate.modelId),
-              status,
-              retryAfterFromError(err)
-            );
-            settle(candidate, false, 0);
             const msg = err instanceof Error ? err.message : String(err);
+            // Un límite tuyo (presupuesto, techo, veto) no es un fallo del
+            // modelo: no lo manda al banquillo ni cuenta contra su historial.
+            const limiteLocal = esLimiteLocal(msg);
+            // «Este modelo no admite imágenes»: se apunta para que Auto no lo
+            // vuelva a elegir en un turno con imágenes.
+            if (imagenesTurno > 0 && esFalloDeImagen(msg)) {
+              useCapacidades.getState().marcarSinVision(makeModelKey(candidate.providerId, candidate.modelId));
+            }
+            if (!limiteLocal) {
+              useHealth.getState().recordFailure(
+                makeModelKey(candidate.providerId, candidate.modelId),
+                status,
+                retryAfterFromError(err)
+              );
+              settle(candidate, false, 0);
+            }
             // ¿El proveedor ha dicho que ese modelo ya no existe? Es una
             // categoría aparte de «falló»: la petición estaba bien y lo que
             // falta es el modelo. Antes caía en el mismo saco que una petición
@@ -1056,6 +1077,8 @@ export function useGeneration(ctx: CtxGeneracion) {
               mensajeCuota: isQuotaError(msg),
               modeloMuerto: muerto,
               peticionInvalida: esPeticionInvalida(status, msg),
+              limiteLocal,
+              esGratis: (c) => isFreeModel(c.providerId as ProviderId, c.modelId),
               auto: auto || forjaWeb,
               depth,
               maxSaltos: MAX_SALTOS,
@@ -1075,7 +1098,9 @@ export function useGeneration(ctx: CtxGeneracion) {
               toast.warning(
                 forjaWeb
                   ? "Forja IA: buscando otra fuente disponible"
-                  : grande
+                  : limiteLocal
+                    ? "Límite de gasto: sigue un modelo gratis"
+                    : grande
                     ? `La conversación no le cabe a ${candidate.modelId}`
                     : muerto
                       ? `${candidate.modelId} ya no existe`
@@ -1106,7 +1131,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                 depth,
                 continuaciones,
                 content,
-                motivoDelFallo(status, isQuotaError(msg), muerto, grande)
+                motivoDelFallo(status, isQuotaError(msg), muerto, grande, limiteLocal)
               );
             }
             break;
@@ -1114,6 +1139,9 @@ export function useGeneration(ctx: CtxGeneracion) {
 
           // ——— éxito del stream ———
           paint(true);
+          if (imagenesTurno > 0) {
+            useCapacidades.getState().confirmarVision(makeModelKey(candidate.providerId, candidate.modelId));
+          }
           const finalSplit = separarEtiquetasPensamiento(content, reasoning);
           content = finalSplit.contenido;
           reasoning = finalSplit.razonamiento;

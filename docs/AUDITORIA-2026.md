@@ -160,9 +160,28 @@ Por eso no se ha duplicado.
 - **Límite conocido:** el importe de una llamada solo se sabe cuando termina. La llamada que cruza el límite se paga entera y es la última; se explica en Ajustes.
 - **Duplicados:** `gasto.ts` (techo de llamadas) se mantiene como segunda barrera. Los demás módulos de coste del motor (`perfiles.ts`, `presupuesto-tokens.ts`, `token-roi.ts`) quedan para fusionarse cuando se haga el Task Ledger.
 
+### Fallback inteligente por tipo de error (§61)
+
+`decisiones.ts` ya distinguía cuota (402/429), proveedor caído (5xx/timeout), modelo retirado (404), mensaje demasiado grande (413/TPM) y petición inválida (400 propia, el único caso que para). Faltaba una categoría:
+
+- **Límite propio**: presupuesto en dinero, techo de llamadas de pago y proveedor vetado. La petición ni siquiera sale, así que no hay código HTTP, y se trataba como «el proveedor no responde».
+  - El modelo se mandaba al banquillo (cooldown) y contaba como fallo en su historial. Ya no.
+  - El aviso decía «X no está respondiendo». Ahora dice «Límite de gasto: sigue un modelo gratis».
+  - El siguiente intento podía ser otro modelo de pago, que volvía a cortarse. Ahora salta al siguiente candidato **gratis** de la cadena, o al failover, que solo elige gratis.
+
+### Capacidades: visión (§60, `capacidades.ts`)
+
+Con una imagen adjunta, Auto elegía por encaje con la tarea sin mirar si el modelo ve imágenes, y se perdía un intento con «does not support image input».
+
+- **Pista por nombre** (Gemini, GPT-4o/5, Claude, Llama 4, Pixtral, Qwen-VL, GLM-4V…): solo **ordena**, nunca quita.
+- **Evidencia**: un modelo que respondió «no admito imágenes» en este dispositivo sale de la cadena de Auto en los turnos con imágenes. Si luego ve una imagen sin quejarse, la marca se borra.
+- Si todos los de la cadena están marcados, no se deja vacía: se intenta igualmente.
+
+El resto de capacidades del §60 (CODING, REASONING, FAST…) sigue como encaje por nombre en `task-router.ts`. No se ha creado una tabla que nadie use.
+
 ## 7. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 
-- **Sprint 3 (pendiente):** interfaz `ModelProvider` y tabla de capacidades (§59–60). Fallback inteligente por tipo de error (§61).
+- **Pendiente de Sprint 3:** interfaz `ModelProvider` explícita (§59). Hoy la abstracción real son los 3 protocolos de `chat-client.ts` (openai / anthropic / gemini) más el registro de `providers.ts`: añadir un proveedor compatible no requiere código nuevo.
 - **Sprint 4 y siguientes:** Design First con aprobación, fusión de Vision QA, escalera de recuperación y gates de publicación.
