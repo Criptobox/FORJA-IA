@@ -64,6 +64,7 @@ const MODELOS = [
   "mock-verifica",
   "mock-diagnostica",
   "mock-parche",
+  "mock-movil-roto",
   "mock-visual-review",
   "mock-visual-review-sin-vision",
   "mock-llamada-en-texto",
@@ -302,6 +303,9 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // hero centrado con su botón. La segunda entrega es la pulida. Sirve para
   // comprobar que Forja MIDE lo genérico en la página pintada y se lo
   // devuelve al modelo, en vez de fiarse de que se autoevalúe.
+  // (Las tarjetas envuelven con flex-wrap: sin eso, tres de 220 px en fila se
+  // salían por la derecha a 390 px, y la corrección de MÓVIL —que se prueba en
+  // qa-movil.spec— se adelantaba a la de página genérica que se prueba aquí.)
   if (modelo === "mock-generica") {
     const lePulieron = msgs.some(
       (m) =>
@@ -318,7 +322,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       : `<section style="text-align:center"><h1>Bienvenido a nuestro sitio</h1>` +
         `<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>` +
         `<a class="cta" href="#">Empezar</a></section>` +
-        `<div style="display:flex;gap:16px">${tarjeta(1)}${tarjeta(2)}${tarjeta(3)}</div>` +
+        `<div style="display:flex;flex-wrap:wrap;gap:16px">${tarjeta(1)}${tarjeta(2)}${tarjeta(3)}</div>` +
         Array.from({ length: 30 }, (_, i) => `<p>Texto de ejemplo ${i}</p>`).join("");
     return [
       lePulieron ? "Corregido tras medirla." : "Aquí tienes la página.",
@@ -328,6 +332,36 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       '<html lang="es"><head><meta charset="utf-8"><title>Demo</title></head>',
       '<body style="font-family:system-ui;margin:0;padding:24px">',
       cuerpo,
+      "</body></html>",
+      "```",
+    ].join("\n");
+  }
+
+  // `mock-movil-roto`: la primera entrega tiene un bloque de 900 px de ancho
+  // fijo, que a 390 px se sale por la derecha (scroll horizontal). Cuando le
+  // llega la corrección del QA de móvil («390 px de ancho»), lo hace fluido.
+  if (modelo === "mock-movil-roto") {
+    const corregida = msgs.some(
+      (m) => typeof m.content === "string" && (m.content as string).includes("390 px de ancho")
+    );
+    const banda = corregida
+      ? '<div style="max-width: 100%; box-sizing: border-box; padding: 16px; background: #f4efe6">Horario: de 8:00 a 20:00</div>'
+      : '<div style="width: 900px; padding: 16px; background: #f4efe6">Horario: de 8:00 a 20:00</div>';
+    return [
+      corregida ? "Corregido para móvil." : "Aquí tienes la página.",
+      "",
+      "**index.html**",
+      "",
+      "```html",
+      "<!DOCTYPE html>",
+      '<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Cafetería La Ola</title>',
+      '<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Inter:wght@400&display=swap" rel="stylesheet"></head>',
+      '<body style="margin:0;font-family:Inter,sans-serif;color:#1b1b1b;background:#fffaf2">',
+      '<h1 style="font-family:Fraunces,serif;font-size:44px;margin:24px 16px">Café de especialidad frente al mar</h1>',
+      '<p style="font-size:17px;margin:0 16px 12px">Tostamos cada semana en Cádiz y servimos desayunos hasta mediodía.</p>',
+      '<p style="font-size:13px;margin:0 16px 12px">Terraza con vistas a La Caleta.</p>',
+      '<h2 style="font-size:26px;margin:16px">La carta</h2>',
+      banda,
       "</body></html>",
       "```",
     ].join("\n");
@@ -627,7 +661,7 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
       `<section style="text-align:center"><h1>Bienvenido a nuestro sitio</h1>` +
       `<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>` +
       `<a class="cta" href="#">Empezar</a></section>` +
-      `<div style="display:flex;gap:16px">${tarjeta(1)}${tarjeta(2)}${tarjeta(3)}</div>` +
+      `<div style="display:flex;flex-wrap:wrap;gap:16px">${tarjeta(1)}${tarjeta(2)}${tarjeta(3)}</div>` +
       Array.from({ length: 30 }, (_, i) => `<p>Texto de ejemplo ${i}</p>`).join("");
     return [
       "Aquí tienes la página.",

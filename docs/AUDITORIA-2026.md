@@ -206,7 +206,27 @@ El Estudio (`/forja`) ya proponía antes de construir. El chat, que es donde se 
   - **Qué hace:** no se acepta, se neutraliza en la respuesta (la versión anterior sigue siendo la buena) y se pide bien. Antes, ese archivo sustituía a la página entera.
 - **Pruebas:** `tests/e2e/retoque-parche.spec.ts` comprueba los dos caminos en el navegador con un mock: parche aplicado y parche que no casa.
 
-## 9. Orden propuesto para los siguientes sprints
+## 9. Sprint 6 — QA visual de móvil en el bucle de corrección (`qa-responsive.ts`)
+
+La revisión automática ya ejecutaba cada página generada a 390 px con el medidor de `visual-qa.ts` dentro. De todo lo que medía, solo se usaban las señas de «página genérica». El scroll horizontal, los botones fuera de pantalla o sin nombre, el contraste ilegible, el texto de menos de 12 px y las imágenes sin alt se medían y se tiraban: el modelo nunca se enteraba de que su página se rompía en un móvil.
+
+- **Severidades:**
+
+  | Nivel | Hallazgos | Qué pasa |
+  |---|---|---|
+  | Alta | scroll horizontal, fuera de pantalla, sin nombre accesible | Corrección automática |
+  | Media | contraste | Corrección automática |
+  | Media | texto < 12 px, imagen sin alt | Viajan en la corrección si ya hay una, pero no gastan una llamada por sí solos |
+  | Baja | objetivo de toque pequeño | Solo se informa |
+
+- **La corrección** lleva lo medido, tal cual, y la regla para arreglarlo. Usa el mismo bucle y el mismo tope de intentos que los errores de consola. Como la vuelta es un retoque, sale por parche (Sprint 5).
+- **Orden de la revisión:** errores de consola → botones que fallan → móvil → página genérica / fuera de dirección → contenido frente al plano.
+- **El mock `mock-generica` tenía un fallo real de móvil:** tres tarjetas de 220 px sin `flex-wrap`, que desbordaban a 390 px. Se corrige en el mock para que su spec siga probando lo que prueba.
+- **Pruebas:** `tests/e2e/qa-movil.spec.ts` con `mock-movil-roto` comprueba la página que desborda, la corrección con lo medido y la segunda entrega, que ya no falla.
+
+**Pendiente de este frente:** la comparación con un modelo de visión (captura frente a diseño). Existe como herramienta del agente (`visual_review`), pero no se lanza sola porque cuesta una llamada con imagen en cada página. Candidata a activarse solo en L3 o con presupuesto.
+
+## 10. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 
