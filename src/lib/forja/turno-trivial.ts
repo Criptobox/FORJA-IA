@@ -69,6 +69,13 @@ export function esTurnoTrivial(texto: string): boolean {
 /* el historial de un saludo, sin código                              */
 /* ------------------------------------------------------------------ */
 
+/** La orden para el modelo en un saludo cuando la conversación ya tiene
+ *  código. El historial va sin él (`historialSinCodigo`), pero un modelo que
+ *  ve «se cortó a mitad» en el marcador tiende a «arreglarlo»: se le dice
+ *  expresamente que no, y que lo cortado se continúa desde Forja. */
+export const INSTRUCCION_SALUDO =
+  "## TURNO DE SALUDO\nEl usuario solo saluda o agradece. Contesta en una o dos frases, sin bloques de código y sin reescribir ningún archivo, aunque algo anterior esté incompleto: en ese caso dilo y pregúntale si quiere que lo continúes.";
+
 /** Un bloque más corto que esto se deja: no pesa y puede ser la respuesta. */
 const MIN_CODIGO_SALUDO = 300;
 

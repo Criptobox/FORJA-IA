@@ -29,6 +29,7 @@ import { SparkleAvatar } from "./sparkle-avatar";
 import { AgentAnswer, AgentTraceView } from "./agent-trace";
 import { CreacionEnCurso } from "./creacion-en-curso";
 import { esEncargoDeCreacion, progresoCreacion } from "@/lib/forja/progreso-creacion";
+import { esTurnoTrivial } from "@/lib/forja/turno-trivial";
 import { esEncargoDeApp } from "@/lib/forja/modo-app";
 import type { ChatMessage } from "@/lib/forja/types";
 import { MAX_RENDER_CHARS, splitModelKey, speechState } from "@/lib/forja/types";
@@ -176,7 +177,11 @@ export const MessageItem = memo(function MessageItem({
   // una pregunta no lo llevan: llevan tres puntos.
   const creacion = useMemo(
     () =>
-      !isUser && !msg.error && !trace.active && (esEncargoDeCreacion(encargo ?? "") || !!proyecto)
+      !isUser &&
+      !msg.error &&
+      !trace.active &&
+      // un saludo que acaba soltando código no es «Creando tu página · L0 trivial»
+      (esEncargoDeCreacion(encargo ?? "") || (!!proyecto && !esTurnoTrivial(encargo ?? "")))
         ? progresoCreacion({
             encargo: encargo ?? "",
             contenido: msg.content,
