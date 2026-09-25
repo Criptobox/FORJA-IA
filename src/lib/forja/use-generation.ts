@@ -102,6 +102,7 @@ import {
   avisoIntentosAgotados as avisoRevisionAgotada,
   hayQueCorregir,
   promptDeCorreccion,
+  erroresDelModelo,
   proyectoDeLaRespuesta,
   quedanIntentos,
   reglaDeFallo,
@@ -162,6 +163,7 @@ import {
 import { bloquesConNombre } from "./answer-files";
 import { hallazgosQA, hayQueCorregirQA, promptDeQA, resumenQA } from "./qa-responsive";
 import { reglaDeQA } from "./visual-qa";
+import { avisoParada, decidirPeldano, firmaDe, type PasoRevision } from "./escalera";
 import { nivelDeContexto } from "./nivel-contexto";
 import { ordenarParaVision, useCapacidades } from "./capacidades";
 import { esFalloDeImagen } from "./model-probe";
@@ -296,6 +298,12 @@ export function useGeneration(ctx: CtxGeneracion) {
    * expediente de la respuesta buena decía «respondió el primero» justo cuando
    * habían fallado tres. Se vacía solo al empezar un turno nuevo de verdad. */
   const intentosRef = useRef<IntentoFallido[]>([]);
+  /** Correcciones automáticas ya pedidas en esta tarea, con su firma: es lo
+   *  que deja ver que un problema VOLVIÓ tras corregirlo (`escalera.ts`). */
+  const revisionesRef = useRef<PasoRevision[]>([]);
+  /** Modelo que hará la próxima corrección cuando la escalera sube a «otro
+   *  modelo». Solo vale para las revisiones de esta tarea. */
+  const modeloForzadoRef = useRef<{ providerId: ProviderId; modelId: string } | null>(null);
   /** referencia fresca a runGeneration para reintentos de failover (evita dependencia circular) */
   const runGenRef = useRef<
     | ((
@@ -496,6 +504,8 @@ export function useGeneration(ctx: CtxGeneracion) {
       // el expediente empieza en blanco.
       if (depth === 0 && continuaciones === 0 && revisiones === 0) {
         intentosRef.current = [];
+        revisionesRef.current = [];
+        modeloForzadoRef.current = null;
         // …y el contador de gasto POR TAREA también (presupuesto-dinero.ts)
         guardarLibro(iniciarTarea(leerLibro(), `${sessionId}:${Date.now()}`));
       }
@@ -597,6 +607,16 @@ export function useGeneration(ctx: CtxGeneracion) {
           description: resumenPresupuesto(leerLibro(), normalizarLimites(state.settings.presupuestoUsd), Date.now()),
           duration: 6000,
         });
+      }
+
+      // Escalera de recuperación: la corrección que volvió a fallar la hace
+      // otro modelo (`escalera.ts`). Va delante; el resto queda de reserva.
+      const forzado = revisiones > 0 ? modeloForzadoRef.current : null;
+      if (forzado) {
+        chain = [
+          forzado,
+          ...chain.filter((c) => !(c.providerId === forzado.providerId && c.modelId === forzado.modelId)),
+        ];
       }
 
       // Con semilla se escribe DENTRO de la burbuja del modelo caído: así el
@@ -1584,6 +1604,35 @@ export function useGeneration(ctx: CtxGeneracion) {
               // que medía llegaba nunca al modelo. Es también por donde vienen
               // las señas de página genérica.
               const salida = await runProjectInMemory(proyecto.files, { botones: true, qa: true });
+              // ——— Escalera de recuperación (§65) ———
+              // Antes de pedir una corrección: si es el MISMO problema que ya
+              // se mandó corregir y volvió, no se repite con el mismo modelo.
+              // Devuelve false cuando hay que parar (y ya lo ha dicho).
+              const escalar = (firma: string, titulo: string): boolean => {
+                const actual = makeModelKey(candidate.providerId, candidate.modelId);
+                const alternativa =
+                  buildTaskChain(task.kind, useForja.getState().providers, bloqueado, 6, null, useUsage.getState().byModel).find(
+                    (c) => makeModelKey(c.providerId, c.modelId) !== actual
+                  ) ?? null;
+                const peldano = decidirPeldano(revisionesRef.current, firma, actual, !!alternativa);
+                if (peldano === "parar") {
+                  toast.warning(titulo, { description: avisoParada(revisionesRef.current, firma), duration: 10000 });
+                  return false;
+                }
+                if (peldano === "otro-modelo" && alternativa) {
+                  modeloForzadoRef.current = alternativa;
+                  revisionesRef.current.push({ firma, modelo: makeModelKey(alternativa.providerId, alternativa.modelId) });
+                  toast.message("Pruebo la corrección con otro modelo", {
+                    description: forjaWeb
+                      ? "El mismo problema volvió tras corregirlo: cambio de fuente para no repetir lo mismo."
+                      : `${candidate.modelId} no lo arregló a la primera: ahora ${alternativa.modelId}.`,
+                    duration: 7000,
+                  });
+                } else {
+                  revisionesRef.current.push({ firma, modelo: actual });
+                }
+                return true;
+              };
               const inf = salida.botones;
               const medidas = salida.qa?.generico ?? MEDIDAS_VACIAS;
               // La dirección que se usó de VERDAD este turno (no la que se
@@ -1619,6 +1668,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                     });
                     return;
                   }
+                  if (!escalar(firmaDe("botones", [resumenBotones(inf)]), "Los botones siguen fallando")) return;
                   addMessage(sessionId, {
                     id: uid(),
                     role: "user",
@@ -1652,6 +1702,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                     });
                     return;
                   }
+                  if (!escalar(firmaDe("movil", qaMovil.map((h) => h.tipo)), "La página sigue fallando en el móvil")) return;
                   addMessage(sessionId, {
                     id: uid(),
                     role: "user",
@@ -1688,6 +1739,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                     });
                     return;
                   }
+                  if (!escalar(firmaDe("generico", senas.map((x) => x.id)), "Hay algo que corregir")) return;
                   addMessage(sessionId, {
                     id: uid(),
                     role: "user",
@@ -1729,6 +1781,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                     });
                     return;
                   }
+                  if (!escalar(firmaDe("detalle", criticos.map((h) => h.titulo)), "A la página le sigue faltando contenido")) return;
                   addMessage(sessionId, {
                     id: uid(),
                     role: "user",
@@ -1765,6 +1818,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                 });
                 return;
               }
+              if (!escalar(firmaDe("consola", erroresDelModelo(salida)), "El código sigue fallando")) return;
               addMessage(sessionId, {
                 id: uid(),
                 role: "user",

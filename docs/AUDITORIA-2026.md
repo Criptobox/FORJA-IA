@@ -226,7 +226,22 @@ La revisión automática ya ejecutaba cada página generada a 390 px con el medi
 
 **Pendiente de este frente:** la comparación con un modelo de visión (captura frente a diseño). Existe como herramienta del agente (`visual_review`), pero no se lanza sola porque cuesta una llamada con imagen en cada página. Candidata a activarse solo en L3 o con presupuesto.
 
-## 10. Orden propuesto para los siguientes sprints
+## 10. Sprint 7 — Escalera de recuperación (`escalera.ts`)
+
+La revisión automática (consola, botones, móvil, genérica/dirección, contenido) corregía siempre igual: mandaba el problema al MISMO modelo hasta agotar el tope de intentos. Si no lo arreglaba a la primera, la segunda vez recibía la misma petición y solía fallar igual, con una llamada gastada.
+
+- **Firma de cada problema:** tipo más detalles normalizados (sin números ni comillas, ordenados). Si la firma vuelve tras corregirla, el modelo no avanzó: eso es un ciclo (§39).
+- **Escalera** (§65):
+  1. Problema nuevo: lo corrige el mismo modelo.
+  2. Vuelve tras corregirlo: lo corrige **otro modelo**, el mejor de la cadena de Auto para ese encargo, respetando presupuesto, cuota y modelos rotos.
+  3. Ya lo probó otro modelo, o no hay alternativa: **se para y se dice**, con la evidencia. No se repite una llamada que ya falló.
+- **Recorte de contexto** (peldaño 2 del §65): no se repite aquí. Ya lo hacen los niveles L0–L5 y el grafo, porque una corrección es un retoque, viaja por parche y sin archivos ajenos.
+- **Pruebas:**
+  - `tests/unit/escalera.test.ts`.
+  - E2E en `qa-movil.spec.ts`: un modelo terco que nunca arregla el desbordamiento en móvil. La 2ª corrección la hace otro modelo, que sí lo arregla.
+  - `generico.spec` pasa de esperar 2 correcciones a esperar 1: con un solo modelo configurado ya no se repite la petición que falló.
+
+## 11. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:
 
