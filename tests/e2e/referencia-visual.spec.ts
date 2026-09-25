@@ -14,7 +14,7 @@ async function seed(page: Page) {
         JSON.stringify({
           state: {
             sessions: [], activeSessionId: null, onboardingDone: true, favorites: [], radarSeenIds: [],
-            settings: { defaultModelKey: "custom::mock-app", accessCode: "", agentModes: [], agentMode: false, ahorro: false, stream: false },
+            settings: { propuestaDiseno: false, defaultModelKey: "custom::mock-app", accessCode: "", agentModes: [], agentMode: false, ahorro: false, stream: false },
             providers: { custom: { apiKey: "test-key-123", baseUrl: "/api/mock-llm", enabled: true, models: ["mock-app"], useProxy: false } },
             version: 1,
           },
