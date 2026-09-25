@@ -97,7 +97,8 @@ test("si se acaban los intentos y SIGUE genérica, se dice en vez de callarse", 
   // Dogfooding v4.10.x: en la última pasada permitida (revisiones al tope de
   // MAX_REVISIONES) la respuesta final ni se llegaba a comprobar — el bucle
   // se rendía en silencio y la página quedaba genérica sin que nadie lo
-  // dijera. `mock-generica-terca` nunca mejora, así que agota el tope.
+  // dijera. `mock-generica-terca` nunca mejora: el bucle tiene que pararse
+  // y DECIRLO.
   await page.addInitScript(() => {
     try {
       localStorage.setItem("forja-preview-demo", "1");
@@ -158,11 +159,15 @@ test("si se acaban los intentos y SIGUE genérica, se dice en vez de callarse", 
   await expect(page.getByText("Hay algo que corregir")).toBeVisible({ timeout: 90_000 });
   await expect(page.getByText(/se acabaron los intentos autom/i)).toBeVisible();
 
-  // y el bucle se paró de verdad: exactamente 2 correcciones pedidas, no 3
-  // (que sería seguir intentando) ni 1 (que sería no haber llegado al tope)
+  // y el bucle se paró de verdad. Con la escalera de recuperación
+  // (escalera.ts): la 1ª corrección va al mismo modelo; como el MISMO
+  // problema vuelve y no hay otro modelo configurado, no se repite la misma
+  // petición al mismo modelo — se para ahí. Exactamente 1 corrección, no 2
+  // (que sería gastar una llamada en lo que ya falló) ni 0 (no haberlo
+  // intentado).
   await page.waitForTimeout(1000);
   const correcciones = cuerpos.filter((c) => c.includes("y la he medido")).length;
-  expect(correcciones).toBe(2);
+  expect(correcciones).toBe(1);
 });
 
 test("una página que ya está bien no se toca", async ({ page }) => {

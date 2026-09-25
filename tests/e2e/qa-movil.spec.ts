@@ -6,8 +6,8 @@ import { expect, test, type Page } from "./fixtures";
  * las señas de página genérica. Aquí: una página que se sale por la derecha en
  * el móvil vuelve al modelo con lo MEDIDO, y la versión corregida deja de fallar.
  */
-async function seed(page: Page) {
-  await page.addInitScript(() => {
+async function seed(page: Page, modelo = "mock-movil-roto", modelos: string[] = ["mock-movil-roto"]) {
+  await page.addInitScript(({ modelo, modelos }) => {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
@@ -22,7 +22,7 @@ async function seed(page: Page) {
             skills: [],
             settings: {
               propuestaDiseno: false,
-              defaultModelKey: "custom::mock-movil-roto",
+              defaultModelKey: `custom::${modelo}`,
               accessCode: "",
               agentModes: [],
               agentMode: false,
@@ -30,7 +30,7 @@ async function seed(page: Page) {
               stream: false,
             },
             providers: {
-              custom: { apiKey: "test-key-123", baseUrl: "/api/mock-llm", enabled: true, models: ["mock-movil-roto"], useProxy: false },
+              custom: { apiKey: "test-key-123", baseUrl: "/api/mock-llm", enabled: true, models: modelos, useProxy: false },
             },
             version: 1,
           },
@@ -40,7 +40,7 @@ async function seed(page: Page) {
     } catch {
       /* marco sin acceso */
     }
-  });
+  }, { modelo, modelos });
 }
 
 /** Los mensajes guardados de la conversación activa. */
@@ -79,4 +79,27 @@ test("una página con scroll horizontal en móvil se corrige sola con lo medido"
     .toContain("max-width: 100%");
   await page.waitForTimeout(4000);
   await expect(page.getByText("La página sigue fallando en el móvil")).toHaveCount(0);
+});
+
+test("si el mismo problema vuelve tras corregirlo, la corrección la hace otro modelo", async ({ page }) => {
+  test.setTimeout(120_000);
+  await seed(page, "mock-movil-terco-free", ["mock-movil-terco-free", "mock-movil-arregla-free"]);
+  await page.goto("/");
+  await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
+
+  const modelosPedidos: string[] = [];
+  await page.route("**/api/mock-llm/**", async (route) => {
+    const b = route.request().postData();
+    if (b && b.includes("390 px de ancho")) modelosPedidos.push(JSON.parse(b).model);
+    await route.continue();
+  });
+
+  await enviar(page, "hazme una landing para mi cafetería");
+  // 1ª corrección: el mismo modelo, que no lo arregla; 2ª: sube de peldaño
+  await expect(page.getByText("Pruebo la corrección con otro modelo")).toBeVisible({ timeout: 60_000 });
+  await expect
+    .poll(async () => (await mensajes(page)).filter((m) => m.role === "assistant").pop()?.content ?? "", { timeout: 30_000 })
+    .toContain("max-width: 100%");
+  expect(modelosPedidos[0]).toBe("mock-movil-terco-free");
+  expect(modelosPedidos[modelosPedidos.length - 1]).toBe("mock-movil-arregla-free");
 });

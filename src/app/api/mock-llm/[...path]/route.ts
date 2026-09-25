@@ -65,6 +65,8 @@ const MODELOS = [
   "mock-diagnostica",
   "mock-parche",
   "mock-movil-roto",
+  "mock-movil-terco-free",
+  "mock-movil-arregla-free",
   "mock-visual-review",
   "mock-visual-review-sin-vision",
   "mock-llamada-en-texto",
@@ -340,10 +342,12 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // `mock-movil-roto`: la primera entrega tiene un bloque de 900 px de ancho
   // fijo, que a 390 px se sale por la derecha (scroll horizontal). Cuando le
   // llega la corrección del QA de móvil («390 px de ancho»), lo hace fluido.
-  if (modelo === "mock-movil-roto") {
-    const corregida = msgs.some(
-      (m) => typeof m.content === "string" && (m.content as string).includes("390 px de ancho")
-    );
+  // Variantes para la escalera de recuperación: `mock-movil-terco-free` nunca
+  // lo arregla (el mismo problema vuelve) y `mock-movil-arregla-free` sí.
+  if (modelo === "mock-movil-roto" || modelo === "mock-movil-terco-free" || modelo === "mock-movil-arregla-free") {
+    const corregida =
+      modelo !== "mock-movil-terco-free" &&
+      msgs.some((m) => typeof m.content === "string" && (m.content as string).includes("390 px de ancho"));
     const banda = corregida
       ? '<div style="max-width: 100%; box-sizing: border-box; padding: 16px; background: #f4efe6">Horario: de 8:00 a 20:00</div>'
       : '<div style="width: 900px; padding: 16px; background: #f4efe6">Horario: de 8:00 a 20:00</div>';
