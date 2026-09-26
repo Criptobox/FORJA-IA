@@ -41,10 +41,11 @@ describe("detectarPython", () => {
 describe("htmlPython", () => {
   it("carga Pyodide y lleva el proyecto como datos, sin que un </script> lo rompa", () => {
     const html = htmlPython({ entrada: "main.py", archivos: { "main.py": 'print("</script>")' }, requisitos: [] });
-    expect(html).toContain(PYODIDE_URL);
+    expect(html.replace(/\\u002F/g, "/")).toContain(PYODIDE_URL);
     expect(html).toContain('"main.py"');
-    expect(html).not.toMatch(/print\("<\/script>"\)/);
-    expect(html).toContain("<\\/script>");
+    // el «</script>» del código viaja escapado y no cierra la etiqueta
+    expect(html).not.toMatch(/print\(\\?"<\/script>/);
+    expect(html).toContain("\\u003C\\u002Fscript\\u003E");
   });
 });
 

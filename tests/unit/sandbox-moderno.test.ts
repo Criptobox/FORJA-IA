@@ -7,6 +7,7 @@ import {
   detectarProyectoModerno,
   fijarCompiladores,
   fijarTraductor,
+  literalJs,
   moduloSintetico,
   prepararModerno,
   urlDePaquete,
@@ -22,6 +23,8 @@ import {
  * nada. */
 
 const enc = new TextEncoder();
+/** El código generado escapa «<», «>» y «/» (`literalJs`): mismo valor, otro texto. */
+const desescapar = (t: string) => t.replace(/\\u002F/g, "/").replace(/\\u003C/g, "<").replace(/\\u003E/g, ">");
 const proyecto = (archivos: Record<string, string>) =>
   new Map(Object.entries(archivos).map(([p, t]) => [p, enc.encode(t)]));
 
@@ -162,7 +165,7 @@ describe("el proyecto entero, listo para el iframe", () => {
   const codigo = (clave: string) => {
     const url = mapa[clave];
     expect(url, clave).toBeTruthy();
-    return Buffer.from(url.split(",")[1], "base64").toString("utf8");
+    return desescapar(Buffer.from(url.split(",")[1], "base64").toString("utf8"));
   };
 
   it("no quedan paquetes sin resolver ni archivos que falten", () => {
@@ -187,7 +190,7 @@ describe("el proyecto entero, listo para el iframe", () => {
 
   it("import.meta.env sale de las variables públicas", () => {
     expect(codigo("forja:mi-app/src/App.tsx")).toContain("globalThis.__FORJA_ENV__");
-    expect(r.html).toContain('"VITE_API":"https://api.ejemplo.com"');
+    expect(desescapar(r.html)).toContain('"VITE_API":"https://api.ejemplo.com"');
     expect(r.html).not.toContain("no-debe-salir");
   });
 
@@ -202,14 +205,14 @@ describe("el proyecto entero, listo para el iframe", () => {
     expect(mapa["react"]).toBe("https://esm.sh/react@18.3.1");
     expect(mapa["react-dom/client"]).toContain("esm.sh/react-dom@18.3.1/client");
     expect(mapa["lucide-react"]).toContain("esm.sh/lucide-react@0.460.0");
-    const router = Buffer.from(mapa["react-router-dom"].split(",")[1], "base64").toString("utf8");
+    const router = desescapar(Buffer.from(mapa["react-router-dom"].split(",")[1], "base64").toString("utf8"));
     expect(router).toContain("MemoryRouter as BrowserRouter");
     expect(router).toContain("esm.sh/react-router-dom@6.28.0");
   });
 
   it("Tailwind 3 con TU configuración (sin plugins, que el CDN no carga)", () => {
     expect(r.html).toContain("cdn.tailwindcss.com");
-    expect(r.html).toContain('forja:mi-app/tailwind.config.js');
+    expect(desescapar(r.html)).toContain("forja:mi-app/tailwind.config.js");
     const cfg = codigo("forja:mi-app/tailwind.config.js");
     expect(cfg).not.toContain("tailwindcss-animate");
     expect(cfg).toContain("primary");
@@ -350,5 +353,14 @@ describe("Vue y Svelte", () => {
     const p = detectarProyectoModerno(files) as ProyectoModerno;
     const r = buildRunHtml("index.html", files, prepararModerno(files, p)!);
     expect(r.erroresTraduccion[0]).toMatch(/^src\/App\.vue:/);
+  });
+});
+
+describe("literalJs", () => {
+  it("un </script> o un separador de línea no rompen el código donde se pega", () => {
+    const l = literalJs('a</script><b>\u2028c\u2029');
+    expect(l).not.toMatch(/<|>|\u2028|\u2029/);
+    // y vale lo mismo
+    expect(JSON.parse(l)).toBe('a</script><b>\u2028c\u2029');
   });
 });

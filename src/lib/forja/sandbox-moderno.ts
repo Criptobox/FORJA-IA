@@ -35,6 +35,22 @@
 import { extOf, mimeFor, resolvePath, toDataUrl } from "./sandbox";
 import type { OpcionesGrafo } from "./sandbox-modules";
 
+/** Un valor como literal de JavaScript que se puede pegar en cualquier sitio:
+ *  dentro de un módulo, de un `<script>` o de un atributo. `JSON.stringify` ya
+ *  escapa comillas y saltos, pero deja `<`, `>`, `/` y los separadores de
+ *  línea U+2028/U+2029: un `</script>` dentro de un CSS o de un .env cerraría
+ *  la etiqueta antes de tiempo. */
+const ESCAPES_JS: Record<string, string> = {
+  "<": "\\u003C",
+  ">": "\\u003E",
+  "/": "\\u002F",
+  "\u2028": "\\u2028",
+  "\u2029": "\\u2029",
+};
+export function literalJs(valor: unknown): string {
+  return JSON.stringify(valor).replace(/[<>/\u2028\u2029]/g, (c) => ESCAPES_JS[c]);
+}
+
 /* ------------------------------------------------------------------ */
 /* detección                                                          */
 /* ------------------------------------------------------------------ */
@@ -282,7 +298,7 @@ export function urlDePaquete(spec: string, p: ProyectoModerno): string | null {
  *  y ninguna ruta casa, así que la app sale en blanco. Se sirve el mismo
  *  paquete con los routers de navegador cambiados por los de memoria. */
 function shimRouter(urlReal: string): string {
-  const u = JSON.stringify(urlReal);
+  const u = literalJs(urlReal);
   return [
     `export * from ${u};`,
     `import { MemoryRouter, createMemoryRouter } from ${u};`,
@@ -387,10 +403,10 @@ function compilarVue(path: string, fuente: string, ts: (code: string) => string)
     partes.push(t.code.replace(/\bexport function render\b/, "function __render"));
     partes.push("__sfc__.render = __render;");
   }
-  if (scoped) partes.push(`__sfc__.__scopeId = ${JSON.stringify(`data-v-${id}`)};`);
+  if (scoped) partes.push(`__sfc__.__scopeId = ${literalJs(`data-v-${id}`)};`);
   for (const st of descriptor.styles) {
     if (st.lang && st.lang !== "css") {
-      partes.push(`console.warn(${JSON.stringify(`${path}: estilos ${st.lang} no se compilan dentro del Sandbox; se aplican tal cual.`)});`);
+      partes.push(`console.warn(${literalJs(`${path}: estilos ${st.lang} no se compilan dentro del Sandbox; se aplican tal cual.`)});`);
     }
     const css = c.compileStyle({ source: st.content, filename: path, id: `data-v-${id}`, scoped: !!st.scoped });
     partes.push(inyectarCss(path, css.code, false));
@@ -534,13 +550,13 @@ export function prepararModerno(files: Map<string, Uint8Array>, proyecto: Proyec
       : undefined;
 
   const cabecera = [
-    `<script>window.__FORJA_ENV__=${JSON.stringify(envVite)};window.process=window.process||{env:${JSON.stringify(envNode)}};window.global=window.global||window;</script>`,
+    `<script>window.__FORJA_ENV__=${literalJs(envVite)};window.process=window.process||{env:${literalJs(envNode)}};window.global=window.global||window;</script>`,
     proyecto.tailwind === 3 ? `<script src="${baseCdnPruebas() ? `${baseCdnPruebas()}/tailwind3.js` : "https://cdn.tailwindcss.com/3.4.17"}"></script>` : "",
     proyecto.tailwind === 4
       ? `<script src="${baseCdnPruebas() ? `${baseCdnPruebas()}/tailwind4.js` : "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"}"></script>`
       : "",
     configTw
-      ? `<script type="module">import c from ${JSON.stringify(`forja:${configTw}`)};try{window.tailwind.config=Object.assign({},c,{plugins:[]});}catch(e){console.warn("tailwind.config no se pudo aplicar:",e&&e.message)}</script>`
+      ? `<script type="module">import c from ${literalJs(`forja:${configTw}`)};try{window.tailwind.config=Object.assign({},c,{plugins:[]});}catch(e){console.warn("tailwind.config no se pudo aplicar:",e&&e.message)}</script>`
       : "",
   ]
     .filter(Boolean)
@@ -627,18 +643,18 @@ export function moduloSintetico(
   const consulta = spec.split("?")[1] ?? "";
   const e = extOf(path);
   const texto = () => dec.decode(data);
-  if (/(^|&)raw\b/.test(consulta)) return `export default ${JSON.stringify(texto())};`;
+  if (/(^|&)raw\b/.test(consulta)) return `export default ${literalJs(texto())};`;
   if (e === "json") {
     try {
-      return `export default ${JSON.stringify(JSON.parse(texto()))};`;
+      return `export default ${literalJs(JSON.parse(texto()))};`;
     } catch {
-      return `throw new SyntaxError(${JSON.stringify(`${path} no es un JSON válido`)});`;
+      return `throw new SyntaxError(${literalJs(`${path} no es un JSON válido`)});`;
     }
   }
   if (e === "css" || e === "scss" || e === "sass" || e === "less") {
     if (e !== "css") {
       // Sass/Less necesitan su compilador: se inyecta tal cual y se avisa en consola
-      return `console.warn(${JSON.stringify(`${path}: Sass/Less no se compila dentro del Sandbox; se aplica tal cual.`)});\n${inyectarCss(path, texto(), false)}`;
+      return `console.warn(${literalJs(`${path}: Sass/Less no se compila dentro del Sandbox; se aplica tal cual.`)});\n${inyectarCss(path, texto(), false)}`;
     }
     const { css, tailwind } = cssParaTailwind(cssUrls(path, texto()), proyecto.tailwind);
     const modulos = /\.module\.css$/i.test(path);
@@ -647,7 +663,7 @@ export function moduloSintetico(
       (modulos
         ? // CSS Modules: los nombres de clase se quedan tal cual (sin hash)
           "\nexport default new Proxy({}, { get: (_, k) => (typeof k === 'string' ? k : undefined) });"
-        : `\nexport default ${JSON.stringify(css)};`)
+        : `\nexport default ${literalJs(css)};`)
     );
   }
   const mime = mimeFor(path);
@@ -656,12 +672,12 @@ export function moduloSintetico(
     if (e === "svg" && /(^|&)react\b/.test(consulta)) {
       // vite-plugin-svgr: el SVG como componente
       return [
-        `import { createElement } from ${JSON.stringify(proyecto.jsxImportSource === "preact" ? "preact" : "react")};`,
-        `export default function Svg(props) { return createElement("img", Object.assign({ src: ${JSON.stringify(url)}, alt: "" }, props)); }`,
+        `import { createElement } from ${literalJs(proyecto.jsxImportSource === "preact" ? "preact" : "react")};`,
+        `export default function Svg(props) { return createElement("img", Object.assign({ src: ${literalJs(url)}, alt: "" }, props)); }`,
       ].join("\n");
     }
     // «import logo from './logo.png'» (y «?url»): la URL del recurso
-    return `export default ${JSON.stringify(url)};`;
+    return `export default ${literalJs(url)};`;
   }
   return null;
 }
@@ -670,8 +686,8 @@ function inyectarCss(path: string, css: string, tailwind: boolean): string {
   return [
     "const s = document.createElement('style');",
     tailwind ? "s.type = 'text/tailwindcss';" : "",
-    `s.dataset.forjaFrom = ${JSON.stringify(path)};`,
-    `s.textContent = ${JSON.stringify(css)};`,
+    `s.dataset.forjaFrom = ${literalJs(path)};`,
+    `s.textContent = ${literalJs(css)};`,
     "document.head.appendChild(s);",
   ]
     .filter(Boolean)

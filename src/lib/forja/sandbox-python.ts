@@ -13,7 +13,7 @@
  * Funciones puras: se prueban sin navegador.
  */
 
-import { baseCdnPruebas } from "./sandbox-moderno";
+import { baseCdnPruebas, literalJs } from "./sandbox-moderno";
 
 export const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
 
@@ -65,7 +65,7 @@ export function detectarPython(files: Map<string, Uint8Array>): ProyectoPython |
         .split(/\r?\n/)
         .map((l) => l.replace(/#.*/, "").trim())
         .filter((l) => l && !l.startsWith("-"))
-        .map((l) => l.split(/[<>=!~;\[ ]/)[0])
+        .map((l) => l.split(/[<>=!~;[ ]/)[0])
         .filter(Boolean)
     : [];
 
@@ -92,10 +92,7 @@ export function detectarPython(files: Map<string, Uint8Array>): ProyectoPython |
 
 /** La página que ejecuta el script dentro del iframe. */
 export function htmlPython(p: ProyectoPython): string {
-  const datos = JSON.stringify({ entrada: p.entrada, archivos: p.archivos, requisitos: p.requisitos, servidor: p.servidor ?? null }).replace(
-    /<\//g,
-    "<\\/"
-  );
+  const datos = literalJs({ entrada: p.entrada, archivos: p.archivos, requisitos: p.requisitos, servidor: p.servidor ?? null });
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -123,7 +120,7 @@ export function htmlPython(p: ProyectoPython): string {
 function cargarPyodide() {
   return new Promise(function (ok) {
     var s = document.createElement("script");
-    s.src = ${JSON.stringify(urlPyodide())};
+    s.src = ${literalJs(urlPyodide())};
     s.onload = function () { ok(true); };
     s.onerror = function () { ok(false); };
     document.head.appendChild(s);
