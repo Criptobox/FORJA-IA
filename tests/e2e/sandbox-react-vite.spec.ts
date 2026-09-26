@@ -6,12 +6,23 @@ import { writeZip } from "../../src/lib/forja/zip";
  * Lo que generan casi todas las IAs. Antes: «Este proyecto importa paquetes de
  * npm… el Sandbox no instala dependencias», y nada que ver.
  *
- * Los paquetes vienen de esm.sh. Aquí esm.sh se simula con una mini-React de
- * juguete (la red de las pruebas no sale a internet): lo que se prueba es la
- * tubería de Forja —traducir TSX, resolver `@/`, CSS Modules, JSON, imágenes,
- * variables de entorno, el cambio de BrowserRouter y el import map— en un
- * navegador de verdad. Que esm.sh sirve React de verdad no hace falta probarlo.
+ * Los paquetes vienen de esm.sh. Aquí el CDN es el de mentira de la propia
+ * app (`/api/mock-cdn`, activado con `localStorage["forja-cdn-pruebas"]`):
+ * mini-React de juguete, el runtime de Vue de verdad y un Pyodide de juguete.
+ * Lo que se prueba es la tubería de Forja —traducir TSX/Vue, resolver `@/`,
+ * CSS Modules, JSON, imágenes, variables de entorno, el cambio de
+ * BrowserRouter, el import map, Python— en un navegador de verdad.
+ *
+ * No se usa `page.route` hacia esm.sh: el iframe aislado puede ir en otro
+ * proceso de Chromium y sus primeras peticiones a veces se escapaban de la
+ * interceptación (fallos al azar). A localhost no hace falta interceptar.
  */
+
+// El service worker de la app (public/sw.js) toma el control en el primer
+// arranque, y una petición que pasa por él ya no la ve `page.route`: esm.sh
+// saldría a la red de verdad (bloqueada en las pruebas) y la app se quedaría
+// en blanco. Con la red de verdad no pasa nada: el SW deja pasar lo externo.
+test.use({ serviceWorkers: "block" });
 
 const texto = (s: string) => new TextEncoder().encode(s);
 
@@ -80,71 +91,8 @@ function zipViteReact(): Buffer {
   );
 }
 
-/** Mini-React de juguete: lo justo para pintar y re-pintar con useState. */
-const MINI_REACT = `
-let raiz = null, render = null, estados = [], i = 0;
-export const Fragment = Symbol("f");
-export function createElement(type, props, ...children) {
-  return { type, props: { ...(props || {}), children: children.length ? children : props && props.children } };
-}
-export function useState(v0) {
-  const k = i++;
-  if (!(k in estados)) estados[k] = v0;
-  return [estados[k], (v) => { estados[k] = v; if (render) render(); }];
-}
-export function __montar(el, vnodo) { raiz = el; render = () => { i = 0; el.innerHTML = ""; pintar(vnodo, el); }; render(); }
-function pintar(v, padre) {
-  if (v == null || v === false) return;
-  if (Array.isArray(v)) return v.forEach((h) => pintar(h, padre));
-  if (typeof v !== "object") return padre.appendChild(document.createTextNode(String(v)));
-  if (typeof v.type === "function") return pintar(v.type(v.props), padre);
-  if (v.type === Fragment) return pintar(v.props.children, padre);
-  const el = document.createElement(v.type);
-  for (const [k, val] of Object.entries(v.props)) {
-    if (k === "children") continue;
-    if (k === "className") el.className = val;
-    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), val);
-    else el.setAttribute(k, val);
-  }
-  pintar(v.props.children, el);
-  padre.appendChild(el);
-}
-export default { createElement, useState, Fragment };
-`;
-
-const MODULOS: Record<string, string> = {
-  "/react@18.3.1": MINI_REACT,
-  "/react@18.3.1/jsx-runtime": `import { Fragment } from "https://esm.sh/react@18.3.1";
-export { Fragment };
-export const jsx = (type, props) => ({ type, props });
-export const jsxs = jsx;`,
-  "/react-dom@18.3.1/client": `import { __montar } from "https://esm.sh/react@18.3.1";
-export function createRoot(el) { return { render: (v) => __montar(el, v) }; }`,
-  "/lucide-react@0.460.0": `import { jsx } from "https://esm.sh/react@18.3.1/jsx-runtime";
-export const Coffee = () => jsx("svg", { id: "icono", "data-icono": "coffee" });`,
-  "/react-router-dom@6.28.0": `export const BrowserRouter = () => { throw new Error("BrowserRouter en about:srcdoc no casa ninguna ruta"); };
-export const MemoryRouter = (p) => p.children;
-export const createMemoryRouter = () => ({});
-export const Link = (p) => p.children;`,
-};
-
-async function esmFalso(page: Page) {
-  const pedidos: string[] = [];
-  await page.route("https://esm.sh/**", async (route) => {
-    const url = new URL(route.request().url());
-    pedidos.push(url.pathname + url.search);
-    const cuerpo = MODULOS[url.pathname];
-    await route.fulfill({
-      status: cuerpo ? 200 : 404,
-      contentType: "application/javascript",
-      headers: { "access-control-allow-origin": "*" },
-      body: cuerpo ?? `throw new Error("sin módulo falso para ${url.pathname}")`,
-    });
-  });
-  return pedidos;
-}
-
-test("un Vite + React + TS con alias, CSS Modules, JSON, SVG, .env y React Router se ve y funciona", async ({ page }) => {
+/** Semilla de la app + el CDN de mentira para el Sandbox. */
+async function preparar(page: Page) {
   await page.addInitScript(() => {
     if (window.top !== window.self) return;
     try {
@@ -155,19 +103,30 @@ test("un Vite + React + TS con alias, CSS Modules, JSON, SVG, .env y React Route
           version: 0,
         })
       );
+      localStorage.setItem("forja-cdn-pruebas", `${location.origin}/api/mock-cdn`);
     } catch {
       /* marco sin acceso */
     }
   });
-  const pedidos = await esmFalso(page);
+}
 
+/** El import map que Forja metió en el iframe (qué paquetes pidió y de dónde). */
+async function importMap(page: Page): Promise<Record<string, string>> {
+  const src = (await page.locator('iframe[title="Vista previa del Sandbox"]').getAttribute("srcdoc")) ?? "";
+  const m = /<script type="importmap">([\s\S]*?)<\/script>/.exec(src);
+  return m ? (JSON.parse(m[1].replace(/<\\\//g, "</")).imports as Record<string, string>) : {};
+}
+
+async function abrirZip(page: Page, nombre: string, zip: Buffer) {
   await page.goto("/");
   await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: "Sandbox", exact: false }).first().click();
-  await page
-    .getByRole("dialog")
-    .locator('input[type="file"]')
-    .setInputFiles({ name: "mi-app.zip", mimeType: "application/zip", buffer: zipViteReact() });
+  await page.getByRole("dialog").locator('input[type="file"]').setInputFiles({ name: nombre, mimeType: "application/zip", buffer: zip });
+}
+
+test("un Vite + React + TS con alias, CSS Modules, JSON, SVG, .env y React Router se ve y funciona", async ({ page }) => {
+  await preparar(page);
+  await abrirZip(page, "mi-app.zip", zipViteReact());
 
   const marco = page.frameLocator('iframe[title="Vista previa del Sandbox"]');
   await expect(marco.locator("#titulo")).toHaveText("Hola Grano", { timeout: 30_000 });
@@ -186,6 +145,83 @@ test("un Vite + React + TS con alias, CSS Modules, JSON, SVG, .env y React Route
   await expect(marco.locator("#boton")).toHaveText("Pedidos: 1");
 
   // una sola copia de React para todos, con la versión del package.json
-  expect(pedidos).toContain("/lucide-react@0.460.0?deps=react@18.3.1,react-dom@18.3.1");
-  expect(pedidos.some((p) => p.startsWith("/react-dom@18.3.1/client"))).toBe(true);
+  const mapa = await importMap(page);
+  expect(mapa["lucide-react"]).toMatch(/\/esm\/lucide-react@0\.460\.0\?deps=react@18\.3\.1,react-dom@18\.3\.1$/);
+  expect(mapa["react-dom/client"]).toMatch(/\/esm\/react-dom@18\.3\.1\/client/);
+});
+
+/* ------------------------------------------------------------------ */
+/* Vue: con el runtime de Vue DE VERDAD sirviendo de esm.sh           */
+/* ------------------------------------------------------------------ */
+
+function zipVue(): Buffer {
+  return Buffer.from(
+    writeZip([
+      { path: "tienda/package.json", data: texto(JSON.stringify({ dependencies: { vue: "^3.5.13" }, devDependencies: { vite: "^5.4.0" } })) },
+      { path: "tienda/index.html", data: texto('<!doctype html><html><head><meta charset="utf-8"></head><body><div id="app"></div><script type="module" src="/src/main.ts"></script></body></html>') },
+      { path: "tienda/src/main.ts", data: texto('import { createApp } from "vue";\nimport App from "./App.vue";\ncreateApp(App).mount("#app");') },
+      {
+        path: "tienda/src/App.vue",
+        data: texto(
+          [
+            '<script setup lang="ts">',
+            'import { ref } from "vue";',
+            'import Producto from "./components/Producto.vue";',
+            "const carrito = ref<number>(0);",
+            "</script>",
+            "<template>",
+            '  <h1 id="titulo">Tienda Grano</h1>',
+            '  <Producto nombre="Café de Huila" @anadir="carrito++" />',
+            '  <p id="carrito" class="total">Carrito: {{ carrito }}</p>',
+            "</template>",
+            "<style scoped>.total { color: rgb(200, 0, 0); }</style>",
+          ].join("\n")
+        ),
+      },
+      {
+        path: "tienda/src/components/Producto.vue",
+        data: texto(
+          '<script>export default { props: ["nombre"], emits: ["anadir"] };</script>\n<template><button id="anadir" @click="$emit(\'anadir\')">Añadir {{ nombre }}</button></template>'
+        ),
+      },
+    ])
+  );
+}
+
+test("un Vite + Vue (script setup, TS, scoped y componente hijo) se ve y funciona", async ({ page }) => {
+  await preparar(page);
+  await abrirZip(page, "tienda.zip", zipVue());
+
+  const marco = page.frameLocator('iframe[title="Vista previa del Sandbox"]');
+  await expect(marco.locator("#titulo")).toHaveText("Tienda Grano", { timeout: 30_000 });
+  await expect(marco.locator("#anadir")).toHaveText("Añadir Café de Huila");
+  // el estilo scoped llega solo a su componente
+  await expect(marco.locator("#carrito")).toHaveCSS("color", "rgb(200, 0, 0)");
+  // y es reactiva: el evento del hijo sube al padre
+  await marco.locator("#anadir").click();
+  await marco.locator("#anadir").click();
+  await expect(marco.locator("#carrito")).toHaveText("Carrito: 2");
+});
+
+/* ------------------------------------------------------------------ */
+/* Python: el script corre en el propio iframe (Pyodide)              */
+/* ------------------------------------------------------------------ */
+
+test("un ZIP con main.py se ejecuta con Python en el navegador y se ve su salida", async ({ page }) => {
+  await preparar(page);
+  const zip = Buffer.from(
+    writeZip([
+      { path: "calc/main.py", data: texto('import csv\nprint("hola")') },
+      { path: "calc/datos.csv", data: texto("a,b") },
+    ])
+  );
+  await abrirZip(page, "calc.zip", zip);
+
+  // el Pyodide de juguete (/api/mock-cdn) cuenta qué recibió
+  const marco = page.frameLocator('iframe[title="Vista previa del Sandbox"]');
+  await expect(marco.locator("#salida")).toContainText("EJECUTADO import csv", { timeout: 30_000 });
+  // se trabaja desde la carpeta del script y los datos están donde los espera
+  await expect(marco.locator("#salida")).toContainText("CWD /proyecto");
+  await expect(marco.locator("#salida")).toContainText("CSV a,b");
+  await expect(marco.locator("#estado")).toHaveText("terminado ✓");
 });

@@ -24,9 +24,11 @@
  *    iframe la dirección es `about:srcdoc` y ninguna ruta casaría.
  *  - La carpeta **`public/`** se sirve en la raíz, como en Vite.
  *
- * Lo que NO se puede: Next.js (necesita servidor), `.vue`/`.svelte` (necesitan
- * su compilador) y código de Node (fs, servidores). Se dice claro en vez de
- * pintar una página en blanco.
+ *  - **Vue** (`.vue`, con `<script setup>`, TS y estilos `scoped`) y **Svelte 5**
+ *    (`.svelte`): sus compiladores se cargan solo si el proyecto los usa.
+ *
+ * Lo que NO se puede: Next.js (necesita servidor) y código de Node (fs,
+ * servidores). Se dice claro en vez de pintar una página en blanco.
  *
  * Funciones puras salvo `cargarTraductor`: se prueban sin navegador.
  */
@@ -182,11 +184,19 @@ export function detectarProyectoModerno(files: Map<string, Uint8Array>): Proyect
         "Es un proyecto de Next.js: sus páginas las genera un servidor de Node, y eso no cabe dentro del navegador. Usa «Construir y previsualizar» o despliégalo (Vercel lo abre tal cual).",
     };
   }
-  if (framework === "vue" && paths.some((p) => p.endsWith(".vue"))) {
-    return { ...base, soportado: false, motivo: "Los componentes .vue necesitan el compilador de Vue: todavía no se ejecutan dentro del Sandbox." };
+  if ("@sveltejs/kit" in deps) {
+    return {
+      ...base,
+      soportado: false,
+      motivo: "Es un proyecto de SvelteKit: sus rutas las resuelve un servidor. Usa «Construir y previsualizar» o despliégalo.",
+    };
   }
-  if (framework === "svelte" && paths.some((p) => p.endsWith(".svelte"))) {
-    return { ...base, soportado: false, motivo: "Los componentes .svelte necesitan el compilador de Svelte: todavía no se ejecutan dentro del Sandbox." };
+  if ("nuxt" in deps) {
+    return {
+      ...base,
+      soportado: false,
+      motivo: "Es un proyecto de Nuxt: sus páginas las genera un servidor. Usa «Construir y previsualizar» o despliégalo.",
+    };
   }
   return base;
 }
@@ -196,6 +206,25 @@ export function detectarProyectoModerno(files: Map<string, Uint8Array>): Proyect
 /* ------------------------------------------------------------------ */
 
 export const CDN = "https://esm.sh";
+
+/** SOLO PARA PRUEBAS: una base local (`localStorage["forja-cdn-pruebas"]`,
+ *  únicamente localhost) que sustituye a los CDN de verdad. Las peticiones del
+ *  iframe a un CDN externo no siempre las puede interceptar el navegador de
+ *  pruebas; a localhost no hace falta interceptarlas. Sin esa clave, nada
+ *  cambia. */
+export function baseCdnPruebas(): string | null {
+  try {
+    const b = globalThis.localStorage?.getItem("forja-cdn-pruebas") ?? "";
+    return /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(b) ? b.replace(/\/+$/, "") : null;
+  } catch {
+    return null;
+  }
+}
+
+function cdnEsm(): string {
+  const p = baseCdnPruebas();
+  return p ? `${p}/esm` : CDN;
+}
 const REACT_POR_DEFECTO = "18.3.1";
 
 /** Nombre del paquete y resto de la ruta: «@radix-ui/react-slot/x» → [«@radix-ui/react-slot», «/x»] */
@@ -224,9 +253,20 @@ export function urlDePaquete(spec: string, p: ProyectoModerno): string | null {
   if (!version && nombre === "react") version = reactV;
   if (!version && nombre === "react-dom") version = reactDomV;
   const conVersion = version ? `${nombre}@${version}` : nombre;
-  if (nombre === "react") return `${CDN}/${conVersion}${sub}`;
+  const cdn = cdnEsm();
+  if (nombre === "react") return `${cdn}/${conVersion}${sub}`;
+  if (p.framework === "svelte" && nombre === "svelte") {
+    // el runtime TIENE que ser de la misma versión que el compilador que
+    // tradujo los .svelte, no la del package.json
+    return `${cdn}/svelte@${versionSvelte()}${sub}`;
+  }
+  if (p.framework === "vue" && nombre === "vue") return `${cdn}/${conVersion}${sub}`;
   const fijar =
-    p.framework === "preact"
+    p.framework === "vue"
+      ? `?deps=vue@${p.deps.vue || "3"}`
+      : p.framework === "svelte"
+        ? `?deps=svelte@${versionSvelte()}`
+        : p.framework === "preact"
       ? p.deps.preact
         ? `?deps=preact@${p.deps.preact}`
         : ""
@@ -235,7 +275,7 @@ export function urlDePaquete(spec: string, p: ProyectoModerno): string | null {
           ? `?deps=react@${reactV}`
           : `?deps=react@${reactV},react-dom@${reactDomV}`
         : "";
-  return `${CDN}/${conVersion}${sub}${fijar}`;
+  return `${cdn}/${conVersion}${sub}${fijar}`;
 }
 
 /** React Router dentro de un iframe `srcdoc`: la dirección es «about:srcdoc»
@@ -277,6 +317,96 @@ export async function cargarTraductor(): Promise<Transform> {
 /** Solo para pruebas y para quien ya lo tenga cargado. */
 export function fijarTraductor(t: Transform): void {
   traductor = t;
+}
+
+/* ——— Vue y Svelte: sus compiladores, solo si el proyecto los usa ——— */
+
+type CompiladorVue = typeof import("@vue/compiler-sfc");
+type CompiladorSvelte = Pick<typeof import("svelte/compiler"), "compile" | "VERSION">;
+let compVue: CompiladorVue | null = null;
+let compSvelte: CompiladorSvelte | null = null;
+
+function versionSvelte(): string {
+  return compSvelte?.VERSION ?? "5";
+}
+
+/** Todo lo que necesita ESTE proyecto para traducirse: Sucrase siempre, y el
+ *  compilador de Vue o de Svelte si es de esos. */
+export async function cargarCompiladores(p: ProyectoModerno): Promise<void> {
+  await cargarTraductor();
+  // la versión de NAVEGADOR a propósito: la de Node arrastra una docena de
+  // motores de plantillas (pug, coffee-script…) que no existen aquí
+  if (p.framework === "vue" && !compVue) {
+    compVue = (await import("@vue/compiler-sfc/dist/compiler-sfc.esm-browser.js")) as unknown as CompiladorVue;
+  }
+  if (p.framework === "svelte" && !compSvelte) compSvelte = await import("svelte/compiler");
+}
+
+/** Solo para pruebas. */
+export function fijarCompiladores(c: { vue?: CompiladorVue; svelte?: CompiladorSvelte }): void {
+  if (c.vue) compVue = c.vue;
+  if (c.svelte) compSvelte = c.svelte;
+}
+
+/** Un id corto y estable por archivo (para los estilos «scoped»). */
+function hashCorto(texto: string): string {
+  let h = 5381;
+  for (let i = 0; i < texto.length; i++) h = ((h << 5) + h + texto.charCodeAt(i)) >>> 0;
+  return h.toString(36).slice(0, 8);
+}
+
+/** Un `.vue` → módulo ES: script (con `<script setup>` y TS), plantilla
+ *  compilada y estilos inyectados (con su `scoped`). */
+function compilarVue(path: string, fuente: string, ts: (code: string) => string): string {
+  const c = compVue;
+  if (!c) throw new Error("el compilador de Vue no está cargado");
+  const { descriptor, errors } = c.parse(fuente, { filename: path });
+  if (errors.length) throw new Error(String((errors[0] as { message?: string }).message ?? errors[0]));
+  const id = hashCorto(path);
+  const scoped = descriptor.styles.some((st) => st.scoped);
+  const partes: string[] = [];
+  const conScript = descriptor.script || descriptor.scriptSetup;
+  if (conScript) {
+    // genDefaultAs: «const __sfc__ = …» en vez de «export default …», sin
+    // tener que volver a analizar el código (que puede llevar TS)
+    const script = c.compileScript(descriptor, { id, inlineTemplate: true, isProd: true, genDefaultAs: "__sfc__" });
+    partes.push(script.content);
+  } else {
+    partes.push("const __sfc__ = {};");
+  }
+  // plantilla aparte solo si no la metió ya `<script setup>` (inlineTemplate)
+  if (descriptor.template && !descriptor.scriptSetup) {
+    const t = c.compileTemplate({
+      source: descriptor.template.content,
+      filename: path,
+      id,
+      scoped,
+      compilerOptions: scoped ? { scopeId: `data-v-${id}` } : {},
+    });
+    if (t.errors.length) throw new Error(String(t.errors[0]));
+    partes.push(t.code.replace(/\bexport function render\b/, "function __render"));
+    partes.push("__sfc__.render = __render;");
+  }
+  if (scoped) partes.push(`__sfc__.__scopeId = ${JSON.stringify(`data-v-${id}`)};`);
+  for (const st of descriptor.styles) {
+    if (st.lang && st.lang !== "css") {
+      partes.push(`console.warn(${JSON.stringify(`${path}: estilos ${st.lang} no se compilan dentro del Sandbox; se aplican tal cual.`)});`);
+    }
+    const css = c.compileStyle({ source: st.content, filename: path, id: `data-v-${id}`, scoped: !!st.scoped });
+    partes.push(inyectarCss(path, css.code, false));
+  }
+  partes.push("export default __sfc__;");
+  const lang = descriptor.scriptSetup?.lang ?? descriptor.script?.lang;
+  const code = partes.join("\n");
+  return lang === "ts" || lang === "tsx" ? ts(code) : code;
+}
+
+/** Un `.svelte` → módulo ES (Svelte 5; los de Svelte 4 entran en modo
+ *  compatibilidad). El CSS va dentro del propio componente. */
+function compilarSvelte(path: string, fuente: string): string {
+  const c = compSvelte;
+  if (!c) throw new Error("el compilador de Svelte no está cargado");
+  return c.compile(fuente, { filename: path, generate: "client", css: "injected", dev: false }).js.code;
 }
 
 /** Variables públicas de los .env: solo `VITE_*` y `REACT_APP_*`, como hacen
@@ -335,6 +465,11 @@ function incrustarPublicos(code: string, publicos: Map<string, Uint8Array>): str
   });
 }
 
+/** `import.meta.env` de Vite → las variables públicas; `import.meta.hot` no existe aquí. */
+function reemplazarEnv(code: string): string {
+  return code.replace(/\bimport\.meta\.env\b/g, "globalThis.__FORJA_ENV__").replace(/\bimport\.meta\.hot\b/g, "undefined");
+}
+
 /** Directivas de Tailwind v4 que el CDN de navegador no entiende o ya trae. */
 function cssParaTailwind(css: string, version: 3 | 4 | null): { css: string; tailwind: boolean } {
   const usa = /@tailwind\s|@apply\s|@import\s+["']tailwindcss|@theme\b|@layer\s+(base|components|utilities)/.test(css);
@@ -354,6 +489,8 @@ function cssParaTailwind(css: string, version: 3 | 4 | null): { css: string; tai
  */
 export function prepararModerno(files: Map<string, Uint8Array>, proyecto: ProyectoModerno): ContextoModerno | null {
   if (!proyecto.soportado || !traductor) return null;
+  if (proyecto.framework === "vue" && !compVue) return null;
+  if (proyecto.framework === "svelte" && !compSvelte) return null;
   const transform = traductor;
   const { raiz } = proyecto;
   const enRaiz = (p: string) => unir(raiz, p);
@@ -398,8 +535,10 @@ export function prepararModerno(files: Map<string, Uint8Array>, proyecto: Proyec
 
   const cabecera = [
     `<script>window.__FORJA_ENV__=${JSON.stringify(envVite)};window.process=window.process||{env:${JSON.stringify(envNode)}};window.global=window.global||window;</script>`,
-    proyecto.tailwind === 3 ? '<script src="https://cdn.tailwindcss.com/3.4.17"></script>' : "",
-    proyecto.tailwind === 4 ? '<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>' : "",
+    proyecto.tailwind === 3 ? `<script src="${baseCdnPruebas() ? `${baseCdnPruebas()}/tailwind3.js` : "https://cdn.tailwindcss.com/3.4.17"}"></script>` : "",
+    proyecto.tailwind === 4
+      ? `<script src="${baseCdnPruebas() ? `${baseCdnPruebas()}/tailwind4.js` : "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"}"></script>`
+      : "",
     configTw
       ? `<script type="module">import c from ${JSON.stringify(`forja:${configTw}`)};try{window.tailwind.config=Object.assign({},c,{plugins:[]});}catch(e){console.warn("tailwind.config no se pudo aplicar:",e&&e.message)}</script>`
       : "",
@@ -407,8 +546,13 @@ export function prepararModerno(files: Map<string, Uint8Array>, proyecto: Proyec
     .filter(Boolean)
     .join("\n");
 
+  const soloTs = (code: string, path: string) =>
+    transform(code, { transforms: ["typescript"], production: true, filePath: path, disableESTransforms: true }).code;
+
   const transformar = (path: string, code: string): string => {
     const e = extOf(path);
+    if (e === "vue") return incrustarPublicos(reemplazarEnv(compilarVue(path, code, (c) => soloTs(c, path))), publicos);
+    if (e === "svelte") return incrustarPublicos(reemplazarEnv(compilarSvelte(path, code)), publicos);
     let out = code;
     if (ES_CONFIG_TAILWIND.test(path)) {
       // sin plugins: el CDN no los carga, y sus import rompería el módulo
@@ -439,8 +583,7 @@ export function prepararModerno(files: Map<string, Uint8Array>, proyecto: Proyec
     if (ES_CONFIG_TAILWIND.test(path) && /\bmodule\.exports\b/.test(out) && !/\bexport\s+default\b/.test(out)) {
       out = commonJsAEsm(out);
     }
-    out = out.replace(/\bimport\.meta\.env\b/g, "globalThis.__FORJA_ENV__").replace(/\bimport\.meta\.hot\b/g, "undefined");
-    return incrustarPublicos(out, publicos);
+    return incrustarPublicos(reemplazarEnv(out), publicos);
   };
 
   const alias = (spec: string): string | null => {
@@ -533,4 +676,19 @@ function inyectarCss(path: string, css: string, tailwind: boolean): string {
   ]
     .filter(Boolean)
     .join("\n");
+}
+
+/** ¿Es un servidor de Node (Express, Fastify…) sin parte web? Dentro del
+ *  navegador no hay puertos ni `fs`: se dice en vez de enseñar nada. */
+export function servidorNode(files: Map<string, Uint8Array>): string | null {
+  const pkg = [...files.keys()]
+    .filter((p) => p.split("/").pop() === "package.json")
+    .sort((a, b) => a.split("/").length - b.split("/").length)[0];
+  if (!pkg) return null;
+  const j = jsonTolerante(leer(files, pkg) ?? "") as { dependencies?: Record<string, string> } | null;
+  const deps = Object.keys(j?.dependencies ?? {});
+  const srv = ["express", "fastify", "koa", "@hapi/hapi", "@nestjs/core", "hono", "socket.io"].find((d) => deps.includes(d));
+  return srv
+    ? `Es un servidor de Node (${srv}): necesita un proceso escuchando en un puerto, y eso no existe dentro del navegador. Pruébalo en tu ordenador con «npm install» y «npm start», o despliégalo (Render, Railway, Fly.io).`
+    : null;
 }

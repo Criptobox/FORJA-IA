@@ -306,6 +306,44 @@ Publicar en Netlify subía el ZIP tal cual: nada impedía sacar a una URL públi
 - **Panel:** un saludo ya no enseña «Creando tu página · L0 trivial».
 - **Versión:** la app pasa a 4.69.0 y el service worker a `forja-ia-v9`, que borra al activarse las copias de la versión anterior (en un móvil se vio el panel nuevo sin su CSS).
 
+## 14. Las dos piezas de uso diario: subir a GitHub y el Sandbox
+
+El usuario lo dijo claro: de Forja usa sobre todo **probar proyectos en el Sandbox** y **subir ZIP a GitHub**, y las quiere sin problemas.
+
+### Subir a GitHub (`github-upload.ts`, `github-dialog.tsx`)
+
+| Antes | Ahora |
+|---|---|
+| Un commit por cada 60 archivos («lote 2/5»…) | **Un solo commit**; el árbol se monta por tramos encadenados |
+| Volver a subir dejaba en el repo lo que ya no estaba en el proyecto | **«Reemplazar» por defecto**: el repo queda igual que el proyecto, se dice cuántos archivos se quitaron y el historial se conserva. «Añadir» sigue disponible |
+| Un repo creado en GitHub sin README daba `409 Git Repository is empty` | Se inicializa solo con la Contents API |
+| 30 s fijos por petición y ningún reintento: una imagen por 4G flojo tumbaba la subida | Reintentos ante cortes, 5xx y límites temporales; tiempo máximo según el tamaño |
+| Los scripts perdían el permiso de ejecución | `#!` o permiso guardado en el ZIP → `100755` |
+| Todos los repos nuevos: «Forja IA — mi chat con modelos gratis» | Sin descripción inventada |
+
+**Lector de ZIP (`zip.ts`):**
+- Los nombres de Windows (CP437) conservan la `ñ` y los acentos.
+- `node_modules`, `.git` y `__MACOSX` se saltan sin descomprimir, así que ya no revientan el tope de 5.000 archivos.
+- La compresión no soportada se avisa.
+- Un ZIP con contraseña da un mensaje claro.
+- Las rutas con `..` se sanean.
+
+### Sandbox: cualquier formato (`sandbox-moderno.ts`, `sandbox-python.ts`)
+
+| Proyecto | Cómo se ejecuta |
+|---|---|
+| HTML/CSS/JS | Como siempre, y ahora con fuentes incrustadas |
+| **Vite / CRA + React + TypeScript** | TSX → JS con Sucrase; paquetes desde esm.sh con la versión del `package.json` y una sola copia de React; alias `@/`, CSS importado, CSS Modules, JSON, imágenes, `?raw`/`?url`/`?react`, `import.meta.env` con las variables públicas, `BrowserRouter` → `MemoryRouter`, `public/` en la raíz |
+| **Tailwind 3 / 4** | Su CDN de navegador, con tu `tailwind.config` (sin plugins) |
+| **Vue** (`.vue`, `<script setup>`, TS, `scoped`) | `@vue/compiler-sfc`, versión de navegador, cargado solo si hace falta |
+| **Svelte 5** | `svelte/compiler`; el runtime, de la misma versión que el compilador |
+| **Python** (`main.py`…) | Pyodide en el propio iframe: `print` en pantalla y consola, `input()` con ventana, paquetes por `import` y `requirements.txt`, gráficos de matplotlib como imagen |
+| Next.js, Nuxt, SvelteKit, servidores Node/Flask/Django | No caben en el navegador: se dice por qué y qué hacer, en vez de una página en blanco |
+
+**Pruebas:**
+- Hay e2e con el navegador de verdad para React, Vue y Python. Usan un CDN de mentira local (`/api/mock-cdn`, activado con `localStorage["forja-cdn-pruebas"]`). Se hizo así porque las peticiones del iframe aislado a un CDN externo a veces escapaban de `page.route` y daban fallos al azar.
+- Los CDN reales (esm.sh, Tailwind, jsDelivr) están bloqueados en el entorno de pruebas; en el dispositivo del usuario funcionan con la red normal.
+
 ## 13. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:

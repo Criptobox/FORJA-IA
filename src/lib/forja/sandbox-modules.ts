@@ -46,7 +46,7 @@ export interface ModuleGraph {
 const MODULE_EXT = new Set(["js", "mjs"]);
 /** Con un proyecto moderno (React, Vite…) también son módulos estos, una vez
  *  traducidos a JavaScript. */
-const MODULE_EXT_MODERNO = new Set(["js", "mjs", "jsx", "ts", "tsx", "mts"]);
+const MODULE_EXT_MODERNO = new Set(["js", "mjs", "jsx", "ts", "tsx", "mts", "vue", "svelte"]);
 const MAX_MODULES = 600;
 
 /** Lo que cambia cuando el proyecto es moderno (`sandbox-moderno.ts`). Sin

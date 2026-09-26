@@ -21,7 +21,10 @@
 
   "ignoreDependencies": [
     // Next lo llama por dentro para optimizar imágenes; no aparece en ningún import.
-    "sharp"
+    "sharp",
+    // El CDN de mentira de las pruebas (src/app/api/mock-cdn) sirve su runtime
+    // leyendo el archivo de node_modules, no con un import.
+    "vue"
   ],
 
   // Los componentes de shadcn exportan su API entera (DialogFooter, SheetClose…)

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { transform } from "sucrase";
+import * as compiladorVue from "@vue/compiler-sfc";
+import * as compiladorSvelte from "svelte/compiler";
 import { buildRunHtml } from "../../src/lib/forja/sandbox";
 import {
   detectarProyectoModerno,
+  fijarCompiladores,
   fijarTraductor,
   moduloSintetico,
   prepararModerno,
@@ -70,6 +73,7 @@ const VITE_REACT = {
 // al cargar el archivo, no en beforeAll: los describe de abajo preparan el
 // proyecto al recogerse, antes de que corra ningún hook
 fijarTraductor(transform as unknown as Parameters<typeof fijarTraductor>[0]);
+fijarCompiladores({ vue: compiladorVue, svelte: compiladorSvelte });
 
 describe("detectarProyectoModerno", () => {
   it("reconoce Vite + React + TS + Tailwind 3, con su raíz y sus alias", () => {
@@ -84,6 +88,22 @@ describe("detectarProyectoModerno", () => {
 
   it("una web de HTML/CSS/JS de siempre NO es moderna: se ejecuta como hasta ahora", () => {
     expect(detectarProyectoModerno(proyecto({ "index.html": "<h1>x</h1>", "app.js": "console.log(1)" }))).toBeNull();
+  });
+
+  it("Vue y Svelte se reconocen y SÍ se ejecutan", () => {
+    const vue = detectarProyectoModerno(proyecto({ "package.json": JSON.stringify({ dependencies: { vue: "^3.5.0" } }), "src/App.vue": "<template/>" }));
+    expect(vue?.framework).toBe("vue");
+    expect(vue?.soportado).toBe(true);
+    const sv = detectarProyectoModerno(proyecto({ "package.json": JSON.stringify({ devDependencies: { svelte: "^5.0.0" } }), "src/App.svelte": "<p/>" }));
+    expect(sv?.framework).toBe("svelte");
+    expect(sv?.soportado).toBe(true);
+  });
+
+  it("SvelteKit y Nuxt necesitan servidor: se dice", () => {
+    const kit = detectarProyectoModerno(proyecto({ "package.json": JSON.stringify({ devDependencies: { svelte: "5.0.0", "@sveltejs/kit": "2.0.0" } }) }));
+    expect(kit?.soportado).toBe(false);
+    const nuxt = detectarProyectoModerno(proyecto({ "package.json": JSON.stringify({ dependencies: { nuxt: "3.0.0", vue: "3.5.0" } }) }));
+    expect(nuxt?.soportado).toBe(false);
   });
 
   it("Next.js se reconoce y se dice por qué no se ejecuta aquí", () => {
@@ -260,5 +280,75 @@ describe("otros formatos que llegan", () => {
     const r = buildRunHtml("index.html", files);
     expect(r.html).toContain('import "forja:app.js"');
     expect(r.paquetes).toEqual([]);
+  });
+});
+
+describe("Vue y Svelte", () => {
+  const decodificar = (html: string, clave: string) => {
+    const mapa = JSON.parse(/<script type="importmap">([\s\S]*?)<\/script>/.exec(html)![1].replace(/<\\\//g, "</")).imports as Record<string, string>;
+    const url = mapa[clave];
+    return { mapa, codigo: url ? Buffer.from(url.split(",")[1], "base64").toString("utf8") : "" };
+  };
+
+  it("un proyecto de Vite + Vue (script setup, TS, scoped, componente hijo) queda listo", () => {
+    const files = proyecto({
+      "package.json": JSON.stringify({ dependencies: { vue: "^3.5.13", "vue-router": "^4.4.0" }, devDependencies: { vite: "^5.4.0" } }),
+      "index.html": '<div id="app"></div><script type="module" src="/src/main.ts"></script>',
+      "src/main.ts": 'import { createApp } from "vue";\nimport App from "./App.vue";\ncreateApp(App).mount("#app");',
+      "src/App.vue": [
+        '<script setup lang="ts">',
+        'import { ref } from "vue";',
+        'import Hijo from "./components/Hijo.vue";',
+        "const n = ref<number>(0);",
+        "</script>",
+        '<template><button class="b" @click="n++">{{ n }}</button><Hijo nombre="Grano" /></template>',
+        "<style scoped>.b { color: red; }</style>",
+      ].join("\n"),
+      "src/components/Hijo.vue": '<script>export default { props: ["nombre"] };</script>\n<template><p class="h">{{ nombre }}</p></template>\n<style scoped>.h{margin:0}</style>',
+    });
+    const p = detectarProyectoModerno(files) as ProyectoModerno;
+    const r = buildRunHtml("index.html", files, prepararModerno(files, p)!);
+    expect(r.erroresTraduccion).toEqual([]);
+    expect(r.bareImports).toEqual([]);
+    const { mapa, codigo } = decodificar(r.html, "forja:src/App.vue");
+    expect(mapa["vue"]).toBe("https://esm.sh/vue@3.5.13");
+    expect(codigo).not.toMatch(/ref<number>/); // TS fuera
+    expect(codigo).toContain("__scopeId");
+    expect(codigo).toContain('"forja:src/components/Hijo.vue"');
+    expect(codigo).toMatch(/\.b\[data-v-\w+\]/);
+    // el hijo sin <script setup>: plantilla compilada aparte, como render
+    const hijo = decodificar(r.html, "forja:src/components/Hijo.vue").codigo;
+    expect(hijo).toContain("__sfc__.render = __render");
+    // …y esa función existe de verdad (no se queda en «export function render»)
+    expect(hijo).toContain("function __render(");
+    expect(hijo).not.toContain("export function render");
+  });
+
+  it("un proyecto de Svelte 5 se compila y su runtime es de la MISMA versión que el compilador", () => {
+    const files = proyecto({
+      "package.json": JSON.stringify({ devDependencies: { svelte: "^5.1.0", vite: "^5.4.0" } }),
+      "index.html": '<div id="app"></div><script type="module" src="/src/main.ts"></script>',
+      "src/main.ts": 'import { mount } from "svelte";\nimport App from "./App.svelte";\nmount(App, { target: document.getElementById("app")! });',
+      "src/App.svelte": '<script lang="ts">let n: number = $state(0);</script><button onclick={() => n++}>{n}</button><style>button{color:red}</style>',
+    });
+    const p = detectarProyectoModerno(files) as ProyectoModerno;
+    const r = buildRunHtml("index.html", files, prepararModerno(files, p)!);
+    expect(r.erroresTraduccion).toEqual([]);
+    const { mapa, codigo } = decodificar(r.html, "forja:src/App.svelte");
+    expect(codigo).toContain("svelte/internal/client");
+    expect(mapa["svelte/internal/client"]).toBe(`https://esm.sh/svelte@${compiladorSvelte.VERSION}/internal/client`);
+    expect(mapa["svelte"]).toBe(`https://esm.sh/svelte@${compiladorSvelte.VERSION}`);
+  });
+
+  it("un error en un .vue sale con su archivo", () => {
+    const files = proyecto({
+      "package.json": JSON.stringify({ dependencies: { vue: "3.5.13" } }),
+      "index.html": '<script type="module" src="/src/main.js"></script>',
+      "src/main.js": 'import App from "./App.vue";',
+      "src/App.vue": "<template><div></template>",
+    });
+    const p = detectarProyectoModerno(files) as ProyectoModerno;
+    const r = buildRunHtml("index.html", files, prepararModerno(files, p)!);
+    expect(r.erroresTraduccion[0]).toMatch(/^src\/App\.vue:/);
   });
 });

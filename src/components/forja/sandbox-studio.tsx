@@ -80,11 +80,13 @@ import {
   type TreeNode,
 } from "@/lib/forja/sandbox";
 import {
-  cargarTraductor,
+  cargarCompiladores,
   detectarProyectoModerno,
   prepararModerno,
+  servidorNode,
   type ContextoModerno,
 } from "@/lib/forja/sandbox-moderno";
+import { detectarPython, htmlPython } from "@/lib/forja/sandbox-python";
 import {
   createReviewer,
   type Diagnostic,
@@ -872,8 +874,9 @@ export function SandboxStudio({
     // Si hay un index.html (o HTML de entrada), abrir directo la vista
     // previa en vez de quedarse en el editor — pedido en PLAN-V7 (U3). Un
     // proyecto de React/Vite sin HTML también arranca solo.
-    const moderno = html ? null : detectarProyectoModerno(new Map(Object.values(map).map((e) => [e.path, e.data])));
-    if (html || moderno?.soportado) {
+    const bytes = new Map(Object.values(map).map((e) => [e.path, e.data]));
+    const moderno = html ? null : detectarProyectoModerno(bytes);
+    if (html || moderno?.soportado || (!html && detectarPython(bytes))) {
       // proyecto nuevo: vuelve a mandar el auto-arranque hasta que elijas
       eleccionManualRef.current = false;
       setAutoRunPending(true);
@@ -988,8 +991,9 @@ export function SandboxStudio({
         setName(file.name.replace(/\.zip$/i, ""));
         const entry = pickEntryPath(paths, null);
         // un Vite/React sin index.html en la raíz (CRA, o solo src/) también arranca
-        const moderno = detectarProyectoModerno(new Map(Object.values(map).map((e) => [e.path, e.data])));
-        const arrancable = !!entry || !!moderno?.soportado;
+        const bytes = new Map(Object.values(map).map((e) => [e.path, e.data]));
+        const moderno = detectarProyectoModerno(bytes);
+        const arrancable = !!entry || !!moderno?.soportado || !!detectarPython(bytes);
         setSelPath(entry ?? paths.sort()[0] ?? null);
         // se despliegan las carpetas del primer nivel y las del archivo elegido
         const top = new Set<string>(
@@ -1269,9 +1273,9 @@ export function SandboxStudio({
     const moderno = detectarProyectoModerno(map);
     if (moderno?.soportado) {
       try {
-        await cargarTraductor();
+        await cargarCompiladores(moderno);
       } catch {
-        toast.error("No se pudo cargar el traductor de TypeScript/JSX", {
+        toast.error("No se pudo cargar el traductor del proyecto", {
           description: "Comprueba la conexión y vuelve a pulsar «Ejecutar».",
         });
         return;
@@ -1284,6 +1288,19 @@ export function SandboxStudio({
     }
     const entry = pickEntryPath([...map.keys()], preferred);
     if (!entry) {
+      // Python: el script corre en el propio iframe (Pyodide)
+      const py = detectarPython(map);
+      if (py) {
+        const ruta = "__forja_python__.html";
+        renderMapInSandbox(new Map([[ruta, encodeText(htmlPython(py))]]), ruta);
+        if (py.servidor) toast.warning("Es un servidor web", { description: py.servidor, duration: 12000 });
+        return;
+      }
+      const node = servidorNode(map);
+      if (node) {
+        toast.error("Este proyecto no se puede ejecutar dentro del Sandbox", { description: node, duration: 15000 });
+        return;
+      }
       if (moderno && !moderno.soportado) {
         toast.error("Este proyecto no se puede ejecutar dentro del Sandbox", {
           description: moderno.motivo,
@@ -1520,7 +1537,7 @@ export function SandboxStudio({
       const moderno = detectarProyectoModerno(map);
       let ctx: ContextoModerno | null = null;
       if (moderno?.soportado) {
-        await cargarTraductor();
+        await cargarCompiladores(moderno);
         ctx = prepararModerno(map, moderno);
         if (ctx) entry = ctx.entryPath;
       }
