@@ -14,6 +14,7 @@ import {
   rewriteSpecifiers,
   MODULE_SCHEME,
 } from "./sandbox-modules";
+import type { ContextoModerno } from "./sandbox-moderno";
 
 export const SANDBOX_ORIGIN = "forja-sandbox";
 
@@ -39,6 +40,10 @@ export interface RunBuildResult {
   modules: number;
   /** paquetes de npm importados que el Sandbox no puede resolver */
   bareImports: string[];
+  /** paquetes de npm que se sirven desde el CDN (proyectos modernos) */
+  paquetes: string[];
+  /** archivos TS/JSX que no se pudieron traducir */
+  erroresTraduccion: string[];
   /** Peso del proyecto: el HTML ya empaquetado (CSS, JS e imágenes dentro)
    * pero ANTES del puente de consola que Forja inyecta para poder observarlo.
    * Es lo que el usuario se llevaría al exportar, y por tanto lo único que
@@ -68,6 +73,11 @@ const AUDIO_MIME: Record<string, string> = {
 };
 const VIDEO_MIME: Record<string, string> = {
   mp4: "video/mp4", webm: "video/webm", mov: "video/quicktime",
+};
+/** Fuentes: sin esto, un `@font-face` con `url(fonts/x.woff2)` se quedaba
+ *  apuntando a la nada dentro del iframe y la web salía con la del sistema. */
+const FONT_MIME: Record<string, string> = {
+  woff2: "font/woff2", woff: "font/woff", ttf: "font/ttf", otf: "font/otf",
 };
 const MAX_ASSET = 3 * 1024 * 1024; // 3 MB por recurso inline
 const MAX_INLINE = 120; // nº máximo de recursos inlineados
@@ -184,12 +194,12 @@ export function pareceProyectoConBuild(paths: string[]): boolean {
   return paths.some((p) => p.split("/").pop() === "package.json" && depth(p) <= 2);
 }
 
-function mimeFor(path: string): string | null {
+export function mimeFor(path: string): string | null {
   const e = extOf(path);
-  return IMAGE_MIME[e] ?? AUDIO_MIME[e] ?? VIDEO_MIME[e] ?? null;
+  return IMAGE_MIME[e] ?? AUDIO_MIME[e] ?? VIDEO_MIME[e] ?? FONT_MIME[e] ?? null;
 }
 
-function toDataUrl(data: Uint8Array, mime: string): string {
+export function toDataUrl(data: Uint8Array, mime: string): string {
   let bin = "";
   const chunk = 0x8000;
   for (let i = 0; i < data.length; i += chunk) {
@@ -416,8 +426,15 @@ const SCRIPT_ELEMENT = /(<script\b[^>]*\bsrc\s*=\s*["']([^"']*)["'][^>]*>)\s*<\/
 
 export function buildRunHtml(
   entryPath: string,
-  files: Map<string, Uint8Array>
+  files: Map<string, Uint8Array>,
+  moderno?: ContextoModerno | null
 ): RunBuildResult {
+  // Un proyecto moderno trae sus propios archivos (con `public/` en la raíz y,
+  // si hacía falta, el HTML de entrada inventado) y su propia entrada.
+  if (moderno) {
+    files = moderno.files;
+    entryPath = moderno.entryPath;
+  }
   const res: RunBuildResult = {
     html: "",
     entryPath,
@@ -425,6 +442,8 @@ export function buildRunHtml(
     inlined: 0,
     modules: 0,
     bareImports: [],
+    paquetes: [],
+    erroresTraduccion: [],
     htmlBytes: 0,
   };
   const entryData = files.get(entryPath);
@@ -451,10 +470,19 @@ export function buildRunHtml(
     const local = localRef(m[2]);
     if (local) moduleRoots.push(resolver(baseDir, local).path);
   }
-  const graph = buildModuleGraph(files, moduleRoots);
+  if (moderno) moduleRoots.push(...moderno.raicesExtra);
+  const graph = buildModuleGraph(
+    files,
+    moduleRoots,
+    moderno?.opciones({
+      cssUrls: (p, css) => rewriteCssUrls(css, dirOf(p), resolver, res),
+    })
+  );
   res.modules = graph.count;
   res.bareImports = [...graph.bare];
   res.missing.push(...graph.missing);
+  res.paquetes = Object.keys(graph.imports).filter((k) => !k.startsWith(MODULE_SCHEME));
+  res.erroresTraduccion = graph.errores ?? [];
 
   // 1) <img>/<source>/<video>/<audio>/<track> src|poster → data URL.
   //    Va primero: así el barrido no vuelve a pasar por el CSS y el JS que se
@@ -532,8 +560,10 @@ export function buildRunHtml(
     }
   );
 
-  // 4) el import map debe ir antes de que se cargue el primer módulo
-  const mapTag = importMapTag(graph);
+  // 4) el import map debe ir antes de que se cargue el primer módulo (y la
+  //    cabecera de un proyecto moderno, justo después: su configuración de
+  //    Tailwind es un módulo que ya usa el mapa)
+  const mapTag = [importMapTag(graph), moderno?.cabecera ?? ""].filter(Boolean).join("\n");
   if (mapTag) {
     if (/<head[^>]*>/i.test(html)) {
       html = html.replace(/<head[^>]*>/i, (m) => `${m}\n${mapTag}`);

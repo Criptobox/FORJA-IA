@@ -30,7 +30,8 @@ import { decodeText, extOf, resolvePath } from "./sandbox";
 export const MODULE_SCHEME = "forja:";
 
 export interface ModuleGraph {
-  /** especificador «forja:<ruta>» → URL data: con el código reescrito */
+  /** especificador «forja:<ruta>» → URL data: con el código reescrito, y los
+   *  paquetes de npm que se sirven desde un CDN → su URL */
   imports: Record<string, string>;
   /** rutas que se importaron pero no están en el proyecto */
   missing: string[];
@@ -38,14 +39,35 @@ export interface ModuleGraph {
   bare: string[];
   /** número de módulos incluidos en el mapa */
   count: number;
+  /** archivos que no se pudieron traducir (TS/JSX con errores de sintaxis) */
+  errores?: string[];
 }
 
 const MODULE_EXT = new Set(["js", "mjs"]);
-const MAX_MODULES = 300;
+/** Con un proyecto moderno (React, Vite…) también son módulos estos, una vez
+ *  traducidos a JavaScript. */
+const MODULE_EXT_MODERNO = new Set(["js", "mjs", "jsx", "ts", "tsx", "mts"]);
+const MAX_MODULES = 600;
+
+/** Lo que cambia cuando el proyecto es moderno (`sandbox-moderno.ts`). Sin
+ *  opciones, el grafo se comporta exactamente como siempre. */
+export interface OpcionesGrafo {
+  /** carpeta raíz del proyecto: «/src/x» se ancla ahí, no en la raíz del ZIP */
+  raiz?: string;
+  /** TS/JSX → JS. Si está, también son módulos .ts/.tsx/.jsx */
+  transformar?: (path: string, code: string) => string;
+  /** módulo inventado para lo que no es JS pero se importa (CSS, JSON,
+   *  imágenes…). null = no se sabe convertir */
+  sintetico?: (path: string, spec: string, data: Uint8Array) => string | null;
+  /** alias del proyecto («@/x» → «src/x»): devuelve la ruta sin extensión */
+  alias?: (spec: string) => string | null;
+  /** paquete de npm → URL del CDN (null = no se puede servir) */
+  externo?: (spec: string) => string | null;
+}
 
 /** ¿La ruta puede ser un módulo del proyecto? */
-export function isModulePath(path: string): boolean {
-  return MODULE_EXT.has(extOf(path));
+export function isModulePath(path: string, moderno = false): boolean {
+  return (moderno ? MODULE_EXT_MODERNO : MODULE_EXT).has(extOf(path));
 }
 
 /** Un especificador es relativo si empieza por ./ ../ o / */
@@ -67,12 +89,41 @@ const DYNAMIC_SPEC = /(\bimport\s*\(\s*)(["'])([^"']+)\2(\s*\))/g;
 export function resolveModule(
   fromPath: string,
   spec: string,
-  has: (p: string) => boolean
+  has: (p: string) => boolean,
+  opts: OpcionesGrafo = {}
 ): string | null {
   const baseDir = fromPath.includes("/") ? fromPath.slice(0, fromPath.lastIndexOf("/")) : "";
-  const target = resolvePath(baseDir, spec.split("#")[0].split("?")[0]);
-  const candidatos = [target, `${target}.js`, `${target}.mjs`, `${target}/index.js`];
-  return candidatos.find(has) ?? null;
+  const limpio = spec.split("#")[0].split("?")[0];
+  let target = resolvePath(baseDir, limpio);
+  // «/src/main.tsx» en un proyecto que vive dentro de una carpeta del ZIP
+  if (limpio.startsWith("/") && opts.raiz && !has(target) && !target.startsWith(`${opts.raiz}/`)) {
+    target = `${opts.raiz}/${target}`;
+  }
+  return candidatosDe(target, !!opts.transformar).find(has) ?? null;
+}
+
+/** Las terminaciones que el navegador NO adivina pero la gente escribe (y los
+ *  empaquetadores sí resuelven). */
+function candidatosDe(target: string, moderno: boolean): string[] {
+  const base = [target, `${target}.js`, `${target}.mjs`, `${target}/index.js`];
+  if (!moderno) return base;
+  return [
+    ...base,
+    `${target}.tsx`,
+    `${target}.ts`,
+    `${target}.jsx`,
+    `${target}.mts`,
+    `${target}/index.tsx`,
+    `${target}/index.ts`,
+    `${target}/index.jsx`,
+  ];
+}
+
+/** Un especificador con alias («@/components/x») resuelto a un archivo. */
+function resolverAlias(spec: string, has: (p: string) => boolean, opts: OpcionesGrafo): string | null {
+  const ruta = opts.alias?.(spec.split("#")[0].split("?")[0]);
+  if (ruta == null) return null;
+  return candidatosDe(ruta, true).find(has) ?? null;
 }
 
 /** Reescribe los especificadores relativos de un módulo a «forja:<ruta>».
@@ -83,21 +134,32 @@ export function rewriteSpecifiers(
   code: string,
   has: (p: string) => boolean,
   onMissing: (resolvedPath: string) => void,
-  onBare: (spec: string) => void
+  onBare: (spec: string) => void,
+  opts: OpcionesGrafo = {},
+  onExterno?: (spec: string, url: string) => void
 ): string {
   const baseDir = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
   const swap = (spec: string): string | null => {
     if (!isRelativeSpecifier(spec)) {
-      // http(s):// y data: los resuelve el navegador solo; el resto es un paquete
-      if (!/^(https?:|data:|blob:)/i.test(spec)) onBare(spec);
+      // http(s):// y data: los resuelve el navegador solo
+      if (/^(https?:|data:|blob:)/i.test(spec)) return null;
+      const conAlias = resolverAlias(spec, has, opts);
+      if (conAlias) return MODULE_SCHEME + conAlias + consulta(spec);
+      const url = opts.externo?.(spec);
+      if (url) {
+        // se queda tal cual: el import map lo lleva al CDN
+        onExterno?.(spec, url);
+        return null;
+      }
+      onBare(spec);
       return null;
     }
-    const resolved = resolveModule(path, spec, has);
+    const resolved = resolveModule(path, spec, has, opts);
     if (!resolved) {
       onMissing(resolvePath(baseDir, spec.split("#")[0].split("?")[0]));
       return null;
     }
-    return MODULE_SCHEME + resolved;
+    return MODULE_SCHEME + resolved + consulta(spec);
   };
   code = code.replace(STATIC_SPEC, (whole, head: string, q: string, spec: string) => {
     const next = swap(spec);
@@ -108,6 +170,14 @@ export function rewriteSpecifiers(
     return next ? `${head}${q}${next}${q}${tail}` : whole;
   });
   return code;
+}
+
+/** «?raw», «?url», «?react»: cambian QUÉ exporta un import de un recurso, así
+ *  que forman parte del especificador (un mismo SVG puede entrar como URL y
+ *  como componente). Los de JS no llevan nada. */
+function consulta(spec: string): string {
+  const q = spec.split("#")[0].split("?")[1];
+  return q ? `?${q}` : "";
 }
 
 /** Codifica texto UTF-8 como URL data: apta para un módulo. */
@@ -148,18 +218,24 @@ export function specifiersOf(code: string): string[] {
  */
 export function buildModuleGraph(
   files: Map<string, Uint8Array>,
-  roots: string[] = []
+  roots: string[] = [],
+  opts: OpcionesGrafo = {}
 ): ModuleGraph {
   const has = (p: string) => files.has(p);
+  const moderno = !!opts.transformar;
   const code = new Map<string, string>();
   for (const [p, d] of files) {
-    if (!isModulePath(p)) continue;
+    if (!isModulePath(p, moderno)) continue;
     try {
       code.set(p, decodeText(d));
     } catch {
       /* binario disfrazado de .js */
     }
   }
+  // Lo que no es JS pero se importa desde JS (CSS, JSON, imágenes): se le
+  // inventa un módulo. Clave «ruta?consulta», como el especificador.
+  const sinteticos = new Map<string, string>();
+  const errores: string[] = [];
 
   // semillas: las que pide el HTML y las que ya se ven como módulo
   const included = new Set<string>();
@@ -169,34 +245,85 @@ export function buildModuleGraph(
     included.add(p);
     queue.push(p);
   };
+  // En un proyecto moderno se traduce ANTES de buscar imports: los de tipos
+  // («import type») desaparecen y no se piden módulos que no existen.
+  const traducido = new Map<string, string>();
+  const fuente = (p: string): string => {
+    const hecho = traducido.get(p);
+    if (hecho != null) return hecho;
+    const crudo = code.get(p) as string;
+    let out = crudo;
+    if (opts.transformar) {
+      try {
+        out = opts.transformar(p, crudo);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        errores.push(`${p}: ${msg}`);
+        out = `throw new SyntaxError(${JSON.stringify(`${p}: ${msg}`)});`;
+      }
+    }
+    traducido.set(p, out);
+    return out;
+  };
+
   for (const r of roots) add(r);
-  for (const [p, c] of code) if (looksLikeModule(c)) add(p);
+  if (!moderno) for (const [p, c] of code) if (looksLikeModule(c)) add(p);
+
+  const destinoDe = (path: string, spec: string): string | null =>
+    isRelativeSpecifier(spec) ? resolveModule(path, spec, has, opts) : resolverAlias(spec, has, opts);
 
   // cierre transitivo: lo que importan los ya incluidos entra también
   while (queue.length) {
     const path = queue.shift() as string;
-    for (const spec of specifiersOf(code.get(path) as string)) {
-      if (!isRelativeSpecifier(spec)) continue;
-      const target = resolveModule(path, spec, has);
-      if (target) add(target);
+    for (const spec of specifiersOf(fuente(path))) {
+      const target = destinoDe(path, spec);
+      if (!target) continue;
+      if (code.has(target)) add(target);
+      else if (opts.sintetico) {
+        const clave = target + consulta(spec);
+        if (!sinteticos.has(clave)) {
+          const mod = opts.sintetico(target, spec, files.get(target) as Uint8Array);
+          if (mod != null) sinteticos.set(clave, mod);
+        }
+      }
     }
   }
 
   const missing = new Set<string>();
   const bare = new Set<string>();
   const imports: Record<string, string> = {};
+  const externos: Record<string, string> = {};
   for (const path of included) {
     const rewritten = rewriteSpecifiers(
       path,
-      code.get(path) as string,
+      fuente(path),
       has,
       (target) => missing.add(target),
-      (spec) => bare.add(spec)
+      (spec) => bare.add(spec),
+      opts,
+      (spec, url) => {
+        externos[spec] = url;
+      }
     );
     imports[MODULE_SCHEME + path] = toModuleDataUrl(rewritten);
   }
+  for (const [clave, mod] of sinteticos) {
+    // un módulo inventado también puede importar paquetes (un SVG como
+    // componente de React importa «react»)
+    const rewritten = rewriteSpecifiers(clave, mod, has, () => {}, (spec) => bare.add(spec), opts, (spec, url) => {
+      externos[spec] = url;
+    });
+    imports[MODULE_SCHEME + clave] = toModuleDataUrl(rewritten);
+  }
+  Object.assign(imports, externos);
 
-  return { imports, missing: [...missing], bare: [...bare], count: included.size };
+  return {
+    imports,
+    missing: [...missing],
+    bare: [...bare],
+    count: included.size + sinteticos.size,
+    ...(errores.length ? { errores } : {}),
+  };
 }
 
 /** Etiqueta <script type="importmap"> lista para insertar en el <head>. */
