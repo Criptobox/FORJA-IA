@@ -23,7 +23,8 @@ export function useGithubAccount(): {
   account: GhAccount | null;
   token: string;
   busy: boolean;
-  connect: () => void;
+  /** `otraCuenta`: olvida la App de la cuenta anterior y deja elegir cuenta */
+  connect: (otraCuenta?: boolean) => void;
   disconnect: () => void;
   refresh: () => void;
 } {
@@ -133,9 +134,9 @@ export function useGithubAccount(): {
     throw new Error("Se acabó el tiempo. Vuelve a pulsar Conectar.");
   }, []);
 
-  const connect = useCallback(() => {
+  const connect = useCallback((otraCuenta = false) => {
     setBusy(true);
-    const url = "/api/github/oauth/start";
+    const url = otraCuenta ? "/api/github/oauth/start?cuenta=otra" : "/api/github/oauth/start";
     const w =
       window.open(url, "forja-github", "popup=yes,width=620,height=740") || window.open(url, "_blank");
     if (w) {
@@ -230,7 +231,17 @@ export function GitHubConnect({
         <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-600 dark:text-emerald-400">
           listo para subir a main
         </span>
-        <Button variant="ghost" size="sm" className="ml-auto h-7 gap-1 text-[11px]" onClick={disconnect}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="ml-auto h-7 gap-1 text-[11px]"
+          onClick={() => connect(true)}
+          disabled={busy}
+          title="Conecta otra cuenta de GitHub en lugar de esta"
+        >
+          {busy ? <Loader2 className="size-3 animate-spin" /> : <Github className="size-3" />} Otra cuenta
+        </Button>
+        <Button variant="ghost" size="sm" className="h-7 gap-1 text-[11px]" onClick={disconnect}>
           <LogOut className="size-3" /> Salir
         </Button>
       </div>
@@ -243,7 +254,7 @@ export function GitHubConnect({
         <Button
           type="button"
           size="sm"
-          onClick={connect}
+          onClick={() => connect()}
           disabled={busy}
           className="h-8 gap-1.5 forja-gradient-bg border-0 text-white hover:opacity-90"
           aria-label="Conectar con GitHub"
@@ -254,6 +265,14 @@ export function GitHubConnect({
         <p className="text-[11px] leading-snug text-muted-foreground">
           Un clic. Luego subes los cambios directo a main.
         </p>
+        <button
+          type="button"
+          onClick={() => connect(true)}
+          disabled={busy}
+          className="text-[11px] text-forja-violet underline underline-offset-2 disabled:opacity-50"
+        >
+          ¿Otra cuenta de GitHub?
+        </button>
       </div>
       <details className="text-[11px] text-muted-foreground">
         <summary className="cursor-pointer select-none hover:text-foreground">Usar un token personal</summary>

@@ -1,12 +1,13 @@
 /** Forja IA — Arranca el login de GitHub (popup o pestaña). */
 import { NextResponse } from "next/server";
-import { githubManifestPayload } from "@/lib/forja/github-oauth";
+import { GH_APP_COOKIE, githubManifestPayload } from "@/lib/forja/github-oauth";
 import {
   GH_STATE_COOKIE,
   appOrigin,
   authorizeRedirect,
   cookieHeader,
   credsFrom,
+  envCreds,
   newPkce,
   packState,
 } from "@/lib/forja/github-oauth-server";
@@ -17,10 +18,16 @@ export async function GET(req: Request) {
   const origin = appOrigin(req);
   const pkce = newPkce();
   const packed = packState(pkce.state, pkce.verifier);
-  const creds = credsFrom(req);
+  // «Conectar otra cuenta»: la App guardada en la cookie es PRIVADA de la
+  // cuenta que la registró, y otra cuenta no puede instalarla ni autorizarla.
+  // Se olvida y se registra una nueva en la cuenta que entra ahora. Con
+  // credenciales del servidor (una sola App para todos) basta con dejar
+  // elegir la cuenta en GitHub.
+  const otraCuenta = new URL(req.url).searchParams.get("cuenta") === "otra";
+  const creds = otraCuenta ? envCreds() : credsFrom(req);
 
   if (creds) {
-    const url = authorizeRedirect(creds, origin, packed);
+    const url = authorizeRedirect(creds, origin, packed, otraCuenta);
     const res = NextResponse.redirect(url);
     res.headers.append("Set-Cookie", cookieHeader(GH_STATE_COOKIE, packed, origin, 600));
     return res;
@@ -51,5 +58,6 @@ export async function GET(req: Request) {
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
   res.headers.append("Set-Cookie", cookieHeader(GH_STATE_COOKIE, packed, origin, 600));
+  if (otraCuenta) res.headers.append("Set-Cookie", cookieHeader(GH_APP_COOKIE, "", origin, 0));
   return res;
 }

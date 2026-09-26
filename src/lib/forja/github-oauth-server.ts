@@ -76,7 +76,7 @@ export function unpackState(raw: string | null): { state: string; verifier: stri
   return { state: raw.slice(0, i), verifier: raw.slice(i + 1) };
 }
 
-export function authorizeRedirect(creds: AppCreds, origin: string, packed: string): string {
+export function authorizeRedirect(creds: AppCreds, origin: string, packed: string, elegirCuenta = false): string {
   const u = unpackState(packed);
   if (!u) throw new Error("state interno no válido");
   return githubAuthorizeUrl({
@@ -84,6 +84,7 @@ export function authorizeRedirect(creds: AppCreds, origin: string, packed: strin
     redirectUri: `${origin}/api/github/oauth/callback`,
     state: u.state,
     challenge: createHash("sha256").update(u.verifier).digest("base64url"),
+    elegirCuenta,
   });
 }
 
