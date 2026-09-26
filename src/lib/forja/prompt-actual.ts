@@ -15,7 +15,7 @@ import { analyzeSkillPermissions, renderPermisosPrompt } from "./skill-permissio
 import { buildPassport, renderPassportForPrompt } from "./passport";
 import { deriveMapFromMessages, renderMapForPrompt } from "./project-map";
 import type { EntradaPrompt } from "./presupuesto";
-import { esTurnoTrivial } from "./turno-trivial";
+import { esTurnoTrivial, INSTRUCCION_SALUDO } from "./turno-trivial";
 import { renderReglasParaPrompt } from "./reglas-no";
 import { CONTEXTO_VACIO, type ContextoUsado } from "./contexto-usado";
 import { MAX_FILES_PROMPT, MAX_NOTES_PROMPT } from "./project-map";
@@ -317,9 +317,16 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
       ? INSTRUCCION_PARCHE
       : null;
 
+  // Saludo con código en la conversación: la orden expresa de no escribirlo.
+  const saludo =
+    trivial && (sesionActual?.messages ?? []).some((m) => m.role === "assistant" && m.content.includes("```"))
+      ? INSTRUCCION_SALUDO
+      : null;
+
   return {
     usado,
     parche,
+    saludo,
     sistema: st.settings.systemPrompt.trim(),
     estilo,
     modos,

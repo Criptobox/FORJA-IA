@@ -11,8 +11,12 @@
  * v8 (4.26.0): rebrand a Forja IA — nuevo prefijo de VERSION a propósito,
  * para que el logo y los iconos viejos cacheados no sobrevivan al cambio
  * de marca en ningún navegador.
+ *
+ * v9 (4.69.0): se vio en un móvil el panel «Creando…» nuevo pintado SIN su
+ * CSS (JS nuevo, hoja de estilos vieja). Cambiar el prefijo borra todas las
+ * copias del v8 al activarse, así que nada de la copia anterior sobrevive.
  */
-const VERSION = 'forja-ia-v8';
+const VERSION = 'forja-ia-v9';
 const PAGE_CACHE = `${VERSION}-pages`;
 const PRECACHE = ['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'];
 

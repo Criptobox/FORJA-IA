@@ -297,6 +297,15 @@ Publicar en Netlify subía el ZIP tal cual: nada impedía sacar a una URL públi
 - **Segunda contradicción:** el acabado del plano seguía pidiendo «SVG inline», cuando el chat ya pide `<i data-icono>`. Ahora dice «iconos del juego que da el motor», válido para el chat y para el Estudio.
 - **Menos repetición:** fuera la regla de pareja tipográfica (la dirección ya nombra las fuentes y dice de dónde cargarlas), y la checklist anti-slop se queda en las cinco preguntas, sin repetir lo que dicen las reglas. El bloque baja de ~3.800–4.700 a ~3.200–4.100 caracteres según la dirección (unos 590 menos, −15 %).
 
+### v4.69.0 — un «hola» ya no rehace la página
+
+- **Caso real:** una página se cortó en el techo de 2048 tokens de un modelo gratis. Con el agente encendido nadie la continuaba, y al escribir «Hola» el modelo la rehacía entera, cortada otra vez en el mismo sitio, con el contexto al 106 %.
+- **Continuación:** la continuación automática por longitud corre también con el agente cuando el modelo no usó sus etiquetas.
+- **Historial en un saludo:** en un saludo el código del historial no viaja; va un marcador de una línea (`historialSinCodigo`).
+- **Orden expresa:** si la conversación tiene código, el prompt lleva la pieza «Turno de saludo»: contestar sin código y ofrecer continuar lo incompleto.
+- **Panel:** un saludo ya no enseña «Creando tu página · L0 trivial».
+- **Versión:** la app pasa a 4.69.0 y el service worker a `forja-ia-v9`, que borra al activarse las copias de la versión anterior (en un móvil se vio el panel nuevo sin su CSS).
+
 ## 13. Orden propuesto para los siguientes sprints
 
 Se sigue el §75 del plan, ajustado a lo que ya existe:

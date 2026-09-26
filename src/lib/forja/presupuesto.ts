@@ -31,6 +31,7 @@ export type PiezaId =
   | "plano"
   | "reglas"
   | "parche"
+  | "saludo"
   | "ahorro";
 
 export interface PiezaPrompt {
@@ -66,6 +67,7 @@ const ETIQUETAS: Record<PiezaId, { label: string; donde: string }> = {
   plano: { label: "Plano de contenido", donde: "el motor: secciones, datos del encargo e iconos" },
   reglas: { label: "Archivos protegidos", donde: "el mapa → No tocar" },
   parche: { label: "Retoque por parche", donde: "solo en retoques sobre archivos grandes" },
+  saludo: { label: "Turno de saludo", donde: "solo en saludos con código en la conversación" },
   ahorro: { label: "Modo ahorro", donde: "Ajustes → Chat" },
 };
 
@@ -114,6 +116,8 @@ export interface EntradaPrompt {
   reglas?: string | null;
   /** en un retoque: responder con bloques SEARCH/REPLACE (`retoque-parche.ts`) */
   parche?: string | null;
+  /** en un saludo con código en la conversación: contestar sin escribirlo */
+  saludo?: string | null;
   /** el modo ahorro cambia lo que entra, no solo lo que sale */
   ahorro?: boolean;
   /** qué contexto viajó, contado donde se construyen las piezas. No entra en
@@ -145,6 +149,8 @@ const ORDEN: PiezaId[] = [
   // El parche, detrás de todo: sustituye al «entrega los archivos completos»
   // del mapa, y lo más concreto va lo último para poder matizar lo anterior.
   "parche",
+  // Un saludo manda sobre todo lo demás: es lo último que lee el modelo.
+  "saludo",
 ];
 
 const SEPARADOR = "\n\n";
@@ -168,6 +174,7 @@ function trozos(e: EntradaPrompt): Partial<Record<PiezaId, string>> {
     plano: e.plano ?? "",
     reglas: e.reglas ?? "",
     parche: e.parche ?? "",
+    saludo: e.saludo ?? "",
   };
 }
 
