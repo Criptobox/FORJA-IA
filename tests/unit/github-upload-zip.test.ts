@@ -49,9 +49,11 @@ describe("un .zip suelto subido como proyecto entero", () => {
       { path: ".env", data: enc.encode("SECRETO=1") },
       { path: ".env.example", data: enc.encode("SECRETO=") },
     ]);
+    // node_modules ya ni se descomprime (`leerZip` lo salta al leer)…
+    expect(entries.map((e) => e.path)).not.toContain("node_modules/paquete/index.js");
     const files = filesFromZipEntries(entries, "mi-proyecto");
     const { keep, ignored } = prepareFiles(files);
-    expect(ignored).toBe(2); // node_modules/... y .env (no .env.example)
+    expect(ignored).toBe(1); // …y .env se ignora al preparar (no .env.example)
     expect(keep.map((k) => k.path).sort()).toEqual([".env.example", "index.html"]);
   });
 

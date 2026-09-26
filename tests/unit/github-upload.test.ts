@@ -1,10 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
-  chunkFiles,
   necesitaInstalarApp,
   pistaDeGithub,
   shouldIgnore,
-  type GhItem,
 } from "../../src/lib/forja/github-upload";
 
 describe("shouldIgnore", () => {
@@ -45,33 +43,6 @@ describe("shouldIgnore", () => {
     for (const p of ["environment.ts", "src/env.ts", "docs/node_modules.md", "logica.ts"]) {
       expect(shouldIgnore(p), p).toBe(false);
     }
-  });
-});
-
-describe("chunkFiles", () => {
-  const item = (name: string, size: number): GhItem => ({
-    path: name,
-    file: { size } as File,
-  });
-
-  it("agrupa respetando el número máximo por lote", () => {
-    const items = Array.from({ length: 7 }, (_, i) => item(`a${i}.txt`, 10));
-    expect(chunkFiles(items, 3, 1_000_000).map((b) => b.length)).toEqual([3, 3, 1]);
-  });
-
-  it("corta también por peso total", () => {
-    const items = [item("a", 600), item("b", 600), item("c", 100)];
-    expect(chunkFiles(items, 100, 1000).map((b) => b.length)).toEqual([1, 2]);
-  });
-
-  it("un archivo mayor que el lote va solo, no se pierde", () => {
-    const items = [item("grande", 5000), item("pequeño", 10)];
-    const lotes = chunkFiles(items, 100, 1000);
-    expect(lotes.flat().map((i) => i.path)).toEqual(["grande", "pequeño"]);
-  });
-
-  it("sin archivos no hay lotes", () => {
-    expect(chunkFiles([], 10, 100)).toEqual([]);
   });
 });
 
