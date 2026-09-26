@@ -3,6 +3,7 @@ import {
   githubAuthorizeUrl,
   githubInstallUrl,
   githubManifestPayload,
+  nombreDeApp,
   isGithubAppClientId,
   parseAppCredsJson,
   parseOAuthTokenResponse,
@@ -72,6 +73,31 @@ describe("githubManifestPayload", () => {
     expect(m.request_oauth_on_install).toBe(true);
     expect((m.default_permissions as { contents: string }).contents).toBe("write");
     expect(githubInstallUrl("forja-ai")).toContain("/apps/forja-ai/installations/new");
+  });
+
+  it("el nombre de la App es único (GitHub no deja repetirlo en TODO GitHub)", () => {
+    // Con «Forja IA» fijo, la segunda conexión —otra cuenta, o la misma al
+    // caducar la cookie— se quedaba en «Name is already in use».
+    const a = githubManifestPayload("https://forja.example").name as string;
+    const b = githubManifestPayload("https://forja.example").name as string;
+    expect(a).toMatch(/^Forja IA \w+$/);
+    expect(a).not.toBe(b);
+    expect(a.length).toBeLessThanOrEqual(34);
+    expect(nombreDeApp("abc123")).toBe("Forja IA abc123");
+  });
+
+  it("pide permiso para CREAR repos: una cuenta nueva no tiene ninguno donde subir", () => {
+    const m = githubManifestPayload("https://forja.example");
+    expect((m.default_permissions as { administration: string }).administration).toBe("write");
+  });
+});
+
+describe("conectar otra cuenta", () => {
+  it("el enlace de autorización deja elegir cuenta en GitHub", () => {
+    const u = new URL(githubAuthorizeUrl({ clientId: "Iv23.x", redirectUri: "https://f/cb", state: "s", elegirCuenta: true }));
+    expect(u.searchParams.get("prompt")).toBe("select_account");
+    const normal = new URL(githubAuthorizeUrl({ clientId: "Iv23.x", redirectUri: "https://f/cb", state: "s" }));
+    expect(normal.searchParams.get("prompt")).toBeNull();
   });
 });
 

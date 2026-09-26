@@ -43,8 +43,11 @@ export function githubAuthorizeUrl(opts: {
   redirectUri: string;
   state: string;
   challenge?: string;
+  /** deja elegir con qué cuenta de GitHub entrar (conectar OTRA cuenta) */
+  elegirCuenta?: boolean;
 }): string {
   const u = new URL("https://github.com/login/oauth/authorize");
+  if (opts.elegirCuenta) u.searchParams.set("prompt", "select_account");
   u.searchParams.set("client_id", opts.clientId);
   u.searchParams.set("redirect_uri", opts.redirectUri);
   u.searchParams.set("state", opts.state);
@@ -61,11 +64,22 @@ export function githubInstallUrl(slug: string): string {
   return `https://github.com/apps/${encodeURIComponent(slug)}/installations/new`;
 }
 
+/** Nombre de la GitHub App que se registra en la cuenta del usuario.
+ *
+ * GitHub exige que el nombre de una App sea ÚNICO EN TODO GITHUB. Con un
+ * nombre fijo («Forja IA») solo funcionaba la primera vez: la segunda —otra
+ * cuenta, o la misma cuando caducaba la cookie— GitHub respondía «Name is
+ * already in use» y la conexión se quedaba ahí. Un sufijo aleatorio corto lo
+ * evita (máx. 34 caracteres). */
+export function nombreDeApp(sufijo: string = Math.random().toString(36).slice(2, 8)): string {
+  return `Forja IA ${sufijo}`.slice(0, 34);
+}
+
 /** Manifiesto para registrar una GitHub App en la cuenta del usuario (cero config). */
-export function githubManifestPayload(origin: string): Record<string, unknown> {
+export function githubManifestPayload(origin: string, nombre: string = nombreDeApp()): Record<string, unknown> {
   const o = origin.replace(/\/+$/, "");
   return {
-    name: "Forja IA",
+    name: nombre,
     url: o,
     description: "Edita repositorios y sube los cambios a main desde Forja.",
     hook_attributes: { url: `${o}/api/github/webhook`, active: false },
@@ -73,7 +87,9 @@ export function githubManifestPayload(origin: string): Record<string, unknown> {
     callback_urls: [`${o}/api/github/oauth/callback`],
     setup_url: `${o}/api/github/oauth/callback`,
     public: false,
-    default_permissions: { contents: "write", metadata: "read" },
+    // administration: crear el repo al subir. Sin él, una cuenta nueva (sin
+    // repos todavía) no podía subir nada: POST /user/repos → 403.
+    default_permissions: { contents: "write", metadata: "read", administration: "write" },
     request_oauth_on_install: true,
   };
 }

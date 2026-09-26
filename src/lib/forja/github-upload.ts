@@ -528,6 +528,16 @@ export async function ghEnsureRepo(
     }
     return await ghJsonError(res, `No se pudo crear el repositorio «${name}»`, token);
   }
+  if (res.status === 403 && tipoDeToken(token) === "app") {
+    // La App de GitHub se registró sin permiso de «administration» (las de
+    // antes de este cambio): puede escribir en repos, pero no crearlos.
+    throw new GithubUploadError(
+      `El repositorio «${name}» no existe y tu conexión de GitHub no tiene permiso para crearlo. ` +
+        `Dos salidas: créalo tú vacío en github.com/new con ese nombre y vuelve a subir (Forja lo rellena), ` +
+        `o pulsa «Otra cuenta» para reconectar con los permisos nuevos.`,
+      true
+    );
+  }
   return await ghJsonError(res, "No se pudo crear el repositorio", token);
 }
 

@@ -328,6 +328,19 @@ describe("subir a GitHub", () => {
   });
 });
 
+describe("una cuenta nueva sin permiso para crear repos", () => {
+  it("se dice qué hacer: crearlo vacío en GitHub o reconectar con «Otra cuenta»", async () => {
+    const g = githubFalso();
+    const vetado: GhFetch = async (url, init) => {
+      if (url.endsWith("/user/repos") && init?.method === "POST") {
+        return new Response(JSON.stringify({ message: "Resource not accessible by integration" }), { status: 403 });
+      }
+      return g.f(url, init);
+    };
+    await expect(ghEnsureRepo("ghu_x", "web-nueva", false, vetado)).rejects.toThrow(/github\.com\/new[\s\S]*Otra cuenta/);
+  });
+});
+
 describe("qué hacer cuando GitHub dice que no", () => {
   it("cada código dice qué arreglar, no solo qué pasó", () => {
     expect(pistaDeGithub(401, "Bad credentials")).toMatch(/vuelve a conectar/i);
