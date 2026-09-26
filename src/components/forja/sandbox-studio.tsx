@@ -80,6 +80,14 @@ import {
   type TreeNode,
 } from "@/lib/forja/sandbox";
 import {
+  cargarCompiladores,
+  detectarProyectoModerno,
+  prepararModerno,
+  servidorNode,
+  type ContextoModerno,
+} from "@/lib/forja/sandbox-moderno";
+import { detectarPython, htmlPython } from "@/lib/forja/sandbox-python";
+import {
   createReviewer,
   type Diagnostic,
   type ReviewFile,
@@ -859,12 +867,16 @@ export function SandboxStudio({
     setLogs([]);
     setReport(null);
     setPanel("editor");
-    const entry = pickEntryPath(paths, null) ?? paths[0] ?? null;
+    const html = pickEntryPath(paths, null);
+    const entry = html ?? paths[0] ?? null;
     setSelPath(entry);
     setOpenDirs(new Set(paths.flatMap(ancestorDirs)));
     // Si hay un index.html (o HTML de entrada), abrir directo la vista
-    // previa en vez de quedarse en el editor — pedido en PLAN-V7 (U3).
-    if (entry) {
+    // previa en vez de quedarse en el editor — pedido en PLAN-V7 (U3). Un
+    // proyecto de React/Vite sin HTML también arranca solo.
+    const bytes = new Map(Object.values(map).map((e) => [e.path, e.data]));
+    const moderno = html ? null : detectarProyectoModerno(bytes);
+    if (html || moderno?.soportado || (!html && detectarPython(bytes))) {
       // proyecto nuevo: vuelve a mandar el auto-arranque hasta que elijas
       eleccionManualRef.current = false;
       setAutoRunPending(true);
@@ -978,6 +990,10 @@ export function SandboxStudio({
         setEntries(map);
         setName(file.name.replace(/\.zip$/i, ""));
         const entry = pickEntryPath(paths, null);
+        // un Vite/React sin index.html en la raíz (CRA, o solo src/) también arranca
+        const bytes = new Map(Object.values(map).map((e) => [e.path, e.data]));
+        const moderno = detectarProyectoModerno(bytes);
+        const arrancable = !!entry || !!moderno?.soportado || !!detectarPython(bytes);
         setSelPath(entry ?? paths.sort()[0] ?? null);
         // se despliegan las carpetas del primer nivel y las del archivo elegido
         const top = new Set<string>(
@@ -985,9 +1001,9 @@ export function SandboxStudio({
         );
         for (const d of ancestorDirs(entry ?? "")) top.add(d);
         setOpenDirs(top);
-        if (!entry) {
-          toast.info("No hay HTML en el proyecto", {
-            description: "Puedes editarlo y revisarlo, pero no hay página que ejecutar.",
+        if (!arrancable) {
+          toast.info(moderno?.motivo ? "Este proyecto no se ejecuta dentro del Sandbox" : "No hay HTML en el proyecto", {
+            description: moderno?.motivo ?? "Puedes editarlo y revisarlo, pero no hay página que ejecutar.",
           });
         } else {
           // Hay index.html (o HTML de entrada): abrir directo la vista previa
@@ -1100,10 +1116,12 @@ export function SandboxStudio({
    * paso de build (Vite/Next/CRA…) antes de tener algún HTML? Se usa para
    * mostrar la caja de «Construir y previsualizar» en vez del prompt
    * genérico de «Ejecutar» en la pestaña Vista. */
-  const necesitaBuild = useMemo(
-    () => pareceProyectoConBuild(Object.keys(entries)),
-    [entries]
-  );
+  const necesitaBuild = useMemo(() => {
+    if (!pareceProyectoConBuild(Object.keys(entries))) return false;
+    // Vite/React/CRA se ejecutan aquí mismo, sin build (`sandbox-moderno.ts`)
+    const map = new Map(Object.values(entries).map((e) => [e.path, e.data]));
+    return !detectarProyectoModerno(map)?.soportado;
+  }, [entries]);
 
   /** Aplica el arreglo propuesto: cambia en el HTML la referencia rota para
    * que apunte al archivo que sí existe. Se toca el HTML y no se renombra el
@@ -1137,9 +1155,10 @@ export function SandboxStudio({
    * real en el servidor (`buildInSandbox`) pueda reutilizar exactamente el
    * mismo camino que ejecutar un proyecto sin bundler. */
   const renderMapInSandbox = useCallback(
-    (map: Map<string, Uint8Array>, entry: string) => {
-      const built = buildRunHtml(entry, map);
-      setFaltantes(diagnosticar(built.missing, [...map.keys()]));
+    (map: Map<string, Uint8Array>, entry: string, moderno?: ContextoModerno | null) => {
+      const built = buildRunHtml(entry, map, moderno);
+      entry = built.entryPath;
+      setFaltantes(diagnosticar(built.missing, [...(moderno?.files ?? map).keys()]));
       setEntryDeLaVista(entry);
       // el medidor de QA y el runtime del piloto viajan DENTRO del HTML: el sandbox
       // no deja leer su DOM desde fuera, pero postMessage sí cruza. La exportación
@@ -1162,10 +1181,22 @@ export function SandboxStudio({
       pendienteRef.current = { entry, htmlBytes: built.htmlBytes, startedAt: Date.now() };
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(finalizarSnapshot, 3000);
-      if (built.bareImports.length) {
-        toast.error("Este proyecto importa paquetes de npm", {
-          description: `${built.bareImports.slice(0, 3).join(", ")}… El Sandbox no instala dependencias: solo ejecuta el código del propio proyecto.`,
+      if (built.erroresTraduccion.length) {
+        // El archivo y la línea, que es lo que hace falta para arreglarlo
+        toast.error(`No se pudo traducir ${built.erroresTraduccion.length === 1 ? "un archivo" : `${built.erroresTraduccion.length} archivos`}`, {
+          description: built.erroresTraduccion[0].slice(0, 240),
+          duration: 12000,
         });
+      }
+      if (built.bareImports.length) {
+        toast.error(
+          moderno ? "Hay importaciones que no se pueden cargar en el navegador" : "Este proyecto importa paquetes de npm",
+          {
+            description: moderno
+              ? `${built.bareImports.slice(0, 3).join(", ")}: son módulos de Node o rutas que no están en el proyecto.`
+              : `${built.bareImports.slice(0, 3).join(", ")}… Sin package.json el Sandbox no sabe de dónde sacarlos: añádelo al proyecto o impórtalos desde una URL.`,
+          }
+        );
       }
       // Los archivos que faltan ya NO se cuentan aquí: se quedan en la banda de
       // la vista previa, que no se va sola. Un aviso de tres segundos delante de
@@ -1235,11 +1266,49 @@ export function SandboxStudio({
     }
   }, [buildingSandbox, entries, renderMapInSandbox]);
 
-  const run = useCallback(() => {
+  const run = useCallback(async () => {
     const map = buildFilesMap();
     const preferred = selPath && isHtmlPath(selPath) ? selPath : null;
+    // React, Vite, TypeScript…: se traducen y sus paquetes vienen del CDN
+    const moderno = detectarProyectoModerno(map);
+    if (moderno?.soportado) {
+      try {
+        await cargarCompiladores(moderno);
+      } catch {
+        toast.error("No se pudo cargar el traductor del proyecto", {
+          description: "Comprueba la conexión y vuelve a pulsar «Ejecutar».",
+        });
+        return;
+      }
+      const ctx = prepararModerno(map, moderno);
+      if (ctx) {
+        renderMapInSandbox(map, ctx.entryPath, ctx);
+        return;
+      }
+    }
     const entry = pickEntryPath([...map.keys()], preferred);
     if (!entry) {
+      // Python: el script corre en el propio iframe (Pyodide)
+      const py = detectarPython(map);
+      if (py) {
+        const ruta = "__forja_python__.html";
+        renderMapInSandbox(new Map([[ruta, encodeText(htmlPython(py))]]), ruta);
+        if (py.servidor) toast.warning("Es un servidor web", { description: py.servidor, duration: 12000 });
+        return;
+      }
+      const node = servidorNode(map);
+      if (node) {
+        toast.error("Este proyecto no se puede ejecutar dentro del Sandbox", { description: node, duration: 15000 });
+        return;
+      }
+      if (moderno && !moderno.soportado) {
+        toast.error("Este proyecto no se puede ejecutar dentro del Sandbox", {
+          description: moderno.motivo,
+          action: { label: "Construir y previsualizar", onClick: () => void buildInSandbox() },
+          duration: 15000,
+        });
+        return;
+      }
       if (pareceProyectoConBuild([...map.keys()])) {
         toast.error("Este proyecto necesita compilarse antes de poder verse", {
           description:
@@ -1464,6 +1533,14 @@ export function SandboxStudio({
       let map = buildFilesMap();
       const preferred = selPath && isHtmlPath(selPath) ? selPath : null;
       let entry = pickEntryPath([...map.keys()], preferred);
+      // React/Vite/TS: se despliega lo mismo que se ve en la vista previa
+      const moderno = detectarProyectoModerno(map);
+      let ctx: ContextoModerno | null = null;
+      if (moderno?.soportado) {
+        await cargarCompiladores(moderno);
+        ctx = prepararModerno(map, moderno);
+        if (ctx) entry = ctx.entryPath;
+      }
 
       if (!entry) {
         if (!pareceProyectoConBuild([...map.keys()])) {
@@ -1486,7 +1563,7 @@ export function SandboxStudio({
       }
 
       toast.loading("Empaquetando el sitio…", { id });
-      const empaquetado = buildRunHtml(entry, map);
+      const empaquetado = buildRunHtml(entry, map, ctx);
       const { fragment, bytes, tooLarge } = await encodeDeploy(empaquetado.html);
       if (tooLarge) {
         throw new Error(

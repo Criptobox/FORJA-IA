@@ -8,6 +8,22 @@ export interface ZipEntry {
   path: string;
   size: number;
   data: Uint8Array;
+  /** permiso de ejecución (scripts, `gradlew`…), si el ZIP lo guardó */
+  exec?: boolean;
+}
+
+/** Lo que se leyó y lo que NO, dicho en voz alta. */
+export interface LecturaZip {
+  entries: ZipEntry[];
+  /** carpetas de dependencias o basura del sistema que no se descomprimieron */
+  omitidos: number;
+  /** archivos con un método de compresión que el navegador no sabe abrir */
+  noSoportados: string[];
+}
+
+export interface OpcionesZip {
+  /** conservar también node_modules, .git, __MACOSX… (por defecto se omiten) */
+  conBasura?: boolean;
 }
 
 const MAX_ENTRIES = 5000;
@@ -15,6 +31,16 @@ const MAX_TOTAL = 256 * 1024 * 1024; // 256 MB descomprimidos
 const EOCD_SIG = 0x06054b50;
 const CDH_SIG = 0x02014b50;
 const LFH_SIG = 0x04034b50;
+
+/** Lo que nunca es el proyecto: dependencias instaladas, el repo git por
+ *  dentro y lo que añade macOS. Se salta SIN descomprimir, así un ZIP con
+ *  `node_modules` (decenas de miles de archivos) ya no revienta el tope de
+ *  entradas ni el de tamaño antes de llegar a ignorarse. */
+const BASURA_RE = /(^|\/)(node_modules|\.git|__MACOSX)(\/|$)|(^|\/)(\.DS_Store|Thumbs\.db|desktop\.ini)$/;
+
+export function esBasuraZip(path: string): boolean {
+  return BASURA_RE.test(path);
+}
 
 function u16(v: DataView, off: number): number {
   return v.getUint16(off, true);
@@ -32,37 +58,82 @@ function findEocd(v: DataView): number {
   return -1;
 }
 
-export async function readZip(buf: ArrayBuffer): Promise<ZipEntry[]> {
+/** CP437: la codificación de los nombres en los ZIP que hace Windows (el
+ *  «Enviar a → Carpeta comprimida»). Sin esto, «diseño/menú.html» llegaba
+ *  como «dise±o/men·.html» y el enlace del HTML ya no casaba con el archivo. */
+const CP437_ALTO =
+  "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u00a0";
+
+function decodeNombre(bytes: Uint8Array, utf8: boolean): string {
+  if (utf8) return new TextDecoder().decode(bytes);
+  // Sin la marca UTF-8: si aun así es UTF-8 válido (muchas herramientas no
+  // ponen la marca), se respeta; si no, es CP437.
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    let out = "";
+    for (const b of bytes) out += b < 128 ? String.fromCharCode(b) : CP437_ALTO[b - 128];
+    return out;
+  }
+}
+
+/** Ruta segura: sin barras invertidas, sin «/» inicial, sin «..» ni «.». Un
+ *  ZIP puede traer «../../algo» y no debe poder salirse del proyecto. */
+function rutaSegura(path: string): string {
+  return path
+    .replace(/\\/g, "/")
+    .split("/")
+    .filter((p) => p && p !== "." && p !== "..")
+    .join("/");
+}
+
+export async function leerZip(buf: ArrayBuffer, opts: OpcionesZip = {}): Promise<LecturaZip> {
   const v = new DataView(buf);
   const eocd = findEocd(v);
   if (eocd < 0) throw new Error("El archivo no parece un ZIP válido.");
   const count = u16(v, eocd + 10);
   let cdOff = u32(v, eocd + 16);
-  if (count > MAX_ENTRIES) throw new Error(`Demasiados archivos en el ZIP (${count}).`);
 
   const out: ZipEntry[] = [];
+  const noSoportados: string[] = [];
+  let omitidos = 0;
   let total = 0;
-  const dec = new TextDecoder();
 
   for (let i = 0; i < count; i++) {
     if (cdOff + 46 > v.byteLength || u32(v, cdOff) !== CDH_SIG)
       throw new Error("ZIP corrupto: cabecera central no válida.");
+    const hechoPor = u16(v, cdOff + 4) >> 8; // 3 = Unix
+    const flags = u16(v, cdOff + 8);
     const method = u16(v, cdOff + 10);
     const compSize = u32(v, cdOff + 20);
     const nameLen = u16(v, cdOff + 28);
     const extraLen = u16(v, cdOff + 30);
     const commentLen = u16(v, cdOff + 32);
+    const attrExt = u32(v, cdOff + 38);
     const lfhOff = u32(v, cdOff + 42);
-    const path = dec.decode(new Uint8Array(buf, cdOff + 46, nameLen));
+    const crudo = decodeNombre(new Uint8Array(buf, cdOff + 46, nameLen), (flags & 0x800) !== 0);
     cdOff += 46 + nameLen + extraLen + commentLen;
 
-    if (path.endsWith("/")) continue; // carpeta
-    if (method !== 0 && method !== 8) continue; // método no soportado: se ignora
+    if (crudo.endsWith("/") || crudo.endsWith("\\")) continue; // carpeta
+    const path = rutaSegura(crudo);
+    if (!path) continue;
+    if (!opts.conBasura && esBasuraZip(path)) {
+      omitidos++;
+      continue;
+    }
+    if (flags & 0x1) {
+      throw new Error("El ZIP está protegido con contraseña. Descomprímelo y vuelve a comprimirlo sin contraseña.");
+    }
+    if (method !== 0 && method !== 8) {
+      noSoportados.push(path);
+      continue;
+    }
+    if (out.length >= MAX_ENTRIES) throw new Error(`Demasiados archivos en el ZIP (más de ${MAX_ENTRIES} sin contar dependencias).`);
+    const unixMode = hechoPor === 3 ? attrExt >>> 16 : 0;
+    const exec = (unixMode & 0o111) !== 0 && (unixMode & 0o170000) !== 0o120000 ? true : undefined;
 
     if (compSize === 0) {
-      // archivo vacío válido
-      total += 0;
-      out.push({ path: path.replace(/\\/g, "/"), size: 0, data: new Uint8Array(0) });
+      out.push({ path, size: 0, data: new Uint8Array(0), ...(exec ? { exec } : {}) });
       continue;
     }
 
@@ -86,10 +157,15 @@ export async function readZip(buf: ArrayBuffer): Promise<ZipEntry[]> {
       data = new Uint8Array(ab);
     }
     total += data.length;
-    if (total > MAX_TOTAL) throw new Error("El ZIP descomprimido es demasiado grande (máx. 256 MB).");
-    out.push({ path: path.replace(/\\/g, "/"), size: data.length, data });
+    if (total > MAX_TOTAL) throw new Error("El ZIP descomprimido es demasiado grande (máx. 256 MB sin contar dependencias).");
+    out.push({ path, size: data.length, data, ...(exec ? { exec } : {}) });
   }
-  return out;
+  return { entries: out, omitidos, noSoportados };
+}
+
+/** Las entradas del ZIP, sin dependencias ni basura del sistema. */
+export async function readZip(buf: ArrayBuffer, opts: OpcionesZip = {}): Promise<ZipEntry[]> {
+  return (await leerZip(buf, opts)).entries;
 }
 
 /** Si TODAS las entradas comparten una única carpeta de primer nivel, la
@@ -134,7 +210,7 @@ export function crc32(data: Uint8Array): number {
 }
 
 /** Crea un ZIP (STORE) válido con los archivos dados. Rutas con «/». */
-export function writeZip(files: { path: string; data: Uint8Array }[]): Uint8Array {
+export function writeZip(files: { path: string; data: Uint8Array; exec?: boolean }[]): Uint8Array {
   const enc = new TextEncoder();
   const chunks: Uint8Array[] = [];
   const central: Uint8Array[] = [];
@@ -170,7 +246,9 @@ export function writeZip(files: { path: string; data: Uint8Array }[]): Uint8Arra
     const cdh = new Uint8Array(46 + name.length);
     const cv = new DataView(cdh.buffer);
     cv.setUint32(0, CDH_SIG, true);
-    cv.setUint16(4, 20, true);
+    // «hecho en Unix» + modo en los atributos externos: así el permiso de
+    // ejecución de un script sobrevive al ZIP (lo lee `leerZip`)
+    cv.setUint16(4, (3 << 8) | 20, true);
     cv.setUint16(6, 20, true);
     cv.setUint16(8, 0x0800, true);
     cv.setUint16(10, 0, true);
@@ -180,6 +258,7 @@ export function writeZip(files: { path: string; data: Uint8Array }[]): Uint8Arra
     cv.setUint32(20, size, true);
     cv.setUint32(24, size, true);
     cv.setUint16(28, name.length, true);
+    cv.setUint32(38, ((f.exec ? 0o100755 : 0o100644) << 16) >>> 0, true);
     cv.setUint32(42, offset - size - lfh.length, true); // offset local
     cdh.set(name, 46);
     central.push(cdh);

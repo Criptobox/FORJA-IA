@@ -36,6 +36,7 @@
     "@radix-ui/react-switch": "^1.2.5",
     "@radix-ui/react-tabs": "^1.1.12",
     "@tanstack/react-virtual": "^3.14.10",
+    "@vue/compiler-sfc": "^3.5.43",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -54,6 +55,8 @@
     "remark-gfm": "^4.0.1",
     "sharp": "^0.35.4",
     "sonner": "^2.0.6",
+    "sucrase": "^3.35.1",
+    "svelte": "^5.57.1",
     "tailwind-merge": "^3.3.1",
     "zustand": "^5.0.6"
   },
@@ -72,7 +75,8 @@
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5",
-    "vitest": "^3.2.7"
+    "vitest": "^3.2.7",
+    "vue": "^3.5.43"
   },
   "optionalDependencies": {
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"

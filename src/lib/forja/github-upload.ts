@@ -1,13 +1,30 @@
 /** Forja IA — Subida directa a GitHub con la Git Data API.
- * Permite subir carpetas completas (más de 100 archivos) en lotes:
- *  - blobs base64 solo para binarios; el texto va embebido en el tree (menos peticiones)
- *  - 1 commit por lote (≈60 archivos o ≈12 MB) sobre la rama main
+ *
+ * Un proyecto entero, sea del tamaño que sea, entra como UN SOLO commit:
+ *  - blobs base64 para binarios y textos grandes; el texto normal va embebido
+ *    en el árbol (menos peticiones)
+ *  - el árbol se construye por tramos encadenados (cada tramo parte del
+ *    anterior) para no mandar peticiones gigantes, y al final un commit
+ *  - modo «reemplazar» (por defecto): el repo queda EXACTAMENTE como el
+ *    proyecto; lo que ya no está se quita, y el historial anterior sigue en
+ *    GitHub. Modo «añadir»: solo añade y sobrescribe.
+ *  - repos vacíos (creados en GitHub sin README) se inicializan solos
+ *  - cada petición se reintenta ante cortes de red, 5xx y límites temporales
+ *  - scripts con `#!` o con permiso de ejecución en el ZIP suben como 100755
  *  - crea el repo si no existe (auto_init con README)
  * El token se guarda SOLO en localStorage de tu dispositivo. */
 import { isTextPath } from "./sandbox";
 import type { ReviewFile } from "./sandbox-review";
 
-export type GhItem = { path: string; file: File };
+export type GhItem = {
+  path: string;
+  file: File;
+  /** permiso de ejecución (del ZIP); los scripts con `#!` se detectan solos */
+  exec?: boolean;
+};
+
+/** Qué pasa con lo que ya había en el repo. */
+export type ModoSubida = "reemplazar" | "anadir";
 export type GhProgress = {
   done: number;
   total: number;
@@ -38,8 +55,6 @@ function ghNotifyAccount(): void {
   }
 }
 const SINGLE_LIMIT = 95 * 1024 * 1024; // GitHub rechaza blobs >100MB; margen propio
-const MAX_FILES_PER_BATCH = 60;
-const MAX_BYTES_PER_BATCH = 12 * 1024 * 1024;
 
 // ——— token local ———
 export function ghGetToken(): string {
@@ -187,29 +202,6 @@ export async function toReviewFiles(items: GhItem[]): Promise<ReviewFile[]> {
   );
 }
 
-/** Divide en lotes por número de archivos y peso total */
-export function chunkFiles(
-  items: GhItem[],
-  maxFiles = MAX_FILES_PER_BATCH,
-  maxBytes = MAX_BYTES_PER_BATCH
-): GhItem[][] {
-  const batches: GhItem[][] = [];
-  let cur: GhItem[] = [];
-  let curBytes = 0;
-  for (const it of items) {
-    const size = it.file.size;
-    if (cur.length > 0 && (cur.length >= maxFiles || curBytes + size > maxBytes)) {
-      batches.push(cur);
-      cur = [];
-      curBytes = 0;
-    }
-    cur.push(it);
-    curBytes += size;
-  }
-  if (cur.length) batches.push(cur);
-  return batches;
-}
-
 // ——— helpers HTTP ———
 
 /** El `fetch` que usa la subida. Se puede sustituir para poder PROBAR esto.
@@ -219,19 +211,76 @@ export function chunkFiles(
  * una cuenta de GitHub de verdad delante. */
 export type GhFetch = (url: string, init?: RequestInit) => Promise<Response>;
 
-function ghFetchCon(fetchImpl?: GhFetch) {
+/** Espera entre reintentos. Sustituible en las pruebas para no dormir. */
+export type Dormir = (ms: number) => Promise<void>;
+const dormirReal: Dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Reintentos: 4 intentos en total, esperando 1 s, 3 s y 7 s. */
+const ESPERAS_MS = [1000, 3000, 7000];
+
+/** Tiempo máximo de una petición según lo que manda: 30 s de base más lo que
+ *  tarda en subir el cuerpo a ~20 KB/s (un móvil con mala cobertura). Antes
+ *  era 30 s fijos, y una imagen de 2 MB por 4G flojo cortaba la subida
+ *  entera. Tope de 10 minutos. */
+export function tiempoMaximo(bytesCuerpo: number): number {
+  return Math.min(600_000, 30_000 + Math.ceil(bytesCuerpo / 20));
+}
+
+/** ¿Merece otro intento? Cortes de red y fallos de GitHub, sí; un «no» de
+ *  verdad (401, 404, 422…), no: repetirlo solo gasta tiempo. */
+async function reintentable(res: Response): Promise<number | null> {
+  if (res.status >= 500) return 0;
+  if (res.status === 429) return Number(res.headers.get("retry-after") ?? 0) * 1000;
+  if (res.status === 403) {
+    const retry = res.headers.get("retry-after");
+    if (retry) return Number(retry) * 1000;
+    // límite secundario (demasiadas peticiones seguidas): el mensaje lo dice
+    try {
+      const j = (await res.clone().json()) as { message?: string };
+      if (/secondary rate limit|abuse/i.test(j.message ?? "")) return 0;
+    } catch {
+      /* sin cuerpo */
+    }
+  }
+  return null;
+}
+
+function ghFetchCon(fetchImpl?: GhFetch, dormir: Dormir = dormirReal) {
   const f: GhFetch = fetchImpl ?? ((u, i) => fetch(u, i));
-  return async (token: string, path: string, init?: RequestInit): Promise<Response> =>
-    f(path.startsWith("http") ? path : GH_API + path, {
-      ...init,
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        ...(init?.headers ?? {}),
-      },
-      signal: AbortSignal.timeout(30000),
-    });
+  return async (token: string, path: string, init?: RequestInit): Promise<Response> => {
+    const url = path.startsWith("http") ? path : GH_API + path;
+    const cuerpo = typeof init?.body === "string" ? init.body.length : 0;
+    let ultimoError: unknown = null;
+    for (let intento = 0; intento <= ESPERAS_MS.length; intento++) {
+      try {
+        const res = await f(url, {
+          ...init,
+          headers: {
+            Accept: "application/vnd.github+json",
+            Authorization: `Bearer ${token}`,
+            "X-GitHub-Api-Version": "2022-11-28",
+            ...(init?.headers ?? {}),
+          },
+          signal: AbortSignal.timeout(tiempoMaximo(cuerpo)),
+        });
+        const espera = intento < ESPERAS_MS.length ? await reintentable(res) : null;
+        if (espera === null) return res;
+        // GitHub puede pedir esperar mucho: más de un minuto no se espera, se dice
+        if (espera > 60_000) return res;
+        await dormir(Math.max(espera, ESPERAS_MS[intento]));
+      } catch (e) {
+        // corte de red o tiempo agotado: se reintenta igual
+        ultimoError = e;
+        if (intento >= ESPERAS_MS.length) break;
+        await dormir(ESPERAS_MS[intento]);
+      }
+    }
+    throw new Error(
+      `No se pudo hablar con GitHub tras varios intentos (${
+        ultimoError instanceof Error ? ultimoError.message : "sin conexión"
+      }). Revisa la conexión y vuelve a intentarlo: lo ya subido no se pierde.`
+    );
+  };
 }
 
 const ghFetch = ghFetchCon();
@@ -440,9 +489,11 @@ export async function ghEnsureRepo(
   token: string,
   name: string,
   isPrivate: boolean,
-  fetchImpl?: GhFetch
+  fetchImpl?: GhFetch,
+  description?: string,
+  dormir?: Dormir
 ): Promise<RepoDestino> {
-  const gh = ghFetchCon(fetchImpl);
+  const gh = ghFetchCon(fetchImpl, dormir);
   const login = await ghWhoAmI(token, fetchImpl);
 
   const info = await gh(token, `/repos/${login}/${name}`);
@@ -457,7 +508,9 @@ export async function ghEnsureRepo(
       name,
       private: isPrivate,
       auto_init: true,
-      description: "Forja IA — mi chat con modelos gratis (subido desde la app)",
+      // Sin descripción inventada: antes TODOS los repos salían como «Forja IA
+      // — mi chat con modelos gratis», fuese lo que fuese el proyecto.
+      ...(description ? { description } : {}),
       has_issues: true,
       has_projects: false,
       has_wiki: false,
@@ -490,13 +543,12 @@ type Head = { sha: string; treeSha: string } | null;
  * exactamente los archivos del lote y **borrar todos los demás**. Un fallo de
  * red a destiempo borraba el repo del usuario sin decir nada. */
 async function ghGetHead(
+  gh: ReturnType<typeof ghFetchCon>,
   token: string,
   owner: string,
   repo: string,
-  branch: string,
-  fetchImpl?: GhFetch
+  branch: string
 ): Promise<Head> {
-  const gh = ghFetchCon(fetchImpl);
   const res = await gh(token, `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`);
   if (res.status === 404 || res.status === 409) return null; // rama sin crear / repo vacío
   if (!res.ok) await ghJsonError(res, `No se pudo leer la rama ${branch}`, token);
@@ -519,111 +571,43 @@ async function ghGetHead(
 }
 
 type TreeEntry =
-  | { path: string; mode: "100644"; type: "blob"; content: string }
-  | { path: string; mode: "100644"; type: "blob"; sha: string };
+  | { path: string; mode: "100644" | "100755"; type: "blob"; content: string }
+  | { path: string; mode: "100644" | "100755"; type: "blob"; sha: string }
+  | { path: string; mode: "100644"; type: "blob"; sha: null };
 
-async function ghCommitBatch(
-  token: string,
-  owner: string,
-  repo: string,
-  batch: GhItem[],
-  head: Head,
-  message: string,
-  branch: string,
-  fetchImpl?: GhFetch
-): Promise<{ sha: string; treeSha: string }> {
-  const ghFetch = ghFetchCon(fetchImpl);
-  // 1) blobs base64 solo para binarios con extensión conocida (en paralelo moderado)
-  const entries: TreeEntry[] = [];
-  const binaryItems = batch.filter((it) => it.file.size < 512 * 1024 && it.path.match(/\.(png|jpe?g|gif|webp|ico|pdf|woff2?|ttf|otf|mp3|mp4|webm|zip)$/i));
-  const blobShas = new Map<string, string>();
+/** Por encima de esto un texto va como blob aparte: un árbol con un archivo
+ *  de 5 MB dentro es una petición gigante que en móvil no llega. */
+const TEXTO_EN_ARBOL_MAX = 512 * 1024;
+/** Tramos del árbol: cada petición de árbol lleva como mucho esto. */
+const TRAMO_ENTRADAS = 300;
+const TRAMO_BYTES = 4 * 1024 * 1024;
+/** Blobs en paralelo: más de esto dispara el límite secundario de GitHub. */
+const BLOBS_EN_PARALELO = 4;
 
-  const queue = [...binaryItems];
-  const workers = Array.from({ length: Math.min(6, queue.length || 1) }, async () => {
-    for (;;) {
-      const it = queue.shift();
-      if (!it) break;
-      const bytes = new Uint8Array(await it.file.arrayBuffer());
-      const res = await ghFetch(token, `/repos/${owner}/${repo}/git/blobs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: toBase64(bytes), encoding: "base64" }),
-      });
-      if (!res.ok) await ghJsonError(res, `No se pudo subir el blob ${it.path}`, token);
-      const j = (await res.json()) as { sha?: string };
-      if (j.sha) blobShas.set(it.path, j.sha);
+function esEjecutable(it: GhItem, bytes: Uint8Array): boolean {
+  if (it.exec) return true;
+  // «#!» al principio: un script, aunque la carpeta no traiga el permiso
+  return bytes.length > 2 && bytes[0] === 0x23 && bytes[1] === 0x21;
+}
+
+/** Divide las entradas del árbol en tramos por número y por peso del texto
+ *  embebido. */
+export function tramosDeArbol(entries: TreeEntry[], maxEntradas = TRAMO_ENTRADAS, maxBytes = TRAMO_BYTES): TreeEntry[][] {
+  const out: TreeEntry[][] = [];
+  let cur: TreeEntry[] = [];
+  let bytes = 0;
+  for (const e of entries) {
+    const peso = "content" in e ? e.content.length : 100;
+    if (cur.length && (cur.length >= maxEntradas || bytes + peso > maxBytes)) {
+      out.push(cur);
+      cur = [];
+      bytes = 0;
     }
-  });
-  await Promise.all(workers);
-
-  // 2) árbol: texto embebido, binarios por sha
-  const seenBinary = new Set(binaryItems.map((it) => it.path));
-  for (const it of batch) {
-    if (seenBinary.has(it.path)) {
-      entries.push({ path: it.path, mode: "100644", type: "blob", sha: blobShas.get(it.path) ?? "" });
-    } else {
-      const bytes = new Uint8Array(await it.file.arrayBuffer());
-      // binarios sin extensión conocida → también via blob para no corromperlos
-      if (!isProbablyText(bytes)) {
-        const res = await ghFetch(token, `/repos/${owner}/${repo}/git/blobs`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: toBase64(bytes), encoding: "base64" }),
-        });
-        if (!res.ok) await ghJsonError(res, `No se pudo subir el blob ${it.path}`, token);
-        const j = (await res.json()) as { sha?: string };
-        entries.push({ path: it.path, mode: "100644", type: "blob", sha: j.sha ?? "" });
-      } else {
-        entries.push({ path: it.path, mode: "100644", type: "blob", content: new TextDecoder().decode(bytes) });
-      }
-    }
+    cur.push(e);
+    bytes += peso;
   }
-
-  // 3) tree → 4) commit → 5) mover la rama
-  const treeRes = await ghFetch(token, `/repos/${owner}/${repo}/git/trees`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(head?.treeSha ? { base_tree: head.treeSha, tree: entries } : { tree: entries }),
-  });
-  if (!treeRes.ok) await ghJsonError(treeRes, "No se pudo crear el árbol de archivos", token);
-  const tree = (await treeRes.json()) as { sha?: string };
-
-  const commitRes = await ghFetch(token, `/repos/${owner}/${repo}/git/commits`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, tree: tree.sha, parents: head ? [head.sha] : [] }),
-  });
-  if (!commitRes.ok) await ghJsonError(commitRes, "No se pudo crear el commit", token);
-  const commit = (await commitRes.json()) as { sha?: string; tree?: { sha?: string } };
-
-  const rama = encodeURIComponent(branch);
-  if (head) {
-    const refRes = await ghFetch(token, `/repos/${owner}/${repo}/git/refs/heads/${rama}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sha: commit.sha, force: false }),
-    });
-    if (!refRes.ok) await ghJsonError(refRes, `No se pudo actualizar la rama ${branch}`, token);
-  } else {
-    const refRes = await ghFetch(token, `/repos/${owner}/${repo}/git/refs`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: commit.sha }),
-    });
-    // El 422 de aquí (la rama ya existía) se TRAGABA, y con él se tragaba la
-    // subida entera: la app decía «¡Completado!» y en GitHub no había nada.
-    // Si la rama apareció mientras subíamos, se mueve; si no se puede, se dice.
-    if (!refRes.ok) {
-      if (refRes.status !== 422) await ghJsonError(refRes, `No se pudo crear la rama ${branch}`, token);
-      const mover = await ghFetch(token, `/repos/${owner}/${repo}/git/refs/heads/${rama}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sha: commit.sha, force: false }),
-      });
-      if (!mover.ok) await ghJsonError(mover, `No se pudo apuntar la rama ${branch} al commit`, token);
-    }
-  }
-  return { sha: commit.sha ?? "", treeSha: commit.tree?.sha ?? tree.sha ?? "" };
+  if (cur.length) out.push(cur);
+  return out;
 }
 
 /** Comprueba que la rama apunta DE VERDAD a lo que acabamos de subir.
@@ -632,14 +616,13 @@ async function ghCommitBatch(
  * decir «no saltó ninguna excepción», que no es lo mismo que «está en
  * GitHub». */
 async function ghVerificar(
+  gh: ReturnType<typeof ghFetchCon>,
   token: string,
   owner: string,
   repo: string,
   branch: string,
-  sha: string,
-  fetchImpl?: GhFetch
+  sha: string
 ): Promise<void> {
-  const gh = ghFetchCon(fetchImpl);
   const res = await gh(token, `/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(branch)}`);
   if (!res.ok) await ghJsonError(res, `No se pudo comprobar la rama ${branch} después de subir`, token);
   const j = (await res.json()) as { object?: { sha?: string } };
@@ -652,67 +635,193 @@ async function ghVerificar(
   }
 }
 
-/** Sube todos los archivos en lotes. Devuelve la URL del repo y la rama. */
+/** Un repo SIN NINGÚN commit (creado en GitHub sin README) no admite la Git
+ *  Data API: blobs, árboles y commits responden 409 «Git Repository is
+ *  empty». Se le pone un primer archivo con la Contents API, que sí funciona
+ *  ahí, y a partir de ese commit todo sigue igual. En modo «reemplazar» ese
+ *  archivo desaparece en el commit de verdad si el proyecto no lo trae. */
+async function inicializarRepoVacio(
+  gh: ReturnType<typeof ghFetchCon>,
+  token: string,
+  owner: string,
+  repo: string,
+  branch: string
+): Promise<void> {
+  const res = await gh(token, `/repos/${owner}/${repo}/contents/.forja-init`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "Inicializa el repositorio", content: btoa("forja\n"), branch }),
+  });
+  if (!res.ok) await ghJsonError(res, "No se pudo inicializar el repositorio vacío", token);
+}
+
+/** Rutas de archivos que hay ahora mismo en el árbol (para contar lo que
+ *  «reemplazar» va a quitar). `null` si GitHub no da la lista entera. */
+async function rutasDelArbol(
+  gh: ReturnType<typeof ghFetchCon>,
+  token: string,
+  owner: string,
+  repo: string,
+  treeSha: string
+): Promise<string[] | null> {
+  const res = await gh(token, `/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`);
+  if (!res.ok) return null;
+  const j = (await res.json()) as { truncated?: boolean; tree?: { path?: string; type?: string }[] };
+  if (j.truncated) return null;
+  return (j.tree ?? []).filter((e) => e.type === "blob" && e.path).map((e) => e.path as string);
+}
+
+export interface ResultadoSubida {
+  url: string;
+  /** siempre 1: todo el proyecto entra en un único commit */
+  commits: number;
+  branch: string;
+  sha: string;
+  /** archivos que estaban en el repo y ya no (solo en «reemplazar»); null si no se supo */
+  eliminados: number | null;
+  /** el repo se creó en esta subida */
+  creado: boolean;
+}
+
+/** Sube el proyecto entero como un solo commit. */
 export async function uploadToGithub(
   token: string,
   opts: {
     repoName: string;
     isPrivate: boolean;
     items: GhItem[];
+    /** por defecto «reemplazar»: el repo queda igual que el proyecto */
+    modo?: ModoSubida;
+    /** mensaje del commit; por defecto uno que dice qué se hizo */
+    mensaje?: string;
+    /** descripción del repo SI se crea (nunca se toca la de uno existente) */
+    descripcion?: string;
     onProgress?: (p: GhProgress) => void;
     /** solo para pruebas: sustituye el `fetch` de la subida */
     fetchImpl?: GhFetch;
+    /** solo para pruebas: no dormir entre reintentos */
+    dormir?: Dormir;
   }
-): Promise<{ url: string; commits: number; branch: string; sha: string }> {
+): Promise<ResultadoSubida> {
   const { repoName, isPrivate, items, onProgress, fetchImpl } = opts;
+  const modo: ModoSubida = opts.modo ?? "reemplazar";
   if (!items.length) throw new Error("No hay archivos para subir");
+  const gh = ghFetchCon(fetchImpl, opts.dormir);
+  const total = items.length;
+  const avisar = (done: number, message: string, batch = 1, batches = 1) =>
+    onProgress?.({ done, total, batch, batches, message });
 
-  const repo = await ghEnsureRepo(token, repoName, isPrivate, fetchImpl);
-  // La rama del repo, no «main» a ciegas: ese era el fallo. En un repo con
-  // «master» se creaba un commit huérfano, el error de la rama se tragaba y la
-  // app cantaba victoria con GitHub intacto.
-  let head = await ghGetHead(token, repo.owner, repo.repo, repo.branch, fetchImpl);
-  const batches = chunkFiles(items);
-  let done = 0;
-  let ultimo = "";
-
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    onProgress?.({
-      done,
-      total: items.length,
-      batch: i + 1,
-      batches: batches.length,
-      message: `Subiendo lote ${i + 1} de ${batches.length} · ${batch.length} archivos…`,
-    });
-    const message =
-      i === 0
-        ? `Forja IA: subida inicial (${items.length} archivos)`
-        : `Forja IA: lote ${i + 1}/${batches.length}`;
-    const newHead = await ghCommitBatch(
-      token,
-      repo.owner,
-      repo.repo,
-      batch,
-      head,
-      message,
-      repo.branch,
-      fetchImpl
-    );
-    head = { sha: newHead.sha, treeSha: newHead.treeSha };
-    ultimo = newHead.sha;
-    done += batch.length;
+  avisar(0, "Preparando el repositorio…");
+  const repo = await ghEnsureRepo(token, repoName, isPrivate, fetchImpl, opts.descripcion, opts.dormir);
+  // La rama del repo, no «main» a ciegas: en un repo con «master» se creaba
+  // un commit huérfano y la app cantaba victoria con GitHub intacto.
+  let head = await ghGetHead(gh, token, repo.owner, repo.repo, repo.branch);
+  const inicializado = !head;
+  if (!head) {
+    await inicializarRepoVacio(gh, token, repo.owner, repo.repo, repo.branch);
+    head = await ghGetHead(gh, token, repo.owner, repo.repo, repo.branch);
+    if (!head) throw new Error("GitHub no creó la rama al inicializar el repositorio. Vuelve a intentarlo.");
   }
 
-  onProgress?.({
-    done,
-    total: items.length,
-    batch: batches.length,
-    batches: batches.length,
-    message: "Comprobando que quedó publicado…",
-  });
-  await ghVerificar(token, repo.owner, repo.repo, repo.branch, ultimo, fetchImpl);
+  // Lo que había, para decir cuánto se quita al reemplazar.
+  const antes = modo === "reemplazar" ? await rutasDelArbol(gh, token, repo.owner, repo.repo, head.treeSha) : null;
 
-  onProgress?.({ done, total: items.length, batch: batches.length, batches: batches.length, message: "¡Completado!" });
-  return { url: repo.url, commits: batches.length, branch: repo.branch, sha: ultimo };
+  // 1) entradas del árbol: texto embebido o blob aparte (en paralelo moderado)
+  const entries: TreeEntry[] = new Array(items.length);
+  let hechos = 0;
+  const cola = items.map((it, i) => ({ it, i }));
+  const trabajadores = Array.from({ length: Math.min(BLOBS_EN_PARALELO, cola.length) }, async () => {
+    for (;;) {
+      const sig = cola.shift();
+      if (!sig) break;
+      const { it, i } = sig;
+      const bytes = new Uint8Array(await it.file.arrayBuffer());
+      const mode = esEjecutable(it, bytes) ? "100755" : "100644";
+      if (bytes.length <= TEXTO_EN_ARBOL_MAX && isProbablyText(bytes)) {
+        entries[i] = { path: it.path, mode, type: "blob", content: new TextDecoder().decode(bytes) };
+      } else {
+        const res = await gh(token, `/repos/${repo.owner}/${repo.repo}/git/blobs`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: toBase64(bytes), encoding: "base64" }),
+        });
+        if (!res.ok) await ghJsonError(res, `No se pudo subir ${it.path}`, token);
+        const j = (await res.json()) as { sha?: string };
+        if (!j.sha) throw new Error(`GitHub no devolvió el identificador de ${it.path}`);
+        entries[i] = { path: it.path, mode, type: "blob", sha: j.sha };
+      }
+      hechos++;
+      avisar(hechos, `Subiendo archivos ${hechos} de ${total}…`);
+    }
+  });
+  await Promise.all(trabajadores);
+
+  // 2) árbol por tramos encadenados. En «reemplazar» el primero NO parte del
+  // árbol anterior: así el resultado es exactamente el proyecto.
+  // En «añadir» sobre un repo que estaba vacío, el archivo de arranque se
+  // quita en este mismo commit (en «reemplazar» ya desaparece solo).
+  if (inicializado && modo === "anadir" && !items.some((it) => it.path === ".forja-init")) {
+    entries.push({ path: ".forja-init", mode: "100644", type: "blob", sha: null });
+  }
+  const tramos = tramosDeArbol(entries);
+  let base: string | undefined = modo === "anadir" ? head.treeSha : undefined;
+  for (let t = 0; t < tramos.length; t++) {
+    avisar(total, `Montando el árbol de archivos (${t + 1} de ${tramos.length})…`, t + 1, tramos.length);
+    const res = await gh(token, `/repos/${repo.owner}/${repo.repo}/git/trees`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(base ? { base_tree: base, tree: tramos[t] } : { tree: tramos[t] }),
+    });
+    if (!res.ok) await ghJsonError(res, "No se pudo crear el árbol de archivos", token);
+    const j = (await res.json()) as { sha?: string };
+    if (!j.sha) throw new Error("GitHub no devolvió el árbol de archivos");
+    base = j.sha;
+  }
+  const arbolFinal = base as string;
+
+  // 3) un solo commit y mover la rama
+  avisar(total, "Creando el commit…");
+  const mensaje =
+    opts.mensaje?.trim() ||
+    (repo.created
+      ? `Sube el proyecto (${total} archivos)`
+      : modo === "reemplazar"
+        ? `Actualiza el proyecto (${total} archivos)`
+        : `Añade ${total} archivos`);
+  const commitRes = await gh(token, `/repos/${repo.owner}/${repo.repo}/git/commits`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: mensaje, tree: arbolFinal, parents: [head.sha] }),
+  });
+  if (!commitRes.ok) await ghJsonError(commitRes, "No se pudo crear el commit", token);
+  const commit = (await commitRes.json()) as { sha?: string };
+  if (!commit.sha) throw new Error("GitHub no devolvió el commit");
+
+  const refRes = await gh(token, `/repos/${repo.owner}/${repo.repo}/git/refs/heads/${encodeURIComponent(repo.branch)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sha: commit.sha, force: false }),
+  });
+  if (!refRes.ok) {
+    if (refRes.status === 422) {
+      throw new Error(
+        `Alguien subió cambios a ${repo.branch} mientras subías: no se ha tocado nada. Vuelve a intentarlo para subir encima de lo último.`
+      );
+    }
+    await ghJsonError(refRes, `No se pudo actualizar la rama ${repo.branch}`, token);
+  }
+
+  avisar(total, "Comprobando que quedó publicado…");
+  await ghVerificar(gh, token, repo.owner, repo.repo, repo.branch, commit.sha);
+
+  const nuevas = new Set(items.map((it) => it.path));
+  const eliminados = inicializado
+    ? 0
+    : antes
+      ? antes.filter((p) => !nuevas.has(p)).length
+      : modo === "anadir"
+        ? 0
+        : null;
+  avisar(total, "¡Completado!");
+  return { url: repo.url, commits: 1, branch: repo.branch, sha: commit.sha, eliminados, creado: repo.created };
 }

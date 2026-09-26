@@ -5,7 +5,7 @@
  * patrones y licencia, y produce un manifiesto compacto que el Cerebro puede
  * consultar después. El contenido completo sigue siendo opcional.
  */
-import { dropWrapperFolder, readZip, type ZipEntry } from "./zip";
+import { dropWrapperFolder, leerZip, type ZipEntry } from "./zip";
 
 export interface KBRepoFile {
   path: string;
@@ -123,7 +123,10 @@ function detectFrameworks(paths: string[], technologies: string[], texts: string
 }
 
 export async function analyzeZipRepository(file: File): Promise<KBRepoAnalysis> {
-  const entries = dropWrapperFolder(await readZip(await file.arrayBuffer()));
+  // node_modules, .git y __MACOSX ni se descomprimen (`leerZip`), pero se
+  // siguen contando como ignorados: el resumen dice lo que traía el ZIP.
+  const lectura = await leerZip(await file.arrayBuffer());
+  const entries = dropWrapperFolder(lectura.entries);
   const paths = entries.map(e => e.path);
   const files: KBRepoFile[] = [];
   const technologies: string[] = [];
@@ -134,7 +137,7 @@ export async function analyzeZipRepository(file: File): Promise<KBRepoAnalysis> 
   const importantFiles: string[] = [];
   const texts: string[] = [];
   let totalBytes = 0;
-  let ignoredFiles = 0;
+  let ignoredFiles = lectura.omitidos;
 
   for (const e of entries) {
     totalBytes += e.size;
@@ -158,7 +161,7 @@ export async function analyzeZipRepository(file: File): Promise<KBRepoAnalysis> 
     id: `kb-project-${crypto.randomUUID()}`,
     name: file.name.replace(/\.zip$/i, ""),
     analyzedAt: new Date().toISOString(),
-    totalFiles: entries.length,
+    totalFiles: entries.length + lectura.omitidos,
     indexedFiles: files.length,
     ignoredFiles,
     totalBytes,

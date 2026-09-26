@@ -34,13 +34,14 @@ import {
   uploadToGithub,
   type GhItem,
   type GhProgress,
+  type ModoSubida,
 } from "@/lib/forja/github-upload";
 import { aArchivosForja, leerMemoria, reglasAMemoria } from "@/lib/forja/memoria-proyecto";
 import { useForja } from "@/lib/forja/store";
 import { GitHubConnect } from "./github-connect";
 import { ReviewGateCard, useReviewGate } from "./review-view";
 import type { PublishSeed } from "@/lib/forja/sandbox";
-import { dropWrapperFolder, readZip, type ZipEntry } from "@/lib/forja/zip";
+import { dropWrapperFolder, leerZip, type ZipEntry } from "@/lib/forja/zip";
 
 /** Fija en el código, no se construye a partir de nada dinámico. */
 const GH_INSTALLATIONS_URL = "https://github.com/settings/installations";
@@ -68,6 +69,11 @@ export function GitHubDialog({
   const [token, setToken] = useState("");
   const [repoName, setRepoName] = useState("forja-ia");
   const [isPrivate, setIsPrivate] = useState(true);
+  /** Qué pasa con lo que ya hay en el repo. Por defecto el repo queda igual
+   *  que el proyecto: lo que se borró del proyecto se borra de GitHub. */
+  const [modo, setModo] = useState<ModoSubida>("reemplazar");
+  /** Frase de lo que hizo la última subida («1 commit · 3 archivos quitados»). */
+  const [resumen, setResumen] = useState<string | null>(null);
   const [items, setItems] = useState<GhItem[]>([]);
   const [ignored, setIgnored] = useState(0);
   const [tooBig, setTooBig] = useState(0);
@@ -159,8 +165,13 @@ export function GitHubDialog({
     );
   };
 
-  const applyFiles = async (files: File[]) => {
-    const { keep, ignored: ign, tooBig: big } = prepareFiles(files);
+  const applyFiles = async (files: File[], extra: { omitidos?: number; exec?: Set<string> } = {}) => {
+    const { keep: preparados, ignored: ignPrep, tooBig: big } = prepareFiles(files);
+    // el permiso de ejecución que traía el ZIP viaja con cada archivo
+    const keep = extra.exec?.size
+      ? preparados.map((it) => (extra.exec!.has(it.path) ? { ...it, exec: true } : it))
+      : preparados;
+    const ign = ignPrep + (extra.omitidos ?? 0);
     setItems(keep);
     setIgnored(ign);
     setTooBig(big.length);
@@ -190,12 +201,23 @@ export function GitHubDialog({
    * carpeta" que el selector del sistema deja usar. */
   const pickZipFile = async (file: File) => {
     let entries: ZipEntry[];
+    let omitidos = 0;
     try {
       // Sin `dropWrapperFolder`, un ZIP de un repo (que ya trae su propia
       // carpeta envolvente, "mi-repo-main/…") quedaba subido dos veces
       // envuelto: la de abajo sobrevivía a que `relPathFrom` solo quita un
       // nivel (el que se añade aquí abajo con `zipRoot`).
-      entries = dropWrapperFolder(await readZip(await file.arrayBuffer()));
+      const lectura = await leerZip(await file.arrayBuffer());
+      omitidos = lectura.omitidos;
+      if (lectura.noSoportados.length) {
+        toast.warning(`${lectura.noSoportados.length} archivo(s) del ZIP no se pudieron abrir`, {
+          description: `Usan una compresión que el navegador no sabe leer (${lectura.noSoportados
+            .slice(0, 3)
+            .join(", ")}…). Vuelve a comprimir la carpeta con la opción normal («Deflate»).`,
+          duration: 10000,
+        });
+      }
+      entries = dropWrapperFolder(lectura.entries);
     } catch (e) {
       toast.error("No se pudo leer el ZIP", {
         description: e instanceof Error ? e.message : String(e),
@@ -219,7 +241,7 @@ export function GitHubDialog({
       });
       return f;
     });
-    await applyFiles(files);
+    await applyFiles(files, { omitidos, exec: new Set(entries.filter((e) => e.exec).map((e) => e.path)) });
   };
 
   const pickFiles = async (list: FileList | null) => {
@@ -257,6 +279,7 @@ export function GitHubDialog({
     ghSetToken(t);
     setUploading(true);
     setResultUrl(null);
+    setResumen(null);
     setFallo(null);
     setNecesitaInstalacion(false);
     setProgress(null);
@@ -265,14 +288,21 @@ export function GitHubDialog({
         repoName: name,
         isPrivate,
         items,
+        modo,
         onProgress: setProgress,
       });
       setResultUrl(r.url);
       setFallo(null);
       // La rama se DICE. Si el repo era de los de «master», antes la subida
       // fingía ir a main y no aparecía nada: saber a dónde fue es la mitad de
-      // poder comprobarlo.
-      toast.success(`Subido a ${r.branch} en ${r.commits} commit(s)`, { description: r.url });
+      // poder comprobarlo. Y lo que se quitó, también: reemplazar borra.
+      const quitados =
+        r.eliminados && r.eliminados > 0
+          ? ` · ${r.eliminados} archivo${r.eliminados === 1 ? "" : "s"} que ya no estaba${r.eliminados === 1 ? "" : "n"} en el proyecto, quitado${r.eliminados === 1 ? "" : "s"}`
+          : "";
+      const frase = `${r.creado ? "Repositorio creado · " : ""}${items.length} archivos en 1 commit en «${r.branch}»${quitados}`;
+      setResumen(frase);
+      toast.success("Subido a GitHub", { description: frase });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       // El aviso flotante se va en seis segundos y con él el motivo. Un fallo
@@ -300,9 +330,9 @@ export function GitHubDialog({
             )}
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Sube la carpeta del proyecto completa — sin el límite de 100 archivos de la web de GitHub
-            (se sube por lotes a la rama por defecto del repo). Conecta tu cuenta; no hace falta
-            pegar un token.
+            Sube la carpeta del proyecto completa, o un .zip, sin el límite de 100 archivos de la web
+            de GitHub: todo entra en un solo commit en la rama por defecto del repo. Conecta tu
+            cuenta; no hace falta pegar un token.
           </DialogDescription>
         </DialogHeader>
 
@@ -333,6 +363,31 @@ export function GitHubDialog({
                 Repositorio privado (recomendado)
               </Label>
             </div>
+            <div role="radiogroup" aria-label="Si el repositorio ya existe" className="grid gap-1.5 sm:grid-cols-2">
+              {(
+                [
+                  ["reemplazar", "Reemplazar el contenido", "El repo queda igual que tu proyecto. Lo que ya no está, se quita (el historial se conserva)."],
+                  ["anadir", "Solo añadir y actualizar", "Sube tus archivos encima. Lo que ya había en el repo y no traes, se queda."],
+                ] as const
+              ).map(([valor, titulo, texto]) => (
+                <button
+                  key={valor}
+                  type="button"
+                  role="radio"
+                  aria-checked={modo === valor}
+                  data-modo={valor}
+                  onClick={() => setModo(valor)}
+                  className={cn(
+                    "rounded-lg border px-3 py-2 text-left transition",
+                    modo === valor ? "border-forja-violet/60 bg-forja-violet/[0.06]" : "border-border/60 hover:bg-muted/40"
+                  )}
+                >
+                  <span className="block text-xs font-medium">{titulo}</span>
+                  <span className="mt-0.5 block text-[10.5px] leading-snug text-muted-foreground">{texto}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[10.5px] text-muted-foreground">Si el repositorio no existe, se crea.</p>
           </section>
 
           {/* Paso 3: carpeta */}
@@ -436,8 +491,16 @@ export function GitHubDialog({
               rel="noreferrer"
               className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] px-3.5 py-3 text-xs font-medium text-emerald-600 dark:text-emerald-400"
             >
-              <Check className="size-4" /> ¡Listo! Abrir tu repositorio en GitHub
-              <ExternalLink className="size-3.5" />
+              <Check className="size-4 shrink-0" />
+              <span className="min-w-0 flex-1">
+                ¡Listo! Abrir tu repositorio en GitHub
+                {resumen && (
+                  <span data-testid="gh-resumen" className="mt-0.5 block text-[10.5px] font-normal text-emerald-700/80 dark:text-emerald-300/80">
+                    {resumen}
+                  </span>
+                )}
+              </span>
+              <ExternalLink className="size-3.5 shrink-0" />
             </a>
           )}
         </div>
