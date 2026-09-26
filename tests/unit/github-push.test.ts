@@ -337,7 +337,7 @@ describe("una cuenta nueva sin permiso para crear repos", () => {
       }
       return g.f(url, init);
     };
-    await expect(ghEnsureRepo("ghu_x", "web-nueva", false, vetado)).rejects.toThrow(/github\.com\/new.*Otra cuenta/s);
+    await expect(ghEnsureRepo("ghu_x", "web-nueva", false, vetado)).rejects.toThrow(/github\.com\/new[\s\S]*Otra cuenta/);
   });
 });
 
