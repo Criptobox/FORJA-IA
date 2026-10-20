@@ -513,12 +513,15 @@ export async function ghEnsureRepo(
   isPrivate: boolean,
   fetchImpl?: GhFetch,
   description?: string,
-  dormir?: Dormir
+  dormir?: Dormir,
+  ownerOverride?: string
 ): Promise<RepoDestino> {
   const gh = ghFetchCon(fetchImpl, dormir);
-  const login = await ghWhoAmI(token, fetchImpl);
+  const login = ownerOverride || await ghWhoAmI(token, fetchImpl);
+  const safeOwner = encodeURIComponent(login);
+  const safeName = encodeURIComponent(name);
 
-  const info = await gh(token, `/repos/${login}/${name}`);
+  const info = await gh(token, `/repos/${safeOwner}/${safeName}`);
   if (info.ok) {
     return repoDestinoDe((await info.json()) as RepoInfo, login, name, false);
   }
@@ -733,6 +736,7 @@ export async function uploadToGithub(
     fetchImpl?: GhFetch;
     /** solo para pruebas: no dormir entre reintentos */
     dormir?: Dormir;
+    repoOwner?: string;
   }
 ): Promise<ResultadoSubida> {
   const { repoName, isPrivate, items, onProgress, fetchImpl } = opts;
@@ -744,7 +748,7 @@ export async function uploadToGithub(
     onProgress?.({ done, total, batch, batches, message });
 
   avisar(0, "Preparando el repositorio…");
-  const repo = await ghEnsureRepo(token, repoName, isPrivate, fetchImpl, opts.descripcion, opts.dormir);
+  const repo = await ghEnsureRepo(token, repoName, isPrivate, fetchImpl, opts.descripcion, opts.dormir, opts.repoOwner);
   // La rama del repo, no «main» a ciegas: en un repo con «master» se creaba
   // un commit huérfano y la app cantaba victoria con GitHub intacto.
   let head = await ghGetHead(gh, token, repo.owner, repo.repo, repo.branch);

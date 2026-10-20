@@ -9,6 +9,8 @@ import {
   Github,
   KeyRound,
   Loader2,
+  RefreshCw,
+  Search,
   ShieldCheck,
   UploadCloud,
 } from "lucide-react";
@@ -27,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   ghGetToken,
+  ghListRepos,
   ghSetToken,
   GithubUploadError,
   prepareFiles,
@@ -68,6 +71,12 @@ export function GitHubDialog({
 }) {
   const [token, setToken] = useState("");
   const [repoName, setRepoName] = useState("forja-ia");
+  const [repoOwner, setRepoOwner] = useState<string | undefined>(undefined);
+  const [repos, setRepos] = useState<Awaited<ReturnType<typeof ghListRepos>>>([]);
+  const [reposLoading, setReposLoading] = useState(false);
+  const [reposError, setReposError] = useState<string | null>(null);
+  const [repoSearch, setRepoSearch] = useState("");
+  const [showRepoPicker, setShowRepoPicker] = useState(false);
   const [isPrivate, setIsPrivate] = useState(true);
   /** Qué pasa con lo que ya hay en el repo. Por defecto el repo queda igual
    *  que el proyecto: lo que se borró del proyecto se borra de GitHub. */
@@ -136,7 +145,15 @@ export function GitHubDialog({
 
   useEffect(() => {
     if (open) {
-      setToken(ghGetToken());
+      const savedToken = ghGetToken();
+      setToken(savedToken);
+      if (savedToken) {
+        setReposLoading(true);
+        setReposError(null);
+        void ghListRepos(savedToken).then(setRepos).catch((e) => {
+          setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
+        }).finally(() => setReposLoading(false));
+      }
       // webkitdirectory no es un prop estándar en React: se asigna por atributo
       folderRef.current?.setAttribute("webkitdirectory", "");
       folderRef.current?.setAttribute("directory", "");
@@ -144,6 +161,33 @@ export function GitHubDialog({
   }, [open]);
 
   const totalBytes = useMemo(() => items.reduce((n, it) => n + it.file.size, 0), [items]);
+
+  const loadRepos = async () => {
+    const currentToken = token.trim() || ghGetToken();
+    if (!currentToken) {
+      setReposError("Conecta tu cuenta de GitHub en el Paso 1 para ver tus repositorios.");
+      setRepos([]);
+      setShowRepoPicker(true);
+      return;
+    }
+    if (reposLoading) return;
+    setReposLoading(true);
+    setReposError(null);
+    try {
+      const list = await ghListRepos(currentToken);
+      setRepos(list);
+      if (!list.length) setReposError("No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo.");
+    } catch (e) {
+      setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
+    } finally {
+      setReposLoading(false);
+    }
+  };
+
+  const filteredRepos = useMemo(() => {
+    const q = repoSearch.trim().toLowerCase();
+    return repos.filter((r) => !q || r.fullName.toLowerCase().includes(q));
+  }, [repos, repoSearch]);
 
   /** Revisa lo que se va a subir. Devuelve el informe para decidir en el acto. */
   const reviewItems = async (list: GhItem[]) => {
@@ -275,7 +319,10 @@ export function GitHubDialog({
       });
       return;
     }
-    const name = repoName.trim() || "forja-ia";
+    const rawTarget = repoName.trim() || "forja-ia";
+    const parts = rawTarget.split("/").filter(Boolean);
+    const selectedOwner = repoOwner || (parts.length === 2 ? parts[0] : undefined);
+    const name = parts.length === 2 ? parts[1] : rawTarget;
     ghSetToken(t);
     setUploading(true);
     setResultUrl(null);
@@ -286,6 +333,7 @@ export function GitHubDialog({
     try {
       const r = await uploadToGithub(t, {
         repoName: name,
+        ...(selectedOwner ? { repoOwner: selectedOwner } : {}),
         isPrivate,
         items,
         modo,
@@ -349,14 +397,46 @@ export function GitHubDialog({
           <section className="space-y-2">
             <Label className="text-xs">Paso 2 · Repositorio</Label>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">github.com/tu-usuario/</span>
+              <span className="text-xs text-muted-foreground">github.com/</span>
               <Input
                 value={repoName}
-                onChange={(e) => setRepoName(e.target.value)}
-                placeholder="forja-ia"
+                onChange={(e) => { setRepoName(e.target.value); setRepoOwner(undefined); }}
+                placeholder="usuario/repositorio"
                 className="h-9 flex-1 text-xs"
+                aria-label="Nombre del repositorio o propietario/repositorio"
               />
             </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => { setShowRepoPicker((v) => !v); if (!repos.length) void loadRepos(); }}>
+                <Github className="mr-1.5 size-3.5" /> {showRepoPicker ? "Ocultar repositorios" : "Elegir repositorio"}
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" disabled={reposLoading} onClick={() => void loadRepos()}>
+                <RefreshCw className={cn("mr-1.5 size-3.5", reposLoading && "animate-spin")} /> Actualizar lista
+              </Button>
+              {repos.length > 0 && <span className="text-[10px] text-muted-foreground">{repos.length} repositorios</span>}
+            </div>
+            {showRepoPicker && (
+              <div className="space-y-2 rounded-xl border border-border/70 bg-card/50 p-2.5">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+                  <Input value={repoSearch} onChange={(e) => setRepoSearch(e.target.value)} placeholder="Buscar por nombre o propietario…" className="h-9 pl-8 text-xs" aria-label="Buscar repositorios" />
+                </div>
+                {reposLoading ? (
+                  <p className="flex items-center gap-2 px-2 py-3 text-xs text-muted-foreground"><Loader2 className="size-3.5 animate-spin" /> Cargando tus repositorios de GitHub…</p>
+                ) : reposError ? (
+                  <div className="space-y-2 px-2 py-2 text-xs text-muted-foreground"><p>{reposError}</p><Button type="button" size="sm" variant="outline" onClick={() => void loadRepos()}>Reintentar</Button></div>
+                ) : filteredRepos.length ? (
+                  <div className="max-h-44 space-y-1 overflow-y-auto">
+                    {filteredRepos.map((repo) => (
+                      <button key={repo.fullName} type="button" onClick={() => { setRepoName(repo.repo); setRepoOwner(repo.owner); setIsPrivate(repo.isPrivate); setShowRepoPicker(false); }} className={cn("flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition hover:bg-muted/60", repoName.toLowerCase() === repo.fullName.toLowerCase() ? "border-forja-violet/60 bg-forja-violet/[0.06]" : "border-transparent")}>
+                        <span className="min-w-0"><span className="block truncate text-xs font-medium">{repo.fullName}</span><span className="block text-[10px] text-muted-foreground">Rama: {repo.defaultBranch}</span></span>
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{repo.isPrivate ? "Privado" : "Público"}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : <p className="px-2 py-3 text-xs text-muted-foreground">No hay coincidencias. Puedes escribir el nombre manualmente para crear un repositorio.</p>}
+              </div>
+            }
             <div className="flex items-center gap-2">
               <Switch checked={isPrivate} onCheckedChange={setIsPrivate} id="gh-private" />
               <Label htmlFor="gh-private" className="text-xs text-muted-foreground">

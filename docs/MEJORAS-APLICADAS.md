@@ -1,3 +1,13 @@
+# Mejoras aplicadas
+
+## v4.69.2 — Selector en «Subir a GitHub»
+- Añadido al apartado exacto «Paso 2 · Repositorio» de la ventana «Subir a GitHub».
+- Lista los repositorios de la cuenta conectada, con búsqueda por propietario/nombre, rama por defecto y visibilidad privada/pública.
+- Permite actualizar la lista y mantiene la entrada manual para crear un repositorio nuevo.
+- Al elegir un repositorio existente, la subida apunta al propietario y repositorio seleccionados, también cuando el repositorio pertenece a una organización.
+- La versión se incrementó y sincronizó con package.json, app-version.ts y package-lock.json.
+- Validación: se revisó la estructura del cambio; la compilación completa debe ejecutarse en un entorno con las dependencias del proyecto instaladas.
+
 # v4.69.1 — Selector de repositorios GitHub
 
 - Repo Studio muestra los repositorios accesibles después de conectar GitHub, tanto en el modo directo como en el modo descargado/clonado. Ya no es necesario escribir a mano `usuario/repositorio`.
