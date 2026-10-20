@@ -1,4 +1,35 @@
+# v4.70.1 — Control de calidad visual integrado
+
+- El revisor visual ahora combina los chequeos de DOM/CSS y anti-genérico con la auditoría SEO, rendimiento y accesibilidad que ya existía en `web-audit.ts`.
+- Los hallazgos añadidos conservan la categoría, el arreglo sugerido y la evidencia disponible; se incluyen en el veredicto y en la puntuación del bucle de mejora automática.
+- El resumen del revisor indica cuándo la auditoría complementaria detectó hallazgos.
+- No se afirma que exista una comprobación visual real por captura si no se ha inyectado un proveedor de visión.
+- Validación: versión sincronizada y ZIP verificable; build y suite de pruebas pendientes porque no se instalaron dependencias en este entorno.
+
+# v4.69.5 — Composición visual y variedad de secciones
+
+- Añadido al plano de contenido un contrato explícito de composición visual para evitar que todas las secciones repitan la misma retícula o tarjetas.
+- El prompt exige alternar estructuras (editorial asimétrica, bandas, mosaicos, listas, galerías, comparativas y escenas de producto) según la función de cada sección.
+- Incorporadas pautas de composición específicas para restaurantes, ecommerce, SaaS, portfolios, agencias, servicios locales, educación, fintech y proyectos generales.
+- Añadida una regla anti-plantilla para evitar el patrón automático de titular centrado + botones + tres tarjetas y para impedir datos decorativos inventados.
+- Conserva las funciones existentes y el selector de repositorios de GitHub de la versión anterior.
+- Validación: versiones sincronizadas; la compilación completa y la suite de pruebas requieren instalar las dependencias y quedan pendientes.
+
+# Mejoras aplicadas — v4.69.4
+
+- Motor de arquitectura: añade planos de composición específicos para restaurante, ecommerce, SaaS, portfolio, agencia, inmobiliaria, salud, educación, finanzas, eventos, servicios locales, contenido y briefs sin industria detectada.
+- El prompt ahora exige componentes distintivos, contenido mínimo y señales visuales por sector; añade patrones a evitar para reducir la repetición de landing pages genéricas.
+- No se presenta como plantilla rígida: las reglas orientan al modelo y deben adaptarse al brief real.
+- Versionado sincronizado en package.json, package-lock.json y app-version.ts.
+- Validación completa de build pendiente en este entorno.
+
 # Mejoras aplicadas
+
+## v4.69.3 — Detección de industria más precisa
+- La detección de industria ahora compara alias como palabras/frases completas, evitando falsos positivos por coincidencias dentro de otras palabras (por ejemplo, `bar` dentro de `barómetro`).
+- Añadidas pruebas de regresión para briefs de aplicaciones, portfolios, barberías y blogs.
+- Se conserva la estrategia existente para cada sector; el cambio solo mejora cómo se detecta la intención del proyecto.
+- Validación: se intentó instalar dependencias para ejecutar las pruebas, pero el entorno agotó el tiempo de instalación. Las pruebas y la compilación integral siguen pendientes de ejecutar.
 
 ## v4.69.2 — Selector en «Subir a GitHub»
 - Añadido al apartado exacto «Paso 2 · Repositorio» de la ventana «Subir a GitHub».

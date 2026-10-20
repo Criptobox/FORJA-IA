@@ -36,7 +36,7 @@ import { modoDeseado, evaluarPuerta, seccionPuerta, type DecisionPuerta } from "
 import { construirPlanEspacial, seccionPlanEspacial, cssEscenario, type PlanEspacial } from "./spatial-engine";
 import { construirPlanMovimiento, seccionPlanMovimiento, cssMovimiento, type PlanMovimiento } from "./motion-engine";
 import { elegirHero, seccionHero, defHero, type HeroElegido } from "./hero-engine";
-import { elegirCards, seccionCards, cssCards, type EleccionCards } from "./card-system";
+import { elegirCards, seccionCards, cssCards, seleccionarComponentesVisuales, seccionBibliotecaComponentes, type EleccionCards } from "./card-system";
 import { construirPlanResponsivo, seccionPlanResponsivo, type PlanResponsivo } from "./plan-responsivo-experiencia";
 import { tokensExperienciaCss, resumenTokens } from "./tokens-experiencia";
 import { obtenerHistorial, penalizacionComposicion, resumenAntiRepeticion, seccionAntiRepeticion, type Penalizacion } from "./anti-repetition";
@@ -224,6 +224,8 @@ export function seleccionarExperiencia(mensaje: string, opts: OpcionesExperienci
   // v4.7.2 — COMPOSITION ENGINE: el ritmo de toda la página se compila
   // antes del Codificador; 3D/motion ya no pueden quedarse confinados al hero.
   const composition = construirCompositionBlueprint({ familia: familia.familia, receta: receta.receta, plano });
+  // v4.70.0: patrones de interfaz contextuales y gratuitos.
+  const componentesVisuales = seleccionarComponentesVisuales(`${opts.mensajeOriginal ?? mensaje} ${familia.familia} ${receta.receta.id} ${receta.receta.nombre}`, 5);
 
   // v4.7.1 — Experience Manifest: una sola fuente de verdad que el Codificador
   // debe implementar y que QA puede contrastar contra el DOM real.
@@ -301,6 +303,7 @@ export function seccionContratoExperiencia(sel: SeleccionExperiencia): string {
     seccionHero(sel.hero),
     "",
     seccionCards(sel.cards),
+    seccionBibliotecaComponentes(componentesVisuales),
     "",
     seccionPrimitivas(sel.primitivas),
     "",

@@ -159,13 +159,19 @@ const normalize = (s: string) =>
   s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export function detectIndustry(brief: string): IndustryStrategy {
-  const text = normalize(brief);
+  const text = normalize(brief).replace(/[^a-z0-9]+/g, " ").trim();
   let best: { strategy: IndustryStrategy; score: number } | undefined;
   for (const strategy of INDUSTRY_STRATEGIES) {
-    const score = strategy.aliases.reduce(
-      (n, alias) => n + (text.includes(normalize(alias)) ? 1 : 0),
-      0,
-    );
+    // Match whole words/phrases, not arbitrary substrings. The previous
+    // includes() made aliases such as "bar", "app" and "shop" fire inside
+    // unrelated words and could send a brief to the wrong design strategy.
+    const score = strategy.aliases.reduce((n, alias) => {
+      const normalizedAlias = normalize(alias).replace(/[^a-z0-9]+/g, " ").trim();
+      if (!normalizedAlias) return n;
+      const escaped = normalizedAlias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const pattern = new RegExp(`(?:^|\\s)${escaped}(?:$|\\s)`, "i");
+      return n + (pattern.test(text) ? 1 : 0);
+    }, 0);
     if (!best || score > best.score) best = { strategy, score };
   }
   if (best && best.score > 0) return best.strategy;

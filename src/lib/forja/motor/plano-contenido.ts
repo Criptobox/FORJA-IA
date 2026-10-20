@@ -453,6 +453,25 @@ export function seccionPlanoContenido(plano: PlanoContenido): string {
   }
 
   l.push("");
+  l.push("## Sistema de composición visual — obligatorio");
+  l.push("No resuelvas toda la página con la misma retícula. Cada sección debe tener una composición elegida por su función: alterna entre bloques editoriales asimétricos, bandas horizontales, mosaicos con una pieza dominante, listas densas, galerías de imagen, comparativas y escenas de producto. No uses la misma composición en dos secciones consecutivas.");
+  l.push("La primera pantalla debe tener una silueta reconocible y específica del negocio; no uses automáticamente titular centrado + subtítulo + dos botones + tres tarjetas.");
+  l.push("Distribuye el peso visual: al menos una sección con imagen/objeto dominante, una sección de contenido estructurado y una sección de conversión. Cambia proporciones, alineación y densidad entre secciones, manteniendo una escala tipográfica, espaciado y color coherentes.");
+  l.push("Las colecciones no pueden convertirse todas en tarjetas idénticas: elige el patrón que corresponda al contenido (catálogo con precio, galería, lista editorial, agenda, ficha de inmueble, menú o módulos). Conserva controles funcionales, responsive y accesibles.");
+  const pautaPorVertical: Record<string, string> = {
+    restaurante: "Prioriza fotografía gastronómica, menú legible con precios y una composición de carta; alterna platos destacados con filas/listas, no una cuadrícula uniforme de servicios.",
+    ecommerce: "El catálogo es la interfaz principal: barra de categorías/filtros, cuadrícula de productos consistente y una campaña visual distinta; evita convertir productos en tarjetas de beneficios.",
+    saas: "Muestra una maqueta de interfaz del producto con escala suficiente; combina demo, flujo de uso y capacidades, evitando una fila repetida de tarjetas de features.",
+    portfolio: "Usa una pieza visual dominante y una galería asimétrica; los proyectos deben tener tamaños y ritmos diferentes según su importancia.",
+    agencia: "Haz que los casos de trabajo funcionen como evidencia visual; alterna proyectos, proceso y servicios sin repetir la misma tarjeta.",
+    local: "Haz visibles el servicio, la zona y la acción de contacto; prioriza listas prácticas, antes/después o ejemplos relevantes cuando encajen.",
+    educacion: "Organiza el contenido como itinerario de aprendizaje: módulos, lecciones y resultados, con jerarquía y progreso solo cuando esté justificado.",
+    fintech: "Prioriza lectura, comparación y transparencia; usa tablas o visualizaciones etiquetadas, no cifras decorativas inventadas.",
+    general: "Deriva la composición del objetivo y del contenido solicitado; si no hay catálogo, no inventes una cuadrícula de productos ni tres tarjetas de servicios.",
+  };
+  l.push(`Pauta visual del vertical «${plano.vertical}»: ${pautaPorVertical[plano.vertical] ?? pautaPorVertical.general}`);
+  l.push("Regla anti-plantilla: si dos secciones tienen el mismo propósito, cambia su estructura visual; si tienen propósitos distintos, no las fuerces a compartir el mismo componente. No añadas adornos por llenar espacio: cada bloque debe aportar contenido o una acción.");
+  l.push("");
   l.push("## Secciones obligatorias, en este orden");
   plano.secciones.forEach((s, i) => {
     l.push(`${i + 1}. **${s.nombre}** (id \`${s.id}\`) — ${s.objetivo}`);

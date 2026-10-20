@@ -23,6 +23,7 @@ import { detectarGenericidad } from "./antigenerico";
 import type { HallazgoVisual2, VeredictoVisual } from "./tipos-v4";
 import type { DesignSystemPrisma } from "./bridge-design-system";
 import { auditarContraDesignSystem } from "./bridge-design-system";
+import { auditarWeb } from "../web-audit";
 
 /* ------------------------- causa y corrección por categoría ---------------- */
 
@@ -107,7 +108,15 @@ export function revisarVisual(html: string, opts: OpcionesRevisorVisual = {}): I
     detalle: s.evidencia,
   }));
 
-  const todos = [...hallazgosBrutos, ...sistema, ...deCapa2].map(enriquecer);
+  // v4.70.1: integrar la auditoría SEO/rendimiento ya existente al revisor.
+  const auditoria = html ? auditarWeb(html) : null;
+  const desdeAuditoria: HallazgoVision[] = (auditoria?.hallazgos ?? []).map((h) => ({
+    severidad: h.severidad === "warning" ? "aviso" : "mejora",
+    categoria: (h.categoria === "seo" ? "seo" : h.categoria === "rendimiento" ? "rendimiento" : "accesibilidad") as HallazgoVision["categoria"],
+    titulo: `Auditoría ${h.categoria}: ${h.mensaje}`,
+    detalle: [h.arreglo, h.evidencia].filter(Boolean).join(" · "),
+  }));
+  const todos = [...hallazgosBrutos, ...sistema, ...deCapa2, ...desdeAuditoria].map(enriquecer);
   const criticos = todos.filter((h) => h.severidad === "critico").length;
   const avisos = todos.filter((h) => h.severidad === "aviso").length;
   const mejoras = todos.filter((h) => h.severidad === "mejora").length;
@@ -122,6 +131,7 @@ export function revisarVisual(html: string, opts: OpcionesRevisorVisual = {}): I
   partes.push(veredicto === "PASS" ? "Entrega aprobada por el revisor visual." : veredicto === "WARN" ? `Entrega con ${avisos} aviso(s): corregir antes de exportar.` : `Entrega rechazada: ${criticos} hallazgo(s) crítico(s).`);
   if (visual && !visual.focalPoint) partes.push("Sin focal point claro.");
   if (gen && gen.nivel !== "bajo") partes.push(`Anti-genérico: saturación ${gen.nivel}.`);
+  if (auditoria?.hallazgos.length) partes.push(`Auditoría complementaria: ${auditoria.hallazgos.length} hallazgo(s) SEO/rendimiento/accesibilidad.`);
 
   return {
     veredicto,

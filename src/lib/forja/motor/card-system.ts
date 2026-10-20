@@ -188,3 +188,30 @@ export function seccionCards(eleccion: EleccionCards): string {
     ...eleccion.disciplina.map((d) => `Disciplina: ${d}`),
   ].join("\n");
 }
+
+/* Biblioteca contextual de componentes visuales v4.70.0 */
+export type FamiliaComponente = "navegacion" | "conversion" | "catalogo" | "contenido" | "confianza" | "datos" | "multimedia" | "utilidad";
+export interface PatronComponente { id: string; familia: FamiliaComponente; proposito: string; senales: RegExp; instruccion: string; }
+export const BIBLIOTECA_COMPONENTES: ReadonlyArray<PatronComponente> = [
+ {id:"NAV_STICKY_COMPACT",familia:"navegacion",proposito:"orientación persistente",senales:/tienda|cat[aá]logo|servicios|saas|corporativ|documentaci[oó]n/i,instruccion:"navegación compacta sticky y menú móvil accesible"},
+ {id:"HERO_SPLIT_MEDIA",familia:"multimedia",proposito:"propuesta y evidencia visual",senales:/restaurante|pizzer[ií]a|hotel|inmobiliaria|producto|tienda|portfolio|agencia/i,instruccion:"hero dividido con media dominante relevante, no un rectángulo vacío"},
+ {id:"PRODUCT_FILTER_BAR",familia:"catalogo",proposito:"encontrar productos",senales:/tienda|ecommerce|e-commerce|cat[aá]logo|productos|ropa|zapatos|muebles/i,instruccion:"categorías y filtros funcionales o claramente marcados como demo"},
+ {id:"PRODUCT_CARD_BUY",familia:"catalogo",proposito:"comparar y comprar",senales:/tienda|ecommerce|e-commerce|cat[aá]logo|productos|ropa|zapatos|muebles/i,instruccion:"imagen, nombre, precio, disponibilidad y acción; no inventar descuentos"},
+ {id:"MENU_CATEGORY_LIST",familia:"contenido",proposito:"explorar oferta gastronómica",senales:/restaurante|pizzer[ií]a|caf[eé]|bar\b|panader[ií]a|men[uú]/i,instruccion:"menú por categorías; sin platos ni precios inventados"},
+ {id:"PROJECT_CASE_STUDY",familia:"contenido",proposito:"mostrar trabajo y resultado",senales:/portfolio|portafolio|agencia|diseñador|proyectos|estudio creativo/i,instruccion:"casos con imagen, contexto, aportación y resultado; evitar tarjetas idénticas"},
+ {id:"TRUST_PROOF_STRIP",familia:"confianza",proposito:"reducir incertidumbre",senales:/servicios|agencia|consultor[ií]a|salud|cl[ií]nica|finanzas|inmobiliaria|empresa/i,instruccion:"pruebas verificables; no inventar certificaciones, testimonios ni cifras"},
+ {id:"BOOKING_ACTION_PANEL",familia:"conversion",proposito:"cita o reserva",senales:/reserva|cita|barber[ií]a|sal[oó]n|cl[ií]nica|hotel|restaurante|consulta/i,instruccion:"panel de reserva claro; no fingir envío sin backend"},
+ {id:"PRICING_COMPARISON",familia:"conversion",proposito:"comparar planes",senales:/saas|suscripci[oó]n|planes|precios|software|plataforma/i,instruccion:"comparativa legible sin afirmar popularidad no demostrada"},
+ {id:"FEATURE_WORKFLOW",familia:"contenido",proposito:"explicar producto digital",senales:/saas|app\b|aplicaci[oó]n|plataforma|software|herramienta digital/i,instruccion:"flujo de uso por pasos con mockup contextual"},
+ {id:"FAQ_DISCLOSURE",familia:"utilidad",proposito:"resolver dudas",senales:/servicios|producto|tienda|saas|curso|educaci[oó]n|env[ií]o|devoluci[oó]n/i,instruccion:"FAQ accesible con respuestas basadas en el brief"},
+ {id:"CONTACT_CHANNELS",familia:"conversion",proposito:"facilitar contacto",senales:/contacto|servicios|empresa|agencia|local|profesional/i,instruccion:"canales disponibles; no inventar teléfono, dirección ni horario"},
+ {id:"METRIC_HIGHLIGHT",familia:"datos",proposito:"mostrar escala real",senales:/dashboard|anal[ií]tica|m[eé]tricas|finanzas|saas|resultados/i,instruccion:"usar datos proporcionados o etiquetar las cifras como demostración"}
+];
+export interface SeleccionComponentes { patrones: PatronComponente[]; instrucciones: string[]; }
+export function seleccionarComponentesVisuales(contexto: string, max = 5): SeleccionComponentes {
+ const candidatos=BIBLIOTECA_COMPONENTES.filter(p=>p.senales.test(contexto.slice(0,12000))); const out:PatronComponente[]=[]; const familias=new Set<FamiliaComponente>();
+ for(const p of candidatos){if(out.length>=Math.max(2,Math.min(max,8)))break;if(familias.has(p.familia)&&out.length>=2)continue;out.push(p);familias.add(p.familia);}
+ return {patrones:out,instrucciones:out.map(p=>`- ${p.id} (${p.proposito}): ${p.instruccion}`)};
+}
+export function seccionBibliotecaComponentes(s: SeleccionComponentes): string { return ["# BIBLIOTECA DE COMPONENTES VISUALES (selección contextual)","Implementa patrones pertinentes con HTML semántico, accesibilidad y diseño adaptable. No conviertas todo en tarjetas ni inventes datos.",...(s.instrucciones.length?s.instrucciones:["- Elige componentes por la función del proyecto; evita secciones decorativas."]),"Si una función requiere backend no disponible, identifícala como demostración."].join("\n"); }
+
