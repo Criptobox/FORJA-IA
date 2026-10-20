@@ -39,7 +39,7 @@ import { streamChat } from "@/lib/forja/chat-client";
 import { splitModelKey, DEFAULT_SETTINGS } from "@/lib/forja/types";
 import { PROVIDER_MAP } from "@/lib/forja/providers";
 import { useForja } from "@/lib/forja/store";
-import { ghGetToken } from "@/lib/forja/github-upload";
+import { ghGetToken, ghListRepos } from "@/lib/forja/github-upload";
 import { GitHubConnect } from "./github-connect";
 import { publishAsNewRepo, pushFilesToRepo } from "@/lib/forja/repo-push";
 import { accessCodeHeaders } from "@/lib/forja/chat-client";
@@ -85,6 +85,13 @@ function LocalRepoPanel({
 }) {
   const [url, setUrl] = useState(seedUrl ?? "");
   const [token, setToken] = useState("");
+  const [availableRepos, setAvailableRepos] = useState<
+    { owner: string; repo: string; fullName: string; isPrivate: boolean; defaultBranch: string; htmlUrl: string }[]
+  >([]);
+  const [reposLoading, setReposLoading] = useState(false);
+  const [reposError, setReposError] = useState<string | null>(null);
+  const [repoSearch, setRepoSearch] = useState("");
+  const [repoReload, setRepoReload] = useState(0);
   const [opening, setOpening] = useState(false);
   const [info, setInfo] = useState<RepoInfo | null>(null);
   const [files, setFiles] = useState<RepoFileInfo[]>([]);
@@ -108,6 +115,39 @@ function LocalRepoPanel({
   useEffect(() => {
     setToken(ghGetToken());
   }, []);
+
+  useEffect(() => {
+    const t = token.trim() || ghGetToken();
+    if (!t) {
+      setAvailableRepos([]);
+      setReposError(null);
+      setReposLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setReposLoading(true);
+    setReposError(null);
+    void ghListRepos(t)
+      .then((list) => {
+        if (!cancelled) setAvailableRepos(list);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setAvailableRepos([]);
+        setReposError(error instanceof Error ? error.message : "No se pudieron cargar los repositorios.");
+      })
+      .finally(() => {
+        if (!cancelled) setReposLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, repoReload]);
+
+  const repoQuery = repoSearch.trim().toLowerCase();
+  const filteredRepos = repoQuery
+    ? availableRepos.filter((r) => r.fullName.toLowerCase().includes(repoQuery))
+    : availableRepos;
 
   const repoUrl = info ? `https://github.com/${info.owner}/${info.repo}` : "";
 
@@ -468,12 +508,13 @@ ${content}`,
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Apertura */}
       <div className="space-y-2 border-b px-5 py-3">
+        <GitHubConnect compact onChange={(a) => setToken(a?.token ?? ghGetToken())} />
         <div className="flex gap-2">
           <Input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && openRepo()}
-            placeholder="https://github.com/usuario/repo  ·  o  usuario/repo"
+            placeholder="Elige un repositorio abajo o pega su URL"
             className="h-9 flex-1 text-sm"
             aria-label="URL del repositorio de GitHub"
           />
@@ -482,7 +523,34 @@ ${content}`,
             {opening ? "Abriendo…" : "Abrir o clonar"}
           </Button>
         </div>
-        <GitHubConnect compact onChange={(a) => setToken(a?.token ?? ghGetToken())} />
+        <section className="space-y-2 rounded-lg border border-border/60 bg-card/30 p-3" aria-label="Seleccionar repositorio para clonar">
+          <div className="flex items-center gap-2">
+            <p className="flex-1 text-[11px] font-semibold text-foreground">Repositorios disponibles</p>
+            <span className="text-[10px] text-muted-foreground">{availableRepos.length || ""}</span>
+            <Button type="button" variant="ghost" size="icon" className="size-7" aria-label="Actualizar repositorios de GitHub" title="Actualizar repositorios" onClick={() => setRepoReload((n) => n + 1)} disabled={reposLoading || !(token.trim() || ghGetToken())}>
+              <RefreshCw className={cn("size-3.5", reposLoading && "animate-spin")} />
+            </Button>
+          </div>
+          {(availableRepos.length > 0 || reposLoading) && (
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+              <Input value={repoSearch} onChange={(e) => setRepoSearch(e.target.value)} placeholder="Buscar por nombre u organización…" className="h-8 pl-8 text-xs" aria-label="Buscar repositorios disponibles" />
+            </div>
+          )}
+          {reposLoading ? (
+            <p className="flex items-center gap-2 py-2 text-xs text-muted-foreground"><Loader2 className="size-3.5 animate-spin" /> Cargando tus repositorios…</p>
+          ) : reposError ? (
+            <div className="space-y-2 py-1"><p className="text-xs text-destructive">{reposError}</p><Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setRepoReload((n) => n + 1)}>Reintentar</Button></div>
+          ) : availableRepos.length === 0 ? (
+            <p className="py-2 text-xs text-muted-foreground">{token.trim() || ghGetToken() ? "No se encontraron repositorios accesibles con esta conexión." : "Conecta GitHub para cargar y elegir tus repositorios automáticamente."}</p>
+          ) : filteredRepos.length === 0 ? (
+            <p className="py-2 text-xs text-muted-foreground">No hay repositorios que coincidan con «{repoSearch}».</p>
+          ) : (
+            <ul className="max-h-36 space-y-0.5 overflow-y-auto" aria-label="Lista de repositorios">
+              {filteredRepos.map((r) => <li key={r.fullName}><button type="button" disabled={opening} onClick={() => { setUrl(r.fullName); void openRepoWith(r.fullName); }} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-xs hover:bg-accent/60 disabled:opacity-50"><FolderGit2 className="size-3.5 shrink-0 text-muted-foreground" /><span className="min-w-0 flex-1 truncate font-mono">{r.fullName}</span>{r.isPrivate && <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] text-amber-600">privado</span>}<span className="shrink-0 text-[10px] text-muted-foreground">{r.defaultBranch}</span></button></li>)}
+            </ul>
+          )}
+        </section>
         {info && (
           <div
             className={cn(

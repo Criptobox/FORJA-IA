@@ -11,6 +11,7 @@ import {
   ExternalLink,
   FilePlus2,
   FileText,
+  FolderGit2,
   GitCompare,
   Globe2,
   Loader2,
@@ -77,6 +78,10 @@ export function RepoCloudPanel({
     { owner: string; repo: string; fullName: string; isPrivate: boolean; defaultBranch: string }[]
   >([]);
   const [connecting, setConnecting] = useState(false);
+  const [reposLoading, setReposLoading] = useState(false);
+  const [reposError, setReposError] = useState<string | null>(null);
+  const [repoSearch, setRepoSearch] = useState("");
+  const [repoReload, setRepoReload] = useState(0);
   const [info, setInfo] = useState<CloudRepoInfo | null>(null);
   const [files, setFiles] = useState<CloudFile[]>([]);
   const [truncated, setTruncated] = useState(false);
@@ -118,20 +123,29 @@ export function RepoCloudPanel({
     const t = token.trim() || ghGetToken();
     if (!t) {
       setMyRepos([]);
+      setReposError(null);
+      setReposLoading(false);
       return;
     }
     let cancelled = false;
+    setReposLoading(true);
+    setReposError(null);
     void ghListRepos(t)
       .then((list) => {
         if (!cancelled) setMyRepos(list);
       })
-      .catch(() => {
-        if (!cancelled) setMyRepos([]);
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setMyRepos([]);
+        setReposError(error instanceof Error ? error.message : "No se pudieron cargar los repositorios.");
+      })
+      .finally(() => {
+        if (!cancelled) setReposLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, repoReload]);
 
   const seeded = useRef(false);
   useEffect(() => {
@@ -544,6 +558,10 @@ export function RepoCloudPanel({
   const changeCount = Object.values(changes).filter((c) => c.content !== c.orig).length;
   const q = filter.trim().toLowerCase();
   const filtered = q ? files.filter((f) => f.path.toLowerCase().includes(q)) : files;
+  const repoQuery = repoSearch.trim().toLowerCase();
+  const filteredRepos = repoQuery
+    ? myRepos.filter((r) => r.fullName.toLowerCase().includes(repoQuery))
+    : myRepos;
 
   if (!info) {
     return (
@@ -556,7 +574,7 @@ export function RepoCloudPanel({
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && connect()}
-              placeholder="https://github.com/usuario/repo  ·  o  usuario/repo"
+              placeholder="Elige un repositorio abajo o pega su URL"
               className="h-9 flex-1 text-sm"
               aria-label="URL del repositorio de GitHub"
             />
@@ -565,11 +583,50 @@ export function RepoCloudPanel({
               {connecting ? "Abriendo…" : "Abrir repo"}
             </Button>
           </div>
-          {myRepos.length > 0 && (
-            <div>
-              <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">Tus repositorios</p>
-              <ul className="max-h-40 space-y-0.5 overflow-y-auto">
-                {myRepos.map((r) => (
+          <section className="space-y-2 rounded-lg border border-border/60 bg-card/30 p-3" aria-label="Seleccionar repositorio de GitHub">
+            <div className="flex items-center gap-2">
+              <p className="flex-1 text-[11px] font-semibold text-foreground">Repositorios disponibles</p>
+              <span className="text-[10px] text-muted-foreground">{myRepos.length ? myRepos.length : ""}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                aria-label="Actualizar repositorios de GitHub"
+                title="Actualizar repositorios"
+                onClick={() => setRepoReload((n) => n + 1)}
+                disabled={reposLoading || !(token.trim() || ghGetToken())}
+              >
+                <RefreshCw className={cn("size-3.5", reposLoading && "animate-spin")} />
+              </Button>
+            </div>
+            {(myRepos.length > 0 || reposLoading) && (
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+                <Input
+                  value={repoSearch}
+                  onChange={(e) => setRepoSearch(e.target.value)}
+                  placeholder="Buscar por nombre u organización…"
+                  className="h-8 pl-8 text-xs"
+                  aria-label="Buscar repositorios disponibles"
+                />
+              </div>
+            )}
+            {reposLoading ? (
+              <p className="flex items-center gap-2 py-3 text-xs text-muted-foreground"><Loader2 className="size-3.5 animate-spin" /> Cargando tus repositorios…</p>
+            ) : reposError ? (
+              <div className="space-y-2 py-1">
+                <p className="text-xs text-destructive">{reposError}</p>
+                <p className="text-[11px] text-muted-foreground">Comprueba la conexión de GitHub y los permisos para ver tus repositorios.</p>
+                <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setRepoReload((n) => n + 1)}>Reintentar</Button>
+              </div>
+            ) : myRepos.length === 0 ? (
+              <p className="py-2 text-xs text-muted-foreground">{token.trim() || ghGetToken() ? "No se encontraron repositorios accesibles con esta conexión." : "Conecta GitHub para cargar y elegir tus repositorios automáticamente."}</p>
+            ) : filteredRepos.length === 0 ? (
+              <p className="py-2 text-xs text-muted-foreground">No hay repositorios que coincidan con «{repoSearch}».</p>
+            ) : (
+              <ul className="max-h-52 space-y-0.5 overflow-y-auto" aria-label="Lista de repositorios">
+                {filteredRepos.map((r) => (
                   <li key={r.fullName}>
                     <button
                       type="button"
@@ -577,19 +634,21 @@ export function RepoCloudPanel({
                         setUrl(r.fullName);
                         void connectWith(r.fullName);
                       }}
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-accent/60"
+                      disabled={connecting}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-xs hover:bg-accent/60 disabled:opacity-50"
                     >
+                      <FolderGit2 className="size-3.5 shrink-0 text-muted-foreground" />
                       <span className="min-w-0 flex-1 truncate font-mono">{r.fullName}</span>
                       {r.isPrivate && (
                         <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] text-amber-600">privado</span>
                       )}
-                      <span className="text-[10px] text-muted-foreground">{r.defaultBranch}</span>
+                      <span className="shrink-0 text-[10px] text-muted-foreground">{r.defaultBranch}</span>
                     </button>
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+            )}
+          </section>
         </div>
 
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">

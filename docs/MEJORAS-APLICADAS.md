@@ -1,3 +1,15 @@
+# v4.69.1 — Selector de repositorios GitHub
+
+- Repo Studio muestra los repositorios accesibles después de conectar GitHub, tanto en el modo directo como en el modo descargado/clonado. Ya no es necesario escribir a mano `usuario/repositorio`.
+- Añadido buscador por propietario, organización o nombre; estado de carga; mensajes de error con reintento; y botón para actualizar la lista.
+- `ghListRepos` pagina la API de GitHub (100 por página, hasta 20 páginas) e incluye repositorios de organizaciones a los que la conexión tenga acceso. Se eliminan duplicados y se conservan las etiquetas de repositorio privado y rama por defecto.
+- La entrada manual de URL sigue disponible como alternativa, y se mantiene el flujo de permisos y revisión de cambios antes de publicar.
+- Versión de app sincronizada en `package.json`, `src/lib/forja/app-version.ts` y `package-lock.json`.
+
+**Verificación:** dependencias no instaladas en el entorno de trabajo; `npm ci` no terminó por el límite de tiempo del entorno. No se declara build ni suite de tests como aprobados. Pendiente ejecutar `npm ci`, `npm run lint`, `npm test` y `npm run build` en un entorno con acceso a npm.
+
+---
+
 # FORJA IA — Mejoras aplicadas (ronda 2, v4.68.0)
 
 > Ronda 1 (v4.67.1–v4.67.3): corrección de errores del repo + 8 mejoras M1–M8

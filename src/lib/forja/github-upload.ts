@@ -430,24 +430,46 @@ export async function ghResolveAccount(token: string, source: "oauth" | "pat"): 
 export async function ghListRepos(token: string): Promise<
   { owner: string; repo: string; fullName: string; isPrivate: boolean; defaultBranch: string; htmlUrl: string }[]
 > {
-  const res = await ghFetch(token, "/user/repos?per_page=30&sort=updated&affiliation=owner,collaborator");
-  if (!res.ok) await ghJsonError(res, "No se pudieron listar tus repositorios", token);
-  const j = (await res.json()) as {
+  // GitHub permite hasta 100 repositorios por página. Paginar evita que los
+  // repositorios antiguos o de una organización desaparezcan de la selección
+  // cuando la cuenta tiene más de 30. El límite defensivo evita una petición
+  // infinita si la API devuelve páginas mal formadas.
+  const all: {
     name?: string;
     full_name?: string;
     private?: boolean;
     default_branch?: string;
     html_url?: string;
     owner?: { login?: string };
-  }[];
-  return (Array.isArray(j) ? j : []).map((r) => ({
-    owner: r.owner?.login ?? "",
-    repo: r.name ?? "",
-    fullName: r.full_name ?? `${r.owner?.login ?? ""}/${r.name ?? ""}`,
-    isPrivate: !!r.private,
-    defaultBranch: r.default_branch || "main",
-    htmlUrl: r.html_url ?? "",
-  }));
+  }[] = [];
+  const maxPages = 20;
+  for (let page = 1; page <= maxPages; page++) {
+    const res = await ghFetch(
+      token,
+      `/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner,collaborator,organization_member`
+    );
+    if (!res.ok) await ghJsonError(res, "No se pudieron listar tus repositorios", token);
+    const batch = (await res.json()) as typeof all;
+    if (!Array.isArray(batch) || batch.length === 0) break;
+    all.push(...batch);
+    if (batch.length < 100) break;
+  }
+  const seen = new Set<string>();
+  return all
+    .map((r) => ({
+      owner: r.owner?.login ?? "",
+      repo: r.name ?? "",
+      fullName: r.full_name ?? `${r.owner?.login ?? ""}/${r.name ?? ""}`,
+      isPrivate: !!r.private,
+      defaultBranch: r.default_branch || "main",
+      htmlUrl: r.html_url ?? "",
+    }))
+    .filter((r) => {
+      const key = r.fullName.toLowerCase();
+      if (!r.owner || !r.repo || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 export interface RepoDestino {
