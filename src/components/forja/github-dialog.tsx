@@ -1,7 +1,7 @@
 "use client";
 /** Forja IA — Subir una carpeta entera a GitHub (sin límite de 100 archivos).
  * Token guardado solo en tu dispositivo; subida por lotes con 1 commit por lote. */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   ExternalLink,
@@ -42,9 +42,12 @@ import {
 import { aArchivosForja, leerMemoria, reglasAMemoria } from "@/lib/forja/memoria-proyecto";
 import { useForja } from "@/lib/forja/store";
 import { GitHubConnect } from "./github-connect";
+import type { GhAccount } from "@/lib/forja/github-upload";
 import { ReviewGateCard, useReviewGate } from "./review-view";
 import type { PublishSeed } from "@/lib/forja/sandbox";
 import { dropWrapperFolder, leerZip, type ZipEntry } from "@/lib/forja/zip";
+
+const LAST_REPO_KEY = "forja.gh.lastRepo";
 
 /** Fija en el código, no se construye a partir de nada dinámico. */
 const GH_INSTALLATIONS_URL = "https://github.com/settings/installations";
@@ -76,7 +79,6 @@ export function GitHubDialog({
   const [reposLoading, setReposLoading] = useState(false);
   const [reposError, setReposError] = useState<string | null>(null);
   const [repoSearch, setRepoSearch] = useState("");
-  const [showRepoPicker, setShowRepoPicker] = useState(true);
   const [isPrivate, setIsPrivate] = useState(true);
   /** Qué pasa con lo que ya hay en el repo. Por defecto el repo queda igual
    *  que el proyecto: lo que se borró del proyecto se borra de GitHub. */
@@ -143,23 +145,83 @@ export function GitHubDialog({
     void reviewItems(list);
   }, [open, initial]);
 
+  /** Al abrir: coge el token guardado y prepara el input de carpeta. */
   useEffect(() => {
-    if (open) {
-      const savedToken = ghGetToken();
-      setToken(savedToken);
-      if (savedToken) {
-        setShowRepoPicker(true);
-        setReposLoading(true);
-        setReposError(null);
-        void ghListRepos(savedToken).then(setRepos).catch((e) => {
-          setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
-        }).finally(() => setReposLoading(false));
-      }
-      // webkitdirectory no es un prop estándar en React: se asigna por atributo
-      folderRef.current?.setAttribute("webkitdirectory", "");
-      folderRef.current?.setAttribute("directory", "");
-    }
+    if (!open) return;
+    setToken(ghGetToken());
+    // webkitdirectory no es un prop estándar en React: se asigna por atributo
+    folderRef.current?.setAttribute("webkitdirectory", "");
+    folderRef.current?.setAttribute("directory", "");
   }, [open]);
+
+  /** Carga la lista de repos. `cancelado` evita que una respuesta vieja pise a
+   * una nueva (p. ej. al cambiar de cuenta mientras aún carga). */
+  const fetchRepos = useCallback(async (tk: string, cancelado?: () => boolean) => {
+    setReposLoading(true);
+    setReposError(null);
+    try {
+      const list = await ghListRepos(tk);
+      if (cancelado?.()) return;
+      setRepos(list);
+      if (!list.length) {
+        setReposError("No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo.");
+        return;
+      }
+      // Si no hay destino elegido a mano, se recupera el último repo usado.
+      setRepoOwner((owner) => {
+        if (owner) return owner;
+        try {
+          const last = localStorage.getItem(LAST_REPO_KEY)?.toLowerCase();
+          const hit = last ? list.find((r) => r.fullName.toLowerCase() === last) : undefined;
+          if (hit) {
+            setRepoName(hit.repo);
+            setIsPrivate(hit.isPrivate);
+            return hit.owner;
+          }
+        } catch {
+          /* sin localStorage no pasa nada */
+        }
+        return owner;
+      });
+    } catch (e) {
+      if (cancelado?.()) return;
+      setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
+    } finally {
+      if (!cancelado?.()) setReposLoading(false);
+    }
+  }, []);
+
+  /** UNA sola carga por token: al abrir con cuenta conectada y al conectar o
+   * cambiar de cuenta. Antes se cargaba también desde el `onChange` del Paso 1,
+   * que llegaba como función nueva en cada render: `GitHubConnect` lo volvía a
+   * disparar, la carga cambiaba el estado, se re-renderizaba... y así sin fin
+   * (cientos de peticiones a GitHub y «Cargando…» eterno). */
+  useEffect(() => {
+    if (!open) return;
+    if (!token) {
+      setRepos([]);
+      setReposError(null);
+      setReposLoading(false);
+      return;
+    }
+    let cancelado = false;
+    void fetchRepos(token, () => cancelado);
+    return () => {
+      cancelado = true;
+    };
+  }, [open, token, fetchRepos]);
+
+  /** Estable a propósito (ver arriba). Solo cambia el token; el efecto carga. */
+  const onAccountChange = useCallback((a: GhAccount | null) => {
+    const next = a?.token ?? ghGetToken();
+    setToken(next);
+    if (!next) {
+      // «Salir»: fuera la lista de la cuenta anterior y su destino elegido.
+      setRepos([]);
+      setRepoOwner(undefined);
+      setRepoSearch("");
+    }
+  }, []);
 
   const totalBytes = useMemo(() => items.reduce((n, it) => n + it.file.size, 0), [items]);
 
@@ -168,21 +230,10 @@ export function GitHubDialog({
     if (!currentToken) {
       setReposError("Conecta tu cuenta de GitHub en el Paso 1 para ver tus repositorios.");
       setRepos([]);
-      setShowRepoPicker(true);
       return;
     }
     if (reposLoading) return;
-    setReposLoading(true);
-    setReposError(null);
-    try {
-      const list = await ghListRepos(currentToken);
-      setRepos(list);
-      if (!list.length) setReposError("No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo.");
-    } catch (e) {
-      setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
-    } finally {
-      setReposLoading(false);
-    }
+    await fetchRepos(currentToken);
   };
 
   const filteredRepos = useMemo(() => {
@@ -342,6 +393,7 @@ export function GitHubDialog({
       });
       setResultUrl(r.url);
       setFallo(null);
+      try { const m = /github\.com\/([^/]+\/[^/?#]+)/i.exec(r.url); if (m) localStorage.setItem(LAST_REPO_KEY, m[1]); } catch { /* ok */ }
       // La rama se DICE. Si el repo era de los de «master», antes la subida
       // fingía ir a main y no aparecía nada: saber a dónde fue es la mitad de
       // poder comprobarlo. Y lo que se quitó, también: reemplazar borra.
@@ -391,16 +443,7 @@ export function GitHubDialog({
             <Label className="flex items-center gap-1.5 text-xs">
               <KeyRound className="size-3.5 text-forja-violet" /> Paso 1 · Tu cuenta de GitHub
             </Label>
-            <GitHubConnect onChange={(a) => {
-              const nextToken = a?.token ?? ghGetToken();
-              setToken(nextToken);
-              if (nextToken) {
-                setShowRepoPicker(true);
-                setReposLoading(true);
-                setReposError(null);
-                void ghListRepos(nextToken).then((list) => { setRepos(list); setReposError(list.length ? null : "No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo."); }).catch((e) => setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.")).finally(() => setReposLoading(false));
-              }
-            }} />
+            <GitHubConnect onChange={onAccountChange} />
           </section>
 
           {/* Paso 2: repo */}
@@ -425,7 +468,7 @@ export function GitHubDialog({
               ) : filteredRepos.length ? (
                 <div className="max-h-48 space-y-1 overflow-y-auto">
                   {filteredRepos.map((repo) => (
-                    <button key={repo.fullName} type="button" onClick={() => { setRepoName(repo.repo); setRepoOwner(repo.owner); setIsPrivate(repo.isPrivate); }} className={cn("flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition hover:bg-muted/60", (repoOwner ? `${repoOwner}/${repoName}` : repoName).toLowerCase() === repo.fullName.toLowerCase() ? "border-forja-violet/60 bg-forja-violet/[0.06]" : "border-transparent")}>
+                    <button key={repo.fullName} type="button" onClick={() => { setRepoName(repo.repo); setRepoOwner(repo.owner); setIsPrivate(repo.isPrivate); try { localStorage.setItem(LAST_REPO_KEY, repo.fullName); } catch { /* ok */ } }} className={cn("flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition hover:bg-muted/60", (repoOwner ? `${repoOwner}/${repoName}` : repoName).toLowerCase() === repo.fullName.toLowerCase() ? "border-forja-violet/60 bg-forja-violet/[0.06]" : "border-transparent")}>
                       <span className="min-w-0"><span className="block truncate text-xs font-medium">{repo.fullName}</span><span className="block text-[10px] text-muted-foreground">Rama: {repo.defaultBranch}</span></span>
                       <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{repo.isPrivate ? "Privado" : "Público"}</span>
                     </button>
