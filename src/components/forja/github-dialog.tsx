@@ -76,7 +76,7 @@ export function GitHubDialog({
   const [reposLoading, setReposLoading] = useState(false);
   const [reposError, setReposError] = useState<string | null>(null);
   const [repoSearch, setRepoSearch] = useState("");
-  const [showRepoPicker, setShowRepoPicker] = useState(false);
+  const [showRepoPicker, setShowRepoPicker] = useState(true);
   const [isPrivate, setIsPrivate] = useState(true);
   /** Qué pasa con lo que ya hay en el repo. Por defecto el repo queda igual
    *  que el proyecto: lo que se borró del proyecto se borra de GitHub. */
@@ -148,6 +148,7 @@ export function GitHubDialog({
       const savedToken = ghGetToken();
       setToken(savedToken);
       if (savedToken) {
+        setShowRepoPicker(true);
         setReposLoading(true);
         setReposError(null);
         void ghListRepos(savedToken).then(setRepos).catch((e) => {
@@ -390,7 +391,16 @@ export function GitHubDialog({
             <Label className="flex items-center gap-1.5 text-xs">
               <KeyRound className="size-3.5 text-forja-violet" /> Paso 1 · Tu cuenta de GitHub
             </Label>
-            <GitHubConnect onChange={(a) => setToken(a?.token ?? ghGetToken())} />
+            <GitHubConnect onChange={(a) => {
+              const nextToken = a?.token ?? ghGetToken();
+              setToken(nextToken);
+              if (nextToken) {
+                setShowRepoPicker(true);
+                setReposLoading(true);
+                setReposError(null);
+                void ghListRepos(nextToken).then((list) => { setRepos(list); setReposError(list.length ? null : "No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo."); }).catch((e) => setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.")).finally(() => setReposLoading(false));
+              }
+            }} />
           </section>
 
           {/* Paso 2: repo */}
@@ -408,7 +418,7 @@ export function GitHubDialog({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => { setShowRepoPicker((v) => !v); if (!repos.length) void loadRepos(); }}>
-                <Github className="mr-1.5 size-3.5" /> {showRepoPicker ? "Ocultar repositorios" : "Elegir repositorio"}
+                <Github className="mr-1.5 size-3.5" /> {showRepoPicker ? "Ocultar lista" : "Mostrar lista de repositorios"}
               </Button>
               <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" disabled={reposLoading} onClick={() => void loadRepos()}>
                 <RefreshCw className={cn("mr-1.5 size-3.5", reposLoading && "animate-spin")} /> Actualizar lista
@@ -428,7 +438,7 @@ export function GitHubDialog({
                 ) : filteredRepos.length ? (
                   <div className="max-h-44 space-y-1 overflow-y-auto">
                     {filteredRepos.map((repo) => (
-                      <button key={repo.fullName} type="button" onClick={() => { setRepoName(repo.repo); setRepoOwner(repo.owner); setIsPrivate(repo.isPrivate); setShowRepoPicker(false); }} className={cn("flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition hover:bg-muted/60", repoName.toLowerCase() === repo.fullName.toLowerCase() ? "border-forja-violet/60 bg-forja-violet/[0.06]" : "border-transparent")}>
+                      <button key={repo.fullName} type="button" onClick={() => { setRepoName(repo.repo); setRepoOwner(repo.owner); setIsPrivate(repo.isPrivate); setShowRepoPicker(false); }} className={cn("flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition hover:bg-muted/60", (repoOwner ? `${repoOwner}/${repoName}` : repoName).toLowerCase() === repo.fullName.toLowerCase() ? "border-forja-violet/60 bg-forja-violet/[0.06]" : "border-transparent")}>
                         <span className="min-w-0"><span className="block truncate text-xs font-medium">{repo.fullName}</span><span className="block text-[10px] text-muted-foreground">Rama: {repo.defaultBranch}</span></span>
                         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{repo.isPrivate ? "Privado" : "Público"}</span>
                       </button>

@@ -91,6 +91,8 @@ export interface SeleccionExperiencia {
   manifest: ExperienceManifest;
   /** v4.7.2 — composición compilada de página completa */
   composition: CompositionBlueprint;
+  /** v4.70.0 — patrones visuales contextuales elegidos para el brief */
+  componentesVisuales: ReturnType<typeof seleccionarComponentesVisuales>;
   /** v4.7 G — juego de iconos e imagen compilados (0 tokens, nacen
    * auditados: currentColor, trazo coherente, aria-hidden, proporción fija) */
   iconos: EleccionIconos;
@@ -270,6 +272,7 @@ export function seleccionarExperiencia(mensaje: string, opts: OpcionesExperienci
     plano,
     manifest,
     composition,
+    componentesVisuales,
     iconos,
     tokensCss,
     resumen,
@@ -303,7 +306,7 @@ export function seccionContratoExperiencia(sel: SeleccionExperiencia): string {
     seccionHero(sel.hero),
     "",
     seccionCards(sel.cards),
-    seccionBibliotecaComponentes(componentesVisuales),
+    seccionBibliotecaComponentes(sel.componentesVisuales),
     "",
     seccionPrimitivas(sel.primitivas),
     "",
