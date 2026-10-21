@@ -406,47 +406,44 @@ export function GitHubDialog({
           {/* Paso 2: repo */}
           <section className="space-y-2">
             <Label className="text-xs">Paso 2 · Repositorio</Label>
+            {/* Selector permanente y visible; no depende de desplegar un botón. */}
+            <div className="space-y-2 rounded-xl border-2 border-forja-violet/40 bg-card/70 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="flex items-center gap-1.5 text-xs font-semibold"><Github className="size-4" /> Selecciona un repositorio existente</Label>
+                <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" disabled={reposLoading} onClick={() => void loadRepos()}>
+                  <RefreshCw className={cn("mr-1 size-3.5", reposLoading && "animate-spin")} /> Actualizar
+                </Button>
+              </div>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+                <Input value={repoSearch} onChange={(e) => setRepoSearch(e.target.value)} placeholder="Buscar por nombre o propietario…" className="h-9 pl-8 text-xs" aria-label="Buscar repositorios" />
+              </div>
+              {reposLoading ? (
+                <p className="flex items-center gap-2 px-2 py-3 text-xs text-muted-foreground"><Loader2 className="size-3.5 animate-spin" /> Cargando tus repositorios de GitHub…</p>
+              ) : reposError ? (
+                <div className="space-y-2 px-2 py-2 text-xs text-muted-foreground"><p>{reposError}</p><Button type="button" size="sm" variant="outline" onClick={() => void loadRepos()}>Reintentar</Button></div>
+              ) : filteredRepos.length ? (
+                <div className="max-h-48 space-y-1 overflow-y-auto">
+                  {filteredRepos.map((repo) => (
+                    <button key={repo.fullName} type="button" onClick={() => { setRepoName(repo.repo); setRepoOwner(repo.owner); setIsPrivate(repo.isPrivate); }} className={cn("flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition hover:bg-muted/60", (repoOwner ? `${repoOwner}/${repoName}` : repoName).toLowerCase() === repo.fullName.toLowerCase() ? "border-forja-violet/60 bg-forja-violet/[0.06]" : "border-transparent")}>
+                      <span className="min-w-0"><span className="block truncate text-xs font-medium">{repo.fullName}</span><span className="block text-[10px] text-muted-foreground">Rama: {repo.defaultBranch}</span></span>
+                      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{repo.isPrivate ? "Privado" : "Público"}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : <p className="px-2 py-3 text-xs text-muted-foreground">{token ? "No hay repositorios visibles con esta autorización. Pulsa Actualizar o escribe un destino manual abajo." : "Conecta GitHub en el Paso 1 para cargar tus repositorios."}</p>}
+              <p className="text-[10px] text-muted-foreground">La lista permanece visible. También puedes escribir un repositorio nuevo manualmente.</p>
+            </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">github.com/</span>
+              <span className="text-xs text-muted-foreground">Destino:</span>
               <Input
-                value={repoName}
-                onChange={(e) => { setRepoName(e.target.value); setRepoOwner(undefined); }}
+                value={repoOwner ? `${repoOwner}/${repoName}` : repoName}
+                onChange={(e) => { const value = e.target.value; const parts = value.split("/").filter(Boolean); if (parts.length === 2) { setRepoOwner(parts[0]); setRepoName(parts[1]); } else { setRepoOwner(undefined); setRepoName(value); } }}
                 placeholder="usuario/repositorio"
                 className="h-9 flex-1 text-xs"
                 aria-label="Nombre del repositorio o propietario/repositorio"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => { setShowRepoPicker((v) => !v); if (!repos.length) void loadRepos(); }}>
-                <Github className="mr-1.5 size-3.5" /> {showRepoPicker ? "Ocultar lista" : "Mostrar lista de repositorios"}
-              </Button>
-              <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" disabled={reposLoading} onClick={() => void loadRepos()}>
-                <RefreshCw className={cn("mr-1.5 size-3.5", reposLoading && "animate-spin")} /> Actualizar lista
-              </Button>
-              {repos.length > 0 && <span className="text-[10px] text-muted-foreground">{repos.length} repositorios</span>}
-            </div>
-            {showRepoPicker && (
-              <div className="space-y-2 rounded-xl border border-border/70 bg-card/50 p-2.5">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-                  <Input value={repoSearch} onChange={(e) => setRepoSearch(e.target.value)} placeholder="Buscar por nombre o propietario…" className="h-9 pl-8 text-xs" aria-label="Buscar repositorios" />
-                </div>
-                {reposLoading ? (
-                  <p className="flex items-center gap-2 px-2 py-3 text-xs text-muted-foreground"><Loader2 className="size-3.5 animate-spin" /> Cargando tus repositorios de GitHub…</p>
-                ) : reposError ? (
-                  <div className="space-y-2 px-2 py-2 text-xs text-muted-foreground"><p>{reposError}</p><Button type="button" size="sm" variant="outline" onClick={() => void loadRepos()}>Reintentar</Button></div>
-                ) : filteredRepos.length ? (
-                  <div className="max-h-44 space-y-1 overflow-y-auto">
-                    {filteredRepos.map((repo) => (
-                      <button key={repo.fullName} type="button" onClick={() => { setRepoName(repo.repo); setRepoOwner(repo.owner); setIsPrivate(repo.isPrivate); setShowRepoPicker(false); }} className={cn("flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition hover:bg-muted/60", (repoOwner ? `${repoOwner}/${repoName}` : repoName).toLowerCase() === repo.fullName.toLowerCase() ? "border-forja-violet/60 bg-forja-violet/[0.06]" : "border-transparent")}>
-                        <span className="min-w-0"><span className="block truncate text-xs font-medium">{repo.fullName}</span><span className="block text-[10px] text-muted-foreground">Rama: {repo.defaultBranch}</span></span>
-                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">{repo.isPrivate ? "Privado" : "Público"}</span>
-                      </button>
-                    ))}
-                  </div>
-                ) : <p className="px-2 py-3 text-xs text-muted-foreground">No hay coincidencias. Puedes escribir el nombre manualmente para crear un repositorio.</p>}
-              </div>
-            }
             <div className="flex items-center gap-2">
               <Switch checked={isPrivate} onCheckedChange={setIsPrivate} id="gh-private" />
               <Label htmlFor="gh-private" className="text-xs text-muted-foreground">

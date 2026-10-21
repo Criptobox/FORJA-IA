@@ -1,3 +1,10 @@
+## v4.70.4 — Selector de repositorios siempre visible (2026-10-21)
+
+- Se coloca la lista de repositorios directamente en el Paso 2, abierta y visible, sin depender de pulsar un botón para desplegarla.
+- Se mantiene búsqueda por propietario/nombre, actualización, rama predeterminada y visibilidad.
+- La selección sincroniza propietario y nombre; el campo de destino permite seguir introduciendo un repositorio manualmente.
+- Validación: revisión estática del componente y comprobación del ZIP. La compilación y el CI remoto no se han ejecutado en este entorno.
+
 # v4.70.1 — Control de calidad visual integrado
 
 - El revisor visual ahora combina los chequeos de DOM/CSS y anti-genérico con la auditoría SEO, rendimiento y accesibilidad que ya existía en `web-audit.ts`.
