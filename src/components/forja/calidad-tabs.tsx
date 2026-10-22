@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Eye, Gavel, ShieldAlert } from "lucide-react";
 import { Chip, CodeBlock, Salida } from "./ui-forja";
 import type { Motor } from "@/lib/forja/motor-client";
+import type { EvidenciaJuez } from "@/lib/forja/motor/tipos-v4";
 
 const HTML_MUESTRA = `<!doctype html><html lang="es"><head><title>Servicios</title></head>
 <body style="font-family:Arial"><div style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">
@@ -26,15 +27,12 @@ export function JuecesTab({ motor }: { motor: Motor }) {
       const a1 = motor.adnDesdePeticion(mensaje);
       const adn = motor.adn2DesdeAdn1(a1, mensaje);
       const ds = motor.crearDesignSystem(adn, "Estudio");
-      const hallazgos = motor.chequeosEstaticos(html) as any[];
+      const hallazgos = motor.chequeosEstaticos(html) ;
       const genericidad = motor.detectarGenericidad(html);
-      const sistema = motor.auditarContraDesignSystem(html, ds) as any[];
-      const evidencia = motor.evidenciaDeterminista(hallazgos, genericidad, sistema) as Record<
-        "visual" | "ux" | "originalidad",
-        any
-      >;
+      const sistema = motor.auditarContraDesignSystem(html, ds) ;
+      const evidencia = motor.evidenciaDeterminista(hallazgos, genericidad, sistema);
       // el paquete de evidencia se serializa a texto: lo que reciben los jueces
-      const bloque = (nombre: string, e: any) =>
+      const bloque = (nombre: string, e: EvidenciaJuez) =>
         [
           `### ${nombre}`,
           ...funcionaFallaConserva(e),
@@ -179,7 +177,7 @@ function InputPeque({
 }
 
 /** Serializa un EvidenciaJuez (funciona/falla/conservar + originalidad) a texto. */
-function funcionaFallaConserva(e: any): string[] {
+function funcionaFallaConserva(e: EvidenciaJuez | undefined): string[] {
   const lista = (clave: string, xs: string[] | undefined) =>
     xs?.length ? [`${clave}:`, ...xs.map((x) => `  · ${x}`)] : [];
   return [

@@ -14,7 +14,7 @@ export function AdnTab({ motor }: { motor: Motor }) {
   const [mensaje, setMensaje] = useState("Editorial técnica para desarrolladores: silenciosa, precisa, oscura");
   const [nombre, setNombre] = useState("Signal");
 
-  const adn = useMemo<any>(() => {
+  const adn = useMemo(() => {
     if (!motor) return null;
     const a1 = motor.adnDesdePeticion(mensaje);
     return motor.adn2DesdeAdn1(a1, mensaje);
@@ -59,7 +59,7 @@ export function AdnTab({ motor }: { motor: Motor }) {
             <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-orange-600 dark:text-orange-400">Identidad</div>
             <p className="text-[13.5px] font-medium leading-snug">«{String(adn.identidad)}»</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {(adn.sensacion ?? []).map((e: any, i: number) => (
+              {(adn.sensacion ?? []).map((e, i) => (
                 <Chip key={i} tono={e.valor >= 7 ? "fuego" : "neutral"}>
                   {e.eje} {e.valor}/10
                 </Chip>
@@ -69,7 +69,7 @@ export function AdnTab({ motor }: { motor: Motor }) {
 
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {DIMS.map(({ clave, titulo }) => {
-              const vals: string[] = adn[clave] ?? [];
+              const vals = (adn[clave as keyof typeof adn] as unknown as string[] | undefined) ?? [];
               return (
                 <div key={clave} className="rounded-xl border border-border/60 bg-card/50 p-2.5">
                   <div className="mb-1 flex items-center justify-between">

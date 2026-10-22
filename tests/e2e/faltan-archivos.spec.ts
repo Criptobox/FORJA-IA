@@ -1,9 +1,9 @@
 import { expect, test, type Page } from "./fixtures";
-import { readFileSync } from "node:fs";
+import { zipHamburgueseria } from "./helpers/zip-fixture";
 
 /** Forja IA — Cuando el HTML pide un archivo que no está, se dice y se arregla.
  *
- * El ZIP de este test es EL DEL USUARIO, tal cual lo subió. Dentro hay
+ * El ZIP de este test se genera en memoria (helpers/zip-fixture.ts) y reproduce el del usuario. Dentro hay
  * `index.html`, `css.css` y `javascript.js`; el HTML pide `styles.css` y
  * `script.js`. Los nombres no coinciden, así que la página se abre sin
  * estilos y sin scripts — y en cualquier navegador pasaría lo mismo.
@@ -13,13 +13,7 @@ import { readFileSync } from "node:fs";
  * siquiera mencionaba que en el proyecto SÍ hay un .css, con otro nombre.
  */
 
-const ZIP_PATH = "tests/fixtures/web-hamburgueseria.zip";
-let ZIP: Buffer;
-try {
-  ZIP = readFileSync(ZIP_PATH);
-} catch (error) {
-  throw new Error(`Falta el fixture E2E requerido: ${ZIP_PATH}. Comprueba que esté versionado y presente en el checkout de CI.`, { cause: error });
-}
+const ZIP: Buffer = zipHamburgueseria();
 
 async function abrirSandboxCon(page: Page, buffer: Buffer) {
   await page.addInitScript(() => {

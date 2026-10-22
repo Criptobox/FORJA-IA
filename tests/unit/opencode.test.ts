@@ -3,9 +3,9 @@ import { isModelFree, normalizeOpenCodeModels, openCodeBaseUrl } from "../../src
 
 describe("integración OpenCode: filtro de modelos gratuitos", () => {
   it("solo marca como gratis un modelo con coste de entrada y salida cero", () => {
-    expect(isModelFree({ cost: { input: 0, output: 0 } }, "provider-x")).toBe(true);
-    expect(isModelFree({ cost: { input: 0, output: 0.1 } }, "provider-x")).toBe(false);
-    expect(isModelFree({}, "provider-x")).toBe(false);
+    expect(isModelFree({ cost: { input: 0, output: 0 } })).toBe(true);
+    expect(isModelFree({ cost: { input: 0, output: 0.1 } })).toBe(false);
+    expect(isModelFree({})).toBe(false);
   });
 
   it("normaliza proveedores sin mostrar como gratuitos los modelos de pago", () => {

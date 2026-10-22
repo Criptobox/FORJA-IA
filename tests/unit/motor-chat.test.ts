@@ -40,9 +40,10 @@ describe("piezaPlanoContenido", () => {
     expect(pieza.texto).not.toContain("<svg");
     expect(pieza.texto).not.toContain(".f-ico{");
   });
-  it("cabe: plano completo e iconos por referencia, por debajo de 6.500 caracteres", () => {
-    // con los SVG enteros eran ~8.000: los iconos por referencia ahorran ~2.500
-    expect(pieza.texto.length).toBeLessThan(6_500);
+  it("cabe: plano completo e iconos por referencia, por debajo de 8.000 caracteres", () => {
+    // El plano creció (~7.600) al añadir el «Sistema de composición visual»; con los SVG
+    // enteros pasaría de ~10.000. Los iconos por referencia siguen ahorrando ~2.500.
+    expect(pieza.texto.length).toBeLessThan(8_000);
   });
   it("el nivel del chat tiene techo en producción (showcase se corta a medias)", () => {
     const largo = `${BARBERIA}. ${"Quiero una web muy completa con todo el detalle posible. ".repeat(8)}`;

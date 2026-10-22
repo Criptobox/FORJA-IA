@@ -22,7 +22,7 @@ describe("puente Android OpenCode", () => {
     const bridge = fakeBridge({ listModels: vi.fn().mockResolvedValue([{ ...goodModel, free: false }]) });
     const result = await runAndroidOpenCodeTask({ prompt: "Haz una web", model: "zen/model-free" }, bridge);
     expect(result.ok).toBe(false);
-    expect(result.error).toMatch(/no se ha enviado/);
+    expect(result.error).toMatch(/no se ha enviado/i);
     expect(bridge.runTask).not.toHaveBeenCalled();
   });
   it("no intenta ejecutar cuando el motor está detenido", async () => {

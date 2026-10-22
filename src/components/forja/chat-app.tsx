@@ -916,7 +916,7 @@ export function ChatApp() {
 
       proceder();
     },
-    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo]
+    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo, clearDraft]
   );
 
   /** Los errores que salieron mientras USABAS la página van al modelo.
@@ -1417,7 +1417,7 @@ export function ChatApp() {
   const limites = useLimites((s) => s.limites);
 
   // ——— Virtualización de la lista de mensajes (chats largos fluidos) ———
-  const messages = activeSession?.messages ?? [];
+  const messages = useMemo(() => activeSession?.messages ?? [], [activeSession?.messages]);
   const virtualizer = useVirtualizer({
     count: messages.length,
     getScrollElement: () => scrollRef.current,
