@@ -355,3 +355,15 @@ la rama `excel` de `src/lib/forja/sheets.ts`: CSV y TSV seguirán funcionando.
 - **v2.9 — Edición Orca**: el escudo PII (guardrails antes de enviar) y el «Copiar como cURL» de los request logs están inspirados en [OrcaRouter](https://www.orcarouter.ai/blog/openrouter-alternative), implementados 100% en local. Sobre las comisiones que motiva su artículo: Forja no cobra nada — modelos gratis y tus propias claves.
 - **v2.8 — Router & compresión**: las ideas de salud de modelos (circuit breaker + cooldown con Retry-After), LKGP, el pseudo-modelo `Auto`, la compresión de contexto (RTK/Caveman) y el panel de uso están inspiradas en [OmniRoute](https://github.com/diegosouzapw/OmniRoute), adaptadas a un navegador sin backend.
 - Forja IA mantiene su filosofía: **solo modelos gratis, cero cuentas, todo local**.
+
+
+## Integración opcional con OpenCode (v4.70.5)
+
+Forja IA puede consultar el estado y catálogo de un servidor OpenCode y enviar tareas a modelos cuyo catálogo declare coste de entrada y salida igual a cero. Los modelos con precio distinto de cero o precio desconocido se excluyen del selector gratuito.
+
+1. Instala y configura OpenCode en el equipo/servidor que ejecutará las tareas.
+2. Inicia su API con `opencode serve --hostname 127.0.0.1 --port 4096`.
+3. Define `OPENCODE_BASE_URL=http://127.0.0.1:4096` en el entorno del servidor Forja IA. Si corresponde, define `OPENCODE_SERVER_USERNAME` y `OPENCODE_SERVER_PASSWORD`.
+4. Reinicia Forja IA y consulta `GET /api/opencode`. Envía una tarea mediante `POST /api/opencode` con JSON `{ "prompt": "...", "model": "provider/model-id" }`. El campo `model` es opcional; se elige el primer modelo gratuito verificado si se omite.
+
+**Importante:** no expongas el servidor OpenCode directamente a Internet. Protege el endpoint con contraseña y red privada. Si Forja IA está alojada en una plataforma externa y OpenCode está en tu teléfono/PC, `127.0.0.1` apunta al servidor alojado, no al dispositivo del usuario; hace falta un enlace privado/túnel seguro o desplegar ambos en el mismo entorno. El catálogo cambia con el tiempo y solo se consideran gratuitos los modelos cuyo precio se pueda verificar como cero.

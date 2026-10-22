@@ -1,6 +1,6 @@
 {
   "name": "forja-ia",
-  "version": "4.70.4",
+  "version": "4.71.1",
   "engines": {
     "node": ">=20.9"
   },

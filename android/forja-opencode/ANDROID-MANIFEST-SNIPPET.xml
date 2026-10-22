@@ -1,0 +1,3 @@
+<!-- Fragmento orientativo para la app host; no es un manifest completo. -->
+<uses-permission android:name="android.permission.INTERNET" />
+<!-- El tráfico HTTP se limita al loopback local. Evita habilitar cleartext globalmente. -->
