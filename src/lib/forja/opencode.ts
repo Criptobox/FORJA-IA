@@ -40,7 +40,7 @@ export async function openCodeFetch(path: string, init: RequestInit = {}): Promi
   });
 }
 
-export function isModelFree(model: Record<string, unknown>, providerID: string): boolean {
+export function isModelFree(model: Record<string, unknown>): boolean {
   const cost = model.cost && typeof model.cost === "object" ? model.cost as Record<string, unknown> : null;
   if (cost && typeof cost.input === "number" && typeof cost.output === "number") {
     return cost.input === 0 && cost.output === 0;
@@ -66,7 +66,7 @@ export function normalizeOpenCodeModels(payload: unknown): OpenCodeModel[] {
         id,
         name: typeof model.name === "string" ? model.name : id,
         providerID,
-        free: isModelFree(model, providerID),
+        free: isModelFree(model),
         ...(typeof (model.limit as Record<string, unknown> | undefined)?.context === "number"
           ? { context: (model.limit as Record<string, unknown>).context as number }
           : {}),

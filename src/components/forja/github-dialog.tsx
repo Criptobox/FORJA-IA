@@ -76,7 +76,6 @@ export function GitHubDialog({
   const [reposLoading, setReposLoading] = useState(false);
   const [reposError, setReposError] = useState<string | null>(null);
   const [repoSearch, setRepoSearch] = useState("");
-  const [showRepoPicker, setShowRepoPicker] = useState(true);
   const [isPrivate, setIsPrivate] = useState(true);
   /** Qué pasa con lo que ya hay en el repo. Por defecto el repo queda igual
    *  que el proyecto: lo que se borró del proyecto se borra de GitHub. */
@@ -148,7 +147,6 @@ export function GitHubDialog({
       const savedToken = ghGetToken();
       setToken(savedToken);
       if (savedToken) {
-        setShowRepoPicker(true);
         setReposLoading(true);
         setReposError(null);
         void ghListRepos(savedToken).then(setRepos).catch((e) => {
@@ -168,7 +166,6 @@ export function GitHubDialog({
     if (!currentToken) {
       setReposError("Conecta tu cuenta de GitHub en el Paso 1 para ver tus repositorios.");
       setRepos([]);
-      setShowRepoPicker(true);
       return;
     }
     if (reposLoading) return;
@@ -395,8 +392,7 @@ export function GitHubDialog({
               const nextToken = a?.token ?? ghGetToken();
               setToken(nextToken);
               if (nextToken) {
-                setShowRepoPicker(true);
-                setReposLoading(true);
+                        setReposLoading(true);
                 setReposError(null);
                 void ghListRepos(nextToken).then((list) => { setRepos(list); setReposError(list.length ? null : "No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo."); }).catch((e) => setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.")).finally(() => setReposLoading(false));
               }

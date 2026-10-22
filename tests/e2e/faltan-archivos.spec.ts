@@ -13,7 +13,13 @@ import { readFileSync } from "node:fs";
  * siquiera mencionaba que en el proyecto SÍ hay un .css, con otro nombre.
  */
 
-const ZIP = readFileSync("tests/fixtures/web-hamburgueseria.zip");
+const ZIP_PATH = "tests/fixtures/web-hamburgueseria.zip";
+let ZIP: Buffer;
+try {
+  ZIP = readFileSync(ZIP_PATH);
+} catch (error) {
+  throw new Error(`Falta el fixture E2E requerido: ${ZIP_PATH}. Comprueba que esté versionado y presente en el checkout de CI.`, { cause: error });
+}
 
 async function abrirSandboxCon(page: Page, buffer: Buffer) {
   await page.addInitScript(() => {

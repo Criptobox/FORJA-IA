@@ -549,7 +549,7 @@ export function ChatApp() {
       demoCancelRef.current = null;
       if (!finished) setStreamingMsgId(null);
     };
-  }, [hydrated, createSession, renameSession, addMessage, updateMessage, clearMessages]);
+  }, [hydrated, createSession, renameSession, addMessage, updateMessage, clearMessages, setStreamingMsgId]);
 
   // Atajo: acción=nueva desde el manifest
   useEffect(() => {
