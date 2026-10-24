@@ -161,6 +161,22 @@ export const RADAR_SOURCES: RadarSource[] = [
     docsUrl: "https://doc.aihubmix.com/",
   },
   {
+    id: "src-opencode",
+    name: "OpenCode Zen",
+    providerId: "opencode",
+    description:
+      "La pasarela de OpenCode: una clave y, además de los modelos de pago, varios con sufijo -free. " +
+      "Los gratis rotan (algunos son «por tiempo limitado» mientras el laboratorio recoge opiniones), " +
+      "así que el catálogo vivo manda: opencode.ai/zen/v1/models.",
+    keyUrl: "https://opencode.ai/auth",
+    models: ["deepseek-v4-flash-free", "mimo-v2.5-free"],
+    limits: "Los -free no gastan saldo; el límite y la lista cambian a menudo, mira el catálogo",
+    type: "temporal",
+    registro: null,
+    verificadoEl: "2026-10-24",
+    docsUrl: "https://opencode.ai/docs/zen",
+  },
+  {
     id: "src-openrouter",
     name: "OpenRouter",
     providerId: "openrouter",

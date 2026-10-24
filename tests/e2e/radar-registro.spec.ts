@@ -85,3 +85,14 @@ test("los runtimes locales se conectan sin pedir clave", async ({ page }) => {
   // y explica cómo levantar el servidor, que es lo que de verdad hace falta
   await expect(dialogo.getByText(/llama-server -m modelo\.gguf/)).toBeVisible();
 });
+
+test("OpenCode Zen aparece en el radar y entre los proveedores", async ({ page }) => {
+  await abrirApp(page);
+  await page.getByRole("button", { name: "Radar" }).click();
+  const radar = page.getByRole("dialog");
+  await expect(radar.locator("li").filter({ hasText: "OpenCode Zen" }).first()).toBeVisible({ timeout: 20_000 });
+  await page.keyboard.press("Escape");
+
+  await page.getByRole("button", { name: "Ajustes" }).first().click();
+  await expect(page.getByRole("dialog").getByText("OpenCode Zen").first()).toBeVisible({ timeout: 15_000 });
+});

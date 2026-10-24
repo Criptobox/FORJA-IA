@@ -28,6 +28,21 @@ export const PROVIDERS: ProviderDef[] = [
     featured: true,
   },
   {
+    id: "opencode",
+    name: "OpenCode Zen",
+    tagline: "Pasarela de OpenCode · modelos «-free» sin gastar saldo",
+    protocol: "openai",
+    baseUrl: "https://opencode.ai/zen/v1",
+    keyUrl: "https://opencode.ai/auth",
+    docsUrl: "https://opencode.ai/docs/zen",
+    hint: "Clave de opencode.ai/auth. Los modelos gratis llevan «-free» en el id y cambian a menudo: pulsa «Probar» para cargar el catálogo vivo de opencode.ai/zen/v1/models.",
+    // Solo los «-free» que la documentación de OpenCode cita hoy. El resto del
+    // catálogo (de pago) aparece al cargar la lista viva.
+    defaultModels: ["deepseek-v4-flash-free", "mimo-v2.5-free"],
+    color: "#0EA5E9",
+    featured: true,
+  },
+  {
     id: "kimi",
     name: "Kimi · Moonshot",
     tagline: "API oficial · Kimi K3 y K2 · crédito de prueba al registrarte",

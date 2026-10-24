@@ -194,6 +194,7 @@ export const MAX_RENDER_CHARS = 8000;
 
 export type ProviderId =
   | "aihubmix"
+  | "opencode"
   | "kimi"
   | "nvidia"
   | "openai"

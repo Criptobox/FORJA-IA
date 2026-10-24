@@ -63,6 +63,7 @@ const ATAJOS: ProviderId[] = [
   "cerebras",
   "mistral",
   "aihubmix",
+  "opencode",
   "gemini",
   "groq",
   "custom",

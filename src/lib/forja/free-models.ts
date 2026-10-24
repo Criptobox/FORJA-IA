@@ -67,6 +67,7 @@ export const FAILOVER_ORDER: ProviderId[] = [
   "tokenrouter",
   "zai",
   "aihubmix",
+  "opencode",
   "kimi",
   "nvidia",
   "mistral",
