@@ -48,63 +48,63 @@
   --forja-cyan: #f59e0b;
   --forja-pink: #ef4444;
   /* Tema claro */
-  --background: oklch(0.976 0.003 286);
-  --foreground: oklch(0.18 0.014 285);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.014 285);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.014 285);
+  --background: #f1ede7;
+  --foreground: #1c1712;
+  --card: #ffffff;
+  --card-foreground: #1c1712;
+  --popover: #ffffff;
+  --popover-foreground: #1c1712;
   --primary: #f97316;
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.945 0.006 286);
-  --secondary-foreground: oklch(0.24 0.02 285);
-  --muted: oklch(0.945 0.006 286);
-  --muted-foreground: oklch(0.52 0.015 286);
-  --accent: oklch(0.94 0.02 291);
-  --accent-foreground: oklch(0.3 0.06 291);
+  --secondary: #efe9e0;
+  --secondary-foreground: #1c1712;
+  --muted: #efe9e0;
+  --muted-foreground: #6a6055;
+  --accent: #f8f4ee;
+  --accent-foreground: #1c1712;
   --destructive: oklch(0.58 0.24 27);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9 0.008 286);
-  --input: oklch(0.9 0.008 286);
+  --border: #e2d9cd;
+  --input: #e2d9cd;
   --ring: #f97316;
-  --sidebar: oklch(0.985 0.002 286);
-  --sidebar-foreground: oklch(0.18 0.014 285);
+  --sidebar: #f8f4ee;
+  --sidebar-foreground: #1c1712;
   --sidebar-primary: #f97316;
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.94 0.02 291);
-  --sidebar-accent-foreground: oklch(0.3 0.06 291);
-  --sidebar-border: oklch(0.9 0.008 286);
+  --sidebar-accent: #efe9e0;
+  --sidebar-accent-foreground: #1c1712;
+  --sidebar-border: #e2d9cd;
   --sidebar-ring: #f97316;
 }
 
 .dark {
   /* Tema oscuro premium (obsidiana) */
-  --background: oklch(0.145 0.012 285);
-  --foreground: oklch(0.93 0.006 286);
-  --card: oklch(0.185 0.014 285);
-  --card-foreground: oklch(0.93 0.006 286);
-  --popover: oklch(0.19 0.016 285);
-  --popover-foreground: oklch(0.93 0.006 286);
+  --background: #0b0d12;
+  --foreground: #f4f1ed;
+  --card: #1a1e29;
+  --card-foreground: #f4f1ed;
+  --popover: #1a1e29;
+  --popover-foreground: #f4f1ed;
   --primary: #f97316;
   --primary-foreground: oklch(0.13 0.02 285);
-  --secondary: oklch(0.235 0.016 285);
-  --secondary-foreground: oklch(0.93 0.006 286);
-  --muted: oklch(0.235 0.016 285);
-  --muted-foreground: oklch(0.62 0.014 286);
-  --accent: oklch(0.26 0.03 291);
-  --accent-foreground: oklch(0.93 0.01 291);
+  --secondary: #222736;
+  --secondary-foreground: #f4f1ed;
+  --muted: #222736;
+  --muted-foreground: #9ba2b2;
+  --accent: #222736;
+  --accent-foreground: #f4f1ed;
   --destructive: oklch(0.62 0.22 25);
   --destructive-foreground: oklch(0.97 0 0);
-  --border: oklch(0.28 0.018 285);
-  --input: oklch(0.28 0.018 285);
+  --border: #292f3d;
+  --input: #292f3d;
   --ring: #f97316;
-  --sidebar: oklch(0.165 0.014 285);
-  --sidebar-foreground: oklch(0.93 0.006 286);
+  --sidebar: #12151e;
+  --sidebar-foreground: #f4f1ed;
   --sidebar-primary: #f97316;
   --sidebar-primary-foreground: oklch(0.13 0.02 285);
-  --sidebar-accent: oklch(0.25 0.025 291);
-  --sidebar-accent-foreground: oklch(0.93 0.01 291);
-  --sidebar-border: oklch(0.26 0.018 285);
+  --sidebar-accent: #222736;
+  --sidebar-accent-foreground: #f4f1ed;
+  --sidebar-border: #292f3d;
   --sidebar-ring: #f97316;
 }
 
@@ -1179,4 +1179,102 @@ html[data-accent="naranja"] {
   .fj-timeline-row--running .fj-timeline-status::after {
     animation: none !important;
   }
+}
+
+
+/* ==========================================================================
+   Kit de optimización móvil (prototipo «Fusión Definitiva»)
+   Superficie táctil .raise, miniaturas CSS .forja-th, barra de pestañas y
+   cápsula del compositor. Todo cuelga de los tokens del tema, así que sigue
+   al acento y al claro/oscuro sin tocar nada más.
+   ========================================================================== */
+.raise {
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 55%, transparent) inset,
+    0 8px 18px -12px color-mix(in oklab, black 40%, transparent),
+    0 1px 3px color-mix(in oklab, black 10%, transparent);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.dark .raise {
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 7%, transparent) inset,
+    0 12px 24px -12px rgba(0, 0, 0, 0.8),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.raise:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.forja-th {
+  --c: var(--forja-violet);
+  position: relative;
+  display: flex;
+  aspect-ratio: 16 / 9.5;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
+  border-radius: 14px;
+  padding: 9px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 26%, var(--card)), var(--card));
+  border: 1px solid color-mix(in srgb, var(--c) 28%, var(--border));
+}
+.forja-th u {
+  display: block;
+  min-height: 5px;
+  border-radius: 5px;
+  text-decoration: none;
+  background: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+.forja-th .r,
+.forja-th .bars,
+.forja-th .gm {
+  display: flex;
+  flex: 1;
+  gap: 5px;
+}
+.forja-th .r u { flex: 1; }
+.forja-th .bars { align-items: flex-end; }
+.forja-th .bars u { flex: 1; background: color-mix(in srgb, var(--c) 70%, transparent); }
+.forja-th .gm { align-items: center; justify-content: center; gap: 9px; }
+.forja-th .gm u { width: 22%; aspect-ratio: 1; border-radius: 50%; }
+.forja-th .gm u:nth-child(2) { background: var(--c); box-shadow: 0 0 10px var(--c); }
+.forja-th .hd { background: var(--c); height: 22%; flex: none; }
+
+.forja-tabs {
+  display: flex;
+  flex: none;
+  padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--background) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+.forja-tab {
+  display: flex;
+  min-height: 52px;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+.forja-tab i {
+  display: grid;
+  width: 46px;
+  height: 28px;
+  place-items: center;
+  border-radius: 14px;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.forja-tab[aria-current="page"] {
+  color: var(--foreground);
+  font-weight: 700;
+}
+.forja-tab[aria-current="page"] i {
+  color: #1c1005;
+  background: linear-gradient(135deg, var(--forja-cyan), var(--forja-pink));
+  box-shadow: 0 8px 20px -6px color-mix(in oklab, var(--forja-pink) 55%, transparent);
 }

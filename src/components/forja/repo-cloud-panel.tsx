@@ -128,9 +128,10 @@ export function RepoCloudPanel({
       return;
     }
     let cancelled = false;
+    const ctl = new AbortController();
     setReposLoading(true);
     setReposError(null);
-    void ghListRepos(t)
+    void ghListRepos(t, { signal: ctl.signal })
       .then((list) => {
         if (!cancelled) setMyRepos(list);
       })
@@ -144,6 +145,7 @@ export function RepoCloudPanel({
       });
     return () => {
       cancelled = true;
+      ctl.abort();
     };
   }, [token, repoReload]);
 

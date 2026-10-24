@@ -4,16 +4,11 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
   Bug,
-  ChartColumn,
   ClipboardPaste,
   Eye,
-  FolderGit2,
-  Gamepad2,
   History,
   Infinity as InfinityIcon,
   KeyRound,
-  LayoutTemplate,
-  PenLine,
   Puzzle,
   ShieldCheck,
   Sparkles,
@@ -38,51 +33,88 @@ const PILLS: { icon: LucideIcon; label: string; className: string }[] = [
   { icon: Eye, label: "Vista previa", className: "text-forja-pink" },
 ];
 
+type Thumb = "web" | "juego" | "datos" | "texto" | "repo";
+
 const SUGGESTIONS: {
-  icon: LucideIcon;
-  tint: string;
+  thumb: Thumb;
+  color: string;
   title: string;
   hint: string;
   text: string;
   openRepos?: boolean;
 }[] = [
   {
-    icon: LayoutTemplate,
-    tint: "bg-forja-violet/12 text-forja-violet",
+    thumb: "web",
+    color: "#f97316",
     title: "Página de aterrizaje",
     hint: "HTML de una pieza",
     text: "Crea una página de aterrizaje para una cafetería de especialidad, en un solo archivo HTML con diseño moderno y animaciones",
   },
   {
-    icon: Gamepad2,
-    tint: "bg-forja-cyan/12 text-forja-cyan",
+    thumb: "juego",
+    color: "#06b6d4",
     title: "Un juego",
     hint: "Serpiente táctil",
     text: "Crea el juego de la serpiente en un solo archivo HTML con controles táctiles, puntuación y diseño pulido",
   },
   {
-    icon: ChartColumn,
-    tint: "bg-forja-pink/12 text-forja-pink",
+    thumb: "datos",
+    color: "#ec4899",
     title: "Panel de datos",
     hint: "Gastos y gráficos",
     text: "Crea un panel de gastos mensuales en HTML con gráficos animados y guardado en el navegador",
   },
   {
-    icon: PenLine,
-    tint: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
+    thumb: "texto",
+    color: "#10b981",
     title: "Escribe por mí",
     hint: "Correo profesional",
     text: "Ayúdame a redactar un correo profesional para mi jefe",
   },
   {
-    icon: FolderGit2,
-    tint: "bg-amber-500/12 text-amber-600 dark:text-amber-400",
+    thumb: "repo",
+    color: "#f59e0b",
     title: "Un repositorio",
     hint: "Pega un enlace de GitHub",
     text: "",
     openRepos: true,
   },
 ];
+
+/** Miniatura CSS de cada arranque (las reglas .forja-th viven en globals.css). */
+function Miniatura({ kind, color, wide }: { kind: Thumb; color: string; wide?: boolean }) {
+  const body =
+    kind === "web" ? (
+      <>
+        <u className="hd" />
+        <span className="r"><u /><u /></span>
+        <u style={{ flex: "none", height: 6, width: "60%" }} />
+      </>
+    ) : kind === "juego" ? (
+      <span className="gm"><u /><u /><u /></span>
+    ) : kind === "datos" ? (
+      <span className="bars">
+        <u style={{ height: "35%" }} /><u style={{ height: "70%" }} /><u style={{ height: "50%" }} /><u style={{ height: "90%" }} />
+      </span>
+    ) : kind === "texto" ? (
+      <>
+        <u style={{ width: "45%" }} /><u /><u /><u style={{ width: "70%" }} />
+      </>
+    ) : (
+      <>
+        <u style={{ width: "35%", background: color }} /><span className="r"><u /><u /></span><span className="r"><u /><u /></span>
+      </>
+    );
+  return (
+    <span
+      aria-hidden
+      className="forja-th"
+      style={{ "--c": color, ...(wide ? { aspectRatio: "16 / 5" } : null) } as React.CSSProperties}
+    >
+      {body}
+    </span>
+  );
+}
 
 export function Welcome({
   onPick,
@@ -315,7 +347,9 @@ export function Welcome({
           </div>
         )}
 
-        <div className="mt-5 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+        {/* Bento de arranques: miniaturas CSS puras (sin imágenes) que adelantan
+            qué tipo de cosa vas a forjar. El último ocupa el ancho entero. */}
+        <div className="mt-5 grid grid-cols-2 gap-2.5">
           {SUGGESTIONS.map((s, i) => (
             <button
               key={s.title}
@@ -330,16 +364,16 @@ export function Welcome({
                 else onOpenSettings();
               }}
               title={s.openRepos ? "Abrir Repo Studio" : anyProvider ? s.text : "Primero conecta un proveedor"}
-              className="stagger-in lift-card group flex items-center gap-2.5 rounded-xl border border-border/50 bg-card/50 px-2.5 py-2 text-left backdrop-blur-sm hover:border-forja-violet/35 hover:bg-card"
+              className={cn(
+                "stagger-in lift-card raise group flex min-w-0 flex-col rounded-2xl border border-border/60 bg-card p-1.5 pb-2.5 text-left hover:border-forja-violet/40",
+                i === SUGGESTIONS.length - 1 && SUGGESTIONS.length % 2 === 1 && "col-span-2"
+              )}
             >
-              <span className={cn("inline-flex size-7 shrink-0 items-center justify-center rounded-lg", s.tint)}>
-                <s.icon className="size-3.5" />
+              <Miniatura kind={s.thumb} color={s.color} wide={i === SUGGESTIONS.length - 1 && SUGGESTIONS.length % 2 === 1} />
+              <span className="mt-2 block truncate px-1.5 text-[13.5px] font-semibold leading-tight text-foreground">
+                {s.title}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-medium leading-tight text-foreground">{s.title}</span>
-                <span className="block truncate text-[11px] leading-tight text-muted-foreground">{s.hint}</span>
-              </span>
-              <ArrowUpRight className="size-3 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-50" />
+              <span className="block truncate px-1.5 text-[11.5px] leading-tight text-muted-foreground">{s.hint}</span>
             </button>
           ))}
         </div>

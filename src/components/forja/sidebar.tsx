@@ -463,7 +463,7 @@ export function Sidebar({
 }
 
 /** Claro / Oscuro / Sistema como tira de tres, para verlo de un vistazo. */
-function ThemeSegmented() {
+export function ThemeSegmented() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);

@@ -1,18 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/forja/theme-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Fuentes autoalojadas (paquete «geist»): el build ya no depende de que
+// fonts.googleapis.com responda, y la PWA las sirve desde su propio origen.
+const geistSans = GeistSans;
+const geistMono = GeistMono;
 
 const APP_NAME = "Forja IA";
 const APP_DESCRIPTION =

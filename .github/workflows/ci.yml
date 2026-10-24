@@ -32,6 +32,13 @@ jobs:
       - name: Instalar dependencias
         run: npm ci --no-fund --no-audit
 
+      # Los ZIP demo de public/ los leen tests unitarios y E2E. Se regeneran
+      # aquí para que un olvido al subir binarios no ponga el CI en rojo.
+      - name: Generar los ZIP demo
+        run: |
+          python3 scripts/make-demo-zip.py
+          python3 scripts/make-esm-demo-zip.py
+
       - name: Lint
         run: npm run lint
 
@@ -61,6 +68,13 @@ jobs:
 
       - name: Instalar dependencias
         run: npm ci --no-fund --no-audit
+
+      # Los ZIP demo de public/ los leen tests unitarios y E2E. Se regeneran
+      # aquí para que un olvido al subir binarios no ponga el CI en rojo.
+      - name: Generar los ZIP demo
+        run: |
+          python3 scripts/make-demo-zip.py
+          python3 scripts/make-esm-demo-zip.py
 
       # El navegador es lo más lento de instalar: se cachea por versión de
       # Playwright, que es la que decide qué build hace falta.

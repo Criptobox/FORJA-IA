@@ -189,7 +189,7 @@ export function ModelPicker({
             // «shrink» y «min-w-0» anulan el shrink-0 del botón base: en pantallas
             // estrechas el selector debe encogerse, no empujar los iconos de la
             // cabecera fuera de la pantalla.
-            "h-9 min-w-0 max-w-[280px] shrink justify-between gap-2 rounded-xl border-border/70 bg-card/60 px-3 font-normal",
+            "raise h-9 min-w-0 max-w-[280px] shrink justify-between gap-2 rounded-xl border-border/70 bg-card/60 px-3 font-normal",
             className
           )}
         >
@@ -427,9 +427,12 @@ export function ModelPicker({
                       className="group flex items-center gap-2"
                     >
                       <ModelLogo modelId={m.modelId} providerId={m.providerId} className="size-[18px]" />
-                      <span className="min-w-0 flex-1 truncate">
-                        <span className="text-[13px]">{m.modelId}</span>
-                        <span className="ml-1.5 text-xs text-muted-foreground">{m.providerName}</span>
+                      {/* Dos niveles: el nombre del modelo ocupa su propia línea y
+                          se parte si hace falta (nada de «gemini-2.5-flash-pre…»);
+                          el proveedor va debajo. */}
+                      <span className="min-w-0 flex-1">
+                        <span className="block break-all font-mono text-[12.5px] leading-tight">{m.modelId}</span>
+                        <span className="block text-[11px] leading-tight text-muted-foreground">{m.providerName}</span>
                       </span>
                       {cooling > 0 && (
                         <span

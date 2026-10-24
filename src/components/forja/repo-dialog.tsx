@@ -125,9 +125,10 @@ function LocalRepoPanel({
       return;
     }
     let cancelled = false;
+    const ctl = new AbortController();
     setReposLoading(true);
     setReposError(null);
-    void ghListRepos(t)
+    void ghListRepos(t, { signal: ctl.signal })
       .then((list) => {
         if (!cancelled) setAvailableRepos(list);
       })
@@ -141,6 +142,7 @@ function LocalRepoPanel({
       });
     return () => {
       cancelled = true;
+      ctl.abort();
     };
   }, [token, repoReload]);
 

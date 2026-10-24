@@ -30,6 +30,8 @@ import { cn } from "@/lib/utils";
 import {
   ghGetToken,
   ghListRepos,
+  ghReposCacheGuardar,
+  ghReposCacheLeer,
   ghSetToken,
   GithubUploadError,
   prepareFiles,
@@ -74,6 +76,9 @@ export function GitHubDialog({
   const [repoOwner, setRepoOwner] = useState<string | undefined>(undefined);
   const [repos, setRepos] = useState<Awaited<ReturnType<typeof ghListRepos>>>([]);
   const [reposLoading, setReposLoading] = useState(false);
+  /** la petición de repos en curso: «Actualizar» o cerrar la cancelan, y una
+   *  respuesta de una petición vieja nunca pisa a la nueva */
+  const reposCtl = useRef<AbortController | null>(null);
   const [reposError, setReposError] = useState<string | null>(null);
   const [repoSearch, setRepoSearch] = useState("");
   const [isPrivate, setIsPrivate] = useState(true);
@@ -146,20 +151,47 @@ export function GitHubDialog({
     if (open) {
       const savedToken = ghGetToken();
       setToken(savedToken);
-      if (savedToken) {
-        setReposLoading(true);
-        setReposError(null);
-        void ghListRepos(savedToken).then(setRepos).catch((e) => {
-          setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
-        }).finally(() => setReposLoading(false));
-      }
+      if (savedToken) void cargarRepos(savedToken);
       // webkitdirectory no es un prop estándar en React: se asigna por atributo
       folderRef.current?.setAttribute("webkitdirectory", "");
       folderRef.current?.setAttribute("directory", "");
+    } else {
+      reposCtl.current?.abort();
     }
+    return () => reposCtl.current?.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const totalBytes = useMemo(() => items.reduce((n, it) => n + it.file.size, 0), [items]);
+
+  /** Carga (o recarga) la lista. Cancela la anterior; muestra las páginas según llegan. */
+  const cargarRepos = async (tok: string) => {
+    reposCtl.current?.abort();
+    const ctl = new AbortController();
+    reposCtl.current = ctl;
+    setReposLoading(true);
+    setReposError(null);
+    // lo último que vimos, al instante; la lista nueva lo reemplaza al llegar
+    const guardados = ghReposCacheLeer(tok);
+    if (guardados.length) setRepos((actual) => (actual.length ? actual : guardados));
+    try {
+      const list = await ghListRepos(tok, {
+        signal: ctl.signal,
+        onParcial: (parcial) => {
+          if (reposCtl.current === ctl) setRepos(parcial);
+        },
+      });
+      if (reposCtl.current !== ctl) return;
+      setRepos(list);
+      if (list.length) ghReposCacheGuardar(tok, list);
+      if (!list.length) setReposError("No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo.");
+    } catch (e) {
+      if (ctl.signal.aborted || reposCtl.current !== ctl) return;
+      setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
+    } finally {
+      if (reposCtl.current === ctl) setReposLoading(false);
+    }
+  };
 
   const loadRepos = async () => {
     const currentToken = token.trim() || ghGetToken();
@@ -168,18 +200,7 @@ export function GitHubDialog({
       setRepos([]);
       return;
     }
-    if (reposLoading) return;
-    setReposLoading(true);
-    setReposError(null);
-    try {
-      const list = await ghListRepos(currentToken);
-      setRepos(list);
-      if (!list.length) setReposError("No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo.");
-    } catch (e) {
-      setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
-    } finally {
-      setReposLoading(false);
-    }
+    await cargarRepos(currentToken);
   };
 
   const filteredRepos = useMemo(() => {
@@ -392,9 +413,7 @@ export function GitHubDialog({
               const nextToken = a?.token ?? ghGetToken();
               setToken(nextToken);
               if (nextToken) {
-                        setReposLoading(true);
-                setReposError(null);
-                void ghListRepos(nextToken).then((list) => { setRepos(list); setReposError(list.length ? null : "No se encontraron repositorios accesibles. Puedes escribir el nombre para crear uno nuevo."); }).catch((e) => setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.")).finally(() => setReposLoading(false));
+                void cargarRepos(nextToken);
               }
             }} />
           </section>
@@ -406,7 +425,7 @@ export function GitHubDialog({
             <div className="space-y-2 rounded-xl border-2 border-forja-violet/40 bg-card/70 p-3">
               <div className="flex items-center justify-between gap-2">
                 <Label className="flex items-center gap-1.5 text-xs font-semibold"><Github className="size-4" /> Selecciona un repositorio existente</Label>
-                <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" disabled={reposLoading} onClick={() => void loadRepos()}>
+                <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={() => void loadRepos()}>
                   <RefreshCw className={cn("mr-1 size-3.5", reposLoading && "animate-spin")} /> Actualizar
                 </Button>
               </div>

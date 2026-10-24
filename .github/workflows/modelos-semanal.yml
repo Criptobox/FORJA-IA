@@ -1,0 +1,68 @@
+# Forja IA — Vigilante semanal de modelos retirados.
+#
+# Los proveedores retiran modelos sin avisar a nadie, y entonces la prueba
+# «ningún modelo ofrecido consta retirado» pone el CI en rojo de un día para
+# otro (pasó con o4-mini el 2026-10-23). Aquí se regenera la tabla de
+# retirados cada lunes y, si la app aún ofrece alguno, se abre un issue con
+# qué cambiar, ANTES de que el CI falle por sorpresa.
+name: Modelos retirados
+
+on:
+  schedule:
+    - cron: "17 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  vigilar:
+    name: Comprobar listas de modelos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-fund --no-audit
+
+      - name: Regenerar la tabla y sacar el informe
+        run: npm run modelos 2>&1 | tee informe.txt
+
+      - name: ¿La app ofrece algún modelo retirado?
+        id: prueba
+        continue-on-error: true
+        run: npx vitest run tests/unit/modelos-viejos.test.ts 2>&1 | tee prueba.txt
+
+      - name: Abrir issue si hay modelos muertos
+        if: steps.prueba.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "La prueba de modelos retirados falla: la app ofrece modelos que su proveedor ya retiró."
+            echo
+            echo "Edita \`defaultModels\` en \`src/lib/forja/providers.ts\` y quita o sustituye los que salen abajo."
+            echo
+            echo '```'
+            grep -E "retirado el" prueba.txt | head -20
+            echo '```'
+            echo
+            echo "<details><summary>Informe de \`npm run modelos\`</summary>"
+            echo
+            echo '```'
+            head -c 12000 informe.txt
+            echo '```'
+            echo "</details>"
+          } > cuerpo.md
+          existente=$(gh issue list --state open --label modelos-retirados --json number --jq '.[0].number // empty')
+          if [ -n "$existente" ]; then
+            gh issue comment "$existente" --body-file cuerpo.md
+          else
+            gh label create modelos-retirados --color D93F0B --description "Modelos ofrecidos que el proveedor retiró" 2>/dev/null || true
+            gh issue create --title "Modelos retirados en la lista de la app" --label modelos-retirados --body-file cuerpo.md
+          fi

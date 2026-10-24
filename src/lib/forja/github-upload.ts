@@ -245,14 +245,29 @@ async function reintentable(res: Response): Promise<number | null> {
   return null;
 }
 
-function ghFetchCon(fetchImpl?: GhFetch, dormir: Dormir = dormirReal) {
+/** Ajustes de una llamada concreta. Las consultas de solo lectura (listar
+ *  repos) no pueden tardar lo que tarda una subida: un móvil con la red
+ *  colgada dejaba la pantalla «Cargando…» más de dos minutos, sin salida. */
+export interface GhOpciones {
+  /** tiempo máximo por intento (por defecto, el de una subida) */
+  timeoutMs?: number;
+  /** esperas entre reintentos (por defecto 1 s, 3 s y 7 s) */
+  esperas?: number[];
+  /** para cancelar desde fuera: cierra el diálogo o pulsa «Actualizar» */
+  signal?: AbortSignal;
+}
+
+function ghFetchCon(fetchImpl?: GhFetch, dormir: Dormir = dormirReal, opciones: GhOpciones = {}) {
   const f: GhFetch = fetchImpl ?? ((u, i) => fetch(u, i));
+  const esperas = opciones.esperas ?? ESPERAS_MS;
   return async (token: string, path: string, init?: RequestInit): Promise<Response> => {
     const url = path.startsWith("http") ? path : GH_API + path;
     const cuerpo = typeof init?.body === "string" ? init.body.length : 0;
     let ultimoError: unknown = null;
-    for (let intento = 0; intento <= ESPERAS_MS.length; intento++) {
+    for (let intento = 0; intento <= esperas.length; intento++) {
+      if (opciones.signal?.aborted) throw new DOMException("Cancelado", "AbortError");
       try {
+        const limite = AbortSignal.timeout(opciones.timeoutMs ?? tiempoMaximo(cuerpo));
         const res = await f(url, {
           ...init,
           headers: {
@@ -261,18 +276,20 @@ function ghFetchCon(fetchImpl?: GhFetch, dormir: Dormir = dormirReal) {
             "X-GitHub-Api-Version": "2022-11-28",
             ...(init?.headers ?? {}),
           },
-          signal: AbortSignal.timeout(tiempoMaximo(cuerpo)),
+          signal: opciones.signal ? AbortSignal.any([limite, opciones.signal]) : limite,
         });
-        const espera = intento < ESPERAS_MS.length ? await reintentable(res) : null;
+        const espera = intento < esperas.length ? await reintentable(res) : null;
         if (espera === null) return res;
         // GitHub puede pedir esperar mucho: más de un minuto no se espera, se dice
         if (espera > 60_000) return res;
-        await dormir(Math.max(espera, ESPERAS_MS[intento]));
+        await dormir(Math.max(espera, esperas[intento]));
       } catch (e) {
+        // cancelado por quien llamó: no se reintenta ni se disfraza de fallo de red
+        if (opciones.signal?.aborted) throw e;
         // corte de red o tiempo agotado: se reintenta igual
         ultimoError = e;
-        if (intento >= ESPERAS_MS.length) break;
-        await dormir(ESPERAS_MS[intento]);
+        if (intento >= esperas.length) break;
+        await dormir(esperas[intento]);
       }
     }
     throw new Error(
@@ -427,33 +444,25 @@ export async function ghResolveAccount(token: string, source: "oauth" | "pat"): 
   };
 }
 
-export async function ghListRepos(token: string): Promise<
-  { owner: string; repo: string; fullName: string; isPrivate: boolean; defaultBranch: string; htmlUrl: string }[]
-> {
-  // GitHub permite hasta 100 repositorios por página. Paginar evita que los
-  // repositorios antiguos o de una organización desaparezcan de la selección
-  // cuando la cuenta tiene más de 30. El límite defensivo evita una petición
-  // infinita si la API devuelve páginas mal formadas.
-  const all: {
-    name?: string;
-    full_name?: string;
-    private?: boolean;
-    default_branch?: string;
-    html_url?: string;
-    owner?: { login?: string };
-  }[] = [];
-  const maxPages = 20;
-  for (let page = 1; page <= maxPages; page++) {
-    const res = await ghFetch(
-      token,
-      `/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner,collaborator,organization_member`
-    );
-    if (!res.ok) await ghJsonError(res, "No se pudieron listar tus repositorios", token);
-    const batch = (await res.json()) as typeof all;
-    if (!Array.isArray(batch) || batch.length === 0) break;
-    all.push(...batch);
-    if (batch.length < 100) break;
-  }
+export type GhRepoItem = {
+  owner: string;
+  repo: string;
+  fullName: string;
+  isPrivate: boolean;
+  defaultBranch: string;
+  htmlUrl: string;
+};
+
+interface GhRepoCrudo {
+  name?: string;
+  full_name?: string;
+  private?: boolean;
+  default_branch?: string;
+  html_url?: string;
+  owner?: { login?: string };
+}
+
+function normalizarRepos(all: GhRepoCrudo[]): GhRepoItem[] {
   const seen = new Set<string>();
   return all
     .map((r) => ({
@@ -470,6 +479,67 @@ export async function ghListRepos(token: string): Promise<
       seen.add(key);
       return true;
     });
+}
+
+/** Última lista de repos vista, para pintarla al instante mientras llega la
+ *  nueva. Se guarda por «huella» del token (no el token) para que otra cuenta
+ *  nunca vea los repos de la anterior. Solo en este dispositivo. */
+const CLAVE_CACHE_REPOS = "forja-gh-repos-v1";
+function huellaToken(token: string): string {
+  let h = 5381;
+  for (let i = 0; i < token.length; i++) h = ((h * 33) ^ token.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+export function ghReposCacheLeer(token: string): GhRepoItem[] {
+  try {
+    const j = JSON.parse(localStorage.getItem(CLAVE_CACHE_REPOS) ?? "null") as
+      | { huella?: string; lista?: GhRepoItem[] }
+      | null;
+    return j?.huella === huellaToken(token) && Array.isArray(j.lista) ? j.lista : [];
+  } catch {
+    return [];
+  }
+}
+export function ghReposCacheGuardar(token: string, lista: GhRepoItem[]): void {
+  try {
+    localStorage.setItem(CLAVE_CACHE_REPOS, JSON.stringify({ huella: huellaToken(token), lista }));
+  } catch {
+    /* sin almacenamiento: no pasa nada, solo se pierde la caché */
+  }
+}
+
+/** Lista tus repos. Pensado para que la pantalla NUNCA se quede colgada:
+ *  15 s por intento y un solo reintento (≈ 31 s en el peor caso, no más de
+ *  dos minutos como antes), cancelable, y `onParcial` entrega cada página en
+ *  cuanto llega para que se vean repos sin esperar a las 20 páginas. */
+export async function ghListRepos(
+  token: string,
+  opts: { signal?: AbortSignal; onParcial?: (lista: GhRepoItem[]) => void; fetchImpl?: GhFetch } = {}
+): Promise<GhRepoItem[]> {
+  // GitHub permite hasta 100 repositorios por página. Paginar evita que los
+  // repositorios antiguos o de una organización desaparezcan de la selección
+  // cuando la cuenta tiene más de 30. El límite defensivo evita una petición
+  // infinita si la API devuelve páginas mal formadas.
+  const gh = ghFetchCon(opts.fetchImpl, dormirReal, {
+    timeoutMs: 15_000,
+    esperas: [1500],
+    signal: opts.signal,
+  });
+  const all: GhRepoCrudo[] = [];
+  const maxPages = 20;
+  for (let page = 1; page <= maxPages; page++) {
+    const res = await gh(
+      token,
+      `/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner,collaborator,organization_member`
+    );
+    if (!res.ok) await ghJsonError(res, "No se pudieron listar tus repositorios", token);
+    const batch = (await res.json()) as GhRepoCrudo[];
+    if (!Array.isArray(batch) || batch.length === 0) break;
+    all.push(...batch);
+    if (batch.length < 100) break;
+    opts.onParcial?.(normalizarRepos(all));
+  }
+  return normalizarRepos(all);
 }
 
 export interface RepoDestino {

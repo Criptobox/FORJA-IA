@@ -260,7 +260,7 @@ export function ChatInput({
         )}
         <div
           className={cn(
-            "glass flex flex-col gap-1.5 rounded-2xl border border-border/80 p-2 shadow-lg shadow-black/[0.06] transition focus-within:border-forja-violet/50 dark:shadow-black/30",
+            "glass raise flex flex-col gap-1.5 rounded-2xl border border-border/80 p-2 transition focus-within:border-forja-violet/50",
             disabled && "opacity-60"
           )}
         >

@@ -70,11 +70,11 @@ export const PROVIDERS: ProviderDef[] = [
   {
     id: "openai",
     name: "OpenAI",
-    tagline: "GPT-5, GPT-4.1, o4-mini · sin capa gratuita",
+    tagline: "GPT-5, GPT-4.1, o3 · sin capa gratuita",
     protocol: "openai",
     baseUrl: "https://api.openai.com/v1",
     keyUrl: "https://platform.openai.com/api-keys",
-    defaultModels: ["gpt-4o", "gpt-4.1", "gpt-4.1-mini", "gpt-5", "gpt-5-mini", "o3", "o4-mini"],
+    defaultModels: ["gpt-4o", "gpt-4.1", "gpt-4.1-mini", "gpt-5", "gpt-5-mini", "o3"],
     color: "#10A37F",
   },
   {

@@ -35,6 +35,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Sidebar } from "./sidebar";
+import { EcosistemaSheet, MobileNav, type PestanaMovil } from "./mobile-nav";
 import { ChatInput } from "./chat-input";
 import { MessageItem } from "./message";
 import { PropuestaCard } from "./propuesta-card";
@@ -225,6 +226,7 @@ export function ChatApp() {
   const [imageMode, setImageMode] = useState(false);
   const [focusProvider, setFocusProvider] = useState<ProviderId | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [ecoOpen, setEcoOpen] = useState(false);
   const [usageOpen, setUsageOpen] = useState(false);
   const [failuresOpen, setFailuresOpen] = useState(false);
   // U2-U6 (PLAN-V7): diálogos de utilidad que abre el slash (/snip, /plantillas,
@@ -1473,7 +1475,7 @@ export function ChatApp() {
           size="sm"
           variant={isAutoKey(modelKey) ? "default" : "outline"}
           className={cn(
-            "h-9 shrink-0 gap-1 px-2.5 text-xs",
+            "raise h-9 shrink-0 gap-1 px-2.5 text-xs",
             isAutoKey(modelKey) && "forja-gradient-bg border-0 text-white hover:opacity-90"
           )}
           onClick={() => {
@@ -1903,6 +1905,28 @@ export function ChatApp() {
                 : undefined
         }
       />
+      {/* Barra de 4 pestañas (solo móvil): Crear · Proyectos · Modelos · Ecosistema */}
+      {!focusMode && (
+        <MobileNav
+          activa={ecoOpen ? "ecosistema" : sidebarOpen ? "proyectos" : "crear"}
+          onSelect={(id: PestanaMovil) => {
+            if (id === "crear") {
+              setEcoOpen(false);
+              setSidebarOpen(false);
+              if (hasMessages) createSession();
+              requestAnimationFrame(() => {
+                document.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+              });
+            } else if (id === "proyectos") {
+              setSidebarOpen(true);
+            } else if (id === "modelos") {
+              window.dispatchEvent(new CustomEvent("forja-open-model-picker"));
+            } else {
+              setEcoOpen(true);
+            }
+          }}
+        />
+      )}
     </main>
   );
 
@@ -2012,6 +2036,30 @@ export function ChatApp() {
           />
         </SheetContent>
       </Sheet>
+
+      {/* Hoja de Ecosistema (móvil) */}
+      <EcosistemaSheet
+        open={ecoOpen}
+        onOpenChange={setEcoOpen}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenSandbox={() => setSandboxOpen(true)}
+        onOpenStudio={() => setStudioOpen(true)}
+        onOpenRepos={() => setReposOpen(true)}
+        onOpenGithub={() => setGithubOpen(true)}
+        onOpenPanel={() => setSystemOpen(true)}
+        onOpenRadar={() => setRadarOpen(true)}
+        onOpenArena={() => setArenaOpen(true)}
+        onOpenLibrary={() => setLibraryOpen(true)}
+        onOpenKnowledgeBase={() => setKbOpen(true)}
+        onOpenSkills={() => setSkillsOpen(true)}
+        onOpenFailures={() => setFailuresOpen(true)}
+        onOpenUsage={() => setUsageOpen(true)}
+        onOpenRepaso={() => setRepasoOpen(true)}
+        repasoVencidas={repasoVencidas}
+        onOpenOfertas={() => setOfertasOpen(true)}
+        ofertasNuevas={ofertasNuevas}
+        onOpenGuide={() => setOnboardingOpen(true)}
+      />
 
       {/* Área principal + vista previa (escritorio) */}
       {showPreviewPane ? (
