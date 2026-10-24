@@ -1,7 +1,7 @@
 "use client";
 /** Forja IA — Subir una carpeta entera a GitHub (sin límite de 100 archivos).
  * Token guardado solo en tu dispositivo; subida por lotes con 1 commit por lote. */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   ExternalLink,
@@ -79,6 +79,8 @@ export function GitHubDialog({
   /** la petición de repos en curso: «Actualizar» o cerrar la cancelan, y una
    *  respuesta de una petición vieja nunca pisa a la nueva */
   const reposCtl = useRef<AbortController | null>(null);
+  /** de qué token es la carga en curso: pedir otra vez lo mismo no la reinicia */
+  const reposTok = useRef<string | null>(null);
   const [reposError, setReposError] = useState<string | null>(null);
   const [repoSearch, setRepoSearch] = useState("");
   const [isPrivate, setIsPrivate] = useState(true);
@@ -165,10 +167,13 @@ export function GitHubDialog({
   const totalBytes = useMemo(() => items.reduce((n, it) => n + it.file.size, 0), [items]);
 
   /** Carga (o recarga) la lista. Cancela la anterior; muestra las páginas según llegan. */
-  const cargarRepos = async (tok: string) => {
+  const cargarRepos = useCallback(async (tok: string, forzar = false) => {
+    // ya se está cargando con este mismo token: no se cancela para empezar igual
+    if (!forzar && reposCtl.current && !reposCtl.current.signal.aborted && reposTok.current === tok) return;
     reposCtl.current?.abort();
     const ctl = new AbortController();
     reposCtl.current = ctl;
+    reposTok.current = tok;
     setReposLoading(true);
     setReposError(null);
     // lo último que vimos, al instante; la lista nueva lo reemplaza al llegar
@@ -189,9 +194,22 @@ export function GitHubDialog({
       if (ctl.signal.aborted || reposCtl.current !== ctl) return;
       setReposError(e instanceof Error ? e.message : "No se pudieron cargar los repositorios.");
     } finally {
-      if (reposCtl.current === ctl) setReposLoading(false);
+      if (reposCtl.current === ctl) {
+        setReposLoading(false);
+        reposTok.current = null;
+      }
     }
-  };
+  }, []);
+
+  /** Estable a propósito: ver el comentario de GitHubConnect. */
+  const alCambiarCuenta = useCallback(
+    (a: { token?: string } | null) => {
+      const nextToken = a?.token ?? ghGetToken();
+      setToken(nextToken);
+      if (nextToken) void cargarRepos(nextToken);
+    },
+    [cargarRepos]
+  );
 
   const loadRepos = async () => {
     const currentToken = token.trim() || ghGetToken();
@@ -200,7 +218,7 @@ export function GitHubDialog({
       setRepos([]);
       return;
     }
-    await cargarRepos(currentToken);
+    await cargarRepos(currentToken, true);
   };
 
   const filteredRepos = useMemo(() => {
@@ -409,13 +427,7 @@ export function GitHubDialog({
             <Label className="flex items-center gap-1.5 text-xs">
               <KeyRound className="size-3.5 text-forja-violet" /> Paso 1 · Tu cuenta de GitHub
             </Label>
-            <GitHubConnect onChange={(a) => {
-              const nextToken = a?.token ?? ghGetToken();
-              setToken(nextToken);
-              if (nextToken) {
-                void cargarRepos(nextToken);
-              }
-            }} />
+            <GitHubConnect onChange={alCambiarCuenta} />
           </section>
 
           {/* Paso 2: repo */}
@@ -433,7 +445,7 @@ export function GitHubDialog({
                 <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
                 <Input value={repoSearch} onChange={(e) => setRepoSearch(e.target.value)} placeholder="Buscar por nombre o propietario…" className="h-9 pl-8 text-xs" aria-label="Buscar repositorios" />
               </div>
-              {reposLoading ? (
+              {reposLoading && !filteredRepos.length ? (
                 <p className="flex items-center gap-2 px-2 py-3 text-xs text-muted-foreground"><Loader2 className="size-3.5 animate-spin" /> Cargando tus repositorios de GitHub…</p>
               ) : reposError ? (
                 <div className="space-y-2 px-2 py-2 text-xs text-muted-foreground"><p>{reposError}</p><Button type="button" size="sm" variant="outline" onClick={() => void loadRepos()}>Reintentar</Button></div>

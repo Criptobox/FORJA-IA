@@ -49,6 +49,36 @@ test.describe("barra inferior móvil", () => {
     await page.getByRole("button", { name: "Pestaña Proyectos" }).click();
     await expect(page.getByRole("dialog", { name: "Conversaciones" })).toBeVisible();
   });
+
+  test("el panel Proyectos solo trae conversaciones, sin herramientas duplicadas ni doble X", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Pestaña Proyectos" }).click();
+    const panel = page.getByRole("dialog", { name: "Conversaciones" });
+    await expect(panel).toBeVisible();
+    await expect(panel.getByRole("button", { name: /Nueva conversación/ })).toBeVisible();
+    // las herramientas viven solo en Ecosistema
+    for (const n of ["Sandbox", "Web Studio", "Panel", "Radar", "Ajustes"]) {
+      await expect(panel.getByRole("button", { name: n, exact: true })).toHaveCount(0);
+    }
+    // un único botón de cerrar
+    await expect(panel.getByRole("button", { name: /cerrar|close/i })).toHaveCount(1);
+  });
+
+  test("Web Studio en móvil va por páginas, a pantalla completa y sin desbordes", async ({ page }) => {
+    await page.getByRole("button", { name: "Pestaña Ecosistema" }).click();
+    await page.getByRole("button", { name: "Web Studio", exact: true }).click();
+    const dialogo = page.getByRole("dialog", { name: /Forja Web Studio/ });
+    await expect(dialogo).toBeVisible();
+    const caja = await dialogo.boundingBox();
+    expect(Math.round(caja?.width ?? 0)).toBe(390);
+    // el brief está a la vista sin apilar antes las tarjetas de estado
+    await expect(dialogo.getByText("Brief del trabajo")).toBeInViewport();
+    // el flujo es su propia página
+    await dialogo.getByRole("tab", { name: "Flujo" }).click();
+    await expect(dialogo.getByText("Proyecto → resultado").locator("visible=true")).toHaveCount(1);
+    const sobra = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(sobra).toBeLessThanOrEqual(0);
+  });
 });
 
 test("en escritorio la barra inferior no existe", async ({ page }) => {

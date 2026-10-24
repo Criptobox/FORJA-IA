@@ -101,8 +101,8 @@ test("el panel de Uso lista los modelos con pegas medidas", async ({ page }) => 
   });
   await page.goto("/");
 
-  // Panel del sistema → pestaña Uso (en móvil la barra vive tras el menú)
-  const menu = page.getByRole("button", { name: /^Abrir conversaciones/ });
+  // Panel del sistema → pestaña Uso (en móvil las herramientas viven en la pestaña Ecosistema)
+  const menu = page.getByRole("button", { name: "Pestaña Ecosistema" });
   if (await menu.isVisible().catch(() => false)) await menu.click();
   await page.getByRole("button", { name: "Panel", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("Panel del sistema", { timeout: 20_000 });

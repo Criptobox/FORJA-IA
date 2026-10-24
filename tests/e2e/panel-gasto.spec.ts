@@ -79,8 +79,8 @@ async function enviar(page: Page, texto: string) {
 }
 
 async function abrirPanel(page: Page) {
-  // en móvil la barra lateral vive detrás del botón de conversaciones
-  const menu = page.getByRole("button", { name: /^Abrir conversaciones/ });
+  // en móvil las herramientas están en la hoja de Ecosistema (pestaña inferior)
+  const menu = page.getByRole("button", { name: "Pestaña Ecosistema" });
   if (await menu.isVisible().catch(() => false)) await menu.click();
   await page.getByRole("button", { name: "Panel", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("Panel del sistema", { timeout: 20_000 });

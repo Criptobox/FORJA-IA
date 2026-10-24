@@ -83,7 +83,7 @@ function espiarCuerpos(page: Page): Record<string, unknown>[] {
 }
 
 async function abrirPanel(page: Page) {
-  const menu = page.getByRole("button", { name: /^Abrir conversaciones/ });
+  const menu = page.getByRole("button", { name: "Pestaña Ecosistema" });
   if (await menu.isVisible().catch(() => false)) await menu.click();
   await page.getByRole("button", { name: "Panel", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("Panel del sistema", { timeout: 20_000 });

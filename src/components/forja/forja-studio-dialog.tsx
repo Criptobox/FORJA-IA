@@ -37,6 +37,8 @@ export function ForjaStudioDialog({
   onRunVisualQA?: () => Promise<QAResult[]>;
 }) {
   const [brief, setBrief] = useState("");
+  /** página visible (móvil: una por pantalla) */
+  const [pagina, setPagina] = useState("studio");
   const [stage, setStage] = useState<"brief"|"plan"|"build"|"qa"|"fix"|"regression"|"publish">("brief");
   const [qa, setQa] = useState<QAResult[] | null>(null);
   /** todas las medidas de esta sesión del Studio: la regresión es la segunda */
@@ -110,15 +112,53 @@ export function ForjaStudioDialog({
   const doing = tasks.tasks.filter(t => t.status === "doing");
   const done = tasks.tasks.filter(t => t.status === "done");
 
+  // Las dos tarjetas de estado se pintan en un sitio u otro según el ancho:
+  // en escritorio van sobre las pestañas; en móvil cada una es SU página
+  // (Flujo y Salud), para no apilar cuatro bloques antes de llegar al brief.
+  const tarjetaWorkflow = (
+    <div className="min-w-0 rounded-2xl border border-border/60 bg-card/60 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div><p className="text-xs font-medium text-muted-foreground">Workflow</p><p className="text-sm font-semibold">Proyecto → resultado</p></div>
+        <span className="font-mono text-[10px] text-muted-foreground">{stage.toUpperCase()}</span>
+      </div>
+      {/* min-w-0 en el padre de arriba es lo que deja que ESTA fila
+          se quede dentro del ancho del diálogo en móvil: sin él, un
+          hijo grid/flex no se encoge por debajo del contenido de sus
+          descendientes aunque tengan overflow-x-auto, y los 7 botones
+          de etapa empujaban todo el diálogo fuera de la pantalla. */}
+      {estado.siguiente && (
+        <p className="mb-2 text-[11px] text-muted-foreground">
+          <span className="font-medium text-foreground">Siguiente: {WEB_STUDIO_STAGES.find((x) => x.id === estado.siguiente)?.label}</span> — {estado.motivo}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-1.5 pb-1 md:flex-nowrap md:gap-1 md:overflow-x-auto">
+        {WEB_STUDIO_STAGES.map((s, i) => (
+          <button key={s.id} onClick={() => setStage(s.id)} className={cn("flex min-w-max items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] transition", stage === s.id ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted")}>
+            {i > 0 && <ArrowRight className="size-3 opacity-40" />}
+            {estado.etapas[s.id] === "hecha" && <CheckCircle2 className="size-3 text-emerald-500" aria-label="hecha" />}
+            {estado.etapas[s.id] === "bloqueada" && <CircleAlert className="size-3 text-amber-500" aria-label="bloqueada" />}
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  const tarjetaSalud = (
+    <div className="min-w-0 rounded-2xl border border-border/60 bg-card/60 p-4">
+      <div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Project Health</p><p className="text-sm font-semibold">Solo evidencia disponible</p></div><Score value={health.score} /></div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">{health.score != null && <div className={cn("h-full rounded-full", health.score >= 85 ? "bg-emerald-500" : health.score >= 65 ? "bg-amber-500" : "bg-red-500")} style={{ width: `${health.score}%` }} />}</div>
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] w-[min(1120px,96vw)] overflow-hidden border-border/70 bg-background/95 p-0 backdrop-blur-xl">
-        <DialogHeader className="border-b border-border/60 px-5 py-4">
+      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none border-border/70 bg-background/95 p-0 backdrop-blur-xl sm:h-auto sm:max-h-[92vh] sm:w-[min(1120px,96vw)] sm:max-w-none sm:rounded-lg">
+        <DialogHeader className="shrink-0 text-left border-b border-border/60 px-4 py-3 pr-12 sm:px-5 sm:py-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20"><Sparkles className="size-5 text-primary" /></div>
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 sm:size-10"><Sparkles className="size-5 text-primary" /></div>
             <div className="min-w-0 flex-1">
               <DialogTitle>Forja Web Studio</DialogTitle>
-              <DialogDescription>Construye → ejecuta → mide → corrige → publica. Con evidencia cuando exista.</DialogDescription>
+              <DialogDescription className="line-clamp-1 text-xs sm:line-clamp-none sm:text-sm">Construye → ejecuta → mide → corrige → publica. Con evidencia cuando exista.</DialogDescription>
             </div>
             <div className="hidden items-center gap-2 sm:flex">
               <span className="rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 text-[10px] font-medium">LOCAL-FIRST</span>
@@ -127,53 +167,49 @@ export function ForjaStudioDialog({
           </div>
         </DialogHeader>
 
-        <div className="min-h-0 overflow-y-auto p-5">
-          <div className="mb-5 grid gap-3 md:grid-cols-[1.6fr_1fr]">
-            <div className="min-w-0 rounded-2xl border border-border/60 bg-card/60 p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <div><p className="text-xs font-medium text-muted-foreground">Workflow</p><p className="text-sm font-semibold">Proyecto → resultado</p></div>
-                <span className="font-mono text-[10px] text-muted-foreground">{stage.toUpperCase()}</span>
-              </div>
-              {/* min-w-0 en el padre de arriba es lo que deja que ESTA fila
-                  se quede dentro del ancho del diálogo en móvil: sin él, un
-                  hijo grid/flex no se encoge por debajo del contenido de sus
-                  descendientes aunque tengan overflow-x-auto, y los 7 botones
-                  de etapa empujaban todo el diálogo fuera de la pantalla. */}
-              {estado.siguiente && (
-                <p className="mb-2 text-[11px] text-muted-foreground">
-                  <span className="font-medium text-foreground">Siguiente: {WEB_STUDIO_STAGES.find((x) => x.id === estado.siguiente)?.label}</span> — {estado.motivo}
-                </p>
-              )}
-              <div className="flex gap-1 overflow-x-auto pb-1">
-                {WEB_STUDIO_STAGES.map((s, i) => (
-                  <button key={s.id} onClick={() => setStage(s.id)} className={cn("flex min-w-max items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] transition", stage === s.id ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted")}>
-                    {i > 0 && <ArrowRight className="size-3 opacity-40" />}
-                    {estado.etapas[s.id] === "hecha" && <CheckCircle2 className="size-3 text-emerald-500" aria-label="hecha" />}
-                    {estado.etapas[s.id] === "bloqueada" && <CircleAlert className="size-3 text-amber-500" aria-label="bloqueada" />}
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="min-w-0 rounded-2xl border border-border/60 bg-card/60 p-4">
-              <div className="flex items-center justify-between"><div><p className="text-xs text-muted-foreground">Project Health</p><p className="text-sm font-semibold">Solo evidencia disponible</p></div><Score value={health.score} /></div>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">{health.score != null && <div className={cn("h-full rounded-full", health.score >= 85 ? "bg-emerald-500" : health.score >= 65 ? "bg-amber-500" : "bg-red-500")} style={{ width: `${health.score}%` }} />}</div>
-            </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] pt-0 sm:p-5">
+          <div className="mb-5 hidden gap-3 md:grid md:grid-cols-[1.6fr_1fr]">
+            {tarjetaWorkflow}
+            {tarjetaSalud}
           </div>
 
-          <Tabs defaultValue="studio">
+          <Tabs value={pagina} onValueChange={setPagina}>
             {/* text-[11px] y px-1: con las cuatro en una fila («Web Studio»
                 es la más larga) el tamaño de fuente de por defecto de Tabs
                 (text-sm) las dejaba pegadas sin separación visible en
                 320-390px. */}
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="studio" className="px-1 text-[11px]">Web Studio</TabsTrigger>
-              <TabsTrigger value="health" className="px-1 text-[11px]">Health</TabsTrigger>
-              <TabsTrigger value="security" className="px-1 text-[11px]">Security</TabsTrigger>
-              <TabsTrigger value="tasks" className="px-1 text-[11px]">Tasks</TabsTrigger>
+            <TabsList className="no-scrollbar -mx-4 flex h-auto w-[calc(100%+2rem)] justify-start gap-1 overflow-x-auto rounded-none bg-background/95 px-4 py-2 max-md:sticky max-md:top-0 max-md:z-10 md:mx-0 md:grid md:w-full md:grid-cols-4 md:rounded-lg md:bg-muted md:p-[3px]">
+              <TabsTrigger value="studio" className="flex-none px-3 py-2 text-xs md:px-1 md:py-1 md:text-[11px]">Web Studio</TabsTrigger>
+              <TabsTrigger value="flujo" className="flex-none px-3 py-2 text-xs md:hidden">Flujo</TabsTrigger>
+              <TabsTrigger value="health" className="flex-none px-3 py-2 text-xs md:px-1 md:py-1 md:text-[11px]">Health</TabsTrigger>
+              <TabsTrigger value="security" className="flex-none px-3 py-2 text-xs md:px-1 md:py-1 md:text-[11px]">Security</TabsTrigger>
+              <TabsTrigger value="tasks" className="flex-none px-3 py-2 text-xs md:px-1 md:py-1 md:text-[11px]">Tasks</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="studio" className="mt-4 space-y-4">
+            {/* Franja de estado (solo móvil): etapa y salud en una línea; al
+                tocarla se abre la página de Flujo. Sustituye a las dos
+                tarjetas grandes que empujaban el brief fuera de la pantalla. */}
+            {pagina === "studio" && (
+              <button
+                type="button"
+                onClick={() => setPagina("flujo")}
+                className="raise mt-3 flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 text-left md:hidden"
+                aria-label="Ver el flujo del proyecto"
+              >
+                <span className="rounded-lg bg-primary/12 px-2 py-1 font-mono text-[10px] font-semibold text-primary">{stage.toUpperCase()}</span>
+                <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                  {estado.siguiente ? `Siguiente: ${WEB_STUDIO_STAGES.find((x) => x.id === estado.siguiente)?.label}` : "Flujo al día"}
+                </span>
+                <span className="font-mono text-lg font-semibold">{health.score ?? "—"}</span>
+                <ArrowRight className="size-4 text-muted-foreground" />
+              </button>
+            )}
+
+            <TabsContent value="flujo" className="mt-3 md:hidden">
+              {tarjetaWorkflow}
+            </TabsContent>
+
+            <TabsContent value="studio" className="mt-3 space-y-3 md:mt-4 md:space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="rounded-2xl border border-border/60 bg-card/50 p-4">
                   <div className="mb-3 flex items-center gap-2"><Code2 className="size-4 text-primary" /><h3 className="text-sm font-semibold">Brief del trabajo</h3></div>
@@ -204,7 +240,8 @@ export function ForjaStudioDialog({
               />
             </TabsContent>
 
-            <TabsContent value="health" className="mt-4">
+            <TabsContent value="health" className="mt-3 md:mt-4">
+              <div className="mb-3 md:hidden">{tarjetaSalud}</div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {health.metrics.map(m => <div key={m.id} className="rounded-2xl border border-border/60 bg-card/50 p-4"><div className="flex items-center justify-between"><span className="text-sm font-medium">{m.label}</span><Score value={m.score} /></div><p className="mt-1 text-xs text-muted-foreground">{m.detail}</p></div>)}
               </div>
@@ -272,7 +309,7 @@ export function ForjaStudioDialog({
             </TabsContent>
           </Tabs>
 
-          <div className="mt-5 grid gap-2 text-[10px] text-muted-foreground sm:grid-cols-3">
+          <div className="mt-5 hidden gap-2 text-[10px] text-muted-foreground sm:grid sm:grid-cols-3">
             <div className="flex items-center gap-2 rounded-xl border border-border/50 p-2.5"><Gauge className="size-3.5" />Sin datos = sin puntuación inventada</div>
             <div className="flex items-center gap-2 rounded-xl border border-border/50 p-2.5"><Terminal className="size-3.5" />QA y seguridad se ejecutan localmente</div>
             <div className="flex items-center gap-2 rounded-xl border border-border/50 p-2.5"><Rocket className="size-3.5" />Publicación sigue bajo control del usuario</div>

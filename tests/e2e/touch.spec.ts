@@ -130,8 +130,8 @@ test("las acciones de un mensaje se ven sin pasar el ratón", async ({ page }) =
 
 test("el Sandbox ocupa toda la pantalla en el móvil", async ({ page }) => {
   await page.goto("/");
-  // en el móvil el Sandbox se abre desde el panel lateral
-  await page.getByLabel("Abrir conversaciones").click();
+  // en el móvil el Sandbox se abre desde la hoja de Ecosistema
+  await page.getByRole("button", { name: "Pestaña Ecosistema" }).click();
   await page.getByRole("button", { name: "Sandbox", exact: false }).first().click();
 
   const dialogo = page.getByRole("dialog").filter({ hasText: "Navega el proyecto" });
@@ -163,7 +163,7 @@ test("el botón de instalar sigue estando aunque el navegador no ofrezca el diá
   // caso de iPhone y Firefox, donde antes el botón desaparecía y no quedaba
   // ninguna pista de cómo instalar la app
   await page.goto("/");
-  await page.getByLabel("Abrir conversaciones").click();
+  await page.getByRole("button", { name: "Pestaña Ecosistema" }).click();
   const boton = page.getByRole("dialog").getByLabel(/instalar Forja IA/i);
   await expect(boton).toBeVisible({ timeout: 30_000 });
   await expect(boton).toBeEnabled();

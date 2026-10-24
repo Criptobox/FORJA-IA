@@ -52,9 +52,9 @@ for (const [ancho, alto] of [[320, 780], [390, 780], [768, 1024]] as const) {
     await page.goto("/");
     await expect(page.locator("textarea").first()).toBeVisible({ timeout: 30_000 });
 
-    // en móvil la barra lateral es un drawer: se abre con la hamburguesa
+    // en móvil las herramientas están en la hoja de Ecosistema (pestaña inferior)
     if (ancho < 1024) {
-      await page.getByRole("button", { name: /Abrir conversaciones/ }).click();
+      await page.getByRole("button", { name: "Pestaña Ecosistema" }).click();
     }
     await page.getByRole("button", { name: "Ajustes" }).first().click();
     const dialogo = page.getByRole("dialog", { name: /Ajustes/ });
@@ -77,7 +77,7 @@ for (const [ancho, alto] of [[320, 780], [390, 780], [768, 1024]] as const) {
     await expect(page.locator("textarea").first()).toBeVisible({ timeout: 30_000 });
 
     if (ancho < 1024) {
-      await page.getByRole("button", { name: /Abrir conversaciones/ }).click();
+      await page.getByRole("button", { name: "Pestaña Ecosistema" }).click();
     }
     await page.getByRole("button", { name: "Panel", exact: true }).click();
     const dialogo = page.getByRole("dialog", { name: /Panel del sistema/ });

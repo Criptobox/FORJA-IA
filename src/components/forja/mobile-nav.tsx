@@ -36,7 +36,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
-import { ThemeSegmented } from "./sidebar";
+import { ThemeSegmented, VersionLine } from "./sidebar";
+import { InstallButton } from "./pwa";
 import { cn } from "@/lib/utils";
 
 export type PestanaMovil = "crear" | "proyectos" | "modelos" | "ecosistema";
@@ -192,6 +193,7 @@ export function EcosistemaSheet(p: EcosistemaProps) {
                   <button
                     key={t.label}
                     type="button"
+                    aria-label={t.label}
                     onClick={t.onClick}
                     className="raise relative flex min-w-0 flex-col items-start gap-1.5 rounded-2xl border border-border/60 bg-card p-2.5 text-left"
                   >
@@ -221,10 +223,12 @@ export function EcosistemaSheet(p: EcosistemaProps) {
         </div>
 
         <div className="border-t border-border/60 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] pt-2.5">
+          <div className="mb-1.5 flex items-center gap-1 rounded-lg bg-muted/40 p-0.5">
+            <InstallButton compact />
+          </div>
           <ThemeSegmented />
-          <p className="mt-2 text-center font-mono text-[11px] text-muted-foreground">
-            Sin cuentas · solo en tu dispositivo
-          </p>
+          <p className="mt-2 text-center text-[11px] text-muted-foreground">Sin cuentas · solo en tu dispositivo</p>
+          <VersionLine />
         </div>
       </SheetContent>
     </Sheet>

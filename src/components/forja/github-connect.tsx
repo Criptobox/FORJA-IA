@@ -199,9 +199,18 @@ export function GitHubConnect({
   const [pat, setPat] = useState("");
   const [savingPat, setSavingPat] = useState(false);
 
+  // `onChange` suele llegar como función nueva en cada render del padre. Con
+  // «onChange» en las dependencias, el efecto saltaba tras CADA render; si el
+  // padre reaccionaba cargando algo (los repos), cada carga provocaba otro
+  // render y otra carga: un bucle que dejaba el «Cargando…» para siempre.
+  // Se guarda en una ref: el aviso sale solo cuando cambia la cuenta.
+  const onChangeRef = useRef(onChange);
   useEffect(() => {
-    onChange?.(account);
-  }, [account, onChange]);
+    onChangeRef.current = onChange;
+  });
+  useEffect(() => {
+    onChangeRef.current?.(account);
+  }, [account]);
 
   const savePat = async () => {
     const t = pat.trim();

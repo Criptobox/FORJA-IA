@@ -1283,3 +1283,13 @@ html[data-accent="naranja"] {
   box-shadow: 0 8px 20px -6px color-mix(in oklab, var(--forja-pink) 55%, transparent);
 }
 }
+
+/* Barra de páginas deslizable sin barra de desplazamiento visible. */
+@layer components {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -78,6 +78,7 @@ export function Sidebar({
   onOpenOfertas,
   ofertasNuevas,
   onClose,
+  soloConversaciones = false,
 }: {
   onOpenSettings: () => void;
   onOpenLibrary?: () => void;
@@ -100,6 +101,9 @@ export function Sidebar({
   /** novedades sin ver de la Caza de ofertas: insignia ámbar, como el Repaso */
   ofertasNuevas?: number;
   onClose?: () => void;
+  /** Panel móvil «Proyectos»: solo conversaciones. Las herramientas, el tema y
+   *  los ajustes viven en la hoja de Ecosistema, así no hay dos menús iguales. */
+  soloConversaciones?: boolean;
 }) {
   const router = useRouter();
   const sessions = useForja((s) => s.sessions);
@@ -250,7 +254,7 @@ export function Sidebar({
             Forja <span className="forja-gradient-text">IA</span>
           </h1>
         </div>
-        {onClose && (
+        {onClose && !soloConversaciones && (
           <Button variant="ghost" size="icon" className="size-8 lg:hidden" onClick={onClose}>
             <X className="size-4" />
           </Button>
@@ -394,6 +398,12 @@ export function Sidebar({
         )}
       </div>
 
+      {soloConversaciones ? (
+        <div className="safe-bottom border-t border-border/60 px-3 py-2">
+          <VersionLine />
+        </div>
+      ) : (
+        <>
       {/* Pie: tira de ajustes + 4 atajos densos + Más. Evita la cuadrícula
           3×3 (9 celdas) que se veía rala y con GitHub colgando. */}
       <div className="safe-bottom border-t border-border/60 px-2 py-2">
@@ -458,6 +468,8 @@ export function Sidebar({
         </p>
         <VersionLine />
       </div>
+        </>
+      )}
     </div>
   );
 }
@@ -511,7 +523,7 @@ export function ThemeSegmented() {
   );
 }
 
-function VersionLine() {
+export function VersionLine() {
   const [info, setInfo] = useState<{
     version: string;
     latest: string | null;

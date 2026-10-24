@@ -225,10 +225,10 @@ test("«Iniciar con agente» prepara el contexto (Cerebro + Knowledge Base) y de
 for (const w of [320, 390, 768]) {
   test(`Web Studio sin desbordes a ${w}px`, async ({ page }) => {
     await page.setViewportSize({ width: w, height: 780 });
-    // Por debajo del breakpoint `lg` la barra lateral vive dentro de un Sheet
-    // cerrado: hay que abrirlo con el botón de hamburguesa antes de llegar
-    // al botón "Web Studio", igual que haría alguien en el móvil.
-    const abrirMenu = page.getByRole("button", { name: /Abrir conversaciones/ });
+    // Por debajo del breakpoint `lg` las herramientas viven en la hoja de
+    // Ecosistema: se abre con la pestaña inferior antes de llegar al botón
+    // "Web Studio", igual que haría alguien en el móvil.
+    const abrirMenu = page.getByRole("button", { name: "Pestaña Ecosistema" });
     if (await abrirMenu.isVisible().catch(() => false)) {
       await abrirMenu.click();
     }

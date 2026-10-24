@@ -1963,7 +1963,7 @@ export function ChatApp() {
 
       {/* Sidebar móvil */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-[280px] border-border/60 p-0">
+        <SheetContent side="left" className="w-[86vw] max-w-[340px] border-border/60 p-0">
           <SheetTitle className="sr-only">Conversaciones</SheetTitle>
           <Sidebar
             onOpenSettings={() => {
@@ -2033,6 +2033,7 @@ export function ChatApp() {
               setSidebarOpen(false);
             }}
             onClose={() => setSidebarOpen(false)}
+            soloConversaciones
           />
         </SheetContent>
       </Sheet>

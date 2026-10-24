@@ -279,18 +279,18 @@ export function Welcome({
             sugerencias genéricas. Solo si hay algo real que retomar. */}
         {recent && onResume && (
           <div
-            className="stagger-in mt-4 grid grid-cols-1 gap-1.5 sm:grid-cols-3"
+            className="stagger-in mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3"
             style={{ "--stagger": 5 } as React.CSSProperties}
           >
             <button
               type="button"
               onClick={() => onResume(recent.id)}
               title={`Volver a «${recent.title}», con su contexto delante`}
-              className="lift-card group flex items-center gap-2.5 rounded-xl border border-forja-violet/25 bg-forja-violet/[0.06] px-2.5 py-2 text-left backdrop-blur-sm hover:border-forja-violet/50 hover:bg-forja-violet/10"
+              className="lift-card raise group flex min-w-0 items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-2.5 text-left hover:border-forja-violet/40 col-span-2 sm:col-span-1"
             >
-              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-forja-violet/15 text-forja-violet">
-                <History className="size-3.5" />
-              </span>
+              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl" style={{ color: "#f97316", background: "color-mix(in srgb, #f97316 16%, transparent)" }}>
+                  <History className="size-[18px]" />
+                </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
                   Continuar «{recent.title}»
@@ -305,10 +305,10 @@ export function Welcome({
                 type="button"
                 onClick={onOpenRadar}
                 title="Ofertas y novedades de modelos gratis"
-                className="lift-card group flex items-center gap-2.5 rounded-xl border border-forja-cyan/25 bg-forja-cyan/[0.06] px-2.5 py-2 text-left backdrop-blur-sm hover:border-forja-cyan/50 hover:bg-forja-cyan/10"
+                className="lift-card raise group flex min-w-0 items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-2.5 text-left hover:border-forja-violet/40"
               >
-                <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-forja-cyan/15 text-forja-cyan">
-                  <Telescope className="size-3.5" />
+                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl" style={{ color: "#06b6d4", background: "color-mix(in srgb, #06b6d4 16%, transparent)" }}>
+                  <Telescope className="size-[18px]" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
@@ -329,10 +329,10 @@ export function Welcome({
                   )
                 }
                 title="Pega un stack trace y te lo traduce"
-                className="lift-card group flex items-center gap-2.5 rounded-xl border border-forja-pink/25 bg-forja-pink/[0.06] px-2.5 py-2 text-left backdrop-blur-sm hover:border-forja-pink/50 hover:bg-forja-pink/10"
+                className="lift-card raise group flex min-w-0 items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-2.5 text-left hover:border-forja-violet/40"
               >
-                <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-forja-pink/15 text-forja-pink">
-                  <Bug className="size-3.5" />
+                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl" style={{ color: "#ef4444", background: "color-mix(in srgb, #ef4444 16%, transparent)" }}>
+                  <Bug className="size-[18px]" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
