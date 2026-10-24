@@ -129,7 +129,7 @@ test("un ZIP de Windows con node_modules sube limpio, en un commit, reemplazando
   await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: "GitHub" }).first().click();
   await expect(page.getByText("Paso 3 · Carpeta a subir")).toBeVisible();
-  await page.getByPlaceholder("forja-ia").fill("web");
+  await page.getByRole("textbox", { name: "Nombre del repositorio o propietario/repositorio" }).fill("web");
 
   const zip = zipCp437([
     { nombre: bytes("web/index.html"), datos: '<!doctype html><a href="diseño.html">x</a>' },

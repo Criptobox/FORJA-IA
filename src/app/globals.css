@@ -1188,6 +1188,10 @@ html[data-accent="naranja"] {
    cápsula del compositor. Todo cuelga de los tokens del tema, así que sigue
    al acento y al claro/oscuro sin tocar nada más.
    ========================================================================== */
+/* Dentro de @layer components: así las utilidades de Tailwind (lg:hidden…)
+   siguen ganando. Fuera de capa, estas reglas anulaban lg:hidden y la barra
+   inferior aparecía también en escritorio. */
+@layer components {
 .raise {
   box-shadow:
     0 1px 0 color-mix(in oklab, white 55%, transparent) inset,
@@ -1277,4 +1281,5 @@ html[data-accent="naranja"] {
   color: #1c1005;
   background: linear-gradient(135deg, var(--forja-cyan), var(--forja-pink));
   box-shadow: 0 8px 20px -6px color-mix(in oklab, var(--forja-pink) 55%, transparent);
+}
 }
