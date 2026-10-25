@@ -29,6 +29,7 @@ import {
   Settings,
   Sun,
   Swords,
+  Terminal,
   Ticket,
   Trash2,
   X,
@@ -66,6 +67,7 @@ export function Sidebar({
   onOpenGithub,
   onOpenKnowledgeBase,
   onOpenArena,
+  onOpenOpenCode,
   onOpenPanel,
   onOpenGuide,
   onOpenRepos,
@@ -87,6 +89,7 @@ export function Sidebar({
   onOpenGithub?: () => void;
   onOpenKnowledgeBase?: () => void;
   onOpenArena?: () => void;
+  onOpenOpenCode?: () => void;
   onOpenPanel?: () => void;
   onOpenGuide?: () => void;
   onOpenRepos?: () => void;
@@ -201,6 +204,7 @@ export function Sidebar({
         // «Cuota» no tiene icono propio: vive dentro del Panel, y dos puertas
         // a la misma pantalla obligan a recordar cuál lleva a qué.
         { label: "Arena", icon: <Swords className="size-4" />, onClick: onOpenArena, title: "Arena: compara 2-3 modelos gratis con el mismo prompt" },
+        { label: "OpenCode", icon: <Terminal className="size-4" />, onClick: onOpenOpenCode, title: "OpenCode: los modelos gratis de OpenCode Zen, siempre al día" },
       ],
     },
     {
