@@ -48,32 +48,81 @@ class ForjaOpenCodeBridge(
 
     @JavascriptInterface
     fun listModels(callbackId: String) = async(callbackId) {
+        // Copia el flujo de OpenCode-mobile: catálogo oficial público + modelos
+        // presentes en el proveedor OpenCode del runtime + precio cero verificable.
+        val officialIds = loadOfficialZenModelIds()
         val catalog = request("GET", "/provider")
         val providers = catalog.optJSONArray("all") ?: JSONArray()
         val output = JSONArray()
         for (i in 0 until providers.length()) {
             val provider = providers.optJSONObject(i) ?: continue
             val providerId = provider.optString("id", "")
+            val providerName = provider.optString("name", providerId)
+            val identity = (providerId + " " + providerName).lowercase()
+            if (!(identity.contains("opencode") || providerId.equals("zen", true))) continue
             val models = provider.optJSONObject("models") ?: JSONObject()
             val keys = models.keys()
             while (keys.hasNext()) {
-                val id = keys.next()
-                val model = models.optJSONObject(id) ?: continue
+                val key = keys.next()
+                val model = models.optJSONObject(key) ?: continue
+                val id = model.optString("id", key)
+                if (!officialIds.contains(id)) continue
                 val cost = model.optJSONObject("cost") ?: continue
-                // OpenCode reports input/output cost; absent or non-zero is never free.
-                val input = cost.optDouble("input", Double.NaN)
-                val outputCost = cost.optDouble("output", Double.NaN)
-                val free = input == 0.0 && outputCost == 0.0
+                val cache = cost.optJSONObject("cache")
+                val cacheRead = if (cost.has("cache_read")) cost.opt("cache_read") else cache?.opt("read")
+                val cacheWrite = if (cost.has("cache_write")) cost.opt("cache_write") else cache?.opt("write")
+                val costs = listOf(cost.opt("input"), cost.opt("output"), cacheRead, cacheWrite)
+                val knownZero = costs.all { value ->
+                    value != null && value != JSONObject.NULL && value.toString().toDoubleOrNull() == 0.0
+                }
+                if (!knownZero) continue
                 output.put(JSONObject().apply {
                     put("id", id)
                     put("name", model.optString("name", id))
                     put("providerID", providerId)
-                    put("free", free)
+                    put("providerName", providerName)
+                    put("free", true)
+                    put("priceVerified", true)
                     put("context", model.optJSONObject("limit")?.optInt("context") ?: JSONObject.NULL)
                 })
             }
         }
         output
+    }
+
+    private fun loadOfficialZenModelIds(): Set<String> {
+        val connection = (URL("https://opencode.ai/zen/v1/models").openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 12000
+            readTimeout = 12000
+            setRequestProperty("Accept", "application/json")
+            setRequestProperty("User-Agent", "Forja-IA/OpenCode-Mobile")
+        }
+        try {
+            val code = connection.responseCode
+            val stream = if (code in 200..299) connection.inputStream else connection.errorStream
+            val raw = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+            require(code in 200..299) { "Catálogo oficial OpenCode Zen HTTP $code" }
+            val json = org.json.JSONTokener(raw).nextValue()
+            val rows = when (json) {
+                is JSONArray -> json
+                is JSONObject -> json.optJSONArray("data") ?: json.optJSONArray("models")
+                    ?: throw IllegalStateException("El catálogo oficial no contiene modelos reconocibles.")
+                else -> throw IllegalStateException("Formato del catálogo oficial no válido.")
+            }
+            val ids = mutableSetOf<String>()
+            for (i in 0 until rows.length()) {
+                val row = rows.opt(i)
+                val id = when (row) {
+                    is String -> row
+                    is JSONObject -> row.optString("id", row.optString("name", ""))
+                    else -> ""
+                }
+                if (id.isNotBlank()) ids.add(id)
+            }
+            require(ids.isNotEmpty()) { "El catálogo oficial no devolvió modelos." }
+            return ids
+        } finally { connection.disconnect() }
     }
 
     @JavascriptInterface
@@ -116,24 +165,29 @@ class ForjaOpenCodeBridge(
     fun openRuntimeSettings() { main.post { openSettings() } }
 
     private fun listModelsDirect(): List<JSONObject> {
-        val array = listModelsPayload()
-        return (0 until array.length()).mapNotNull { array.optJSONObject(it) }
-    }
-
-    private fun listModelsPayload(): JSONArray {
+        val officialIds = loadOfficialZenModelIds()
         val catalog = request("GET", "/provider")
         val providers = catalog.optJSONArray("all") ?: JSONArray()
-        val output = JSONArray()
+        val output = mutableListOf<JSONObject>()
         for (i in 0 until providers.length()) {
             val p = providers.optJSONObject(i) ?: continue
             val pid = p.optString("id", "")
+            val pname = p.optString("name", pid)
+            val identity = (pid + " " + pname).lowercase()
+            if (!(identity.contains("opencode") || pid.equals("zen", true))) continue
             val models = p.optJSONObject("models") ?: JSONObject()
             val keys = models.keys()
             while (keys.hasNext()) {
-                val id = keys.next(); val m = models.optJSONObject(id) ?: continue
+                val key = keys.next(); val m = models.optJSONObject(key) ?: continue
+                val id = m.optString("id", key)
+                if (!officialIds.contains(id)) continue
                 val c = m.optJSONObject("cost") ?: continue
-                val free = c.optDouble("input", Double.NaN) == 0.0 && c.optDouble("output", Double.NaN) == 0.0
-                output.put(JSONObject().put("id", id).put("providerID", pid).put("free", free))
+                val cache = c.optJSONObject("cache")
+                val cr = if (c.has("cache_read")) c.opt("cache_read") else cache?.opt("read")
+                val cw = if (c.has("cache_write")) c.opt("cache_write") else cache?.opt("write")
+                val values = listOf(c.opt("input"), c.opt("output"), cr, cw)
+                val free = values.all { v -> v != null && v != JSONObject.NULL && v.toString().toDoubleOrNull() == 0.0 }
+                if (free) output.add(JSONObject().put("id", id).put("providerID", pid).put("free", true))
             }
         }
         return output

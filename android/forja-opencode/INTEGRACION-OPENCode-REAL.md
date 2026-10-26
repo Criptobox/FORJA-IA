@@ -26,3 +26,10 @@
 
 ## Verificación pendiente
 No se ha compilado la APK ni probado el runtime en un dispositivo físico en esta sesión. La prueba real debe confirmar: instalación limpia, reanudación tras interrupción, arranque del servidor, lectura de `/provider`, autenticación y respuesta de un modelo gratuito.
+
+
+## Ajuste de catálogo automático
+- La pantalla Android carga el estado y consulta el catálogo al abrirse, sin exigir pulsar primero “Buscar modelos gratis”.
+- El botón de actualización renueva estado y catálogo en una sola acción.
+- El filtro de gratuidad sigue usando los costes publicados por el servidor OpenCode; no se marca gratuito si faltan costes o son distintos de cero.
+- Limitación: el endpoint `/provider` solo expone modelos de proveedores que el motor tiene habilitados. Si el proveedor OpenCode Zen requiere que el usuario inicie sesión dentro del flujo oficial, la aplicación debe respetar ese requisito; no se ha eliminado autenticación legítima ni se ha simulado acceso anónimo.
