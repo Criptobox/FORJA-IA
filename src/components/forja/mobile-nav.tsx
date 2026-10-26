@@ -33,7 +33,6 @@ import {
   Wand2,
   Cpu,
   Layers,
-  Terminal,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
@@ -97,7 +96,6 @@ export interface EcosistemaProps {
   onOpenPanel?: () => void;
   onOpenRadar?: () => void;
   onOpenArena?: () => void;
-  onOpenOpenCode?: () => void;
   onOpenLibrary?: () => void;
   onOpenKnowledgeBase?: () => void;
   onOpenSkills?: () => void;
@@ -139,12 +137,11 @@ export function EcosistemaSheet(p: EcosistemaProps) {
     },
     {
       titulo: "Modelos",
-      cols: 2,
+      cols: 3,
       items: [
         { label: "Panel", hint: "Gasto y uso", icon: <LayoutDashboard className="size-5" />, color: "#06b6d4", onClick: ir(p.onOpenPanel) },
         { label: "Radar", hint: "Gratis de hoy", icon: <Radar className="size-5" />, color: "#10b981", onClick: ir(p.onOpenRadar) },
         { label: "Arena", hint: "Compara 2-3", icon: <Swords className="size-5" />, color: "#ef4444", onClick: ir(p.onOpenArena) },
-        { label: "OpenCode", hint: "Gratis, al día", icon: <Terminal className="size-5" />, color: "#0ea5e9", onClick: ir(p.onOpenOpenCode) },
       ],
     },
     {

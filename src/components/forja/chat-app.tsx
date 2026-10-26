@@ -36,8 +36,6 @@ import {
 } from "@/components/ui/resizable";
 import { Sidebar } from "./sidebar";
 import { EcosistemaSheet, MobileNav, type PestanaMovil } from "./mobile-nav";
-import { OpenCodeDialog } from "./opencode-dialog";
-import { useOpenCodeAutoSync } from "@/lib/forja/opencode-client";
 import { ChatInput } from "./chat-input";
 import { MessageItem } from "./message";
 import { PropuestaCard } from "./propuesta-card";
@@ -223,9 +221,6 @@ export function ChatApp() {
   const [githubInitial, setGithubInitial] = useState<PublishSeed | null>(null);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [arenaOpen, setArenaOpen] = useState(false);
-  const [opencodeOpen, setOpencodeOpen] = useState(false);
-  // mantiene al día los modelos gratis de OpenCode (si ya conectaste tu cuenta)
-  useOpenCodeAutoSync();
   const [systemOpen, setSystemOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [imageMode, setImageMode] = useState(false);
@@ -1952,7 +1947,6 @@ export function ChatApp() {
           onOpenGithub={() => setGithubOpen(true)}
           onOpenKnowledgeBase={() => setKbOpen(true)}
           onOpenArena={() => setArenaOpen(true)}
-        onOpenOpenCode={() => setOpencodeOpen(true)}
           onOpenPanel={() => setSystemOpen(true)}
           onOpenGuide={() => setOnboardingOpen(true)}
           onOpenRepos={() => setReposOpen(true)}
@@ -2056,7 +2050,6 @@ export function ChatApp() {
         onOpenPanel={() => setSystemOpen(true)}
         onOpenRadar={() => setRadarOpen(true)}
         onOpenArena={() => setArenaOpen(true)}
-        onOpenOpenCode={() => setOpencodeOpen(true)}
         onOpenLibrary={() => setLibraryOpen(true)}
         onOpenKnowledgeBase={() => setKbOpen(true)}
         onOpenSkills={() => setSkillsOpen(true)}
@@ -2211,7 +2204,6 @@ export function ChatApp() {
       />
       <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
       <ModelArenaDialog open={arenaOpen} onOpenChange={setArenaOpen} />
-      <OpenCodeDialog open={opencodeOpen} onOpenChange={setOpencodeOpen} onUseModel={setModelKey} />
 
       <SystemPanel open={systemOpen} onOpenChange={setSystemOpen} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />

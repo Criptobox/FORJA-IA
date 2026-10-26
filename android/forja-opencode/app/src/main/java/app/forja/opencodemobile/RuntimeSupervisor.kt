@@ -1,20 +1,16 @@
 package app.forja.opencodemobile
-
 import android.content.Context
-import java.net.HttpURLConnection
-import java.net.URL
-
-/**
- * Supervisor seguro provisional: detecta un servidor loopback ya iniciado, pero no
- * afirma que OpenCode esté instalado. La gestión proot/runtime se integra en una fase posterior.
- */
+import android.content.Intent
 class RuntimeSupervisor(private val context: Context) {
-    fun isInstalled(): Boolean = false // No se incluye aún un runtime proot verificable.
-    fun isRunning(): Boolean = try {
-        val c = URL("http://127.0.0.1:4096/global/health").openConnection() as HttpURLConnection
-        c.connectTimeout = 700; c.readTimeout = 700
-        try { c.responseCode in 200..299 } finally { c.disconnect() }
-    } catch (_: Exception) { false }
-    fun version(): String? = null
-    fun statusMessage(): String = if (isRunning()) "Servidor OpenCode detectado en localhost." else "El ejecutor OpenCode/proot todavía no está integrado. No se ha iniciado ningún proceso."
+ private val runtime = OcRuntime(context.applicationContext)
+ fun isInstalled() = runtime.isInstalled()
+ fun isRunning() = runtime.serverReady()
+ fun version(): String? = runtime.installedVersion().ifBlank { null }
+ fun statusMessage() = when { !isInstalled() -> "OpenCode aún no está instalado. Pulsa Instalar motor."; !isRunning() -> "Motor instalado; servidor detenido o iniciando."; else -> "OpenCode conectado en 127.0.0.1:${runtime.port} · ${version() ?: "versión detectada"}" }
+ fun install(progress:(Int,String)->Unit, log:(String)->Unit) = runtime.install(progress,log)
+ fun startServer() { context.startService(Intent(context, RuntimeService::class.java)) }
+ fun stopServer() { context.startService(Intent(context, RuntimeService::class.java).setAction(RuntimeService.ACTION_STOP_SERVER)) }
+ fun logs(lines:Int=80) = runtime.tailLog(lines)
+ fun serverUsername() = OcRuntime.SERVER_USER
+ fun serverPassword() = runtime.serverPassword()
 }

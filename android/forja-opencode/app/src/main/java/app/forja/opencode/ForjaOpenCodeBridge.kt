@@ -22,6 +22,8 @@ class ForjaOpenCodeBridge(
     private val runtimeIsInstalled: () -> Boolean = { false },
     private val runtimeIsRunning: () -> Boolean = { false },
     private val runtimeVersion: () -> String? = { null },
+    private val serverUsername: () -> String = { "opencode" },
+    private val serverPassword: () -> String = { "" },
     private val openSettings: () -> Unit = {},
     private val dispatchResult: (String, String) -> Unit = { _, _ -> }
 ) {
@@ -146,6 +148,11 @@ class ForjaOpenCodeBridge(
             connectTimeout = 2500
             readTimeout = 120_000
             setRequestProperty("Accept", "application/json")
+            val password = serverPassword()
+            if (password.isNotBlank()) {
+                val token = android.util.Base64.encodeToString("${serverUsername()}:$password".toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
+                setRequestProperty("Authorization", "Basic $token")
+            }
             if (body != null) {
                 doOutput = true
                 setRequestProperty("Content-Type", "application/json")
