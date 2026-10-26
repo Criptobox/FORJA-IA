@@ -186,24 +186,7 @@ export function ForjaStudioDialog({
               <TabsTrigger value="tasks" className="flex-none px-3 py-2 text-xs md:px-1 md:py-1 md:text-[11px]">Tasks</TabsTrigger>
             </TabsList>
 
-            {/* Franja de estado (solo móvil): etapa y salud en una línea; al
-                tocarla se abre la página de Flujo. Sustituye a las dos
-                tarjetas grandes que empujaban el brief fuera de la pantalla. */}
-            {pagina === "studio" && (
-              <button
-                type="button"
-                onClick={() => setPagina("flujo")}
-                className="raise mt-3 flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-card p-3 text-left md:hidden"
-                aria-label="Ver el flujo del proyecto"
-              >
-                <span className="rounded-lg bg-primary/12 px-2 py-1 font-mono text-[10px] font-semibold text-primary">{stage.toUpperCase()}</span>
-                <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                  {estado.siguiente ? `Siguiente: ${WEB_STUDIO_STAGES.find((x) => x.id === estado.siguiente)?.label}` : "Flujo al día"}
-                </span>
-                <span className="font-mono text-lg font-semibold">{health.score ?? "—"}</span>
-                <ArrowRight className="size-4 text-muted-foreground" />
-              </button>
-            )}
+            {/* En móvil, el resumen de estado no se antepone al brief: el brief debe quedar visible sin scroll. El flujo sigue accesible en su pestaña. */}
 
             <TabsContent value="flujo" className="mt-3 md:hidden">
               {tarjetaWorkflow}
