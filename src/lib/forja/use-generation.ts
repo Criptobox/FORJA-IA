@@ -31,6 +31,7 @@ import {
 } from "./types";
 import { PROVIDER_MAP } from "./providers";
 import { streamChat } from "./chat-client";
+import { getAndroidOpenCodeBridge, runAndroidOpenCodeTask } from "./opencode-android-bridge";
 import { esSoloFiltroSeguridad, isFreeModel, isQuotaError, pickFailoverCandidate, sanearOrdenFallback } from "./free-models";
 import {
   guardarLibro,
@@ -512,6 +513,31 @@ export function useGeneration(ctx: CtxGeneracion) {
 
       // clave fresca del store (importante tras un failover que cambió el modelo)
       const freshKey = session.modelKey ?? state.settings.defaultModelKey ?? undefined;
+      // Los modelos OpenCode Mobile seleccionados se ejecutan en el runtime Android
+      // y nunca pasan por el cliente HTTP de proveedores/API keys.
+      const nativeSplit = freshKey ? splitModelKey(freshKey) : null;
+      if (nativeSplit?.providerId === "opencode" && nativeSplit.modelId.startsWith("__opencodemobile__")) {
+        const bridge = getAndroidOpenCodeBridge();
+        const encoded = nativeSplit.modelId.slice("__opencodemobile__".length);
+        let actualModel = "";
+        try { actualModel = decodeURIComponent(encoded); } catch { actualModel = ""; }
+        const lastPrompt = lastUserPrompt(session.messages);
+        const assistantId = uid();
+        addMessage(sessionId, { id: assistantId, role: "assistant", content: "", model: `opencode::${actualModel}`, createdAt: Date.now() });
+        setStreamingMsgId(assistantId);
+        try {
+          const result = await runAndroidOpenCodeTask({ prompt: lastPrompt, model: actualModel }, bridge);
+          updateMessage(sessionId, assistantId, {
+            content: result.ok ? (result.text || "OpenCode terminó sin devolver texto.") : `No se pudo ejecutar el modelo OpenCode: ${result.error || "error desconocido"}`,
+            error: !result.ok,
+            model: `opencode::${actualModel}`,
+            elapsedMs: 0,
+          });
+        } catch (error) {
+          updateMessage(sessionId, assistantId, { content: `Error del motor OpenCode: ${error instanceof Error ? error.message : "error desconocido"}`, error: true });
+        } finally { setStreamingMsgId(null); }
+        return;
+      }
       const auto = isAutoKey(freshKey);
       // FORJA WEB siempre trata el encargo como «web»: es el preset para
       // construir sitios, así que no hace falta adivinarlo del texto (y un

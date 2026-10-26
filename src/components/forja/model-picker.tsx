@@ -25,6 +25,7 @@ import { avisoDePerfil, lineasDePerfil, perfilDe } from "@/lib/forja/perfil-mode
 import { useHealth, cooldownRemaining } from "@/lib/forja/health";
 import { AUTO_MODEL_KEY, isAutoKey, FORJA_WEB_MODEL_KEY, isForjaWebKey, pickManualModel } from "@/lib/forja/types";
 import { ModelLogo } from "@/components/forja/model-logo";
+import { getAndroidOpenCodeBridge } from "@/lib/forja/opencode-android-bridge";
 
 export interface ModelOption {
   key: string;
@@ -54,7 +55,8 @@ export function useAvailableModels(conservar?: string | null): ModelOption[] {
     const build = (providerId: ProviderId, modelId: string): ModelOption | null => {
       const def = PROVIDERS.find((p) => p.id === providerId);
       if (!def) return null;
-      const free = isFreeModel(providerId, modelId);
+      const nativeOpenCode = providerId === "opencode" && modelId.startsWith("__opencodemobile__");
+      const free = nativeOpenCode || isFreeModel(providerId, modelId);
       if (onlyFree && !free) return null;
       const key = makeModelKey(providerId, modelId);
       if (key !== conservar && estaRoto(rotos, key)) return null;
@@ -128,6 +130,36 @@ export function ModelPicker({
   const favorites = useForja((s) => s.favorites);
   const toggleFavorite = useForja((s) => s.toggleFavorite);
   const [query, setQuery] = useState("");
+
+  // Android: el catálogo nativo de OpenCode Mobile se consulta automáticamente.
+  // Se guarda en la configuración del proveedor para reutilizar el selector existente,
+  // pero los IDs llevan un prefijo reservado y se ejecutan por el puente nativo, no por API key.
+  useEffect(() => {
+    let cancelled = false;
+    const loadNativeCatalog = async () => {
+      const bridge = getAndroidOpenCodeBridge();
+      if (!bridge) return;
+      try {
+        const status = await bridge.getStatus();
+        if (!status.available || !status.running) return;
+        const rows = await bridge.listModels();
+        if (cancelled || !Array.isArray(rows)) return;
+        const nativeIds = rows.filter((m) => m.free === true && m.id && m.providerID)
+          .map((m) => `__opencodemobile__${encodeURIComponent(`${m.providerID}/${m.id}`)}`);
+        const state = useForja.getState();
+        const current = state.providers.opencode;
+        if (nativeIds.length) state.setProviderConfig("opencode", {
+          enabled: true,
+          models: [...new Set([...(current?.models ?? []), ...nativeIds])],
+        });
+      } catch (error) {
+        console.warn("No se pudo cargar el catálogo nativo de OpenCode", error);
+      }
+    };
+    void loadNativeCatalog();
+    const timer = window.setInterval(() => void loadNativeCatalog(), 60_000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, []);
 
   // Atajo global Ctrl+K: abre el selector (evento lanzado desde chat-app)
   useEffect(() => {
