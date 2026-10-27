@@ -244,6 +244,9 @@ export async function ejecutarConTools(
   // Historial que se va ampliando con cada vuelta.
   let convo: StreamMessage[] = [...baseOpts.messages];
   let content = "";
+  /** Razonamiento de la última vuelta que pidió tools: hay que devolverlo con
+   * el mensaje del asistente o DeepSeek/MiMo/Zen contestan 400. */
+  let razonamiento = "";
   const loops = Math.max(1, Math.min(8, maxLoops));
 
   // UN contexto para todo el bucle (v3.32): los archivos que el agente
@@ -284,12 +287,14 @@ export async function ejecutarConTools(
       baseOpts.onReasoning?.("");
     }
     const pedidas: ToolCall[] = [];
+    razonamiento = "";
     content = await deps.stream({
       ...baseOpts,
       messages: convo,
       ...(conTools ? { tools: catalogo } : {}),
-      onToolCalls: (calls) => {
+      onToolCalls: (calls, meta) => {
         pedidas.push(...calls);
+        razonamiento = meta?.reasoning ?? "";
       },
     });
     return pedidas;
@@ -363,6 +368,7 @@ export async function ejecutarConTools(
       {
         role: "assistant" as const,
         content,
+        ...(razonamiento ? { reasoning_content: razonamiento } : {}),
         tool_calls: pendingToolCalls.map((tc) => ({
           id: tc.id,
           type: "function",

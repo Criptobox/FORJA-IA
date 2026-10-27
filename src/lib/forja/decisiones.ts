@@ -70,7 +70,7 @@ export function esPasajero(status: number): boolean {
  * con 404 y a veces con 400—. El código solo no basta, y el texto solo tampoco:
  * se miran los dos. */
 const TEXTO_MODELO_MUERTO =
-  /(no endpoints found|does not exist|model_not_found|unknown model|no such model|model .{0,40}not found|deprecated|no longer (?:available|supported)|has been (?:retired|removed|sunset))/i;
+  /(no endpoints found|does not exist|model_not_found|unknown model|no such model|model .{0,40}not found|deprecated|no longer (?:available|supported)|has been (?:retired|removed|sunset)|upstream request failed:?\s*model is unavailable)/i;
 
 /**
  * ¿El modelo que se pidió ya no está?

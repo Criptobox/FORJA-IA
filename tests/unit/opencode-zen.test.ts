@@ -4,8 +4,11 @@ import {
   detalleDeError,
   hablaChatCompletions,
   claveEfectiva,
+  clasificarModeloZen,
   clasificarRespuestaZen,
   esClaveOpcional,
+  gratisDelCatalogoOficial,
+  unirGratisZen,
   esModeloGratisZen,
   modelosGratisDeCatalogo,
 } from "@/lib/forja/opencode-zen";
@@ -81,5 +84,68 @@ describe("clasificarRespuestaZen", () => {
   });
   it("429 no cuenta como abierto ni como clave mala", () => {
     expect(clasificarRespuestaZen(429, "", false).estado).toBe("otro");
+  });
+});
+
+describe("clasificarModeloZen", () => {
+  it("200 → funciona", () => expect(clasificarModeloZen(200, "")).toBe("funciona"));
+  it("el 400 «Model is unavailable» de Zen = modelo retirado", () => {
+    const cuerpo = '{"type":"error","error":{"type":"server_error","message":"Upstream request failed: Model is unavailable."}}';
+    expect(clasificarModeloZen(400, cuerpo)).toBe("retirado");
+  });
+  it("429 / FreeUsageLimitError = limitado, no retirado", () => {
+    expect(clasificarModeloZen(429, "FreeUsageLimitError: Rate limit exceeded")).toBe("limitado");
+  });
+  it("401 y 403 FreeTierError = requiere clave", () => {
+    expect(clasificarModeloZen(401, "ModelError")).toBe("requiere-clave");
+    expect(clasificarModeloZen(403, "FreeTierError")).toBe("requiere-clave");
+  });
+  it("cualquier otro 400 queda como «otro»", () => {
+    expect(clasificarModeloZen(400, "bad request")).toBe("otro");
+  });
+});
+
+const MODELS_DEV = {
+  opencode: {
+    id: "opencode",
+    models: {
+      "beam-free": { id: "beam-free", cost: { input: 0, output: 0 } },
+      "big-pickle": { id: "big-pickle", cost: { input: 0, output: 0 } },
+      "deepseek-v4.1-flash-free": { id: "deepseek-v4.1-flash-free", cost: { input: 0, output: 0 } },
+      "deepseek-v4-flash-free": { id: "deepseek-v4-flash-free", cost: { input: 0, output: 0 }, status: "deprecated" },
+      "gpt-5": { id: "gpt-5", cost: { input: 1.25, output: 10 } },
+      "minimax-m2.7-free": { id: "minimax-m2.7-free", cost: { input: 0, output: 0 } },
+      "sin-coste": { id: "sin-coste" },
+      "coste-nulo": { id: "coste-nulo", cost: { input: null, output: null } },
+    },
+  },
+  anthropic: { models: { "claude-x": { cost: { input: 0, output: 0 } } } },
+};
+
+describe("catálogo oficial (models.dev)", () => {
+  it("toma solo coste $0 de opencode, sin retirados ni de otro proveedor", () => {
+    expect(gratisDelCatalogoOficial(MODELS_DEV).sort()).toEqual([
+      "beam-free",
+      "big-pickle",
+      "deepseek-v4.1-flash-free",
+      "minimax-m2.7-free",
+    ]);
+  });
+  it("coste ausente o nulo NO cuenta como gratis", () => {
+    const ids = gratisDelCatalogoOficial(MODELS_DEV);
+    expect(ids).not.toContain("sin-coste");
+    expect(ids).not.toContain("coste-nulo");
+  });
+  it("tolera formas raras sin lanzar", () => {
+    expect(gratisDelCatalogoOficial(null)).toEqual([]);
+    expect(gratisDelCatalogoOficial({})).toEqual([]);
+    expect(gratisDelCatalogoOficial({ opencode: { models: 3 } })).toEqual([]);
+  });
+  it("une vivo + oficial, sin duplicados y sin los de otro endpoint", () => {
+    expect(unirGratisZen(["beam-free", "x-free"], ["beam-free", "big-pickle", "minimax-m2.7-free"])).toEqual([
+      "beam-free",
+      "big-pickle",
+      "x-free",
+    ]);
   });
 });

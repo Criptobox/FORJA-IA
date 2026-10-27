@@ -236,6 +236,8 @@ describe("un modelo retirado no es un callejón sin salida", () => {
   it("reconoce las frases con las que lo dicen los proveedores", () => {
     expect(esModeloMuerto(404, "OpenRouter 404: No endpoints found for google/x:free")).toBe(true);
     expect(esModeloMuerto(400, "The model `gpt-9` does not exist")).toBe(true);
+    expect(esModeloMuerto(400, "OpenCode Zen 400: Upstream request failed: Model is unavailable.")).toBe(true);
+    expect(esModeloMuerto(400, "Model is unavailable for your region")).toBe(false);
     expect(esModeloMuerto(400, "model_not_found")).toBe(true);
     expect(esModeloMuerto(404, "cualquier cosa")).toBe(true);
   });

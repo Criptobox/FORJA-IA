@@ -28,7 +28,18 @@ import {
   type UsoProveedor,
 } from "./cache-prompt";
 import { permitido, motivoVetado } from "./vetados";
-import { claveEfectiva, clasificarRespuestaZen, modelosGratisDeCatalogo, type ResultadoSondeoZen } from "./opencode-zen";
+import { camposDeRazonamiento } from "./razonamiento-tools";
+import {
+  claveEfectiva,
+  clasificarModeloZen,
+  clasificarRespuestaZen,
+  gratisDelCatalogoOficial,
+  modelosGratisDeCatalogo,
+  unirGratisZen,
+  URL_CATALOGO_OFICIAL,
+  type ModeloZenProbado,
+  type ResultadoSondeoZen,
+} from "./opencode-zen";
 import { costeDeModelo } from "./precios";
 import { anotarGasto, guardarLibro, leerLibro, normalizarLimites, veredictoDinero } from "./presupuesto-dinero";
 import {
@@ -63,7 +74,7 @@ export interface StreamCallbacks {
    * reinyectar los resultados. Se llama UNA vez al final del stream,
    * antes de `onDone`, con la lista acumulada. Si no hubo tool_calls,
    * NO se llama. */
-  onToolCalls?: (calls: ToolCall[]) => void;
+  onToolCalls?: (calls: ToolCall[], meta?: { reasoning?: string }) => void;
 }
 
 /** Mensaje con posibles imágenes adjuntas. Puede llevar `tool_calls`
@@ -74,6 +85,9 @@ export type StreamMessage = Pick<ChatMessage, "role" | "content"> & {
   /** OpenAI: id de las llamadas que pidió el asistente, para
    * correlacionar el siguiente `tool` con este mensaje. */
   tool_calls?: unknown;
+  /** Razonamiento del modelo en la vuelta que pidió las tools; DeepSeek/MiMo/Zen
+   * lo exigen de vuelta (ver razonamiento-tools.ts). */
+  reasoning_content?: string;
   /** Anthropic: id de un tool_use, para correlacionar el tool_result. */
   tool_use_id?: string;
   /** OpenAI: id de la llamada que este mensaje `role: "tool"` responde. */
@@ -344,7 +358,9 @@ async function assertOk(res: Response, providerName: string): Promise<void> {
   }
   const hint = esFalloDeImagen(detail)
     ? " — ese modelo no admite imágenes: manda solo texto o elige uno con visión"
-    : /FreeTierError/i.test(detail)
+    : /model is unavailable/i.test(detail)
+      ? " — Zen retiró ese modelo (los «-free» rotan sin avisar): en Ajustes → OpenCode Zen pulsa «Probar» para quedarte solo con los que responden"
+      : /FreeTierError/i.test(detail)
       ? " — Zen exige una clave incluso para los modelos gratis: créala en opencode.ai/auth y pégala en Ajustes → OpenCode Zen"
       : res.status === 401 || res.status === 403
       ? " — revisa tu API key en Ajustes"
@@ -666,7 +682,7 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
     }
   } else {
     // OpenAI-compatible (AiHubMix, OpenAI, DeepSeek, Groq, OpenRouter, Ollama…)
-    const msgs: { role: string; content: string | unknown[]; tool_calls?: unknown; tool_call_id?: string; name?: string }[] = [];
+    const msgs: { role: string; content: string | unknown[]; tool_calls?: unknown; tool_call_id?: string; name?: string; reasoning_content?: string }[] = [];
     if (settings.systemPrompt?.trim()) msgs.push({ role: "system", content: settings.systemPrompt.trim() });
     for (const m of messages.filter((m) => m.role !== "system")) {
       // Mensajes `tool` (respuesta a una tool_call anterior): se pasan
@@ -680,7 +696,12 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
       }
       // Mensajes assistant que pidieron tools: pasan con `tool_calls`.
       if (m.role === "assistant" && m.tool_calls) {
-        msgs.push({ role: "assistant", content: m.content || "", tool_calls: m.tool_calls });
+        msgs.push({
+          role: "assistant",
+          content: m.content || "",
+          tool_calls: m.tool_calls,
+          ...camposDeRazonamiento(providerId, modelId, m.reasoning_content),
+        });
         continue;
       }
       msgs.push({ role: m.role, content: toOpenAIContent(m) });
@@ -749,6 +770,10 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
       anotarMotivo("openai", j);
       anotarUso(j);
       content = j.choices?.[0]?.message?.content ?? "";
+      // El razonamiento también viene en el cuerpo completo (`message`); sin
+      // esto se perdía y no había nada que devolver al pedir una herramienta.
+      const rz = razonamientoDeTrozo("openai", j);
+      if (rz.razonamiento) reasoning += rz.razonamiento;
       // Caso no-streaming: el mensaje final trae `tool_calls` en
       // `message.tool_calls`, no en `delta.tool_calls`. Lo envolvemos
       // para que `accumToolCalls` lo entienda.
@@ -770,7 +795,7 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
   // (el llamador decide si seguir con XML o cerrar el bucle).
   const finalCalls = flushToolCalls();
   if (finalCalls.length && streamOpts.onToolCalls) {
-    streamOpts.onToolCalls(finalCalls);
+    streamOpts.onToolCalls(finalCalls, { reasoning });
   }
   if (motivoParada) streamOpts.onFinish?.(motivoParada);
   // El uso se avisa antes de cerrar: es lo que el proveedor dice que gastó, y
@@ -838,13 +863,23 @@ export async function probarZenSinClave(
 ): Promise<ResultadoSondeoZen> {
   const conClave = !!config.apiKey.trim();
   let gratis: string[] = [];
+  // Catálogo oficial de OpenCode (coste $0 verificado). Si no se puede leer,
+  // se sigue solo con el catálogo vivo de Zen: no es obligatorio.
+  const oficiales: string[] = await fetch(URL_CATALOGO_OFICIAL, { signal: AbortSignal.timeout(8_000) })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => gratisDelCatalogoOficial(j))
+    .catch(() => []);
   try {
-    gratis = modelosGratisDeCatalogo(await fetchModels(providerId, config));
+    gratis = unirGratisZen(modelosGratisDeCatalogo(await fetchModels(providerId, config)), oficiales);
   } catch (e) {
     const status = (e as { status?: number })?.status;
     const msg = e instanceof Error ? e.message : "error de red";
-    if (status) return { ...clasificarRespuestaZen(status, msg, conClave), gratis: [], status };
-    return { estado: "servicio", gratis: [], mensaje: `No se pudo contactar con Zen: ${msg}` };
+    if (oficiales.length) {
+      gratis = unirGratisZen([], oficiales);
+    } else {
+      if (status) return { ...clasificarRespuestaZen(status, msg, conClave), gratis: [], status };
+      return { estado: "servicio", gratis: [], mensaje: `No se pudo contactar con Zen: ${msg}` };
+    }
   }
   if (!gratis.length) {
     return {
@@ -855,34 +890,84 @@ export async function probarZenSinClave(
   }
   const def = getProvider(providerId);
   const base = (config.baseUrl || def.baseUrl).trim();
-  let ultimo: { estado: ResultadoSondeoZen["estado"]; mensaje: string; status?: number } | null = null;
-  // Hasta 3 candidatos: un 400/404/422 apunta al MODELO (endpoint distinto),
-  // no a la clave, así que se prueba el siguiente antes de dar el veredicto.
-  for (const modelo of gratis.slice(0, 3)) {
-    const req = buildRequest(endpoint(base, "/chat/completions"), { config, providerId }, {
-      Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
-    });
-    try {
-      const res = await fetch(req.target, {
-        method: "POST",
-        headers: req.headers,
-        // 16 y no 1: los modelos que razonan rechazan o truncan un tope diminuto
-        body: JSON.stringify({ model: modelo, max_tokens: 16, messages: [{ role: "user", content: "hi" }] }),
-        signal: AbortSignal.timeout(15_000),
+  // Una llamada real por modelo (máx. 12, de 3 en 3 para no comerse el límite):
+  // estar en el catálogo NO significa que Zen lo sirva. Los «-free» se retiran
+  // sin avisar y entonces contesta 400 «Model is unavailable».
+  const candidatos = gratis.slice(0, 12);
+  const probados: ModeloZenProbado[] = [];
+  const respuestas = new Map<string, { status: number; texto: string }>();
+  let siguiente = 0;
+  let caidaDeRed: string | null = null;
+  const obrero = async () => {
+    for (;;) {
+      const i = siguiente++;
+      if (i >= candidatos.length || caidaDeRed) return;
+      const modelo = candidatos[i];
+      const req = buildRequest(endpoint(base, "/chat/completions"), { config, providerId }, {
+        Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
       });
-      const texto = res.ok ? "" : await res.text().catch(() => "");
-      const c = clasificarRespuestaZen(res.status, texto, conClave);
-      ultimo = { ...c, status: res.status };
-      if (![400, 404, 422].includes(res.status)) break;
-    } catch (e) {
-      return {
-        estado: "servicio",
-        gratis,
-        mensaje: `No se pudo contactar con Zen: ${e instanceof Error ? e.message : "error de red"}`,
-      };
+      try {
+        const res = await fetch(req.target, {
+          method: "POST",
+          headers: req.headers,
+          // 16 y no 1: los modelos que razonan rechazan o truncan un tope diminuto
+          body: JSON.stringify({ model: modelo, max_tokens: 16, messages: [{ role: "user", content: "hi" }] }),
+          signal: AbortSignal.timeout(15_000),
+        });
+        const texto = res.ok ? "" : await res.text().catch(() => "");
+        respuestas.set(modelo, { status: res.status, texto });
+        probados.push({ id: modelo, veredicto: clasificarModeloZen(res.status, texto), status: res.status });
+      } catch (e) {
+        caidaDeRed = e instanceof Error ? e.message : "error de red";
+      }
     }
+  };
+  await Promise.all(Array.from({ length: Math.min(3, candidatos.length) }, obrero));
+  if (caidaDeRed && !probados.length) {
+    return { estado: "servicio", gratis, mensaje: `No se pudo contactar con Zen: ${caidaDeRed}` };
   }
-  return { ...(ultimo as NonNullable<typeof ultimo>), gratis };
+  probados.sort((x, y) => candidatos.indexOf(x.id) - candidatos.indexOf(y.id));
+  const funcionan = probados.filter((m) => m.veredicto === "funciona").map((m) => m.id);
+  // Los «limitados» son gratis y válidos, solo van con tope de uso ahora mismo:
+  // se quedan en la lista. Fuera solo lo retirado, lo que pide clave y lo raro.
+  const limitados = probados.filter((m) => m.veredicto === "limitado").map((m) => m.id);
+  const fuera = probados.filter((m) => m.veredicto !== "funciona" && m.veredicto !== "limitado");
+  const sobran = gratis.length - candidatos.length;
+  if (funcionan.length || limitados.length) {
+    return {
+      estado: "abierto",
+      gratis: candidatos.filter((id) => funcionan.includes(id) || limitados.includes(id)).concat(gratis.slice(candidatos.length)),
+      probados,
+      mensaje:
+        `${funcionan.length + limitados.length} modelos gratis: ${funcionan.length} responden` +
+        (limitados.length ? `, ${limitados.length} con límite de uso temporal` : "") +
+        (fuera.length ? ` · fuera: ${fuera.map((m) => `${m.id} (${m.veredicto})`).join(", ")}` : "") +
+        (sobran > 0 ? ` · +${sobran} sin comprobar` : "") +
+        (!conClave && fuera.some((m) => m.veredicto === "requiere-clave")
+          ? " · con una clave gratis de opencode.ai/auth se abren más."
+          : conClave
+            ? "."
+            : " (sin clave)."),
+    };
+  }
+  // Ninguno responde: se cuenta la causa dominante, con el texto de Zen si lo hay.
+  const hay = (v: ModeloZenProbado["veredicto"]) => probados.some((m) => m.veredicto === v);
+  const primero = probados[0] ? respuestas.get(probados[0].id) : undefined;
+  if (hay("requiere-clave")) {
+    return { ...clasificarRespuestaZen(primero?.status ?? 403, primero?.texto ?? "FreeTierError", conClave), gratis, probados };
+  }
+  if (probados.every((m) => m.veredicto === "retirado")) {
+    return {
+      estado: "sin-modelos-gratis",
+      gratis,
+      probados,
+      mensaje:
+        "Ningún modelo gratis responde ahora: " +
+        probados.map((m) => `${m.id} (${m.veredicto})`).join(", ") +
+        ". Zen los retira sin avisar; vuelve a probar más tarde o usa una clave gratis de opencode.ai/auth.",
+    };
+  }
+  return { ...clasificarRespuestaZen(primero?.status ?? 400, primero?.texto ?? "", conClave), gratis, probados };
 }
 
 /**

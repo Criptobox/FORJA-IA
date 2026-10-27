@@ -12,9 +12,15 @@ describe("OpenCode Zen", () => {
     expect(def?.keyUrl).toBe("https://opencode.ai/auth");
   });
 
-  it("todos sus modelos de serie son «-free» y se reconocen como gratis", () => {
-    expect(def?.defaultModels.length).toBeGreaterThan(0);
-    for (const m of def?.defaultModels ?? []) expect(isFreeModel("opencode", m), m).toBe(true);
+  it("no fija modelos de serie: los «-free» de Zen se retiran sin aviso", () => {
+    // deepseek-v4-flash-free y mimo-v2.5-free dieron «Model is unavailable».
+    // La lista sale de «Probar», que llama de verdad a cada modelo.
+    expect(def?.defaultModels).toEqual([]);
+    expect(def?.keyOptional).toBe(true);
+  });
+
+  it("los «-free» del catálogo se reconocen como gratis", () => {
+    for (const m of ["nemotron-3-ultra-free", "mimo-v2.5-free"]) expect(isFreeModel("opencode", m), m).toBe(true);
   });
 
   it("entra en el failover y en el radar", () => {

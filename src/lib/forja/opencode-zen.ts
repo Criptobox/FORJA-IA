@@ -73,10 +73,21 @@ export type EstadoSondeoZen =
   | "servicio"
   | "otro";
 
+/** Qué pasó con UN modelo gratis al llamarlo de verdad. */
+export type VeredictoModeloZen = "funciona" | "retirado" | "limitado" | "requiere-clave" | "otro";
+
+export interface ModeloZenProbado {
+  id: string;
+  veredicto: VeredictoModeloZen;
+  status?: number;
+}
+
 export interface ResultadoSondeoZen {
   estado: EstadoSondeoZen;
-  /** Modelos `-free` del catálogo vivo (puede venir aunque falle el chat). */
+  /** Si el sondeo llegó a llamar: los que RESPONDEN. Si no: el catálogo `-free`. */
   gratis: string[];
+  /** Resultado modelo a modelo (vacío si no llegó a llamarlos). */
+  probados?: ModeloZenProbado[];
   /** Texto para mostrar a la persona, en español y accionable. */
   mensaje: string;
   status?: number;
@@ -133,4 +144,53 @@ export function clasificarRespuestaZen(
 /** Extrae los ids `-free` de la respuesta de `GET /models`. Pura. */
 export function modelosGratisDeCatalogo(ids: readonly string[]): string[] {
   return [...new Set(ids.filter((id) => esModeloGratisZen(id) && hablaChatCompletions(id)))].sort();
+}
+
+/** Veredicto de una llamada de chat a UN modelo. Pura. Zen retira los `-free`
+ * sin avisar y entonces contesta 400 «Upstream request failed: Model is
+ * unavailable»: el modelo está en el catálogo pero ya no se sirve. */
+export function clasificarModeloZen(status: number, cuerpo: string): VeredictoModeloZen {
+  if (status >= 200 && status < 300) return "funciona";
+  if (/model is unavailable|deprecated|no longer (?:available|supported)/i.test(cuerpo)) return "retirado";
+  if (status === 429 || /FreeUsageLimit|rate.?limit/i.test(cuerpo)) return "limitado";
+  if (status === 401 || (status === 403 && /FreeTierError|free[\s_-]?tier/i.test(cuerpo))) return "requiere-clave";
+  return "otro";
+}
+
+/** Catálogo oficial de OpenCode: https://models.dev/api.json (el mismo que usa
+ * OpenCode por dentro). Trae el coste de cada modelo, que es la prueba de que
+ * es gratis de verdad, y su estado (`deprecated` = ya no se sirve). */
+export const URL_CATALOGO_OFICIAL = "https://models.dev/api.json";
+
+/** Ids con coste cero y no retirados del proveedor `opencode` en models.dev.
+ * Tolerante a forma rara: si algo no cuadra devuelve []. Pura. */
+export function gratisDelCatalogoOficial(json: unknown): string[] {
+  const raiz = json as Record<string, unknown> | null;
+  if (!raiz || typeof raiz !== "object") return [];
+  const prov = (raiz["opencode"] ?? Object.values(raiz).find((v) => (v as { id?: string })?.id === "opencode")) as
+    | { models?: Record<string, { id?: string; cost?: { input?: unknown; output?: unknown }; status?: string }> }
+    | undefined;
+  const modelos = prov?.models;
+  if (!modelos || typeof modelos !== "object") return [];
+  const out: string[] = [];
+  for (const [clave, m] of Object.entries(modelos)) {
+    if (!m || m.status === "deprecated") continue;
+    const c = m.cost;
+    if (!c || Number(c.input) !== 0 || Number(c.output) !== 0) continue;
+    if (c.input === null || c.output === null || c.input === "" || c.output === "") continue;
+    out.push(String(m.id ?? clave));
+  }
+  return out;
+}
+
+/** Une el catálogo vivo de Zen (los `-free`) con el oficial (coste $0): lo que
+ * salga en cualquiera de los dos, sin duplicados y solo lo que habla
+ * `/chat/completions`. Luego cada uno se comprueba con una llamada real. */
+export function unirGratisZen(vivos: readonly string[], oficiales: readonly string[]): string[] {
+  const todos = new Set<string>();
+  for (const id of [...vivos, ...oficiales]) {
+    const limpio = id.trim();
+    if (limpio && hablaChatCompletions(limpio)) todos.add(limpio);
+  }
+  return [...todos].sort();
 }

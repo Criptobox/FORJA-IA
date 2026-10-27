@@ -305,8 +305,9 @@ export function ProvidersTab({
             useModelosRotos.getState().limpiarProveedor(id);
             setProviderConfig(id, { models: r.gratis, enabled: true });
           }
-          toast.success(`${def.name} funciona sin clave`, {
-            description: `${r.gratis.length} modelos gratis (-free)${overwrite ? " cargados y activados" : " visibles"}.`,
+          toast.success(`${def.name} responde${cfg.apiKey.trim() ? "" : " sin clave"}`, {
+            description: `${r.mensaje}${overwrite ? " Cargados y activados." : ""}`,
+            duration: 9000,
           });
         } else {
           toast.error(
