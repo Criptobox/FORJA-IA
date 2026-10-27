@@ -58,6 +58,38 @@ describe("probarZenSinClave", () => {
     expect(llamadas.every((l) => l.auth === "Bearer sk-mia")).toBe(true);
   });
 
+  it("si el primer modelo da 400, prueba el siguiente antes de decidir", async () => {
+    const vistos: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/models")) {
+        return new Response(JSON.stringify(CATALOGO), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+      const modelo = JSON.parse(String(init?.body)).model as string;
+      vistos.push(modelo);
+      return modelo === "deepseek-v4-flash-free"
+        ? new Response('{"error":{"message":"bad endpoint"}}', { status: 400 })
+        : new Response("{}", { status: 200 });
+    }));
+    const r = await probarZenSinClave("opencode", cfg());
+    expect(vistos).toEqual(["deepseek-v4-flash-free", "mimo-v2.5-free"]);
+    expect(r.estado).toBe("abierto");
+  });
+
+  it("si todos dan 400, cuenta el motivo y manda max_tokens 16", async () => {
+    const cuerpos: { max_tokens?: number }[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).endsWith("/models")) {
+        return new Response(JSON.stringify(CATALOGO), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+      cuerpos.push(JSON.parse(String(init?.body)));
+      return new Response('{"error":{"message":"nope"}}', { status: 400 });
+    }));
+    const r = await probarZenSinClave("opencode", cfg());
+    expect(r.estado).toBe("otro");
+    expect(r.mensaje).toMatch(/nope/);
+    expect(cuerpos.every((b) => b.max_tokens === 16)).toBe(true);
+  });
+
   it("un 500 del chat no se atribuye a la clave", async () => {
     simular({ status: 500, body: "Internal server error" });
     const r = await probarZenSinClave("opencode", cfg());

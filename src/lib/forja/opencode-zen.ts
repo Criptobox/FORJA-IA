@@ -29,10 +29,35 @@ export function claveEfectiva(providerId: string, apiKey: string): string {
   return esClaveOpcional(providerId) ? ZEN_CLAVE_ANONIMA : "";
 }
 
-/** ¿Es un modelo gratuito del catálogo de Zen? Solo por el sufijo `-free`:
- * lo que el catálogo no marca así no se presume gratis. */
+/** Gratuitos que la documentación de OpenCode cita SIN el sufijo `-free`. */
+const GRATIS_SIN_SUFIJO = ["big-pickle"];
+
+/** ¿Es un modelo gratuito del catálogo de Zen? Por el sufijo `-free` o por la
+ * lista corta de los documentados sin él: lo demás no se presume gratis. */
 export function esModeloGratisZen(id: string): boolean {
-  return /-free$/i.test(id.trim());
+  const m = id.trim().toLowerCase();
+  return /-free$/.test(m) || GRATIS_SIN_SUFIJO.includes(m);
+}
+
+/** Zen no usa el mismo endpoint para todos sus modelos: GPT va por
+ * `/responses`, Claude/Qwen/MiniMax por `/messages` y Gemini por una ruta
+ * propia. Forja IA habla `/chat/completions`, y contra esos modelos Zen
+ * responde 400/404. Se apartan del catálogo en vez de dejar que fallen. */
+export function hablaChatCompletions(id: string): boolean {
+  return !/^(gpt-|o\d|claude|qwen|minimax|gemini)/i.test(id.trim());
+}
+
+/** Saca el mensaje legible de un cuerpo de error (JSON de OpenAI o texto). */
+export function detalleDeError(cuerpo: string): string {
+  const t = (cuerpo ?? "").trim();
+  if (!t) return "";
+  try {
+    const j = JSON.parse(t);
+    const d = j?.error?.message ?? j?.message ?? j?.error ?? t;
+    return (typeof d === "string" ? d : JSON.stringify(d)).slice(0, 240);
+  } catch {
+    return t.slice(0, 240);
+  }
 }
 
 export type EstadoSondeoZen =
@@ -88,6 +113,14 @@ export function clasificarRespuestaZen(
           mensaje: "Zen no admite peticiones anónimas ahora mismo. Crea una clave en opencode.ai/auth.",
         };
   }
+  if (status === 400 || status === 404 || status === 422) {
+    const d = detalleDeError(cuerpo);
+    return {
+      estado: "otro",
+      mensaje: `Zen rechazó la petición de prueba (HTTP ${status})${d ? `: ${d}` : ""}. ` +
+        "Suele ser un modelo que no usa /chat/completions.",
+    };
+  }
   if (status === 429) {
     return { estado: "otro", mensaje: "Zen limita las peticiones gratis por IP o por clave: espera un poco." };
   }
@@ -99,5 +132,5 @@ export function clasificarRespuestaZen(
 
 /** Extrae los ids `-free` de la respuesta de `GET /models`. Pura. */
 export function modelosGratisDeCatalogo(ids: readonly string[]): string[] {
-  return [...new Set(ids.filter(esModeloGratisZen))].sort();
+  return [...new Set(ids.filter((id) => esModeloGratisZen(id) && hablaChatCompletions(id)))].sort();
 }

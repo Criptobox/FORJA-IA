@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   ZEN_CLAVE_ANONIMA,
+  detalleDeError,
+  hablaChatCompletions,
   claveEfectiva,
   clasificarRespuestaZen,
   esClaveOpcional,
@@ -36,6 +38,21 @@ describe("modelos gratis de Zen", () => {
   it("filtra, deduplica y ordena el catálogo", () => {
     expect(modelosGratisDeCatalogo(["b-free", "gpt-5", "a-free", "b-free"])).toEqual(["a-free", "b-free"]);
   });
+  it("incluye big-pickle (gratis sin sufijo) y aparta los que no usan /chat/completions", () => {
+    const cat = ["big-pickle", "mimo-v2.5-free", "minimax-m2.7-free", "gpt-5-nano-free", "claude-haiku-4-5", "qwen3.6-free"];
+    expect(modelosGratisDeCatalogo(cat)).toEqual(["big-pickle", "mimo-v2.5-free"]);
+  });
+  it("reconoce las familias que Zen sirve por otro endpoint", () => {
+    for (const id of ["gpt-5", "claude-sonnet-4-6", "qwen3.6-plus", "minimax-m2.7-free", "gemini-3-flash"])
+      expect(hablaChatCompletions(id)).toBe(false);
+    for (const id of ["deepseek-v4-flash-free", "mimo-v2.5-free", "glm-4.7-free", "kimi-k2", "big-pickle"])
+      expect(hablaChatCompletions(id)).toBe(true);
+  });
+  it("detalleDeError saca el mensaje del JSON de OpenAI o devuelve el texto", () => {
+    expect(detalleDeError('{"error":{"message":"model not supported"}}')).toBe("model not supported");
+    expect(detalleDeError("plain text")).toBe("plain text");
+    expect(detalleDeError("")).toBe("");
+  });
 });
 
 describe("clasificarRespuestaZen", () => {
@@ -55,6 +72,12 @@ describe("clasificarRespuestaZen", () => {
     const r = clasificarRespuestaZen(500, "Internal server error", true);
     expect(r.estado).toBe("servicio");
     expect(r.mensaje).toMatch(/no es tu clave/);
+  });
+  it("400 enseña el motivo real y no culpa a la clave", () => {
+    const r = clasificarRespuestaZen(400, '{"error":{"message":"Unsupported endpoint for model"}}', false);
+    expect(r.estado).toBe("otro");
+    expect(r.mensaje).toMatch(/HTTP 400/);
+    expect(r.mensaje).toMatch(/Unsupported endpoint for model/);
   });
   it("429 no cuenta como abierto ni como clave mala", () => {
     expect(clasificarRespuestaZen(429, "", false).estado).toBe("otro");

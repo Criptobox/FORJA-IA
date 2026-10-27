@@ -365,7 +365,7 @@ Forja IA usa los modelos `-free` de [OpenCode Zen](https://opencode.ai/docs/zen)
 2. Si Zen contesta que sí, el proveedor se **activa solo** con esos modelos. Elígelos en el selector y activa el modo agente como con cualquier otro.
 3. Si Zen contesta que hace falta clave (`403 FreeTierError`), te lo dice tal cual: créala gratis en [opencode.ai/auth](https://opencode.ai/auth) y pégala. El resto funciona igual.
 
-**Qué se verifica y qué no:** Zen ha admitido y rechazado el acceso anónimo en momentos distintos, así que Forja IA **no lo da por hecho**: cuenta lo que Zen responda en ese momento. Que el modelo use las herramientas lo decide la prueba de herramientas de cada modelo, como en el resto de proveedores. Los modelos de Zen que no hablen el protocolo `/chat/completions` (algunos usan `/messages` o `/responses`) todavía no están soportados.
+**Qué se verifica y qué no:** Zen ha admitido y rechazado el acceso anónimo en momentos distintos, así que Forja IA **no lo da por hecho**: cuenta lo que Zen responda en ese momento. Que el modelo use las herramientas lo decide la prueba de herramientas de cada modelo, como en el resto de proveedores. Zen sirve GPT por `/responses`, Claude, Qwen y MiniMax por `/messages` y Gemini por otra ruta; Forja IA habla `/chat/completions`, así que esos modelos se apartan de la lista (darían 400) y quedan fuera hasta que se soporte su endpoint. Si algo da error, el mensaje de Zen se muestra tal cual.
 
 ## Integración opcional con servidor OpenCode (v4.70.5)
 

@@ -855,25 +855,34 @@ export async function probarZenSinClave(
   }
   const def = getProvider(providerId);
   const base = (config.baseUrl || def.baseUrl).trim();
-  const req = buildRequest(endpoint(base, "/chat/completions"), { config, providerId }, {
-    Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
-  });
-  try {
-    const res = await fetch(req.target, {
-      method: "POST",
-      headers: req.headers,
-      body: JSON.stringify({ model: gratis[0], max_tokens: 1, messages: [{ role: "user", content: "hi" }] }),
-      signal: AbortSignal.timeout(15_000),
+  let ultimo: { estado: ResultadoSondeoZen["estado"]; mensaje: string; status?: number } | null = null;
+  // Hasta 3 candidatos: un 400/404/422 apunta al MODELO (endpoint distinto),
+  // no a la clave, así que se prueba el siguiente antes de dar el veredicto.
+  for (const modelo of gratis.slice(0, 3)) {
+    const req = buildRequest(endpoint(base, "/chat/completions"), { config, providerId }, {
+      Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
     });
-    const texto = res.ok ? "" : await res.text().catch(() => "");
-    return { ...clasificarRespuestaZen(res.status, texto, conClave), gratis, status: res.status };
-  } catch (e) {
-    return {
-      estado: "servicio",
-      gratis,
-      mensaje: `No se pudo contactar con Zen: ${e instanceof Error ? e.message : "error de red"}`,
-    };
+    try {
+      const res = await fetch(req.target, {
+        method: "POST",
+        headers: req.headers,
+        // 16 y no 1: los modelos que razonan rechazan o truncan un tope diminuto
+        body: JSON.stringify({ model: modelo, max_tokens: 16, messages: [{ role: "user", content: "hi" }] }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      const texto = res.ok ? "" : await res.text().catch(() => "");
+      const c = clasificarRespuestaZen(res.status, texto, conClave);
+      ultimo = { ...c, status: res.status };
+      if (![400, 404, 422].includes(res.status)) break;
+    } catch (e) {
+      return {
+        estado: "servicio",
+        gratis,
+        mensaje: `No se pudo contactar con Zen: ${e instanceof Error ? e.message : "error de red"}`,
+      };
+    }
   }
+  return { ...(ultimo as NonNullable<typeof ultimo>), gratis };
 }
 
 /**
