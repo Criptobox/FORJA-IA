@@ -148,12 +148,12 @@ export function Welcome({
   const setSettings = useForja((s) => s.setSettings);
   const anyProvider = PROVIDERS.some((p) => {
     const c = providers[p.id];
-    return c?.enabled && (!!c.apiKey.trim() || !!p.keyless);
+    return c?.enabled && (!!c.apiKey.trim() || !!p.keyless || !!p.keyOptional);
   });
   const featured = PROVIDERS.find((p) => p.featured)!;
   const firstReady = PROVIDERS.find((p) => {
     const c = providers[p.id];
-    return c?.enabled && (!!c.apiKey.trim() || !!p.keyless) && c.models.length > 0;
+    return c?.enabled && (!!c.apiKey.trim() || !!p.keyless || !!p.keyOptional) && c.models.length > 0;
   });
 
   const useFirstDefault = () => {

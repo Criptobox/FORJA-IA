@@ -32,6 +32,7 @@ import { classifyProbe, type ProbeVerdict } from "./model-probe";
 import { translateTools } from "./tools-translate";
 import { TOOL_CATALOG, type ToolDef } from "./tools-catalog";
 import { recordQuotaHeaders } from "./quota";
+import { claveEfectiva } from "./opencode-zen";
 
 export type ToolsSupport =
   | "ok" // soporta tools
@@ -190,7 +191,7 @@ export async function probeTools(
     extra = { "x-goog-api-key": config.apiKey };
   } else {
     path = "/chat/completions";
-    extra = { Authorization: `Bearer ${config.apiKey}` };
+    extra = { Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}` };
   }
   const req = buildRequest(endpoint(base, path), { config, providerId }, extra);
   const bodyObj = cuerpoConTools(def.protocol, modelId, catalogo);

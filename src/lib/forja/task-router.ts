@@ -8,6 +8,7 @@ import {
   type MuestraModelo,
 } from "./experiencia";
 import { makeModelKey } from "./types";
+import { esClaveOpcional } from "./opencode-zen";
 import {
   filterFreeModels,
   KEYLESS_PROVIDERS,
@@ -133,7 +134,7 @@ function usable(
 ): FailoverProviderCfg | undefined {
   const cfg = providers[id];
   if (!cfg?.enabled) return undefined;
-  if (!cfg.apiKey.trim() && !KEYLESS_PROVIDERS.includes(id)) return undefined;
+  if (!cfg.apiKey.trim() && !KEYLESS_PROVIDERS.includes(id) && !esClaveOpcional(id)) return undefined;
   return cfg;
 }
 

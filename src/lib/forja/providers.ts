@@ -30,17 +30,18 @@ export const PROVIDERS: ProviderDef[] = [
   {
     id: "opencode",
     name: "OpenCode Zen",
-    tagline: "Pasarela de OpenCode · modelos «-free» sin gastar saldo",
+    tagline: "Pasarela de OpenCode · modelos «-free» · se intenta sin clave",
     protocol: "openai",
     baseUrl: "https://opencode.ai/zen/v1",
     keyUrl: "https://opencode.ai/auth",
     docsUrl: "https://opencode.ai/docs/zen",
-    hint: "Clave de opencode.ai/auth. Los modelos gratis llevan «-free» en el id y cambian a menudo: pulsa «Probar» para cargar el catálogo vivo de opencode.ai/zen/v1/models.",
+    hint: "Pulsa «Probar» sin clave: Forja IA lo intenta en modo anónimo y carga solo los «-free» del catálogo vivo. Si Zen exige clave (a veces lo hace), créala gratis en opencode.ai/auth y pégala aquí.",
     // Solo los «-free» que la documentación de OpenCode cita hoy. El resto del
     // catálogo (de pago) aparece al cargar la lista viva.
     defaultModels: ["deepseek-v4-flash-free", "mimo-v2.5-free"],
     color: "#0EA5E9",
     featured: true,
+    keyOptional: true,
   },
   {
     id: "kimi",

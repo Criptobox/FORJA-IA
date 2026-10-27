@@ -9,6 +9,7 @@
  *  - Z.ai ofrece GLM-Flash gratis.
  */
 import type { ProviderId } from "./types";
+import { esClaveOpcional } from "./opencode-zen";
 
 /** Proveedores cuya API completa tiene capa gratuita (sin coste, con límites de tasa) */
 export const FULL_FREE_TIER: ProviderId[] = ["gemini", "groq", "ollama", "cerebras"];
@@ -160,7 +161,7 @@ export function pickFailoverCandidate(
   const usable = (id: ProviderId): FailoverProviderCfg | undefined => {
     const cfg = providers[id];
     if (!cfg?.enabled) return undefined;
-    if (!cfg.apiKey.trim() && !KEYLESS_PROVIDERS.includes(id)) return undefined;
+    if (!cfg.apiKey.trim() && !KEYLESS_PROVIDERS.includes(id) && !esClaveOpcional(id)) return undefined;
     return cfg;
   };
   const cadena = orden?.length ? orden : FAILOVER_ORDER;

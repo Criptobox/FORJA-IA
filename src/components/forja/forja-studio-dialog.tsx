@@ -152,7 +152,7 @@ export function ForjaStudioDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none border-border/70 bg-background/95 p-0 backdrop-blur-xl sm:h-auto sm:max-h-[92vh] sm:w-[min(1120px,96vw)] sm:max-w-none sm:rounded-lg">
+      <DialogContent className="!left-0 !translate-x-0 flex h-[100dvh] max-h-[100dvh] w-[100vw] max-w-[100vw] flex-col gap-0 overflow-hidden rounded-none border-border/70 bg-background/95 p-0 backdrop-blur-xl sm:h-auto sm:max-h-[92vh] sm:w-[min(1120px,96vw)] sm:max-w-none sm:rounded-lg">
         <DialogHeader className="shrink-0 text-left border-b border-border/60 px-4 py-3 pr-12 sm:px-5 sm:py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20 sm:size-10"><Sparkles className="size-5 text-primary" /></div>

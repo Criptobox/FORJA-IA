@@ -5,7 +5,7 @@
 #
 # Si lo publicas en internet, pásale el código de acceso o las rutas propias
 # quedan abiertas (ver README, «Si lo publicas en internet»):
-#   docker run -p 3000:3000 -e PRISM_ACCESS_CODE=loquesea forja-ia
+#   docker run -p 3000:3000 -e FORJA_ACCESS_CODE=loquesea forja-ia
 #
 # Aprovecha `output: "standalone"` de next.config.ts: la imagen final lleva
 # solo el servidor y sus dependencias, no todo node_modules.
@@ -32,6 +32,11 @@ ENV HOSTNAME=0.0.0.0
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+
+# No correr como root: si algo del servidor se compromete, que no sea dueño
+# de todo el contenedor.
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3000
 CMD ["node", "server.js"]

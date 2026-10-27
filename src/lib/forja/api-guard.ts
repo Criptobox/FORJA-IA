@@ -17,6 +17,15 @@
  * todo pasa igual que antes.
  */
 
+import { createHash, timingSafeEqual } from "node:crypto";
+
+/** Igualdad en tiempo constante (hash previo: iguala longitudes). */
+function igualSeguro(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
+
 export type GuardOutcome =
   | { ok: true }
   | { ok: false; status: number; error: string; hint?: string };
@@ -69,7 +78,7 @@ export function evaluateGuard(input: GuardInput): GuardOutcome {
   }
 
   // 3. Con código configurado, hay que traerlo.
-  if (configurado && code?.trim() !== configurado) {
+  if (configurado && !igualSeguro(code?.trim() ?? "", configurado)) {
     return {
       ok: false,
       status: 401,

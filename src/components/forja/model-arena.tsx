@@ -22,6 +22,7 @@ import { splitModelKey } from "@/lib/forja/types";
 import { separarEtiquetasPensamiento } from "@/lib/forja/razonamiento";
 import type { ProviderId } from "@/lib/forja/types";
 import { cn } from "@/lib/utils";
+import { esClaveOpcional } from "@/lib/forja/opencode-zen";
 
 interface LaneState {
   text: string;
@@ -38,7 +39,7 @@ function useArenaModels(): { key: string; label: string; providerId: ProviderId;
     const out: { key: string; label: string; providerId: ProviderId; modelId: string }[] = [];
     for (const [pid, cfg] of Object.entries(providers) as [ProviderId, typeof providers[ProviderId]][]) {
       if (!cfg.enabled) continue;
-      if (!cfg.apiKey.trim() && !KEYLESS_PROVIDERS.includes(pid)) continue;
+      if (!cfg.apiKey.trim() && !KEYLESS_PROVIDERS.includes(pid) && !esClaveOpcional(pid)) continue;
       for (const m of cfg.models) {
         if (!isFreeModel(pid, m)) continue;
         out.push({ key: `${pid}::${m}`, label: m, providerId: pid, modelId: m });

@@ -28,6 +28,7 @@ import {
   type UsoProveedor,
 } from "./cache-prompt";
 import { permitido, motivoVetado } from "./vetados";
+import { claveEfectiva, clasificarRespuestaZen, modelosGratisDeCatalogo, type ResultadoSondeoZen } from "./opencode-zen";
 import { costeDeModelo } from "./precios";
 import { anotarGasto, guardarLibro, leerLibro, normalizarLimites, veredictoDinero } from "./presupuesto-dinero";
 import {
@@ -343,7 +344,9 @@ async function assertOk(res: Response, providerName: string): Promise<void> {
   }
   const hint = esFalloDeImagen(detail)
     ? " — ese modelo no admite imágenes: manda solo texto o elige uno con visión"
-    : res.status === 401 || res.status === 403
+    : /FreeTierError/i.test(detail)
+      ? " — Zen exige una clave incluso para los modelos gratis: créala en opencode.ai/auth y pégala en Ajustes → OpenCode Zen"
+      : res.status === 401 || res.status === 403
       ? " — revisa tu API key en Ajustes"
       : res.status === 429
         ? " — has superado el límite de peticiones o tu saldo"
@@ -705,7 +708,7 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
     if (providerId === "openrouter") extra["HTTP-Referer"] = location.origin;
     if (providerId === "nvidia" && settings.stream) extra.Accept = "text/event-stream";
     const req = buildRequest(endpoint(base, "/chat/completions"), opts, {
-      Authorization: `Bearer ${config.apiKey}`,
+      Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
       ...extra,
     });
     const res = await loggedFetch(
@@ -819,8 +822,58 @@ export async function fetchModels(providerId: ProviderId, config: ProviderConfig
     return (j.data ?? []).map((m: { id: string }) => m.id).filter(Boolean);
   }
 
-  const j = await pedir("/models", { Authorization: `Bearer ${config.apiKey}` });
+  const j = await pedir("/models", { Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}` });
   return (j.data ?? []).map((m: { id: string }) => m.id).filter(Boolean).sort();
+}
+
+/**
+ * Sondeo de OpenCode Zen: ¿se pueden usar sus modelos gratis con la clave que
+ * haya (o sin ninguna)? Carga el catálogo vivo, se queda solo con los `-free` y
+ * hace UNA llamada de 1 token con el primero. No presume: lo que Zen conteste
+ * es lo que se cuenta (abierto, exige clave, clave mala, servicio caído).
+ */
+export async function probarZenSinClave(
+  providerId: ProviderId,
+  config: ProviderConfig
+): Promise<ResultadoSondeoZen> {
+  const conClave = !!config.apiKey.trim();
+  let gratis: string[] = [];
+  try {
+    gratis = modelosGratisDeCatalogo(await fetchModels(providerId, config));
+  } catch (e) {
+    const status = (e as { status?: number })?.status;
+    const msg = e instanceof Error ? e.message : "error de red";
+    if (status) return { ...clasificarRespuestaZen(status, msg, conClave), gratis: [], status };
+    return { estado: "servicio", gratis: [], mensaje: `No se pudo contactar con Zen: ${msg}` };
+  }
+  if (!gratis.length) {
+    return {
+      estado: "sin-modelos-gratis",
+      gratis,
+      mensaje: "El catálogo de Zen no trae ningún modelo «-free» ahora mismo.",
+    };
+  }
+  const def = getProvider(providerId);
+  const base = (config.baseUrl || def.baseUrl).trim();
+  const req = buildRequest(endpoint(base, "/chat/completions"), { config, providerId }, {
+    Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
+  });
+  try {
+    const res = await fetch(req.target, {
+      method: "POST",
+      headers: req.headers,
+      body: JSON.stringify({ model: gratis[0], max_tokens: 1, messages: [{ role: "user", content: "hi" }] }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    const texto = res.ok ? "" : await res.text().catch(() => "");
+    return { ...clasificarRespuestaZen(res.status, texto, conClave), gratis, status: res.status };
+  } catch (e) {
+    return {
+      estado: "servicio",
+      gratis,
+      mensaje: `No se pudo contactar con Zen: ${e instanceof Error ? e.message : "error de red"}`,
+    };
+  }
 }
 
 /**
@@ -884,7 +937,7 @@ function peticionDePrueba(providerId: ProviderId, config: ProviderConfig, modelI
     );
   }
   return buildRequest(endpoint(base, "/chat/completions"), { config, providerId }, {
-    Authorization: `Bearer ${config.apiKey}`,
+    Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
   });
 }
 

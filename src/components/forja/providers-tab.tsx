@@ -33,7 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import { permitido, quedaAlguno, alternarVeto } from "@/lib/forja/vetados";
 import { cn } from "@/lib/utils";
 import { PROVIDERS } from "@/lib/forja/providers";
-import { fetchModels, probeModel } from "@/lib/forja/chat-client";
+import { fetchModels, probarZenSinClave, probeModel } from "@/lib/forja/chat-client";
 import {
   culpaConfirmadaDelModelo,
   esUtilizable,
@@ -292,6 +292,34 @@ export function ProvidersTab({
   const pingProvider = async (id: ProviderId, overwrite: boolean) => {
     const def = PROVIDERS.find((p) => p.id === id)!;
     const cfg = useForja.getState().providers[id] ?? vacio(id, def.defaultModels);
+    // OpenCode Zen: sin clave se INTENTA en modo anónimo y se cuenta lo que
+    // Zen conteste (abierto / exige clave / servicio caído), sin presumir.
+    if (!cfg.apiKey.trim() && def.keyOptional) {
+      if (overwrite) setFetching(id);
+      else setPinging(id);
+      try {
+        const r = await probarZenSinClave(id, cfg);
+        if (r.gratis.length) setCatalogoVivo((c) => ({ ...c, [id]: r.gratis }));
+        if (r.estado === "abierto") {
+          if (overwrite) {
+            useModelosRotos.getState().limpiarProveedor(id);
+            setProviderConfig(id, { models: r.gratis, enabled: true });
+          }
+          toast.success(`${def.name} funciona sin clave`, {
+            description: `${r.gratis.length} modelos gratis (-free)${overwrite ? " cargados y activados" : " visibles"}.`,
+          });
+        } else {
+          toast.error(
+            r.estado === "requiere-clave" ? `${def.name} necesita una clave gratis` : `${def.name}: no se pudo comprobar`,
+            { description: r.mensaje }
+          );
+        }
+      } finally {
+        setFetching(null);
+        setPinging(null);
+      }
+      return;
+    }
     if (!cfg.apiKey.trim() && !def.keyless) {
       toast.error("Añade tu API key primero");
       return;
@@ -482,7 +510,7 @@ export function ProvidersTab({
     const q = query.trim().toLowerCase();
     return PROVIDERS.filter((def) => {
       const cfg = providers[def.id] ?? vacio(def.id, def.defaultModels);
-      if (filtro === "listos" && !estaListo(cfg, def.keyless)) return false;
+      if (filtro === "listos" && !estaListo(cfg, def.keyless || def.keyOptional)) return false;
       if (filtro === "local" && !def.keyless) return false;
       if (!q) return true;
       const hay = [def.id, def.name, def.tagline, ...(cfg.models ?? []), ...def.defaultModels]
@@ -490,8 +518,8 @@ export function ProvidersTab({
         .toLowerCase();
       return hay.includes(q);
     }).sort((a, b) => {
-      const ca = estaListo(providers[a.id] ?? vacio(a.id, a.defaultModels), a.keyless) ? 0 : 1;
-      const cb = estaListo(providers[b.id] ?? vacio(b.id, b.defaultModels), b.keyless) ? 0 : 1;
+      const ca = estaListo(providers[a.id] ?? vacio(a.id, a.defaultModels), a.keyless || a.keyOptional) ? 0 : 1;
+      const cb = estaListo(providers[b.id] ?? vacio(b.id, b.defaultModels), b.keyless || b.keyOptional) ? 0 : 1;
       if (ca !== cb) return ca - cb;
       if (!!a.featured !== !!b.featured) return a.featured ? -1 : 1;
       return 0;
@@ -499,7 +527,7 @@ export function ProvidersTab({
   }, [providers, query, filtro]);
 
   const listos = PROVIDERS.filter((d) =>
-    estaListo(providers[d.id] ?? vacio(d.id, d.defaultModels), d.keyless)
+    estaListo(providers[d.id] ?? vacio(d.id, d.defaultModels), d.keyless || d.keyOptional)
   ).length;
 
   return (
@@ -614,7 +642,7 @@ export function ProvidersTab({
             const def = PROVIDERS.find((p) => p.id === id);
             if (!def) return null;
             const cfg = providers[id] ?? vacio(id, def.defaultModels);
-            const on = estaListo(cfg, def.keyless);
+            const on = estaListo(cfg, def.keyless || def.keyOptional);
             return (
               <button
                 key={id}
@@ -646,7 +674,7 @@ export function ProvidersTab({
       {visibles.map((def) => {
         const cfg = providers[def.id] ?? vacio(def.id, def.defaultModels);
         const isOpen = expanded === def.id || visibles.length === 1;
-        const listo = estaListo(cfg, def.keyless);
+        const listo = estaListo(cfg, def.keyless || def.keyOptional);
         const sugerencias = sugerirModelos(
           def.id,
           cfg.models,

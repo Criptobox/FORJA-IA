@@ -6,7 +6,7 @@
  * v5 (3.34.0): bump de VERSION para forzar la desactivación del SW v4
  * que cacheó los chunks del bundle viejo en algunos navegadores y no
  * los soltaba aunque el servidor tuviera el nuevo. Con v5, el activate
- * borra todo lo que no empiece por 'prism-ai-v5' y se queda limpio.
+ * borra todo lo que no empiece por el prefijo de VERSION vigente (ver abajo).
  *
  * v8 (4.26.0): rebrand a Forja IA — nuevo prefijo de VERSION a propósito,
  * para que el logo y los iconos viejos cacheados no sobrevivan al cambio

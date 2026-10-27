@@ -59,7 +59,9 @@ const eslintConfig = [
       "@next/next/no-img-element": "warn",
       "no-console": "off",
       "no-debugger": "warn",
-      "no-empty": "warn",
+      /* `catch {}` vacío es el patrón correcto alrededor de localStorage; un
+       * bloque vacío en otro sitio sí merece el aviso. */
+      "no-empty": ["warn", { allowEmptyCatch: true }],
     },
   },
   {
@@ -100,6 +102,14 @@ const eslintConfig = [
       "no-unused-vars": "off",
       "@next/next/no-html-link-for-pages": "off",
       "@typescript-eslint/no-unused-disable-directive": "off",
+    },
+  },
+  {
+    /* En tests, `!` sobre lo que el propio test acaba de construir es ruido:
+     * si fuera null, el test fallaría igual con un mensaje peor. */
+    files: ["tests/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-non-null-assertion": "off",
     },
   },
 ];

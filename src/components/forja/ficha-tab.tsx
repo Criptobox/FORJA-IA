@@ -9,15 +9,16 @@ import { BadgeCheck, Flame, RefreshCw, ScrollText, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip, CodeBlock, Salida } from "./ui-forja";
 import type { Motor } from "@/lib/forja/motor-client";
+import type { ConfigForja, EventoForja } from "@/lib/forja/motor";
 import { paginaCompletaDesdeMensaje } from "@/lib/forja/forja-pagina-demo";
 
 /* el caché vive a nivel de módulo: sobrevive a cambios de pestaña */
-let cacheGlobal: any = null;
+let cacheGlobal: ReturnType<Motor["crearCacheMemoria"]> | null = null;
 
-export function FichaTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any }) {
+export function FichaTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: Partial<ConfigForja> }) {
   const [mensaje, setMensaje] = useState("Landing para una panadería artesanal en Valencia");
   const [ocupado, setOcupado] = useState(false);
-  const [r, setR] = useState<any>(null);
+  const [r, setR] = useState<Awaited<ReturnType<Motor["ejecutarForja"]>> | null>(null);
   const [pasada, setPasada] = useState<1 | 2>(1);
   const [llamadas, setLlamadas] = useState<{ disenador: number; codificador: number; revisor: number }>({ disenador: 0, codificador: 0, revisor: 0 });
   const [deltaDisenador, setDeltaDisenador] = useState<number | null>(null);
@@ -52,7 +53,7 @@ export function FichaTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
       const fichaTexto = fichaDesdeAdn(textoAdn2(adnLocal), mensaje);
       const { html: pagina, plano } = paginaCompletaDesdeMensaje(motor, mensaje, adnLocal, tokens, nombre);
 
-      const mock = async (a: any) => {
+      const mock = async (a?: { rol?: string }) => {
         const rol = a?.rol ?? "codificador";
         cuenta.current[rol as keyof typeof cuenta.current]++;
         if (rol === "disenador") return fichaTexto;
@@ -64,7 +65,7 @@ export function FichaTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
         llamarModelo: mock,
         memoria: { reglas: [] },
         cache,
-        onProgreso: (e: any) => {
+        onProgreso: (e: EventoForja) => {
           const linea =
             e?.tipo === "rol-inicio"
               ? `▸ ${e.rol} (ronda ${e.ronda ?? 1})`
@@ -74,7 +75,12 @@ export function FichaTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
           if (linea && !pasos.includes(linea)) pasos.push(linea);
         },
       });
-      const cfg = { porRol: {}, habilidades: [], perfil: "ligero", ...(cfgUsuario ?? {}) };
+      const cfg: ConfigForja = {
+        porRol: { disenador: null, codificador: null, revisor: null },
+        habilidades: [],
+        perfil: "ligero",
+        ...(cfgUsuario ?? {}),
+      };
       const res = await ejecutarForja({ mensaje }, cfg, deps(), { providerId: "forja-estudio", modelId: "taller" });
       setR(res);
       setLlamadas({ ...cuenta.current });

@@ -221,6 +221,21 @@ export interface SemillaFailover {
  * empalmar. */
 const MIN_RESCATE = 200;
 
+/** Un stream puede fallar después de entregar HTML parcial sin que el cliente
+ * haya preservado correctamente la cerca de Markdown. En ese caso también
+ * debemos rescatarlo: empezar de cero pierde trabajo real del usuario. */
+function detectarParcialRescatable(texto: string) {
+  if (texto.trim().length < MIN_RESCATE) return null;
+  const corte = respuestaCortada(texto);
+  if (corte.cortada) return corte;
+  const contieneDocumento = /<!doctype\s+html|<html[\s>]|```(?:html)?\s*\n/i.test(texto);
+  const cerrado = /<\/html\s*>/i.test(texto) || /```\s*$/.test(texto.trim());
+  if (contieneDocumento && !cerrado) {
+    return { cortada: true, motivo: "html-sin-cerrar" as const, lang: "html", cola: texto.slice(-600) };
+  }
+  return null;
+}
+
 /** Cómo se llama cada forma de quedarse a medias en la memoria de fallos. */
 const MOTIVO_PARADA: Record<string, string> = {
   "revision-pendiente": "revisión sin corregir",
@@ -351,7 +366,7 @@ export function useGeneration(ctx: CtxGeneracion) {
       const cfg = providers[split.providerId];
       const def = PROVIDER_MAP[split.providerId];
       if (!cfg || !def) return null;
-      if (!cfg.apiKey.trim() && !def.keyless) {
+      if (!cfg.apiKey.trim() && !def.keyless && !def.keyOptional) {
         toast.error(`${def.name} necesita tu API key`, {
           description: "Ábrela en Ajustes → Proveedores.",
           action: {
@@ -454,7 +469,7 @@ export function useGeneration(ctx: CtxGeneracion) {
         return;
       }
       const targetName = PROVIDER_MAP[candidate.providerId]?.name ?? candidate.providerId;
-      const corte = parcial.trim().length >= MIN_RESCATE ? respuestaCortada(parcial) : null;
+      const corte = detectarParcialRescatable(parcial);
       const seguira = !!corte?.cortada;
       toast.warning(tituloFailover(motivo, failedName), {
         description: seguira
@@ -1159,8 +1174,7 @@ export function useGeneration(ctx: CtxGeneracion) {
               indice: ci,
               cadena: chain,
               parcial: content,
-              rescatable:
-                content.trim().length >= MIN_RESCATE && respuestaCortada(content).cortada,
+              rescatable: !!detectarParcialRescatable(content),
             });
 
             const ultimo = intentosFallidos[intentosFallidos.length - 1];

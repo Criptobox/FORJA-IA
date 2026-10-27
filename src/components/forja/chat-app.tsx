@@ -1390,7 +1390,7 @@ export function ChatApp() {
     const t = input.trim();
     if (t.length < 25 || esTurnoTrivial(t) || !hasMessages) return null;
     return recomendarModelo(t, providers, {
-      keyless: ["ollama", "lmstudio", "llamacpp", "jan", "vllm", "mlx", "llamafile"],
+      keyless: ["ollama", "lmstudio", "llamacpp", "jan", "vllm", "mlx", "llamafile", "opencode"],
       historialUso: useUsage.getState().byModel,
       memoria: activeId ? leerMemoria(activeId) : null,
     });

@@ -87,7 +87,7 @@ El motor de diseño (plano de contenido, iconografía, QA de detalle, ADN, juece
 | 🎞 **Modo presentación** (`/presentar`) | Convierte el HTML de la vista previa en diapositivas (por `<section>` o `<h2>`), a pantalla completa con flechas, teclado y mando por QR. |
 | 🧩 **Skills por URL** | Instala skills desde cualquier .md/.json en raw.githubusercontent o un gist. |
 | 🛡 **Permisos de las Skills** | Antes de instalar, Forja analiza el texto y te muestra qué declara hacer: generar código, cargar recursos de internet (y de qué dominios), pedir claves o enviar datos a servidores. Lo de riesgo no se instala sin aceptación expresa de dos pasos, el permiso queda visible en la lista para siempre y viaja al system prompt como techo: la skill no puede colar claves ni envíos de datos por encima del usuario. |
-| 🧪 **Tests** | 2 300+ tests unitarios (Vitest) y 100+ archivos de escenarios E2E con Playwright, **todos en CI en cada push** (`npm run test` / `npm run test:e2e`). |
+| 🧪 **Tests** | 2 600+ tests unitarios (Vitest) y 100+ archivos de escenarios E2E con Playwright, **todos en CI en cada push** (`npm run test` / `npm run test:e2e`). |
 | 🧠 **Mapa del proyecto** | Memoria compacta por sesión que se inyecta en el contexto: continúa proyectos gastando muchos menos tokens. |
 | 🪪 **Ficha del proyecto** | La portada del mapa convertida en tarjeta de un vistazo: pila con nº de archivos, punto de entrada, archivo núcleo, notas y páginas huérfanas — calculada del código, nunca inventada. El agente la lee ANTES de trabajar: llega al proyecto con la pila y las decisiones ya dentro. |
 | 🖼 **Imágenes multimodales** | Adjunta hasta 6 imágenes por mensaje (se redimensionan en local). |
@@ -193,7 +193,7 @@ Mira [`.env.example`](.env.example) para el detalle.
 
 ```bash
 # 1) Clona el repositorio
-git clone https://github.com/TU_USUARIO/FORJA-IA.git
+git clone https://github.com/Criptobox/FORJA-IA.git
 cd FORJA-IA
 
 # 2) Instalación automática (dependencias + entorno)
@@ -357,7 +357,17 @@ la rama `excel` de `src/lib/forja/sheets.ts`: CSV y TSV seguirán funcionando.
 - Forja IA mantiene su filosofía: **solo modelos gratis, cero cuentas, todo local**.
 
 
-## Integración opcional con OpenCode (v4.70.5)
+## Modelos gratis de OpenCode Zen, sin servidor (ejecutor integrado)
+
+Forja IA usa los modelos `-free` de [OpenCode Zen](https://opencode.ai/docs/zen) **directamente**, con su propio bucle de agente y sus propias herramientas (`write_file`, `edit_file`, `run_js`, `run_project`…). No hace falta instalar OpenCode ni levantar ningún servidor.
+
+1. **Ajustes → Proveedores → OpenCode Zen → Probar**, sin pegar nada. Forja IA lo intenta en modo anónimo (clave pública `public`), carga el catálogo vivo, se queda solo con los `-free` y hace una llamada de 1 token.
+2. Si Zen contesta que sí, el proveedor se **activa solo** con esos modelos. Elígelos en el selector y activa el modo agente como con cualquier otro.
+3. Si Zen contesta que hace falta clave (`403 FreeTierError`), te lo dice tal cual: créala gratis en [opencode.ai/auth](https://opencode.ai/auth) y pégala. El resto funciona igual.
+
+**Qué se verifica y qué no:** Zen ha admitido y rechazado el acceso anónimo en momentos distintos, así que Forja IA **no lo da por hecho**: cuenta lo que Zen responda en ese momento. Que el modelo use las herramientas lo decide la prueba de herramientas de cada modelo, como en el resto de proveedores. Los modelos de Zen que no hablen el protocolo `/chat/completions` (algunos usan `/messages` o `/responses`) todavía no están soportados.
+
+## Integración opcional con servidor OpenCode (v4.70.5)
 
 Forja IA puede consultar el estado y catálogo de un servidor OpenCode y enviar tareas a modelos cuyo catálogo declare coste de entrada y salida igual a cero. Los modelos con precio distinto de cero o precio desconocido se excluyen del selector gratuito.
 

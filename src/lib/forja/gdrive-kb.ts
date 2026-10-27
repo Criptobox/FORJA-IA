@@ -58,9 +58,9 @@ export function parseDriveId(input: string): string | null {
   const s = input.trim();
   if (!s) return null;
   const fromPath = s.match(/\/(?:folders|d)\/([A-Za-z0-9_-]{10,})/);
-  if (fromPath) return fromPath[1]!;
+  if (fromPath?.[1]) return fromPath[1];
   const fromQuery = s.match(/[?&]id=([A-Za-z0-9_-]{10,})/);
-  if (fromQuery) return fromQuery[1]!;
+  if (fromQuery?.[1]) return fromQuery[1];
   return /^[A-Za-z0-9_-]{10,}$/.test(s) ? s : null;
 }
 
@@ -101,7 +101,8 @@ export async function gdListFolderTree(
   let truncated = false;
 
   while (queue.length) {
-    const folder = queue.shift()!;
+    const folder = queue.shift();
+    if (!folder) break;
     let pageToken: string | undefined;
     do {
       acc = await freshToken(acc, creds);
@@ -169,7 +170,7 @@ export function driveFileToKBResource(file: GDriveTreeFile, accountEmail: string
   const folders = segments.slice(0, -1);
   const area = folders[0] ?? "";
   const category = folders[1] ? categoryFromFolder(folders[1]) : "";
-  const ext = file.name.includes(".") ? file.name.split(".").pop()!.toLowerCase() : "";
+  const ext = file.name.includes(".") ? (file.name.split(".").pop() ?? "").toLowerCase() : "";
   const tags = [
     ...new Set(
       [slug(area), ...folders.slice(2).map(slug), slug(file.name.replace(/\.[^.]+$/, "")), ext]

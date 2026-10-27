@@ -71,9 +71,9 @@ function scoreFile(file: KBRepoFile, q: KBProjectQuery): { score: number; reason
   for (const token of tokens(q.text)) {
     if (hay.includes(token)) { score += file.path.toLowerCase().includes(token) ? 3 : 1; reasons.push(`texto:${token}`); }
   }
-  if (q.technology && file.technology.some(x => norm(x) === norm(q.technology!))) { score += 5; reasons.push("tecnología"); }
-  if (q.pattern && file.patterns.some(x => norm(x) === norm(q.pattern!))) { score += 5; reasons.push("patrón"); }
-  if (q.component && file.componentNames.some(x => norm(x).includes(norm(q.component!)))) { score += 6; reasons.push("componente"); }
+  if (q.technology && file.technology.some(x => norm(x) === norm(q.technology ?? ""))) { score += 5; reasons.push("tecnología"); }
+  if (q.pattern && file.patterns.some(x => norm(x) === norm(q.pattern ?? ""))) { score += 5; reasons.push("patrón"); }
+  if (q.component && file.componentNames.some(x => norm(x).includes(norm(q.component ?? "")))) { score += 6; reasons.push("componente"); }
   // Solo desempata ENTRE archivos que ya tenían alguna coincidencia real: si
   // no, CUALQUIER consulta (aunque no case con nada) devolvería todos los
   // archivos "source" de todos los proyectos con score 0.2 > 0 — justo lo
@@ -97,9 +97,9 @@ export function retrieveProjectKnowledge(
     for (const token of tokens(q.text)) {
       if (projectText.includes(token)) { projectScore += 1; projectReasons.push(`proyecto:${token}`); }
     }
-    if (q.technology && project.technologies.concat(project.frameworks).some(x => norm(x) === norm(q.technology!))) { projectScore += 4; projectReasons.push("tecnología-proyecto"); }
-    if (q.pattern && project.patterns.some(x => norm(x) === norm(q.pattern!))) { projectScore += 4; projectReasons.push("patrón-proyecto"); }
-    if (q.component && project.components.some(x => norm(x).includes(norm(q.component!)))) { projectScore += 5; projectReasons.push("componente-proyecto"); }
+    if (q.technology && project.technologies.concat(project.frameworks).some(x => norm(x) === norm(q.technology ?? ""))) { projectScore += 4; projectReasons.push("tecnología-proyecto"); }
+    if (q.pattern && project.patterns.some(x => norm(x) === norm(q.pattern ?? ""))) { projectScore += 4; projectReasons.push("patrón-proyecto"); }
+    if (q.component && project.components.some(x => norm(x).includes(norm(q.component ?? "")))) { projectScore += 5; projectReasons.push("componente-proyecto"); }
 
     if (projectScore > 0) hits.push({ project, score: projectScore, reasons: [...new Set(projectReasons)] });
     for (const file of project.files) {

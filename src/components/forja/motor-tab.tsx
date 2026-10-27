@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Chip, Salida } from "./ui-forja";
 import type { Motor } from "@/lib/forja/motor-client";
 import type { ConfigForja, InformeRevisorVisual, RolForja } from "@/lib/forja/motor";
+import type { EventoAdaptador } from "@/lib/forja/motor/adaptador-resiliente";
 
 /** Config mínima para las demos: sin modelo por rol (usan el mock). */
 const CFG_DEMO: ConfigForja = { porRol: { disenador: null, codificador: null, revisor: null }, habilidades: [] };
@@ -21,7 +22,7 @@ const PAGINA_TRUNCADA =
   `<html lang="es"><head><meta charset="utf-8"><title>Obrador</title><style>:root{--acento:#F97316;--fondo:#fffaf5}body{margin:0;font-family:system-ui;background:var(--fondo)}h1{color:var(--acento);padding:24px;font-size:clamp(2rem,5vw,3.5rem)}\n/* el CSS sigue…`;
 const COLA = `*/main{max-width:960px;margin:0 auto}</style></head><body><h1>Forjado a fuego lento</h1><p>Contenido real.</p></body></html>`;
 
-export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any }) {
+export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: Partial<ConfigForja> }) {
   const [salidas, setSalidas] = useState<Record<string, string>>({});
   const pone = (k: string, v: string) => setSalidas((s) => ({ ...s, [k]: v }));
 
@@ -66,7 +67,7 @@ export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
     const cache = crearCacheMemoria(4);
     const ficha = "## Ficha\nTipo: landing\nPaleta: #F97316\nEstructura: hero + cards";
     const n = { disenador: 0, codificador: 0, revisor: 0 };
-    const mock = async (a: any) => {
+    const mock = async (a?: { rol?: string }) => {
       const rol = a?.rol ?? "codificador";
       n[rol as keyof typeof n]++;
       if (rol === "disenador") return ficha;
@@ -107,11 +108,11 @@ export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
   /* 5 · telemetría del adaptador */
   const demoTelemetria = async () => {
     const { crearAdaptadorForja, crearRegistro, cerrarRegistro, crearTelemetriaForja } = motor;
-    const eventos: any[] = [];
+    const eventos: EventoAdaptador[] = [];
     const registro = crearRegistro("estudio-forja");
-    const puente = crearTelemetriaForja(registro, { tambien: (e: any) => eventos.push(e) });
+    const puente = crearTelemetriaForja(registro, { tambien: (e) => eventos.push(e) });
     let fase = 0;
-    const transporte = async (a: any) => {
+    const transporte = async (a: { modelId?: string }) => {
       fase++;
       if (a.modelId === "roto") throw new Error("401 unauthorized: model not found");
       if (fase === 2) throw new Error("fetch failed: ETIMEDOUT");
@@ -126,22 +127,22 @@ export function MotorTab({ motor, cfgUsuario }: { motor: Motor; cfgUsuario: any 
     let texto = "";
     try {
       texto = await llamada({ providerId: "deepseek", modelId: "roto", system: "s", user: "u", temperatura: 0.2, rol: "codificador", maxTokens: 16384 });
-    } catch (e: any) {
-      texto = "ERROR: " + (e?.message ?? e);
+    } catch (e) {
+      texto = "ERROR: " + (e instanceof Error ? e.message : String(e));
     }
     cerrarRegistro(registro, 120, []);
-    const t = (registro as any).telemetria ?? {};
+    const t = registro.telemetria;
     pone(
       "telemetria",
       `texto final: ${texto}
 eventos: ${eventos.map((e) => e.tipo).join(" · ") || "—"}
 
 telemetría del registro (puente crearTelemetriaForja):
-  reintentosRed  → ${t.reintentosRed ?? 0}
-  failovers      → ${t.failovers ?? 0}
-  continuaciones → ${t.continuaciones ?? 0}
-  tokensSalida   → ${t.tokensSalida ?? 0}
-  latencia media → ${t.latenciaMs ?? 0} ms`
+  reintentosRed  → ${t?.reintentosRed ?? 0}
+  failovers      → ${t?.failovers ?? 0}
+  continuaciones → ${t?.continuaciones ?? 0}
+  tokensSalida   → ${t?.tokensSalida ?? 0}
+  latencia media → ${t && t.llamadasOk > 0 ? Math.round(t.latenciaMsTotal / t.llamadasOk) : 0} ms`
     );
   };
 
@@ -162,7 +163,7 @@ telemetría del registro (puente crearTelemetriaForja):
     const aut2 = p.autorizar("implementation", 12000);
     pone(
       "presupuesto44",
-      `petición simple → complejidad ${simple.complejidad}: ${simple.reparto.implementation} tok a implementación (total ${Object.values(simple.reparto).reduce((a: number, b: any) => a + b, 0)})
+      `petición simple → complejidad ${simple.complejidad}: ${simple.reparto.implementation} tok a implementación (total ${Object.values(simple.reparto).reduce((a: number, b: number) => a + b, 0)})
 petición compleja (edición + alcance) → complejidad ${compleja.complejidad}: ${compleja.reparto.implementation} tok a implementación
 
 sobre el presupuesto complejo:
@@ -190,7 +191,7 @@ L6 QA del mismo HTML → ${hitQa ? "HIT: " + hitQa : "miss"} (el Revisor no se p
 L4 patrón inexistente → ${miss == null ? "miss (paga si toca)" : "hit"}
 
 ${s.resumen()}
-niveles: ${s.niveles.map((n: any) => `${n.nombre}=${n.entradas}`).join(" · ")}`
+niveles: ${s.niveles.map((n) => `${n.nombre}=${n.entradas}`).join(" · ")}`
     );
   };
 
@@ -203,7 +204,7 @@ niveles: ${s.niveles.map((n: any) => `${n.nombre}=${n.entradas}`).join(" · ")}`
     const ahorro = ahorroEstimado(r.parches);
     pone(
       "router",
-      `detectado sin modelo: ${candidatos.map((c: any) => c.tipo).join(", ")}
+      `detectado sin modelo: ${candidatos.map((c) => c.tipo).join(", ")}
 aplicados: ${r.parches.length} parche(s) · sin parche: ${r.sinParche}
 
 HTML corregido (recortado):
@@ -227,7 +228,7 @@ coste: 0 tokens · ahorro estimado: ${ahorro.llamadasEvitadas} llamada(s) / ${ah
     };
     const d1 = decidirSiguientePaso(informeBueno, 0, 3, "<html lang=\"es\">…</html>");
     const d2 = decidirSiguientePaso(informeRegular, 0, 3, "<html><body>hola</body></html>");
-    const fmt = (d: any) => `${d.tipo.toUpperCase()} — ${d.motivo}`;
+    const fmt = (d: { tipo: string; motivo: string }) => `${d.tipo.toUpperCase()} — ${d.motivo}`;
     pone(
       "temprana",
       `informe PASS score 96 → ${fmt(d1)}
@@ -256,10 +257,10 @@ El diagrama del plan: Generate → QA → Good enough? → YES: STOP · NO: parc
       `${roi.resumen()}
 
 por operación (puntos ganados por 1k tokens):
-${porOp.map((o: any) => `  ${o.operacion.padEnd(14)} ${String(o.tokensTotales).padStart(6)} tok → ${o.gananciaMedia > 0 ? "+" + o.gananciaMedia : o.gananciaMedia} pts (roi ${o.roi === Infinity ? "∞" : o.roi})`).join("\n")}
+${porOp.map((o) => `  ${o.operacion.padEnd(14)} ${String(o.tokensTotales).padStart(6)} tok → ${o.gananciaMedia > 0 ? "+" + o.gananciaMedia : o.gananciaMedia} pts (roi ${o.roi === Infinity ? "∞" : o.roi})`).join("\n")}
 
 recomendaciones del plan (§28 «qué operaciones merecen tokens»):
-${recs.map((r: any) => `  [${r.prioridad}] ${r.accion} — ${r.evidencia}`).join("\n")}`
+${recs.map((r) => `  [${r.prioridad}] ${r.accion} — ${r.evidencia}`).join("\n")}`
     );
   };
 
@@ -286,10 +287,10 @@ DECISIÓN (determinista, 0 tokens):
   hero         → ${sel.hero.tipo} (${sel.hero.composicion.join(" + ")})
   cards        → ${sel.cards.variantes.join(", ")}
   movimiento   → intensidad ${sel.planMovimiento.intensidad}/4 «${sel.planMovimiento.nombre}»: ${sel.planMovimiento.primitivas.join(", ")}
-  tiempos      → ${sel.planMovimiento.tiempos.map((t: any) => `${t.categoria} ${t.rango}`).join(" · ")}
+  tiempos      → ${sel.planMovimiento.tiempos.map((t) => `${t.categoria} ${t.rango}`).join(" · ")}
 
 PLAN ESPACIAL (${p.layers.length} capas, z-index semántico):
-${p.layers.map((l: any) => `  z${String(l.z).padStart(2)} ${l.id.padEnd(12)} ${l.contenido}`).join("\n")}
+${p.layers.map((l) => `  z${String(l.z).padStart(2)} ${l.id.padEnd(12)} ${l.contenido}`).join("\n")}
 
 señales: ${sel.razonesDna.join("; ") || "—"}`
     );
@@ -313,10 +314,10 @@ EDITORIAL SCORE (§11): ${Math.round(scoreEditorial(s) * 100)}% (umbral 62%)
 MÉTRICAS (§12): ${resumenMetricas(m)}
 
 QA DE EXPERIENCIA (§21):
-${hallazgos.length ? hallazgos.map((h: any) => `  [${h.nivel}] ${h.chequeo}: ${h.evidencia}`).join("\n") : "  sin hallazgos"}
+${hallazgos.length ? hallazgos.map((h) => `  [${h.nivel}] ${h.chequeo}: ${h.evidencia}`).join("\n") : "  sin hallazgos"}
 
 PATCH-FIRST (§22) — sin regenerar, sin LLM:
-  parches aplicados: ${r.parches.length ? r.parches.map((p: any) => p.tipo).join(", ") : "ninguno (sube al bucle)"}
+  parches aplicados: ${r.parches.length ? r.parches.map((p) => p.tipo).join(", ") : "ninguno (sube al bucle)"}
   contenido intacto ✓ · reduced-motion respetado ✓ · ${(r.html.length - htmlRevista.length)} chars añadidos (CSS+script capados)`
     );
   };
@@ -331,7 +332,7 @@ PATCH-FIRST (§22) — sin regenerar, sin LLM:
     const fresco = penalizacionComposicion("HERO_CINEMATIC", "3d", "CARD_MEDIA");
     pone(
       "repeticion45",
-      `últimos proyectos: ${obtenerHistorial().map((h: any) => h.hero.replace("HERO_", "")).join(" → ")}
+      `últimos proyectos: ${obtenerHistorial().map((h) => h.hero.replace("HERO_", "")).join(" → ")}
 
 penalización de repetir HERO_3D_OBJECT + 2.5d + CARD_FLOATING:
   -${pen.puntos} pts → ${pen.consejo}
@@ -360,7 +361,7 @@ penalización directa del hero repetido: -${penalizacionHero("HERO_3D_OBJECT")} 
     });
     pone(
       "primitivas46",
-      `brief: «${mensajes[tipo]}»\n\nPRIMITIVAS COMPILADAS ELEGIDAS (${sel.primitivas?.primitivas?.length ?? 0}, ${sel.primitivas?.kbTotales ?? 0} KB — nacen auditadas):\n${lineas.join("\n") || "  (ninguna: experiencia estática deliberada)"}\n\ncatálogo: ${PRIMITIVAS_BLOQUE.map((p: any) => p.id).join(", ")}\n\ndisciplina:\n${(sel.primitivas?.disciplina ?? []).map((d: string) => `  · ${d}`).join("\n")}\n\nEl Codificador recibe CSS+HTML+script y SOLO parametriza contenido:\nre-inventar una primitiva pagaba tokens + QA; reutilizarla sale GRATIS.`
+      `brief: «${mensajes[tipo]}»\n\nPRIMITIVAS COMPILADAS ELEGIDAS (${sel.primitivas?.primitivas?.length ?? 0}, ${sel.primitivas?.kbTotales ?? 0} KB — nacen auditadas):\n${lineas.join("\n") || "  (ninguna: experiencia estática deliberada)"}\n\ncatálogo: ${PRIMITIVAS_BLOQUE.map((p) => p.id).join(", ")}\n\ndisciplina:\n${(sel.primitivas?.disciplina ?? []).map((d: string) => `  · ${d}`).join("\n")}\n\nEl Codificador recibe CSS+HTML+script y SOLO parametriza contenido:\nre-inventar una primitiva pagaba tokens + QA; reutilizarla sale GRATIS.`
     );
   };
 
@@ -390,10 +391,10 @@ penalización directa del hero repetido: -${penalizacionHero("HERO_3D_OBJECT")} 
     const html = `<html lang="es"><head><style>body{margin:0}.card{transition:transform 90ms, opacity 3.2s}.hero{animation:flota 7s ease-in-out infinite}@keyframes flota{50%{transform:translateY(8px)}}.btn:hover{transition:all 200ms}.texto{transition:opacity 900ms}</style></head><body><div class="card">a</div><div class="hero">b</div><button class="btn">c</button><p class="texto">d</p></body></html>`;
     const inf = medirMovimiento(html);
     const r = parchesMovimiento(html, inf);
-    const fuera = inf.duraciones.filter((d: any) => !d.dentroEscala && !d.ambiente).map((d: any) => `${d.ms}ms(${d.selector})`);
+    const fuera = inf.duraciones.filter((d) => !d.dentroEscala && !d.ambiente).map((d) => `${d.ms}ms(${d.selector})`);
     pone(
       "motion46",
-      `HTML con duraciones rotas (90ms, 3.2s) y SIN guard de reduced-motion:\n\nMEDIDO (§9 por duración):\n  duraciones: ${inf.duraciones.length} · ambiente (infinite): ${inf.infinitas} · fuera de escala: ${fuera.join(", ") || "ninguna"}\n  stagger ${inf.staggerDetectado ? "presente" : "ausente"} · reduced-motion ${inf.reducedMotionGuard ? "OK" : "FALTA → crítico"}\n  score ${inf.score}/100\n\nPARCHES (append-only, capados, 0 tokens):\n${r.parches.map((p: any) => `  · ${p.tipo} — ${p.evidencia}`).join("\n") || "  · ninguno"}\n\nRE-MEDICIÓN: score ${inf.score} → ${r.informe.score}/100 · guard ${r.informe.reducedMotionGuard ? "OK" : "FALTA"}\n(el contenido del usuario NUNCA se toca: solo CSS de guard/overrides)`
+      `HTML con duraciones rotas (90ms, 3.2s) y SIN guard de reduced-motion:\n\nMEDIDO (§9 por duración):\n  duraciones: ${inf.duraciones.length} · ambiente (infinite): ${inf.infinitas} · fuera de escala: ${fuera.join(", ") || "ninguna"}\n  stagger ${inf.staggerDetectado ? "presente" : "ausente"} · reduced-motion ${inf.reducedMotionGuard ? "OK" : "FALTA → crítico"}\n  score ${inf.score}/100\n\nPARCHES (append-only, capados, 0 tokens):\n${r.parches.map((p) => `  · ${p.tipo} — ${p.evidencia}`).join("\n") || "  · ninguno"}\n\nRE-MEDICIÓN: score ${inf.score} → ${r.informe.score}/100 · guard ${r.informe.reducedMotionGuard ? "OK" : "FALTA"}\n(el contenido del usuario NUNCA se toca: solo CSS de guard/overrides)`
     );
   };
 
@@ -444,7 +445,7 @@ penalización directa del hero repetido: -${penalizacionHero("HERO_3D_OBJECT")} 
     const recs = recomendacionesAprendidas({ minMuestras: 3 });
     pone(
       "aprendizaje46",
-      `${11} generaciones registradas con HUELLA + RESULTADO (score + veredicto):\n\nRECOMENDACIONES CON EVIDENCIA (0 tokens):\n${recs.map((r: any) => `  [${r.accion.toUpperCase()}] ${r.dimension} «${r.valor}» — ${r.evidencia}`).join("\n") || "  (aún sin muestras suficientes)"}\n\najustes al hero engine: ${JSON.stringify(ajustesHeroAprendidos(3))} (+2 destacado / -2 evitado)\n\n${recomendarPorVertical()}\n\nCon 20-30 generaciones el Genoma pasa de «penalizar lo reciente»\na «recomendar lo que ganó» — la memoria la persiste el host.`
+      `${11} generaciones registradas con HUELLA + RESULTADO (score + veredicto):\n\nRECOMENDACIONES CON EVIDENCIA (0 tokens):\n${recs.map((r) => `  [${r.accion.toUpperCase()}] ${r.dimension} «${r.valor}» — ${r.evidencia}`).join("\n") || "  (aún sin muestras suficientes)"}\n\najustes al hero engine: ${JSON.stringify(ajustesHeroAprendidos(3))} (+2 destacado / -2 evitado)\n\n${recomendarPorVertical()}\n\nCon 20-30 generaciones el Genoma pasa de «penalizar lo reciente»\na «recomendar lo que ganó» — la memoria la persiste el host.`
     );
   };
 

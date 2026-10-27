@@ -95,7 +95,7 @@ function fileMatches(file: KBRepoFile, inferred: ReturnType<typeof inferQuery>, 
     score += 14;
     reasons.push(`componente:${inferred.component}`);
   }
-  if (component && filePath.includes(norm(inferred.component!))) {
+  if (component && filePath.includes(norm(inferred.component ?? ""))) {
     score += 10;
     matchedPath = file.path;
     reasons.push("ruta-componente");
@@ -104,7 +104,7 @@ function fileMatches(file: KBRepoFile, inferred: ReturnType<typeof inferQuery>, 
     score += 8;
     reasons.push(`patrón:${inferred.pattern}`);
   }
-  if (inferred.technology && file.technology.some((x) => norm(x) === norm(inferred.technology!))) {
+  if (inferred.technology && file.technology.some((x) => norm(x) === norm(inferred.technology ?? ""))) {
     score += 5;
     reasons.push("tecnología");
   }
@@ -177,8 +177,8 @@ export function retrieveSmartKB(q: KBSmartQuery, resources = kbGetResources(), m
         score += Math.min(24, best.match.score);
         reasons.push(...best.match.reasons);
         matchedPath = best.match.matchedPath || best.file.path;
-        matchedComponent = matchedComponent || inferred.component && best.file.componentNames.find((x) => norm(x).includes(norm(inferred.component!)));
-        matchedPattern = matchedPattern || inferred.pattern && best.file.patterns.find((x) => norm(x).includes(norm(inferred.pattern!)));
+        matchedComponent = matchedComponent || inferred.component && best.file.componentNames.find((x) => norm(x).includes(norm(inferred.component ?? "")));
+        matchedPattern = matchedPattern || inferred.pattern && best.file.patterns.find((x) => norm(x).includes(norm(inferred.pattern ?? "")));
       }
     }
 

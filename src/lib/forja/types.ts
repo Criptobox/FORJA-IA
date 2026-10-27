@@ -242,6 +242,8 @@ export interface ProviderDef {
   directByDefault?: boolean;
   /** no necesita API key (servidores locales como Ollama o LM Studio) */
   keyless?: boolean;
+  /** puede funcionar sin clave (se intenta en modo anónimo) pero no lo garantiza: OpenCode Zen */
+  keyOptional?: boolean;
   /** nota corta bajo el campo de clave / URL */
   hint?: string;
   /** documentación */
