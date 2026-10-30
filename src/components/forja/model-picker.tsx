@@ -43,6 +43,10 @@ export interface ModelOption {
  * marcado como roto, o la cabecera del chat señalaría a un modelo que ya no
  * aparece en ningún sitio.
  */
+/** «45 s», «3 min»: unidades como las escribe el idioma, no a mano. */
+const FMT_SEG = new Intl.NumberFormat("es", { style: "unit", unit: "second", unitDisplay: "short" });
+const FMT_MIN = new Intl.NumberFormat("es", { style: "unit", unit: "minute", unitDisplay: "short" });
+
 export function useAvailableModels(conservar?: string | null): ModelOption[] {
   const providers = useForja((s) => s.providers);
   const favorites = useForja((s) => s.favorites);
@@ -130,6 +134,8 @@ export function ModelPicker({
   const favorites = useForja((s) => s.favorites);
   const toggleFavorite = useForja((s) => s.toggleFavorite);
   const [query, setQuery] = useState("");
+  // Fila resaltada por las flechas (valor de cmdk): ⌘/Ctrl+D la marca como favorita.
+  const [resaltado, setResaltado] = useState("");
 
   // Android: el catálogo nativo de OpenCode Mobile se consulta automáticamente.
   // Se guarda en la configuración del proveedor para reutilizar el selector existente,
@@ -169,6 +175,7 @@ export function ModelPicker({
   }, []);
 
   const q = query.trim().toLowerCase();
+  const hoy = new Date(now).toISOString().slice(0, 10);
   const filtered = q
     ? models.filter(
         (m) =>
@@ -272,7 +279,7 @@ export function ModelPicker({
         collisionPadding={12}
         className="w-[min(360px,calc(100vw-1.5rem))] p-0"
       >
-        <Command shouldFilter={false}>
+        <Command shouldFilter={false} value={resaltado} onValueChange={setResaltado}>
           {/* Buscar + interruptor «Solo gratis» */}
           <div className="flex items-center gap-2 border-b px-3 focus-within:bg-muted/40 focus-within:shadow-[inset_0_-2px_0_var(--ring)]">
             <Search className="size-4 shrink-0 opacity-40" />
@@ -281,8 +288,18 @@ export function ModelPicker({
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar o escribir modelo…"
               aria-label="Buscar o escribir modelo"
+              aria-keyshortcuts="Control+D Meta+D"
               autoComplete="off"
               spellCheck={false}
+              onKeyDown={(e) => {
+                // La estrella vive dentro de la opción y no puede ser otra parada
+                // de Tab (un control dentro de otro): con teclado se marca así.
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+                  if (!models.some((m) => m.key === resaltado)) return;
+                  e.preventDefault();
+                  toggleFavorite(resaltado);
+                }
+              }}
               className="h-10 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
             />
             <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -459,7 +476,7 @@ export function ModelPicker({
                         onChange(m.key);
                         setOpen(false);
                       }}
-                      className="group flex items-center gap-2"
+                      className="group flex items-center gap-2 [contain-intrinsic-size:auto_44px] [content-visibility:auto]"
                     >
                       <ModelLogo modelId={m.modelId} providerId={m.providerId} className="size-[18px]" />
                       {/* Dos niveles: el nombre del modelo ocupa su propia línea y
@@ -475,7 +492,9 @@ export function ModelPicker({
                           title="Enfriándose tras un fallo — Auto lo saltará"
                         >
                           <Timer className="size-3" />
-                          {cooling > 60_000 ? `${Math.ceil(cooling / 60_000)} min` : `${Math.ceil(cooling / 1000)}s`}
+                          {cooling > 60_000
+                            ? FMT_MIN.format(Math.ceil(cooling / 60_000))
+                            : FMT_SEG.format(Math.ceil(cooling / 1000))}
                         </span>
                       )}
                       {isLastGood && cooling === 0 && (
@@ -499,7 +518,7 @@ export function ModelPicker({
                         const est = estadoModelo(
                           m.providerId,
                           m.modelId,
-                          new Date().toISOString().slice(0, 10)
+                          hoy
                         );
                         if (est.estado === "vivo") return null;
                         const muerto = est.estado === "retirado";
@@ -537,14 +556,18 @@ export function ModelPicker({
                           </span>
                         );
                       })()}
+                      {/* Para lectores de pantalla el estado va en la propia
+                          opción; la estrella es solo para el puntero. */}
+                      {favorites.includes(m.key) && <span className="sr-only">, favorito</span>}
                       <button
                         type="button"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        title={favorites.includes(m.key) ? "Quitar de favoritos (⌘/Ctrl+D)" : "Marcar como favorito (⌘/Ctrl+D)"}
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleFavorite(m.key);
                         }}
-                        aria-label={`Favorito: ${m.modelId}`}
-                        aria-pressed={favorites.includes(m.key)}
                         className={cn(
                           // Visible también al llegar con teclado: por foco propio o
                           // con la fila resaltada por las flechas de cmdk.
@@ -567,6 +590,7 @@ export function ModelPicker({
             <span>
               <KeyRound className="mr-1 inline size-3" />
               Claves en Ajustes
+              <span className="hidden sm:inline"> · ⌘/Ctrl+D favorito</span>
             </span>
             <span>
               {models.length === totalEnabled

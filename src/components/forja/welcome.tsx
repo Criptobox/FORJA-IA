@@ -254,12 +254,14 @@ export function Welcome({
                   >
                     AiHubMix
                   </Button>
-                  <a href={featured.keyUrl} target="_blank" rel="noreferrer" className="inline-flex">
-                    <Button size="sm" variant="ghost" className="h-8 text-xs text-muted-foreground">
+                  {/* Un solo control: un enlace con aspecto de botón (antes era un
+                      <button> dentro de un <a>, dos paradas de Tab y un clic ambiguo). */}
+                  <Button asChild size="sm" variant="ghost" className="h-8 text-xs text-muted-foreground">
+                    <a href={featured.keyUrl} target="_blank" rel="noreferrer">
                       Obtener clave
                       <ArrowUpRight className="size-3" />
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 </div>
               </div>
             </div>

@@ -50,6 +50,16 @@ export default function ForjaEstudio() {
     if (p && PESTANAS_VALIDAS.includes(p)) setTab(p);
   }, []);
 
+  // La pestaña viaja en la URL: recargar o compartir el enlace vuelve a ella.
+  // replaceState y no push: cambiar de pestaña no debe llenar el «Atrás».
+  const cambiarTab = (t: string) => {
+    setTab(t);
+    const url = new URL(window.location.href);
+    if (t === "inicio") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", t);
+    window.history.replaceState(null, "", url);
+  };
+
   useEffect(() => {
     cargarMotor()
       .then(setMotor)
@@ -58,7 +68,7 @@ export default function ForjaEstudio() {
 
   return (
     <div className="h-dvh overflow-auto bg-background text-foreground">
-      <div className="mx-auto max-w-6xl space-y-5 px-3 py-4 sm:px-4 sm:py-6">
+      <main id="contenido" tabIndex={-1} className="mx-auto max-w-6xl space-y-5 px-3 py-4 outline-none sm:px-4 sm:py-6">
         {/* cabecera */}
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -99,7 +109,7 @@ export default function ForjaEstudio() {
         )}
 
         {motor && (
-          <Tabs value={tab} onValueChange={setTab} className="gap-4">
+          <Tabs value={tab} onValueChange={cambiarTab} className="gap-4">
             <TabsList className="h-9 w-full flex-nowrap items-center justify-start gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:h-auto sm:flex-wrap sm:overflow-visible">
               <TabsTrigger value="inicio" className="gap-1.5 flex-none sm:flex-1">
                 <Compass className="size-3.5" /> Inicio · Catálogo
@@ -141,7 +151,7 @@ export default function ForjaEstudio() {
             </TabsContent>
           </Tabs>
         )}
-      </div>
+      </main>
     </div>
   );
 }

@@ -12,6 +12,8 @@
  * que no aparecen en el texto.
  */
 
+import { plural } from "./plural";
+
 export interface ProveedorDiag {
   id: string;
   nombre: string;
@@ -77,10 +79,6 @@ function siNo(v: boolean): string {
   return v ? "sí" : "no";
 }
 
-/** «1 conversación», «2 conversaciones». Un informe con faltas invita a no leerlo. */
-function plural(n: number, singular: string, plural_: string): string {
-  return `${n} ${n === 1 ? singular : plural_}`;
-}
 
 /** El informe, en texto plano listo para pegar. */
 export function textoDiagnostico(e: EntradaDiagnostico): string {
