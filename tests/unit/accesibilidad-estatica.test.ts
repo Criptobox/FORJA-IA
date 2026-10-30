@@ -88,4 +88,10 @@ describe("accesibilidad estática — lo que el fuente puede prometer", () => {
     }
     expect(culpables, `tabIndex positivos:\n${culpables.join("\n")}`).toHaveLength(0);
   });
+
+  it("el viewport no bloquea el zoom (1.4.4: ampliar hasta 200%)", () => {
+    const layout = readFileSync(join(DIR_SRC, "app/layout.tsx"), "utf8");
+    expect(layout, "userScalable: false impide ampliar").not.toMatch(/userScalable\s*:\s*false/);
+    expect(layout, "maximumScale: 1 impide ampliar").not.toMatch(/maximumScale\s*:\s*1\b/);
+  });
 });

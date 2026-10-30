@@ -274,12 +274,15 @@ export function ModelPicker({
       >
         <Command shouldFilter={false}>
           {/* Buscar + interruptor «Solo gratis» */}
-          <div className="flex items-center gap-2 border-b px-3">
+          <div className="flex items-center gap-2 border-b px-3 focus-within:bg-muted/40 focus-within:shadow-[inset_0_-2px_0_var(--ring)]">
             <Search className="size-4 shrink-0 opacity-40" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar o escribir modelo…"
+              aria-label="Buscar o escribir modelo"
+              autoComplete="off"
+              spellCheck={false}
               className="h-10 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
             />
             <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -535,13 +538,17 @@ export function ModelPicker({
                         );
                       })()}
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleFavorite(m.key);
                         }}
-                        aria-label="Fijar como favorito"
+                        aria-label={`Favorito: ${m.modelId}`}
+                        aria-pressed={favorites.includes(m.key)}
                         className={cn(
-                          "touch-actions rounded p-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100",
+                          // Visible también al llegar con teclado: por foco propio o
+                          // con la fila resaltada por las flechas de cmdk.
+                          "touch-actions rounded p-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100 md:group-data-[selected=true]:opacity-100 md:focus-visible:opacity-100",
                           favorites.includes(m.key) && "opacity-100"
                         )}
                       >

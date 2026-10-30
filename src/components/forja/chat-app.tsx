@@ -73,7 +73,7 @@ import { ShortcutsDialog } from "./shortcuts-dialog";
 import { UsagePanel } from "./usage-panel";
 import { FailuresPanel } from "./failures-panel";
 import { VaultLockDialog } from "./vault-lock";
-import { useForja, uid } from "@/lib/forja/store";
+import { DESHACER_MS, useForja, uid } from "@/lib/forja/store";
 import { migrateLegacyAttachments } from "@/lib/forja/attachment-blob";
 import { useChatAttachments } from "@/lib/forja/use-chat-attachments";
 import { useGeneration } from "@/lib/forja/use-generation";
@@ -175,7 +175,7 @@ export function ChatApp() {
   const setActiveSession = useForja((s) => s.setActiveSession);
   const addMessage = useForja((s) => s.addMessage);
   const updateMessage = useForja((s) => s.updateMessage);
-  const deleteMessage = useForja((s) => s.deleteMessage);
+  const deleteMessageUndoable = useForja((s) => s.deleteMessageUndoable);
   const clearMessages = useForja((s) => s.clearMessages);
   const setProjectMap = useForja((s) => s.setProjectMap);
   const addReglaNo = useForja((s) => s.addReglaNo);
@@ -605,6 +605,24 @@ export function ChatApp() {
   useEffect(() => {
     if (streamingMsgId && estrecha) setMobilePreviewOpen(false);
   }, [streamingMsgId, estrecha]);
+
+  // Aviso para lectores de pantalla: solo el inicio y el final de cada
+  // respuesta. Una región viva sobre el hilo leería cada token del streaming.
+  const [anuncio, setAnuncio] = useState("");
+  const streamingPrevRef = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = streamingPrevRef.current;
+    streamingPrevRef.current = streamingMsgId ?? null;
+    if (streamingMsgId && !prev) {
+      setAnuncio("Generando respuesta…");
+    } else if (!streamingMsgId && prev) {
+      const st = useForja.getState();
+      const m = st.sessions
+        .find((s) => s.id === st.activeSessionId)
+        ?.messages.find((x) => x.id === prev);
+      setAnuncio(!m ? "" : m.error ? "La respuesta terminó con un error." : "Respuesta lista.");
+    }
+  }, [streamingMsgId]);
 
 
   /** Notas de memoria del mapa (estilo Obsidian): decisión del usuario que la IA respeta */
@@ -1448,6 +1466,9 @@ export function ChatApp() {
       {/* Arriba del todo: si el servidor ya sirve otra copia, se dice y se
           queda dicho hasta que recargues. */}
       <BannerVersionNueva />
+      <div role="status" aria-live="polite" className="sr-only">
+        {anuncio}
+      </div>
       {/* Cabecera */}
       <header className="glass sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border/60 px-3 sm:px-4">
         {!focusMode && (
@@ -1773,7 +1794,15 @@ export function ChatApp() {
                       m.role === "assistant" ? () => continueAgent(m.id) : undefined
                     }
                     onDelete={
-                      streamingMsgId !== m.id ? () => deleteMessage(activeSession!.id, m.id) : undefined
+                      streamingMsgId !== m.id
+                        ? () => {
+                            const deshacer = deleteMessageUndoable(activeSession!.id, m.id, DESHACER_MS);
+                            toast("Mensaje eliminado", {
+                              duration: DESHACER_MS,
+                              action: { label: "Deshacer", onClick: deshacer },
+                            });
+                          }
+                        : undefined
                     }
                     onEdit={m.role === "user" ? (c) => editUserMessage(m.id, c) : undefined}
                     onGuardarRepaso={

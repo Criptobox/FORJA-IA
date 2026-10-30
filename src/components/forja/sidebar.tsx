@@ -46,7 +46,8 @@ import {
 import { useTheme } from "next-themes";
 import { ForjaLogo } from "./logo";
 import { InstallButton } from "./pwa";
-import { sortSessions, useForja } from "@/lib/forja/store";
+import { toast } from "sonner";
+import { DESHACER_MS, sortSessions, useForja } from "@/lib/forja/store";
 import { tiempoRelativo, tituloVisible, vistaPrevia } from "@/lib/forja/session-list";
 import { unseenRadarCount } from "@/lib/forja/free-radar";
 import {
@@ -111,7 +112,7 @@ export function Sidebar({
   const activeId = useForja((s) => s.activeSessionId);
   const setActive = useForja((s) => s.setActiveSession);
   const createSession = useForja((s) => s.createSession);
-  const deleteSession = useForja((s) => s.deleteSession);
+  const deleteSessionUndoable = useForja((s) => s.deleteSessionUndoable);
   const renameSession = useForja((s) => s.renameSession);
   const togglePin = useForja((s) => s.togglePin);
 
@@ -274,16 +275,19 @@ export function Sidebar({
 
       {/* Buscador */}
       <div className="px-3 pb-1 pt-3">
-        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/50 px-2.5">
+        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/50 px-2.5 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40">
           <Search className="size-3.5 shrink-0 text-muted-foreground/70" />
           <input
+            type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar conversaciones…"
-            className="h-8 w-full bg-transparent text-[13px] outline-none placeholder:text-muted-foreground/60"
+            aria-label="Buscar conversaciones"
+            autoComplete="off"
+            className="h-8 w-full bg-transparent text-[13px] outline-none placeholder:text-muted-foreground/60 [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
-            <button onClick={() => setQuery("")} aria-label="Limpiar búsqueda">
+            <button type="button" onClick={() => setQuery("")} aria-label="Limpiar búsqueda">
               <X className="size-3.5 text-muted-foreground" />
             </button>
           )}
@@ -313,6 +317,7 @@ export function Sidebar({
                     <div className="flex min-w-0 flex-1 items-center gap-1">
                       <Input
                         value={draft}
+                        aria-label="Nuevo nombre de la conversación"
                         autoFocus
                         onChange={(e) => setDraft(e.target.value)}
                         onKeyDown={(e) => {
@@ -325,6 +330,7 @@ export function Sidebar({
                         className="h-7 text-[13px]"
                       />
                       <button
+                        type="button"
                         aria-label="Guardar nombre"
                         onClick={() => {
                           if (draft.trim()) renameSession(s.id, draft.trim());
@@ -385,7 +391,16 @@ export function Sidebar({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         variant="destructive"
-                        onClick={() => deleteSession(s.id)}
+                        onClick={() => {
+                          // Borrar era de un toque e irreversible (imágenes
+                          // incluidas): ahora hay unos segundos para deshacer.
+                          const deshacer = deleteSessionUndoable(s.id, DESHACER_MS);
+                          toast("Conversación eliminada", {
+                            description: tituloVisible(s),
+                            duration: DESHACER_MS,
+                            action: { label: "Deshacer", onClick: deshacer },
+                          });
+                        }}
                       >
                         <Trash2 className="size-3.5" /> Eliminar
                       </DropdownMenuItem>

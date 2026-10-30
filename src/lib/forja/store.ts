@@ -178,6 +178,10 @@ interface ForjaState {
   createSession: () => string;
   ensureSession: () => string;
   deleteSession: (id: string) => void;
+  /** Borra la conversación y devuelve la función que la restaura. Los
+   * binarios de IndexedDB no se purgan hasta pasados `ms`: deshacer antes
+   * la devuelve entera, imágenes incluidas. */
+  deleteSessionUndoable: (id: string, ms: number) => () => void;
   renameSession: (id: string, title: string) => void;
   togglePin: (id: string) => void;
   setActiveSession: (id: string | null) => void;
@@ -187,6 +191,9 @@ interface ForjaState {
   addMessage: (sessionId: string, msg: ChatMessage) => void;
   updateMessage: (sessionId: string, msgId: string, patch: Partial<ChatMessage>) => void;
   deleteMessage: (sessionId: string, msgId: string) => void;
+  /** Igual que `deleteMessage`, pero devuelve la función que lo restaura y
+   * difiere la purga de sus binarios `ms` (ver `deleteSessionUndoable`). */
+  deleteMessageUndoable: (sessionId: string, msgId: string, ms: number) => () => void;
   truncateAfter: (sessionId: string, msgId: string) => void;
 
   // ramas: regenerar y editar bifurcan en vez de borrar
@@ -252,6 +259,9 @@ interface ForjaState {
   setHydrated: (v: boolean) => void;
 }
 
+/** Ventana para deshacer un borrado desde la UI: lo que dura el toast. */
+export const DESHACER_MS = 6000;
+
 export const useForja = create<ForjaState>()(
   persist(
     (set, get) => ({
@@ -308,6 +318,39 @@ export const useForja = create<ForjaState>()(
             st.activeSessionId === id ? sessions[0]?.id ?? null : st.activeSessionId;
           return { sessions, activeSessionId };
         }),
+
+      deleteSessionUndoable: (id, ms) => {
+        const st = get();
+        const idx = st.sessions.findIndex((s) => s.id === id);
+        if (idx < 0) return () => {};
+        const removed = st.sessions[idx];
+        const eraActiva = st.activeSessionId === id;
+        set((cur) => {
+          const sessions = cur.sessions.filter((s) => s.id !== id);
+          const activeSessionId =
+            cur.activeSessionId === id ? sessions[0]?.id ?? null : cur.activeSessionId;
+          return { sessions, activeSessionId };
+        });
+        let resuelto = false;
+        // Si la pestaña se cierra antes, los binarios quedan huérfanos en IDB:
+        // mismo caso que un purgeBlobs fallido, y «Borrar todos los datos» los limpia.
+        const timer = setTimeout(() => {
+          resuelto = true;
+          const ids = removed.messages.flatMap(blobIdsOf);
+          if (ids.length) purgeBlobs(ids);
+        }, ms);
+        return () => {
+          if (resuelto) return;
+          resuelto = true;
+          clearTimeout(timer);
+          set((cur) => {
+            if (cur.sessions.some((s) => s.id === id)) return {};
+            const sessions = [...cur.sessions];
+            sessions.splice(Math.min(idx, sessions.length), 0, removed);
+            return { sessions, activeSessionId: eraActiva ? id : cur.activeSessionId };
+          });
+        };
+      },
 
       renameSession: (id, title) =>
         set((st) => ({
@@ -372,6 +415,45 @@ export const useForja = create<ForjaState>()(
             return pruneForks({ ...s, messages: s.messages.filter((m) => m.id !== msgId) });
           }),
         })),
+
+      deleteMessageUndoable: (sessionId, msgId, ms) => {
+        const antes = get().sessions.find((s) => s.id === sessionId);
+        const idx = antes?.messages.findIndex((m) => m.id === msgId) ?? -1;
+        if (!antes || idx < 0) return () => {};
+        const removed = antes.messages[idx];
+        let despues: Session | undefined;
+        set((st) => ({
+          sessions: st.sessions.map((s) => {
+            if (s.id !== sessionId) return s;
+            despues = pruneForks({ ...s, messages: s.messages.filter((m) => m.id !== msgId) });
+            return despues;
+          }),
+        }));
+        let resuelto = false;
+        const timer = setTimeout(() => {
+          resuelto = true;
+          const ids = blobIdsOf(removed);
+          if (ids.length) purgeBlobs(ids);
+        }, ms);
+        return () => {
+          if (resuelto) return;
+          resuelto = true;
+          clearTimeout(timer);
+          set((st) => ({
+            sessions: st.sessions.map((s) => {
+              if (s.id !== sessionId) return s;
+              // Sin cambios desde el borrado: vuelve tal cual (ramas incluidas,
+              // que pruneForks pudo recortar). Si el hilo siguió, solo se
+              // reinserta el mensaje en su sitio para no pisar lo nuevo.
+              if (s === despues) return antes;
+              if (s.messages.some((m) => m.id === msgId)) return s;
+              const messages = [...s.messages];
+              messages.splice(Math.min(idx, messages.length), 0, removed);
+              return { ...s, messages };
+            }),
+          }));
+        };
+      },
 
       branchFrom: (sessionId, msgId) => {
         let anchor: string | null = null;

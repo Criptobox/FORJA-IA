@@ -49,8 +49,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Sin maximumScale ni userScalable: bloquear el zoom deja fuera a quien lo
+  // necesita para leer. El zoom automático de iOS al enfocar se evita con
+  // campos de 16px en iOS (globals.css), no prohibiendo ampliar.
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#07070C" },

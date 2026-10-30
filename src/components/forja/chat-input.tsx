@@ -449,6 +449,7 @@ export function ChatInput({
               onKeyDown={keyDown}
               onPaste={onPaste}
               placeholder={placeholder}
+              aria-label="Mensaje"
               rows={1}
               disabled={disabled}
               aria-controls={slashOpen ? "forja-slash-menu" : undefined}
