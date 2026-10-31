@@ -31,7 +31,22 @@ const nextConfig: NextConfig = {
    *
    * Vercel define VERCEL=1 en sus builds, así que ahí se apaga y en cualquier
    * otro sitio se queda como estaba. */
-  ...(process.env.VERCEL ? {} : { output: "standalone" as const }),
+  ...(process.env.FORJA_ANDROID
+    ? /* La APK de Android (android/forja-app) lleva la interfaz dentro, sin
+       * servidor: exportación estática que la app sirve desde sus assets.
+       * La lanza scripts/build-android-web.mjs, que aparta antes las rutas
+       * de servidor (api/, share/), que no tienen sentido sin uno. */
+      {
+        output: "export" as const,
+        trailingSlash: true,
+        images: { unoptimized: true },
+        // Los tipos ya los comprueba la build normal (y CI): aquí fallarían
+        // por los tests que importan las rutas que se apartaron.
+        typescript: { ignoreBuildErrors: true },
+      }
+    : process.env.VERCEL
+      ? {}
+      : { output: "standalone" as const }),
   /* La comprobación de tipos vuelve a estar encendida.
    *
    * Apagarla no era el problema: el registro de Vercel lo dejó por escrito —

@@ -220,6 +220,9 @@ export type ProviderId =
   // Un .gguf que corre DENTRO del navegador (llama.cpp en WebAssembly): ni
   // servidor, ni clave, ni conexión. Ver gguf-local.ts.
   | "gguf"
+  // llama.cpp nativo dentro de la APK de Android (android/forja-app): el
+  // mismo motor, compilado para el móvil y servido en 127.0.0.1.
+  | "nativo"
   | "custom";
 
 /** Protocolo de API que habla el proveedor */

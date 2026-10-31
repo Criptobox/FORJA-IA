@@ -373,6 +373,22 @@ export const PROVIDERS: ProviderDef[] = [
     hint: "Elige un archivo .gguf (mejor 1-4B en Q4_K_M). Corre con WebGPU si tu navegador lo tiene; si no, en la CPU.",
     docsUrl: "https://github.com/ngxson/wllama",
   },
+  /** llama.cpp compilado para el móvil, dentro de la APK de Android. La app
+   * lo arranca en 127.0.0.1 con una clave por sesión; la URL y la clave las
+   * pone su panel, no el usuario. Solo aparece dentro de la APK. */
+  {
+    id: "nativo",
+    name: "Modelo nativo (Android)",
+    tagline: "llama.cpp compilado para tu móvil: más rápido que en el navegador",
+    protocol: "openai",
+    baseUrl: "http://127.0.0.1:8080/v1",
+    defaultModels: [],
+    color: "#22C55E",
+    directByDefault: true,
+    keyless: true,
+    hint: "Importa un .gguf y arráncalo desde este panel. Solo funciona dentro de la app Android de Forja.",
+    docsUrl: "https://github.com/ggml-org/llama.cpp",
+  },
   {
     id: "custom",
     name: "Personalizado",

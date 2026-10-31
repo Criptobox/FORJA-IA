@@ -98,6 +98,8 @@ import { entradaPromptActual } from "@/lib/forja/prompt-actual";
 import { TOOL_CATALOG } from "@/lib/forja/tools-catalog";
 import { useGgufAjustes, useGgufEstado } from "@/lib/forja/gguf-local";
 import { contextoEfectivo, GGUF_PROVIDER_ID } from "@/lib/forja/gguf-mensajes";
+import { EN_APK } from "@/lib/forja/plataforma";
+import { ApkArranque } from "./apk-arranque";
 import { useLimites } from "@/lib/forja/limites-medidos";
 import { agentStalled, continuePrompt, parseAgentTrace, suggestAgentMode } from "@/lib/forja/agent-loop";
 import { applyAccent } from "@/lib/forja/accent";
@@ -1436,7 +1438,7 @@ export function ChatApp() {
     const t = input.trim();
     if (t.length < 25 || esTurnoTrivial(t) || !hasMessages) return null;
     return recomendarModelo(t, providers, {
-      keyless: ["ollama", "lmstudio", "llamacpp", "jan", "vllm", "mlx", "llamafile", "gguf", "opencode"],
+      keyless: ["ollama", "lmstudio", "llamacpp", "jan", "vllm", "mlx", "llamafile", "gguf", "nativo", "opencode"],
       historialUso: useUsage.getState().byModel,
       memoria: activeId ? leerMemoria(activeId) : null,
     });
@@ -2393,6 +2395,9 @@ export function ChatApp() {
           toast.success("Web Studio preparado", { description: "El modo agente quedó activado. Revisa el prompt y envíalo." });
         }}
       />
+
+      {/* Dentro de la APK: arranca el último modelo nativo y mira si hay versión nueva. */}
+      {EN_APK && <ApkArranque />}
 
       <SettingsDialog
         open={settingsOpen}

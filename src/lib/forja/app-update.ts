@@ -12,6 +12,7 @@
  * actualizándose no hay forma honesta de simularlo en un test.
  */
 import { compareSemver } from "./app-version";
+import { EN_APK } from "./plataforma";
 
 export interface Copia {
   version: string;
@@ -59,6 +60,8 @@ export async function copiaServida(
   fetchImpl: typeof fetch = fetch,
   signal?: AbortSignal
 ): Promise<Copia | null> {
+  // En la APK no hay servidor: la actualización la lleva el lado nativo.
+  if (EN_APK) return null;
   try {
     const res = await fetchImpl("/api/version", { cache: "no-store", signal });
     if (!res.ok) return null;
