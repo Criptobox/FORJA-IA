@@ -461,6 +461,10 @@ export function useGeneration(ctx: CtxGeneracion) {
         );
       const failedName = PROVIDER_MAP[failedProviderId]?.name ?? failedProviderId;
       if (!candidate) {
+        // El modelo del navegador ya explica en el propio mensaje qué pasó y
+        // qué hacer; «conecta Gemini» encima solo confunde (el caso de la
+        // captura: «no está respondiendo» de un modelo que no tiene servidor).
+        if (motivo === "local") return;
         toast.error(tituloSinAlternativa(motivo, failedName), {
           description: "No hay otro proveedor conectado. Conecta Gemini, Groq u OpenRouter (gratis) en Ajustes, o prueba el modelo Auto.",
           action: { label: "Ver radar", onClick: () => setRadarOpen(true) },
@@ -1221,7 +1225,7 @@ export function useGeneration(ctx: CtxGeneracion) {
                 depth,
                 continuaciones,
                 content,
-                motivoDelFallo(status, isQuotaError(msg), muerto, grande, limiteLocal)
+                motivoDelFallo(status, isQuotaError(msg), muerto, grande, limiteLocal, candidate.providerId === "gguf")
               );
             }
             break;

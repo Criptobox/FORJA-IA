@@ -27,7 +27,9 @@ import {
   GGUF_CONTEXTO_PARA_HERRAMIENTAS,
   GGUF_CONTEXTO_POR_DEFECTO,
   GGUF_MAX_TROZO,
+  esAbortoDelMotor,
   esArchivoGguf,
+  esDispositivoMovil,
   parametrosParaWllama,
   plantillaConHerramientas,
   proporcionReal,
@@ -74,16 +76,67 @@ export const useGgufEstado = create<EstadoGguf>(() => ({
   persistente: true,
 }));
 
+/** GPU: «auto» usa WebGPU en ordenadores y la CPU en móviles; «no» fuerza la
+ * CPU (también lo pone la app si la GPU de este dispositivo hizo caer el
+ * motor); «si» prueba WebGPU también en el móvil. */
+export type PreferenciaGpu = "auto" | "si" | "no";
+
 /** Lo que elige el usuario y sobrevive a recargar. */
-export const useGgufAjustes = create<{ contexto: number; setContexto: (n: number) => void }>()(
+export const useGgufAjustes = create<{
+  contexto: number;
+  setContexto: (n: number) => void;
+  gpu: PreferenciaGpu;
+  setGpu: (g: PreferenciaGpu) => void;
+}>()(
   persist(
     (set) => ({
       contexto: GGUF_CONTEXTO_POR_DEFECTO,
       setContexto: (contexto) => set({ contexto }),
+      gpu: "auto",
+      setGpu: (gpu) => set({ gpu }),
     }),
     { name: "forja-gguf-v1", storage: createJSONStorage(() => localStorage) }
   )
 );
+
+/** ¿Se intenta WebGPU al cargar? */
+function quiereGpu(w: Wllama): boolean {
+  if (!w.isSupportWebGPU()) return false;
+  const g = useGgufAjustes.getState().gpu;
+  if (g === "no") return false;
+  if (g === "si") return true;
+  const nav = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
+  return !esDispositivoMovil(navigator.userAgent, nav.userAgentData?.mobile);
+}
+
+// ——— Log nativo ———
+// llama.cpp explica sus fallos (GGML_ABORT, memoria) en su log, y wllama solo
+// devuelve «(ABORT)». Se guardan las últimas líneas para poder decir el porqué.
+const registroNativo: string[] = [];
+function anotarNativo(...args: unknown[]): void {
+  const linea = args.map((a) => (typeof a === "string" ? a : String(a))).join(" ").trim();
+  if (!linea) return;
+  registroNativo.push(linea.slice(0, 300));
+  if (registroNativo.length > 30) registroNativo.shift();
+}
+/** La última línea del log que suena a fallo, si la hay. */
+function causaNativa(): string | null {
+  for (let i = registroNativo.length - 1; i >= 0; i--) {
+    if (/error|abort|assert|fail|out of memory|oom|cannot|unable|exceed/i.test(registroNativo[i])) {
+      return registroNativo[i];
+    }
+  }
+  return null;
+}
+const loggerForja = {
+  debug: () => {},
+  log: (...a: unknown[]) => anotarNativo(...a),
+  warn: (...a: unknown[]) => anotarNativo(...a),
+  error: (...a: unknown[]) => {
+    anotarNativo(...a);
+    console.error("[gguf]", ...a);
+  },
+};
 
 // ——— Almacenamiento: OPFS, o memoria si no se puede ———
 
@@ -225,11 +278,13 @@ function abortado(): DOMException {
 }
 
 async function nuevaInstancia(): Promise<Wllama> {
-  const { Wllama, LoggerWithoutDebug } = await import("@wllama/wllama/esm/index.js");
+  const { Wllama } = await import("@wllama/wllama/esm/index.js");
   // El .wasm lo sirve el propio sitio (el empaquetador lo copia y le pone
   // hash): nada sale a un CDN, y con la PWA instalada funciona sin conexión.
   const wasm = new URL("@wllama/wllama/esm/wasm/wllama.wasm", import.meta.url).href;
-  return new Wllama({ default: wasm }, { suppressNativeLog: true, logger: LoggerWithoutDebug });
+  // El log nativo no se silencia: va a `loggerForja`, que lo guarda para
+  // explicar un fallo en vez de enseñar «(ABORT)» a secas.
+  return new Wllama({ default: wasm }, { suppressNativeLog: false, logger: loggerForja });
 }
 
 async function descargar(): Promise<void> {
@@ -266,9 +321,9 @@ async function cargar(nombre: string, signal?: AbortSignal): Promise<void> {
   const pedido = useGgufAjustes.getState().contexto;
   try {
     let w = await nuevaInstancia();
-    let aceleracion: "webgpu" | "cpu" = w.isSupportWebGPU() ? "webgpu" : "cpu";
+    let aceleracion: "webgpu" | "cpu" = quiereGpu(w) ? "webgpu" : "cpu";
     try {
-      await w.loadModel(blobs, { n_ctx: pedido });
+      await w.loadModel(blobs, aceleracion === "webgpu" ? { n_ctx: pedido } : { n_ctx: pedido, n_gpu_layers: 0 });
     } catch (e) {
       if (aceleracion !== "webgpu") throw e;
       // WebGPU anunciado pero sin memoria o sin soporte real: a la CPU.
@@ -288,7 +343,7 @@ async function cargar(nombre: string, signal?: AbortSignal): Promise<void> {
       contextoEntrenado: info?.n_ctx_train || null,
     });
   } catch (e) {
-    const msg = explicarErrorGguf(e, pedido);
+    const msg = explicarErrorGguf(e, pedido, causaNativa());
     useGgufEstado.setState({ error: msg });
     throw new Error(msg);
   } finally {
@@ -360,12 +415,16 @@ export function generarLocal(
   return enCola(async () => {
     if (signal.aborted) throw abortado();
     await cargar(nombre, signal);
-    const w = instancia;
-    if (!w) throw new Error(explicarErrorGguf(null, nCtxCargado));
+    if (!instancia) throw new Error(explicarErrorGguf(null, nCtxCargado));
     let ajuste = aligerarParaContexto(cuerpo, nCtxCargado, proporcionPorModelo.get(nombre));
     let emitido = false;
+    // `instancia`, no una copia: tras un aborto se recrea y se reintenta.
+    const motor = (): Wllama => {
+      if (!instancia) throw new Error(explicarErrorGguf(null, nCtxCargado));
+      return instancia;
+    };
     const generar = () =>
-      w.createChatCompletion({
+      motor().createChatCompletion({
         ...(parametrosParaWllama(ajuste.cuerpo, nCtxCargado) as unknown as Parameters<Wllama["createChatCompletion"]>[0]),
         stream: true,
         abortSignal: signal,
@@ -379,6 +438,7 @@ export function generarLocal(
         },
       });
     let reajustado = false;
+    let pasadoACpu = false;
     for (let intento = 0; ; intento++) {
       try {
         avisarAligerado(ajuste.quitado, nCtxCargado);
@@ -386,6 +446,30 @@ export function generarLocal(
         return;
       } catch (e) {
         if (signal.aborted || (e as Error)?.name === "AbortError") throw abortado();
+        // llama.cpp se detuvo por dentro: el worker está muerto y el próximo
+        // mensaje tiene que encontrar uno nuevo, no este.
+        if (esAbortoDelMotor(e)) {
+          const causa = causaNativa();
+          const enGpu = useGgufEstado.getState().aceleracion === "webgpu";
+          await descargar();
+          if (enGpu) {
+            // La GPU de este dispositivo no puede con el modelo (en móviles es
+            // lo normal: admiten búferes mucho más pequeños). Desde ahora, la
+            // CPU; y si aún no había nada escrito, se reintenta ya.
+            useGgufAjustes.getState().setGpu("no");
+            toast.warning("El modelo local pasa a la CPU", {
+              description:
+                "La GPU de este dispositivo no pudo con el modelo. A partir de ahora va en la CPU (más lento, pero estable). Puedes cambiarlo en Ajustes → Proveedores → Modelo local.",
+              duration: 10000,
+            });
+            if (!emitido && !pasadoACpu) {
+              pasadoACpu = true;
+              await cargar(nombre, signal);
+              continue;
+            }
+          }
+          throw new Error(explicarErrorGguf(e, nCtxCargado, causa));
+        }
         const texto = (e as Error)?.message ?? String(e);
         // No cupo aunque la estimación decía que sí: llama.cpp dice cuántos
         // tokens ocupaba de verdad. Con esa proporción se vuelve a aligerar,
