@@ -217,6 +217,9 @@ export type ProviderId =
   | "vllm"
   | "mlx"
   | "llamafile"
+  // Un .gguf que corre DENTRO del navegador (llama.cpp en WebAssembly): ni
+  // servidor, ni clave, ni conexión. Ver gguf-local.ts.
+  | "gguf"
   | "custom";
 
 /** Protocolo de API que habla el proveedor */

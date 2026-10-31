@@ -138,12 +138,19 @@ function usable(
   return cfg;
 }
 
+/** El .gguf del navegador es el último recurso de Auto: es el más lento y,
+ * en la práctica, un modelo pequeño. Que su nombre diga «coder» no debe
+ * ponerlo por delante de un modelo en la nube; si es lo único que hay, se usa. */
+// Más que lo que puede sumar el nombre (modelFit llega a ~42): siempre detrás.
+const PENALIZACION_NAVEGADOR = -60;
+
 export function scoreModel(
   kind: TaskKind,
   providerId: ProviderId,
   modelId: string
 ): number {
-  return (PROVIDER_FIT[kind][providerId] ?? 1) + modelFit(kind, modelId);
+  const base = providerId === "gguf" ? PENALIZACION_NAVEGADOR : (PROVIDER_FIT[kind][providerId] ?? 1);
+  return base + modelFit(kind, modelId);
 }
 
 /** Cadena ordenada: 1º el más acorde, 2º el siguiente, etc. (cuota → siguiente).

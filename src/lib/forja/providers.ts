@@ -357,6 +357,22 @@ export const PROVIDERS: ProviderDef[] = [
     hint: "Descargas el .llamafile, le das permisos y lo ejecutas. Sin instalar nada.",
     docsUrl: "https://github.com/Mozilla-Ocho/llamafile",
   },
+  /** Un .gguf que corre dentro de la propia pestaña (llama.cpp compilado a
+   * WebAssembly). No hay URL ni clave: los «modelos» son los archivos que
+   * eliges en su panel, guardados en el almacenamiento del sitio. */
+  {
+    id: "gguf",
+    name: "Modelo local (.gguf)",
+    tagline: "Corre en tu navegador: sin servidor, sin clave y sin conexión",
+    protocol: "openai",
+    baseUrl: "local://navegador",
+    defaultModels: [],
+    color: "#10B981",
+    directByDefault: true,
+    keyless: true,
+    hint: "Elige un archivo .gguf (mejor 1-4B en Q4_K_M). Corre con WebGPU si tu navegador lo tiene; si no, en la CPU.",
+    docsUrl: "https://github.com/ngxson/wllama",
+  },
   {
     id: "custom",
     name: "Personalizado",

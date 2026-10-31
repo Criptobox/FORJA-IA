@@ -41,6 +41,8 @@ import {
   type ResultadoSondeoZen,
 } from "./opencode-zen";
 import { costeDeModelo } from "./precios";
+import { GGUF_PROVIDER_ID, type CuerpoOpenAI } from "./gguf-mensajes";
+import { generarLocal, refrescarModelos } from "./gguf-local";
 import { anotarGasto, guardarLibro, leerLibro, normalizarLimites, veredictoDinero } from "./presupuesto-dinero";
 import {
   contarLlamada,
@@ -725,20 +727,6 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
       const translated = translateToolsForProtocol("openai", tools);
       if (translated) body.tools = translated;
     }
-    const extra: Record<string, string> = {};
-    if (providerId === "openrouter") extra["HTTP-Referer"] = location.origin;
-    if (providerId === "nvidia" && settings.stream) extra.Accept = "text/event-stream";
-    const req = buildRequest(endpoint(base, "/chat/completions"), opts, {
-      Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
-      ...extra,
-    });
-    const res = await loggedFetch(
-      req.target,
-      { providerId, providerName: def.name, modelId, url: req.upstream, headers: req.logHeaders, body: JSON.stringify(body) },
-      { method: "POST", headers: req.headers, body: JSON.stringify(body), signal }
-    );
-    recordQuotaHeaders(providerId, res.headers);
-    await assertOk(res, def.name);
     const handle = (j: {
       choices?: { delta?: { content?: string | null; reasoning_content?: string | null }; message?: { content?: string | null; tool_calls?: unknown[] } }[];
     }) => {
@@ -765,27 +753,49 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
         accumToolCalls({ choices: [{ delta: { tool_calls: msg.tool_calls } }] });
       }
     };
-    if (!settings.stream) {
-      const j = await res.json();
-      anotarMotivo("openai", j);
-      anotarUso(j);
-      content = j.choices?.[0]?.message?.content ?? "";
-      // El razonamiento también viene en el cuerpo completo (`message`); sin
-      // esto se perdía y no había nada que devolver al pedir una herramienta.
-      const rz = razonamientoDeTrozo("openai", j);
-      if (rz.razonamiento) reasoning += rz.razonamiento;
-      // Caso no-streaming: el mensaje final trae `tool_calls` en
-      // `message.tool_calls`, no en `delta.tool_calls`. Lo envolvemos
-      // para que `accumToolCalls` lo entienda.
-      const msg = j.choices?.[0]?.message;
-      if (msg?.tool_calls) {
-        accumToolCalls({ choices: [{ delta: { tool_calls: msg.tool_calls } }] });
-      }
-      push();
+    if (providerId === GGUF_PROVIDER_ID) {
+      // Modelo .gguf en el navegador: sin red. wllama devuelve trozos con el
+      // formato del streaming de OpenAI y pasan por el mismo `handle`, así que
+      // herramientas, razonamiento, parada y uso funcionan igual que con
+      // cualquier proveedor. Siempre en streaming: es local y no cuesta más.
+      await generarLocal(modelId, body as unknown as CuerpoOpenAI, signal, (c) => handle(c as Parameters<typeof handle>[0]));
     } else {
-      await readSSE(res, (payload) => {
-        try { handle(JSON.parse(payload)); } catch { /* ignore */ }
+      const extra: Record<string, string> = {};
+      if (providerId === "openrouter") extra["HTTP-Referer"] = location.origin;
+      if (providerId === "nvidia" && settings.stream) extra.Accept = "text/event-stream";
+      const req = buildRequest(endpoint(base, "/chat/completions"), opts, {
+        Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
+        ...extra,
       });
+      const res = await loggedFetch(
+        req.target,
+        { providerId, providerName: def.name, modelId, url: req.upstream, headers: req.logHeaders, body: JSON.stringify(body) },
+        { method: "POST", headers: req.headers, body: JSON.stringify(body), signal }
+      );
+      recordQuotaHeaders(providerId, res.headers);
+      await assertOk(res, def.name);
+      if (!settings.stream) {
+        const j = await res.json();
+        anotarMotivo("openai", j);
+        anotarUso(j);
+        content = j.choices?.[0]?.message?.content ?? "";
+        // El razonamiento también viene en el cuerpo completo (`message`); sin
+        // esto se perdía y no había nada que devolver al pedir una herramienta.
+        const rz = razonamientoDeTrozo("openai", j);
+        if (rz.razonamiento) reasoning += rz.razonamiento;
+        // Caso no-streaming: el mensaje final trae `tool_calls` en
+        // `message.tool_calls`, no en `delta.tool_calls`. Lo envolvemos
+        // para que `accumToolCalls` lo entienda.
+        const msg = j.choices?.[0]?.message;
+        if (msg?.tool_calls) {
+          accumToolCalls({ choices: [{ delta: { tool_calls: msg.tool_calls } }] });
+        }
+        push();
+      } else {
+        await readSSE(res, (payload) => {
+          try { handle(JSON.parse(payload)); } catch { /* ignore */ }
+        });
+      }
     }
   }
 
@@ -819,6 +829,9 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
  * cada uno lo repetía a mano y ya divergían entre sí.
  */
 export async function fetchModels(providerId: ProviderId, config: ProviderConfig): Promise<string[]> {
+  // El modelo local no tiene servidor que preguntar: sus «modelos» son los
+  // .gguf guardados en este navegador.
+  if (providerId === GGUF_PROVIDER_ID) return refrescarModelos();
   const def = getProvider(providerId);
   const base = (config.baseUrl || def.baseUrl).trim();
 
@@ -1050,6 +1063,18 @@ export async function probeModel(
 ): Promise<ProbeResult> {
   const def = getProvider(providerId);
   const empezó = Date.now();
+  // Modelo local: «responde» si su archivo sigue en este navegador. Cargarlo
+  // para mandar un token costaría segundos y cientos de MB por modelo.
+  if (providerId === GGUF_PROVIDER_ID) {
+    const hay = (await refrescarModelos()).includes(modelId);
+    return {
+      verdict: hay ? "ok" : "no-existe",
+      status: hay ? 200 : 404,
+      detail: hay ? undefined : "El archivo .gguf ya no está en este navegador",
+      ms: Date.now() - empezó,
+      at: Date.now(),
+    };
+  }
   const req = peticionDePrueba(providerId, config, modelId);
   const body = JSON.stringify(cuerpoDePrueba(def.protocol, modelId));
 
