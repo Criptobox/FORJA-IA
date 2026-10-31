@@ -18,15 +18,19 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { ChatCompletionChunk } from "@wllama/wllama/esm/types/oai-compat";
 import type { Wllama } from "@wllama/wllama/esm/wllama";
+import { toast } from "sonner";
 import {
   agruparGguf,
+  aligerarParaContexto,
   contextoEfectivo,
   explicarErrorGguf,
+  GGUF_CONTEXTO_PARA_HERRAMIENTAS,
   GGUF_CONTEXTO_POR_DEFECTO,
   GGUF_MAX_TROZO,
   esArchivoGguf,
   parametrosParaWllama,
   plantillaConHerramientas,
+  proporcionReal,
   tamanoLegible,
   type CuerpoOpenAI,
   type GrupoGguf,
@@ -302,7 +306,9 @@ export function cargarModelo(nombre: string): Promise<void> {
 export function soportaHerramientas(nombre: string, signal?: AbortSignal): Promise<boolean> {
   return enCola(async () => {
     await cargar(nombre, signal);
-    return plantillaConHerramientas(instancia?.getChatTemplate());
+    // Con poco contexto, el catálogo de herramientas (~5.000 tokens) no deja
+    // sitio para el encargo: el agente va por su modo de texto.
+    return nCtxCargado >= GGUF_CONTEXTO_PARA_HERRAMIENTAS && plantillaConHerramientas(instancia?.getChatTemplate());
   });
 }
 
@@ -316,10 +322,35 @@ function conUso(c: ChatCompletionChunk): ChatCompletionChunk {
   return { ...c, usage: { prompt_tokens: entrada, completion_tokens: salida, total_tokens: entrada + salida } };
 }
 
+/** Proporción caracteres/token aprendida de los errores de llama.cpp, por
+ * modelo: la estimación de partida es conservadora y esto la afina. */
+const proporcionPorModelo = new Map<string, number>();
+
+/** Último aviso de aligerado enseñado, para no repetirlo en cada vuelta del
+ * agente ni en cada mensaje con el mismo recorte. */
+let ultimoAviso = "";
+
+function avisarAligerado(quitado: readonly string[], nCtx: number): void {
+  const texto = quitado.join(", ");
+  if (!texto || texto === ultimoAviso) return;
+  ultimoAviso = texto;
+  toast.info("Petición aligerada para el modelo local", {
+    description:
+      `No cabía entera en su contexto (${new Intl.NumberFormat("es").format(nCtx)} tokens). Se quitó: ${texto}. ` +
+      "Para enviarla completa, sube el contexto en Ajustes → Proveedores → Modelo local.",
+    duration: 9000,
+  });
+}
+
 /** Genera con el modelo local. `onData` recibe trozos con el formato exacto
  * del streaming de OpenAI, así que `streamChat` los procesa con el mismo
  * código que a cualquier proveedor: contenido, razonamiento, herramientas,
- * motivo de parada y uso. */
+ * motivo de parada y uso.
+ *
+ * Antes de mandar nada, la petición se ajusta al contexto del modelo
+ * (`aligerarParaContexto`): el prompt de sistema de un encargo de página y
+ * las herramientas pasan de 10.000 tokens, más que el contexto entero de
+ * muchos modelos locales. Lo que se quita se dice. */
 export function generarLocal(
   nombre: string,
   cuerpo: CuerpoOpenAI,
@@ -331,11 +362,11 @@ export function generarLocal(
     await cargar(nombre, signal);
     const w = instancia;
     if (!w) throw new Error(explicarErrorGguf(null, nCtxCargado));
-    const params = parametrosParaWllama(cuerpo, nCtxCargado);
+    let ajuste = aligerarParaContexto(cuerpo, nCtxCargado, proporcionPorModelo.get(nombre));
     let emitido = false;
     const generar = () =>
       w.createChatCompletion({
-        ...(params as unknown as Parameters<Wllama["createChatCompletion"]>[0]),
+        ...(parametrosParaWllama(ajuste.cuerpo, nCtxCargado) as unknown as Parameters<Wllama["createChatCompletion"]>[0]),
         stream: true,
         abortSignal: signal,
         onData: (c: ChatCompletionChunk) => {
@@ -347,12 +378,25 @@ export function generarLocal(
           onData(conUso(c));
         },
       });
+    let reajustado = false;
     for (let intento = 0; ; intento++) {
       try {
+        avisarAligerado(ajuste.quitado, nCtxCargado);
         await generar();
         return;
       } catch (e) {
         if (signal.aborted || (e as Error)?.name === "AbortError") throw abortado();
+        const texto = (e as Error)?.message ?? String(e);
+        // No cupo aunque la estimación decía que sí: llama.cpp dice cuántos
+        // tokens ocupaba de verdad. Con esa proporción se vuelve a aligerar,
+        // una vez, y queda aprendida para este modelo.
+        const real = !emitido && !reajustado ? proporcionReal(ajuste.cuerpo, texto) : null;
+        if (real) {
+          reajustado = true;
+          proporcionPorModelo.set(nombre, real);
+          ajuste = aligerarParaContexto(cuerpo, nCtxCargado, real);
+          continue;
+        }
         if (!esFalloDeBytes(e)) throw new Error(explicarErrorGguf(e, nCtxCargado));
         // El modelo soltó bytes que no forman UTF-8 válido y wllama se cae al
         // serializarlos (el contexto sigue sano: la llamada siguiente va

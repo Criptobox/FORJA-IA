@@ -92,7 +92,12 @@ import {
   typeDemoReply,
 } from "@/lib/forja/preview-demo";
 import { useSystemPrompt } from "@/lib/forja/use-system-prompt";
-import { estimarTokensConversacion, ventanaReferencia } from "@/lib/forja/ctx-hud";
+import { estimarTokensChars, estimarTokensConversacion, ventanaReferencia } from "@/lib/forja/ctx-hud";
+import { construirPrompt } from "@/lib/forja/presupuesto";
+import { entradaPromptActual } from "@/lib/forja/prompt-actual";
+import { TOOL_CATALOG } from "@/lib/forja/tools-catalog";
+import { useGgufAjustes, useGgufEstado } from "@/lib/forja/gguf-local";
+import { contextoEfectivo, GGUF_PROVIDER_ID } from "@/lib/forja/gguf-mensajes";
 import { useLimites } from "@/lib/forja/limites-medidos";
 import { agentStalled, continuePrompt, parseAgentTrace, suggestAgentMode } from "@/lib/forja/agent-loop";
 import { applyAccent } from "@/lib/forja/accent";
@@ -1459,6 +1464,27 @@ export function ChatApp() {
   const sessionModelKey = activeSession?.modelKey ?? settings.defaultModelKey ?? null;
   const limites = useLimites((s) => s.limites);
 
+  // ——— Lo que viaja en CADA mensaje aunque no se vea ———
+  // El prompt de sistema (instrucciones, skills, dirección de diseño…) y, con
+  // el agente, el catálogo de herramientas. El contador solo sumaba la
+  // conversación: enseñaba «ctx ≈83» con peticiones de 10.000 tokens, y nadie
+  // podía saber por qué un modelo local no daba abasto o por qué la cuota
+  // gratis se iba tan deprisa. Mismo cálculo que el medidor de Ajustes.
+  const tokensFijos = useMemo(() => {
+    const { prompt } = construirPrompt(entradaPromptActual(activeId ?? undefined));
+    const herramientas = settings.agentMode ? JSON.stringify(TOOL_CATALOG).length : 0;
+    return estimarTokensChars(prompt.length + herramientas);
+    // los mensajes cambian el nivel de contexto del turno (y con él el prompt)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId, activeSession?.messages, settings]);
+  // El modelo local no tiene una ventana «de referencia»: tiene la suya, la
+  // que se eligió al cargarlo (y llama.cpp no pasa de la de entrenamiento).
+  const ggufContexto = useGgufAjustes((s) => s.contexto);
+  const ggufEntrenado = useGgufEstado((s) => s.contextoEntrenado);
+  const ventanaHud = sessionModelKey?.startsWith(`${GGUF_PROVIDER_ID}::`)
+    ? contextoEfectivo(ggufContexto, ggufEntrenado ?? undefined)
+    : ventanaReferencia(limites, sessionModelKey, settings.ventanaCtx);
+
   // ——— Virtualización de la lista de mensajes (chats largos fluidos) ———
   const messages = useMemo(() => activeSession?.messages ?? [], [activeSession?.messages]);
   const virtualizer = useVirtualizer({
@@ -1943,8 +1969,9 @@ export function ChatApp() {
         onRemoveDoc={removeDoc}
         onSlashCommand={handleSlash}
         hudCtx={{
-          tokens: estimarTokensConversacion(activeSession?.messages ?? [], input.length),
-          ventana: ventanaReferencia(limites, sessionModelKey, settings.ventanaCtx),
+          tokens: estimarTokensConversacion(activeSession?.messages ?? [], input.length) + tokensFijos,
+          fijos: tokensFijos,
+          ventana: ventanaHud,
         }}
         placeholder={
           imageMode

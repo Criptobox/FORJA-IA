@@ -96,7 +96,8 @@ export function ChatInput({
   /** HUD de contexto (v3.32): tokens estimados de la conversación y
    * ventana de referencia, para verlo ANTES de enviar y no después
    * de gastarlo. Sin valor, no se pinta. */
-  hudCtx?: { tokens: number; ventana: number };
+  /** `fijos`: la parte de `tokens` que es prompt de sistema y herramientas. */
+  hudCtx?: { tokens: number; ventana: number; fijos?: number };
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -498,7 +499,7 @@ export function ChatInput({
              * una ventana de REFERENCIA ajustable en Ajustes — no un dato del
              * proveedor. Se pinta con la conversación ya empezada. */}
             {hudCtx && hudCtx.tokens > 0 && (
-              <HudCtx tokens={hudCtx.tokens} ventana={hudCtx.ventana} />
+              <HudCtx tokens={hudCtx.tokens} ventana={hudCtx.ventana} fijos={hudCtx.fijos} />
             )}
           </div>
           <div
@@ -552,7 +553,7 @@ export function ChatInput({
  * que los chips de estado de la cabecera. El título explica qué es la
  * cifra y dónde se ajusta la ventana, para que nadie tome un «62%» por
  * un dato medido del proveedor. */
-function HudCtx({ tokens, ventana }: { tokens: number; ventana: number }) {
+function HudCtx({ tokens, ventana, fijos = 0 }: { tokens: number; ventana: number; fijos?: number }) {
   const { pct, nivel } = calcularHud(tokens, ventana);
   const color: Record<NivelCtx, string> = {
     ok: "text-muted-foreground/70",
@@ -573,7 +574,13 @@ function HudCtx({ tokens, ventana }: { tokens: number; ventana: number }) {
   return (
     <div
       className="flex shrink-0 items-center gap-1.5"
-      title={`Contexto estimado de esta conversación (≈${fmtTokens(tokens)} tokens) contra tu ventana de referencia de ${fmtTokens(ventana)} tokens. Ajustable en Ajustes. Es una estimación local, no un dato del proveedor.${aviso}`}
+      title={
+        `Lo que viaja en cada mensaje: ≈${fmtTokens(tokens)} tokens` +
+        (fijos > 0
+          ? ` (≈${fmtTokens(fijos)} de instrucciones fijas —prompt de sistema, skills y, con el agente, herramientas— y ≈${fmtTokens(Math.max(0, tokens - fijos))} de conversación)`
+          : "") +
+        ` contra una ventana de ${fmtTokens(ventana)} tokens. Es una estimación local, no un dato del proveedor.${aviso}`
+      }
       aria-label={`Contexto estimado: ${pct} por ciento de la ventana`}
     >
       <span className={cn("font-mono text-[10px] tabular-nums", color[nivel])}>

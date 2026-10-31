@@ -62,6 +62,27 @@ export interface AgentToolsState {
 export const CIERRE_TOOLS =
   "Has llegado al límite de iteraciones con herramientas. Entrega AHORA la respuesta final al usuario, con lo que ya tienes y sin llamar a más herramientas. Si la última verificación contiene FAIL o evidencia incompleta, NO afirmes que el proyecto está correcto: declara exactamente qué quedó sin verificar o qué fallo persiste.";
 
+/** Herramientas que solo leen la Knowledge Base, y lo que necesitan dentro. */
+const HERRAMIENTAS_KB: Readonly<Record<string, "recursos" | "manifiestos">> = {
+  kb_search: "recursos",
+  kb_read: "recursos",
+  kb_project_search: "manifiestos",
+};
+
+/** Quita las herramientas que no tienen nada que leer: con la Knowledge Base
+ * vacía, `kb_search` solo puede contestar «no hay recursos». Describírselas
+ * al modelo costaba ~900 tokens en CADA vuelta del agente —y de la cuota
+ * gratis— para nada. En cuanto indexas algo, vuelven (se mira en cada envío). */
+export function sinHerramientasVacias<T extends { name: string }>(
+  catalogo: readonly T[],
+  hay: { recursos: number; manifiestos: number }
+): T[] {
+  return catalogo.filter((t) => {
+    const necesita = HERRAMIENTAS_KB[t.name];
+    return !necesita || hay[necesita] > 0;
+  });
+}
+
 /** Construye el contexto de herramientas a partir del estado del Sandbox.
  * Si no hay proyecto, los archivos están vacíos y `run_project` devuelve
  * un mensaje claro ("no tiene archivos").
@@ -214,7 +235,10 @@ export async function ejecutarConTools(
   // modelo ni se le describen las herramientas que se le van a rechazar, así
   // no gasta contexto en ellas ni se queda reintentando. La segunda capa —la
   // que de verdad manda— está en `tool-runner.ts`.
-  const catalogo = filtrarCatalogo(TOOL_CATALOG, permisos);
+  const catalogo = sinHerramientasVacias(filtrarCatalogo(TOOL_CATALOG, permisos), {
+    recursos: kbGetResources().length,
+    manifiestos: kbGetProjectManifests().length,
+  });
 
   // ——— ¿El modelo soporta tools? ———
   // La prueba es cara (un round-trip) y se cachea por modelo+clave.
