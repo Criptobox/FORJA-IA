@@ -385,7 +385,9 @@ const proporcionPorModelo = new Map<string, number>();
  * agente ni en cada mensaje con el mismo recorte. */
 let ultimoAviso = "";
 
-function avisarAligerado(quitado: readonly string[], nCtx: number): void {
+/** Dice qué se quitó para que la petición cupiera (lo usa también el motor
+ * nativo de la APK). Una vez por recorte distinto. */
+export function avisarAligerado(quitado: readonly string[], nCtx: number): void {
   const texto = quitado.join(", ");
   if (!texto || texto === ultimoAviso) return;
   ultimoAviso = texto;

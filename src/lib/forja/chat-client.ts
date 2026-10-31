@@ -41,8 +41,9 @@ import {
   type ResultadoSondeoZen,
 } from "./opencode-zen";
 import { costeDeModelo } from "./precios";
-import { GGUF_PROVIDER_ID, type CuerpoOpenAI } from "./gguf-mensajes";
-import { generarLocal, refrescarModelos } from "./gguf-local";
+import { aligerarParaContexto, GGUF_PROVIDER_ID, type CuerpoOpenAI } from "./gguf-mensajes";
+import { EN_APK, estadoMotorNativo } from "./plataforma";
+import { avisarAligerado, generarLocal, refrescarModelos } from "./gguf-local";
 import { anotarGasto, guardarLibro, leerLibro, normalizarLimites, veredictoDinero } from "./presupuesto-dinero";
 import {
   contarLlamada,
@@ -262,7 +263,8 @@ export function buildRequest(
   extraHeaders: Record<string, string> = {}
 ): BuiltRequest {
   const { config, providerId } = opts;
-  const direct = config.useProxy === false;
+  // En la APK no hay servidor que haga de proxy: siempre directo.
+  const direct = config.useProxy === false || EN_APK;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...extraHeaders,
@@ -753,6 +755,19 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
         accumToolCalls({ choices: [{ delta: { tool_calls: msg.tool_calls } }] });
       }
     };
+    // Motor nativo de la APK: mismo ajuste al contexto que el del navegador
+    // (un encargo de página con el agente pasa de 10.000 tokens).
+    if (providerId === "nativo") {
+      const ctx = estadoMotorNativo()?.contexto;
+      if (ctx) {
+        const a = aligerarParaContexto(body as unknown as CuerpoOpenAI, ctx);
+        if (a.quitado.length) avisarAligerado(a.quitado, ctx);
+        body.messages = a.cuerpo.messages;
+        body.max_tokens = a.cuerpo.max_tokens;
+        if (a.cuerpo.tools) body.tools = a.cuerpo.tools;
+        else delete body.tools;
+      }
+    }
     if (providerId === GGUF_PROVIDER_ID) {
       // Modelo .gguf en el navegador: sin red. wllama devuelve trozos con el
       // formato del streaming de OpenAI y pasan por el mismo `handle`, así que

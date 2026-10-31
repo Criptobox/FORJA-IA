@@ -12,7 +12,7 @@ import type { ProviderId } from "./types";
 import { esClaveOpcional } from "./opencode-zen";
 
 /** Proveedores cuya API completa tiene capa gratuita (sin coste, con límites de tasa) */
-export const FULL_FREE_TIER: ProviderId[] = ["gemini", "groq", "ollama", "cerebras", "gguf"];
+export const FULL_FREE_TIER: ProviderId[] = ["gemini", "groq", "ollama", "cerebras", "gguf", "nativo"];
 
 /** Crédito de prueba o plan experimental: todos sus modelos cuentan como gratis aquí */
 export const TRIAL_FREE_TIER: ProviderId[] = ["nvidia", "kimi", "mistral"];
@@ -27,6 +27,7 @@ export const KEYLESS_PROVIDERS: ProviderId[] = [
   "mlx",
   "llamafile",
   "gguf",
+  "nativo",
 ];
 
 /** Modelos gratis conocidos además de los que llevan sufijo -free / :free */
@@ -83,6 +84,8 @@ export const FAILOVER_ORDER: ProviderId[] = [
   "vllm",
   "mlx",
   "llamafile",
+  // El nativo de la APK antes que el del navegador: es el mismo motor, más rápido.
+  "nativo",
   // El del navegador, el último de los locales: es el más lento de todos y
   // solo recibe el failover si has elegido un .gguf.
   "gguf",

@@ -102,7 +102,7 @@ export function esModeloMuerto(status: number, mensaje: string): boolean {
  * No es un fallo del modelo ni de la petición: es que ESTE modelo, con ESTA
  * cuenta, no admite un mensaje de este tamaño. */
 const TEXTO_DEMASIADO_GRANDE =
-  /(request too large|too many tokens|maximum context length|context.{0,20}too long|reduce your message size|tokens per minute|\bITPM\b|\bTPM\b|payload too large)/i;
+  /(request too large|too many tokens|maximum context length|context.{0,20}too long|reduce your message size|tokens per minute|\bITPM\b|\bTPM\b|payload too large|exceeds the available context size)/i;
 
 export function esDemasiadoGrande(status: number, mensaje: string): boolean {
   return status === 413 || TEXTO_DEMASIADO_GRANDE.test(mensaje);
@@ -114,6 +114,9 @@ export function esDemasiadoGrande(status: number, mensaje: string): boolean {
  * volver a elegir ese modelo para un mensaje igual de grande. Sin números
  * reconocibles devuelve `null`: adivinarlos sería inventarse el límite. */
 export function limiteDelMensaje(mensaje: string): { limite: number; pedido: number } | null {
+  // llama.cpp (llama-server) lo dice al revés: lo pedido primero.
+  const ll = mensaje.match(/request \((\d+) tokens\) exceeds the available context size \((\d+) tokens\)/i);
+  if (ll) return { limite: Number(ll[2]), pedido: Number(ll[1]) };
   const m = mensaje.match(/limit\s+(\d[\d.,]*)[^\d]{0,40}?requested\s+(\d[\d.,]*)/i);
   if (!m) return null;
   const limite = Number(m[1].replace(/[.,]/g, ""));

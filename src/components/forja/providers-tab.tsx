@@ -54,6 +54,8 @@ import {
 } from "@/lib/forja/model-paste";
 import { useForja } from "@/lib/forja/store";
 import { GgufPanel } from "./gguf-panel";
+import { NativoPanel } from "./nativo-panel";
+import { EN_APK } from "@/lib/forja/plataforma";
 import { useVault } from "@/lib/forja/vault";
 import { makeModelKey, type ProviderConfig, type ProviderId } from "@/lib/forja/types";
 
@@ -511,6 +513,8 @@ export function ProvidersTab({
   const visibles = useMemo(() => {
     const q = query.trim().toLowerCase();
     return PROVIDERS.filter((def) => {
+      // El motor nativo solo existe dentro de la APK de Android.
+      if (def.id === "nativo" && !EN_APK) return false;
       const cfg = providers[def.id] ?? vacio(def.id, def.defaultModels);
       if (filtro === "listos" && !estaListo(cfg, def.keyless || def.keyOptional)) return false;
       if (filtro === "local" && !def.keyless) return false;
@@ -769,7 +773,12 @@ export function ProvidersTab({
                 <GgufPanel />
               </div>
             )}
-            {isOpen && def.id !== "gguf" && (
+            {isOpen && def.id === "nativo" && (
+              <div className="border-t border-border/50 px-3 py-3">
+                <NativoPanel />
+              </div>
+            )}
+            {isOpen && def.id !== "gguf" && def.id !== "nativo" && (
               <div className="space-y-3.5 border-t border-border/50 px-3 py-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">API key</Label>

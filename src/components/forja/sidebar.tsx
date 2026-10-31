@@ -50,6 +50,7 @@ import { toast } from "sonner";
 import { DESHACER_MS, sortSessions, useForja } from "@/lib/forja/store";
 import { tiempoRelativo, tituloVisible, vistaPrevia } from "@/lib/forja/session-list";
 import { teclasDeRadio } from "@/lib/forja/radio-teclado";
+import { EN_APK } from "@/lib/forja/plataforma";
 import { unseenRadarCount } from "@/lib/forja/free-radar";
 import {
   APP_BUILT,
@@ -575,6 +576,8 @@ export function VersionLine() {
     status: VersionStatus;
   } | null>(null);
   useEffect(() => {
+    // En la APK no hay servidor al que preguntar (se actualiza desde el lado nativo).
+    if (EN_APK) return;
     let cancelled = false;
     void fetch("/api/version")
       .then((r) => r.json())
