@@ -12,7 +12,7 @@ import type { ProviderId } from "./types";
 import { esClaveOpcional } from "./opencode-zen";
 
 /** Proveedores cuya API completa tiene capa gratuita (sin coste, con límites de tasa) */
-export const FULL_FREE_TIER: ProviderId[] = ["gemini", "groq", "ollama", "cerebras"];
+export const FULL_FREE_TIER: ProviderId[] = ["gemini", "groq", "ollama", "cerebras", "gguf"];
 
 /** Crédito de prueba o plan experimental: todos sus modelos cuentan como gratis aquí */
 export const TRIAL_FREE_TIER: ProviderId[] = ["nvidia", "kimi", "mistral"];
@@ -26,6 +26,7 @@ export const KEYLESS_PROVIDERS: ProviderId[] = [
   "vllm",
   "mlx",
   "llamafile",
+  "gguf",
 ];
 
 /** Modelos gratis conocidos además de los que llevan sufijo -free / :free */
@@ -82,6 +83,9 @@ export const FAILOVER_ORDER: ProviderId[] = [
   "vllm",
   "mlx",
   "llamafile",
+  // El del navegador, el último de los locales: es el más lento de todos y
+  // solo recibe el failover si has elegido un .gguf.
+  "gguf",
   "deepseek",
   "xai",
   "openai",

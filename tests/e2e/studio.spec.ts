@@ -649,7 +649,7 @@ test.describe("Forja IA — Repo Studio directo (GitHub API)", () => {
     // contador del toast confirma que se leyó justo ese dato, no que se
     // disparó vacío (deArchivosForja + addReglaNo realmente corrieron).
     await expect(
-      page.getByText("1 dato(s) de .forja/: decisiones, errores, tareas, dirección de diseño y reglas de este repo.")
+      page.getByText("1 dato de .forja/: decisiones, errores, tareas, dirección de diseño y reglas de este repo.")
     ).toBeVisible({ timeout: 15_000 });
   });
 });

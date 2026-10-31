@@ -1,6 +1,6 @@
 "use client";
 /** Forja IA — Barra lateral de conversaciones */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   Activity,
   Sparkles,
@@ -33,7 +33,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -46,8 +46,10 @@ import {
 import { useTheme } from "next-themes";
 import { ForjaLogo } from "./logo";
 import { InstallButton } from "./pwa";
-import { sortSessions, useForja } from "@/lib/forja/store";
+import { toast } from "sonner";
+import { DESHACER_MS, sortSessions, useForja } from "@/lib/forja/store";
 import { tiempoRelativo, tituloVisible, vistaPrevia } from "@/lib/forja/session-list";
+import { teclasDeRadio } from "@/lib/forja/radio-teclado";
 import { unseenRadarCount } from "@/lib/forja/free-radar";
 import {
   APP_BUILT,
@@ -105,13 +107,12 @@ export function Sidebar({
    *  los ajustes viven en la hoja de Ecosistema, así no hay dos menús iguales. */
   soloConversaciones?: boolean;
 }) {
-  const router = useRouter();
   const sessions = useForja((s) => s.sessions);
   const radarSeenIds = useForja((s) => s.radarSeenIds);
   const activeId = useForja((s) => s.activeSessionId);
   const setActive = useForja((s) => s.setActiveSession);
   const createSession = useForja((s) => s.createSession);
-  const deleteSession = useForja((s) => s.deleteSession);
+  const deleteSessionUndoable = useForja((s) => s.deleteSessionUndoable);
   const renameSession = useForja((s) => s.renameSession);
   const togglePin = useForja((s) => s.togglePin);
 
@@ -142,6 +143,8 @@ export function Sidebar({
     label: string;
     icon: React.ReactNode;
     onClick?: () => void;
+    /** Navega a otra página: se pinta como enlace (Ctrl/⌘+clic, clic central). */
+    href?: string;
     title: string;
     className?: string;
     badge?: React.ReactNode;
@@ -165,13 +168,13 @@ export function Sidebar({
         {
           label: "Estudio",
           icon: <Hammer className="size-4" />,
-          onClick: () => router.push("/forja"),
+          href: "/forja",
           title: "Forja Lab: laboratorio de generación de páginas determinista (ficha → maqueta, ADN, jueces, anti-genérico), sin coste de API",
         },
         {
           label: "Ficha → Maqueta",
           icon: <FlaskConical className="size-4" />,
-          onClick: () => router.push("/forja?tab=ficha"),
+          href: "/forja?tab=ficha",
           title: "Va directo a la pestaña Ficha → Maqueta del Estudio",
         },
       ],
@@ -250,12 +253,14 @@ export function Sidebar({
       <div className="flex items-center gap-2 px-4 pb-2 pt-4">
         <ForjaLogo size={26} />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[15px] font-semibold tracking-tight">
+          {/* Marca, no título: el <h1> de la página va en la cabecera del chat,
+              que se ve también en el móvil (esta barra va dentro de un panel). */}
+          <p className="truncate text-[15px] font-semibold tracking-tight">
             Forja <span className="forja-gradient-text">IA</span>
-          </h1>
+          </p>
         </div>
         {onClose && !soloConversaciones && (
-          <Button variant="ghost" size="icon" className="size-8 lg:hidden" onClick={onClose}>
+          <Button variant="ghost" size="icon" className="size-8 lg:hidden" onClick={onClose} aria-label="Cerrar barra lateral">
             <X className="size-4" />
           </Button>
         )}
@@ -274,16 +279,24 @@ export function Sidebar({
 
       {/* Buscador */}
       <div className="px-3 pb-1 pt-3">
-        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/50 px-2.5">
+        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/50 px-2.5 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40">
           <Search className="size-3.5 shrink-0 text-muted-foreground/70" />
           <input
+            type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar conversaciones…"
-            className="h-8 w-full bg-transparent text-[13px] outline-none placeholder:text-muted-foreground/60"
+            aria-label="Buscar conversaciones"
+            autoComplete="off"
+            className="h-8 w-full bg-transparent text-[13px] outline-none placeholder:text-muted-foreground/60 [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
-            <button onClick={() => setQuery("")} aria-label="Limpiar búsqueda">
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="Limpiar búsqueda"
+              className="relative after:absolute after:-inset-2 after:content-['']"
+            >
               <X className="size-3.5 text-muted-foreground" />
             </button>
           )}
@@ -299,7 +312,10 @@ export function Sidebar({
         ) : (
           <ul className="space-y-0.5">
             {filtered.map((s) => (
-              <li key={s.id}>
+              // Con cientos de conversaciones, content-visibility evita pintar
+              // las que quedan fuera de la vista (más barato que virtualizar
+              // una lista que también se filtra y se renombra en línea).
+              <li key={s.id} className="[contain-intrinsic-size:auto_48px] [content-visibility:auto]">
                 <div
                   className={cn(
                     "group flex items-start gap-1.5 rounded-lg px-2.5 py-1.5 transition",
@@ -313,6 +329,7 @@ export function Sidebar({
                     <div className="flex min-w-0 flex-1 items-center gap-1">
                       <Input
                         value={draft}
+                        aria-label="Nuevo nombre de la conversación"
                         autoFocus
                         onChange={(e) => setDraft(e.target.value)}
                         onKeyDown={(e) => {
@@ -325,7 +342,9 @@ export function Sidebar({
                         className="h-7 text-[13px]"
                       />
                       <button
+                        type="button"
                         aria-label="Guardar nombre"
+                        className="relative after:absolute after:-inset-1.5 after:content-['']"
                         onClick={() => {
                           if (draft.trim()) renameSession(s.id, draft.trim());
                           setEditingId(null);
@@ -364,7 +383,7 @@ export function Sidebar({
                     <DropdownMenuTrigger asChild>
                       <button
                         aria-label="Opciones de conversación"
-                        className="touch-actions mt-0.5 rounded p-1 opacity-100 transition hover:bg-muted md:opacity-0 md:focus:opacity-100 md:group-hover:opacity-100"
+                        className="touch-actions mt-0.5 rounded p-1 opacity-100 transition hover:bg-muted md:opacity-0 md:focus-visible:opacity-100 md:group-hover:opacity-100"
                       >
                         <MoreHorizontal className="size-4" />
                       </button>
@@ -385,7 +404,16 @@ export function Sidebar({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         variant="destructive"
-                        onClick={() => deleteSession(s.id)}
+                        onClick={() => {
+                          // Borrar era de un toque e irreversible (imágenes
+                          // incluidas): ahora hay unos segundos para deshacer.
+                          const deshacer = deleteSessionUndoable(s.id, DESHACER_MS);
+                          toast("Conversación eliminada", {
+                            description: tituloVisible(s),
+                            duration: DESHACER_MS,
+                            action: { label: "Deshacer", onClick: deshacer },
+                          });
+                        }}
                       >
                         <Trash2 className="size-3.5" /> Eliminar
                       </DropdownMenuItem>
@@ -439,19 +467,20 @@ export function Sidebar({
          * se la comerían. Los grupos son lo que aporta; la fila ancha era
          * sitio que no tenemos. */}
         {GRUPOS.map((g) => {
-          const items = g.items.filter((i) => i.onClick);
+          const items = g.items.filter((i) => i.onClick || i.href);
           if (!items.length) return null;
           return (
             <div key={g.titulo} className="mt-2">
-              <p className="px-1 pb-1 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+              <h2 className="px-1 pb-1 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
                 {g.titulo}
-              </p>
+              </h2>
               <div className="grid grid-cols-3 gap-0.5">
                 {items.map((i) => (
                   <PieBtn
                     key={i.label}
                     icon={i.icon}
                     onClick={i.onClick}
+                    href={i.href}
                     title={i.title}
                     className={i.className}
                     badge={i.badge}
@@ -492,6 +521,14 @@ export function ThemeSegmented() {
       className="mt-1.5 flex items-center gap-0.5 rounded-lg bg-muted/40 p-0.5"
       role="radiogroup"
       aria-label="Tema de la aplicación"
+      onKeyDown={(e) =>
+        teclasDeRadio(
+          e,
+          OPTS.map((o) => o.value),
+          OPTS.findIndex((o) => o.value === current),
+          setTheme
+        )
+      }
     >
       {OPTS.map((o) => {
         const active = mounted && current === o.value;
@@ -501,6 +538,8 @@ export function ThemeSegmented() {
             type="button"
             role="radio"
             aria-checked={active}
+            // Antes de montar no se sabe el tema: «Sistema» guarda la parada de Tab.
+            tabIndex={(mounted ? current === o.value : o.value === "system") ? 0 : -1}
             onClick={() => setTheme(o.value)}
             title={
               o.value === "system"
@@ -522,6 +561,12 @@ export function ThemeSegmented() {
     </div>
   );
 }
+
+const sinSuscripcion = () => () => {};
+const textoCompilada = () =>
+  APP_BUILT
+    ? ` · compilada ${new Intl.DateTimeFormat("es", { dateStyle: "medium", timeStyle: "short" }).format(new Date(APP_BUILT))}`
+    : "";
 
 export function VersionLine() {
   const [info, setInfo] = useState<{
@@ -546,6 +591,10 @@ export function VersionLine() {
       cancelled = true;
     };
   }, []);
+  // La fecha solo en el cliente: en el servidor saldría con SU zona horaria
+  // y el título no coincidiría al hidratar. El servidor pinta "", el cliente
+  // la fecha, y React lo reconcilia sin aviso.
+  const compilada = useSyncExternalStore(sinSuscripcion, textoCompilada, () => "");
   const v = info?.version ?? APP_VERSION;
   const nueva = info?.status === "outdated" && info.latest ? info.latest : null;
   return (
@@ -554,7 +603,7 @@ export function VersionLine() {
       title={
         (nueva ? `Esta copia es v${v}; en GitHub está v${nueva}. ` : "") +
         buildLabel() +
-        (APP_BUILT ? ` · compilada ${new Date(APP_BUILT).toLocaleString()}` : "")
+        compilada
       }
     >
       {/* El número de versión no se mueve entre arreglos: el commit sí, y es lo
@@ -570,6 +619,7 @@ function PieBtn({
   children,
   icon,
   onClick,
+  href,
   title,
   className,
   badge,
@@ -577,26 +627,33 @@ function PieBtn({
   children: React.ReactNode;
   icon: React.ReactNode;
   onClick?: () => void;
+  href?: string;
   title?: string;
   className?: string;
   badge?: React.ReactNode;
 }) {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      title={title}
-      onClick={onClick}
-      className={cn(
-        "!h-auto min-w-0 w-full flex-col !gap-1 rounded-lg px-1 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground",
-        className
-      )}
-    >
+  const contenido = (
+    <>
       <span className="relative inline-flex">
         {icon}
         {badge}
       </span>
       <span className="w-full truncate text-center leading-none">{children}</span>
+    </>
+  );
+  return (
+    <Button
+      asChild={!!href}
+      variant="ghost"
+      size="sm"
+      title={title}
+      onClick={href ? undefined : onClick}
+      className={cn(
+        "!h-auto min-w-0 w-full flex-col !gap-1 rounded-lg px-1 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground",
+        className
+      )}
+    >
+      {href ? <Link href={href}>{contenido}</Link> : contenido}
     </Button>
   );
 }

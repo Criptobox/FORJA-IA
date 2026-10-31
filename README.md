@@ -53,6 +53,7 @@ El motor de diseño (plano de contenido, iconografía, QA de detalle, ADN, juece
 |---|---|
 | 🔓 **Sin login ni servidores** | Todo vive en tu navegador. Exporta/importa tu backup JSON cuando quieras. |
 | 🆓 **Solo modelos gratis** | Filtro «Solo gratis» activado por defecto: 27+ modelos `-free` de AiHubMix, `:free` de OpenRouter, Gemini, Groq, GLM-Flash, Ollama local… |
+| 💻 **Modelos .gguf en el navegador** | Ajustes → Proveedores → **Modelo local (.gguf)**: eliges el archivo y corre dentro de la pestaña con llama.cpp en WebAssembly (WebGPU si hay; si no, CPU). Sin servidor, sin clave y sin conexión; se guarda en el almacenamiento del sitio y sirve para todo: chat, agente, crear páginas. Mejor un «Instruct» de 1-4B en Q4_K_M; los de más de 2 GB, partidos con `llama-gguf-split`. |
 | 📡 **Radar de modelos gratis** | Ofertas vigentes (con fechas límite), 12 fuentes permanentes, lista **EN VIVO** de OpenRouter y activación de modelos en 1 clic. |
 | 🛡 **Failover automático** | ¿Cuota agotada? Forja avisa y reintenta solo con otro modelo gratis conectado. |
 | 🛡 **Escudo PII local** | Enmascara correos, teléfonos, tarjetas (Luhn), IBAN y DNI/NIE en lo que se envía al modelo — activado por defecto, tu texto visible no cambia. |

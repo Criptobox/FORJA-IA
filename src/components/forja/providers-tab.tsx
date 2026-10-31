@@ -53,6 +53,7 @@ import {
   parseProviderSnippet,
 } from "@/lib/forja/model-paste";
 import { useForja } from "@/lib/forja/store";
+import { GgufPanel } from "./gguf-panel";
 import { useVault } from "@/lib/forja/vault";
 import { makeModelKey, type ProviderConfig, type ProviderId } from "@/lib/forja/types";
 
@@ -763,7 +764,12 @@ export function ProvidersTab({
               </button>
             </div>
 
-            {isOpen && (
+            {isOpen && def.id === "gguf" && (
+              <div className="border-t border-border/50 px-3 py-3">
+                <GgufPanel />
+              </div>
+            )}
+            {isOpen && def.id !== "gguf" && (
               <div className="space-y-3.5 border-t border-border/50 px-3 py-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">API key</Label>

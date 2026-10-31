@@ -977,7 +977,7 @@ html[data-accent="naranja"] {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  transition: all 0.35s ease;
+  transition: border-color 0.35s ease, background-color 0.35s ease, box-shadow 0.35s ease;
 }
 .fj-timeline-row--running .fj-timeline-status {
   border-color: var(--fj-halo);
@@ -1134,7 +1134,13 @@ html[data-accent="naranja"] {
   .aurora::before,
   .aurora::after,
   .aurora i,
-  .stream-dots::after {
+  .stream-dots::after,
+  /* Utilidades de Tailwind que no pasan por las clases de arriba: el
+   * esqueleto y los puntos que laten. animate-spin se queda: un spinner
+   * quieto parece colgado, y es la única señal de que algo carga. */
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce {
     animation: none !important;
   }
   .stagger-in {
@@ -1291,5 +1297,20 @@ html[data-accent="naranja"] {
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Zoom al enfocar en iOS: Safari amplía cualquier campo con letra < 16px.
+ * Antes se evitaba bloqueando el zoom del todo (maximum-scale=1), lo que
+ * dejaba sin ampliar a quien lo necesita para leer. Fuera de capa a
+ * propósito: así gana a las utilidades text-sm/text-xs de cada campo, y
+ * solo en iOS (-webkit-touch-callout), sin tocar Android ni escritorio. */
+@supports (-webkit-touch-callout: none) {
+  @media (pointer: coarse) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+    textarea,
+    select {
+      font-size: 16px;
+    }
   }
 }

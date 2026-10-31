@@ -33,6 +33,8 @@ import { translateTools } from "./tools-translate";
 import { TOOL_CATALOG, type ToolDef } from "./tools-catalog";
 import { recordQuotaHeaders } from "./quota";
 import { claveEfectiva } from "./opencode-zen";
+import { GGUF_PROVIDER_ID } from "./gguf-mensajes";
+import { soportaHerramientas } from "./gguf-local";
 
 export type ToolsSupport =
   | "ok" // soporta tools
@@ -168,6 +170,19 @@ export async function probeTools(
   signal?: AbortSignal,
   catalogo: readonly ToolDef[] = TOOL_CATALOG
 ): Promise<ToolsProbeResult> {
+  // Modelo .gguf en el navegador: no hay red que probar. Lo que decide es su
+  // plantilla de chat; si no sabe de herramientas, el agente va por XML.
+  if (providerId === GGUF_PROVIDER_ID) {
+    const empezo = Date.now();
+    try {
+      const si = await soportaHerramientas(modelId, signal);
+      return { support: si ? "ok" : "no", verdict: "ok", status: 200, ms: Date.now() - empezo, at: Date.now() };
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : String(e);
+      return { support: "desconocido", verdict: "no-existe", status: 0, detail, ms: Date.now() - empezo, at: Date.now() };
+    }
+  }
+
   // Si ya estaba en cache, se devuelve sin tocar la red.
   const cached = getCachedToolsProbe(providerId, config, modelId);
   if (cached) return cached;

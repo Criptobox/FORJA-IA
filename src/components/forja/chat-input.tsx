@@ -34,6 +34,7 @@ import { calcularHud, fmtTokens, type NivelCtx } from "@/lib/forja/ctx-hud";
 import { resolverPlantillaMarketing } from "@/lib/forja/marketing";
 import { ultimoDiseno as ultimoDisenoDe, leerMemoria } from "@/lib/forja/memoria-proyecto";
 import { SlashMenu } from "./slash-menu";
+import { teclasDeRadio } from "@/lib/forja/radio-teclado";
 import {
   filterSlash,
   moveSlashIndex,
@@ -279,9 +280,10 @@ export function ChatInput({
                     <p className="text-[10px] text-muted-foreground">{d.chars.toLocaleString("es")} car.</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => onRemoveDoc?.(d.id)}
                     aria-label={`Quitar ${d.name}`}
-                    className="-mr-1 -mt-6 flex size-5 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:bg-destructive hover:text-white"
+                    className="relative -mr-1 -mt-6 flex size-5 after:absolute after:-inset-1.5 after:content-[''] items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:bg-destructive hover:text-white"
                   >
                     <X className="size-3" />
                   </button>
@@ -302,6 +304,8 @@ export function ChatInput({
                     <img
                       src={a.dataUrl}
                       alt={a.name}
+                      width={64}
+                      height={64}
                       className="size-16 rounded-lg border border-border/60 object-cover"
                     />
                   ) : (
@@ -311,9 +315,10 @@ export function ChatInput({
                     />
                   )}
                   <button
+                    type="button"
                     onClick={() => onRemoveAttachment?.(a.id)}
                     aria-label={`Quitar ${a.name}`}
-                    className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:bg-destructive hover:text-white"
+                    className="absolute -right-1.5 -top-1.5 flex size-5 after:absolute after:-inset-1.5 after:content-[''] items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition hover:bg-destructive hover:text-white"
                   >
                     <X className="size-3" />
                   </button>
@@ -449,6 +454,7 @@ export function ChatInput({
               onKeyDown={keyDown}
               onPaste={onPaste}
               placeholder={placeholder}
+              aria-label="Mensaje"
               rows={1}
               disabled={disabled}
               aria-controls={slashOpen ? "forja-slash-menu" : undefined}
@@ -498,16 +504,28 @@ export function ChatInput({
           <div
             role="radiogroup"
             aria-label="Estilo de respuesta"
+            onKeyDown={(ev) =>
+              teclasDeRadio(
+                ev,
+                ESTILOS.map((x) => x.v),
+                ESTILOS.findIndex((x) => x.v === outputStyle),
+                (v) => setSettings({ outputStyle: v })
+              )
+            }
             className="flex shrink-0 items-center gap-0.5 rounded-lg bg-muted/40 p-0.5"
           >
             {ESTILOS.map((e) => {
               const activo = outputStyle === e.v;
+              // Ajustes antiguos sin estilo: «Normal» hace de elegido para que
+              // el grupo siga teniendo una parada de Tab.
+              const tabulable = activo || (!ESTILOS.some((x) => x.v === outputStyle) && e.v === "normal");
               return (
                 <button
                   key={e.v}
                   type="button"
                   role="radio"
                   aria-checked={activo}
+                  tabIndex={tabulable ? 0 : -1}
                   onClick={() => setSettings({ outputStyle: e.v })}
                   title={e.hint}
                   className={cn(
@@ -566,8 +584,8 @@ function HudCtx({ tokens, ventana }: { tokens: number; ventana: number }) {
         className="h-1 w-10 overflow-hidden rounded-full bg-muted"
       >
         <span
-          className={cn("block h-full rounded-full transition-all", barra[nivel])}
-          style={{ width: `${Math.min(100, pct)}%` }}
+          className={cn("block h-full w-full origin-left rounded-full transition-transform", barra[nivel])}
+          style={{ transform: `scaleX(${Math.min(100, pct) / 100})` }}
         />
       </span>
     </div>

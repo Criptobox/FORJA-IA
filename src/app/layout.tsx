@@ -49,8 +49,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Sin maximumScale ni userScalable: bloquear el zoom deja fuera a quien lo
+  // necesita para leer. El zoom automático de iOS al enfocar se evita con
+  // campos de 16px en iOS (globals.css), no prohibiendo ampliar.
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: dark)", color: "#07070C" },
@@ -75,6 +76,14 @@ export default function RootLayout({
         <div className="aurora" aria-hidden="true">
           <i />
         </div>
+        {/* Primer foco de la página: con teclado, saltar la cabecera y la
+            barra lateral y caer en el contenido (#contenido es el <main>). */}
+        <a
+          href="#contenido"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg focus:ring-2 focus:ring-ring"
+        >
+          Saltar al contenido
+        </a>
         <ThemeProvider>
           {children}
           <Toaster position="top-center" richColors closeButton />

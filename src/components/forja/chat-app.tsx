@@ -73,7 +73,8 @@ import { ShortcutsDialog } from "./shortcuts-dialog";
 import { UsagePanel } from "./usage-panel";
 import { FailuresPanel } from "./failures-panel";
 import { VaultLockDialog } from "./vault-lock";
-import { useForja, uid } from "@/lib/forja/store";
+import { DESHACER_MS, useForja, uid } from "@/lib/forja/store";
+import { plural } from "@/lib/forja/plural";
 import { migrateLegacyAttachments } from "@/lib/forja/attachment-blob";
 import { useChatAttachments } from "@/lib/forja/use-chat-attachments";
 import { useGeneration } from "@/lib/forja/use-generation";
@@ -175,7 +176,7 @@ export function ChatApp() {
   const setActiveSession = useForja((s) => s.setActiveSession);
   const addMessage = useForja((s) => s.addMessage);
   const updateMessage = useForja((s) => s.updateMessage);
-  const deleteMessage = useForja((s) => s.deleteMessage);
+  const deleteMessageUndoable = useForja((s) => s.deleteMessageUndoable);
   const clearMessages = useForja((s) => s.clearMessages);
   const setProjectMap = useForja((s) => s.setProjectMap);
   const addReglaNo = useForja((s) => s.addReglaNo);
@@ -561,6 +562,28 @@ export function ChatApp() {
     }
   }, [createSession]);
 
+  // La conversación abierta viaja en la URL (?c=…): recargar, abrirla en otra
+  // pestaña o guardarla en marcadores vuelve a ella. Todo es local, así que el
+  // enlace solo sirve en este mismo navegador. replaceState y no push: cambiar
+  // de conversación no debe llenar el botón «Atrás».
+  const urlConvLeidaRef = useRef(false);
+  useEffect(() => {
+    if (!hydrated) return;
+    const url = new URL(window.location.href);
+    if (!urlConvLeidaRef.current) {
+      urlConvLeidaRef.current = true;
+      const c = url.searchParams.get("c");
+      if (c && c !== activeId && useForja.getState().sessions.some((s) => s.id === c)) {
+        setActiveSession(c);
+        return; // el efecto vuelve a correr con el id nuevo y no hay nada que escribir
+      }
+    }
+    if (url.searchParams.get("c") === activeId) return;
+    if (activeId) url.searchParams.set("c", activeId);
+    else url.searchParams.delete("c");
+    window.history.replaceState(null, "", url);
+  }, [hydrated, activeId, setActiveSession]);
+
   // Auto-scroll
   const onScroll = () => {
     const el = scrollRef.current;
@@ -605,6 +628,24 @@ export function ChatApp() {
   useEffect(() => {
     if (streamingMsgId && estrecha) setMobilePreviewOpen(false);
   }, [streamingMsgId, estrecha]);
+
+  // Aviso para lectores de pantalla: solo el inicio y el final de cada
+  // respuesta. Una región viva sobre el hilo leería cada token del streaming.
+  const [anuncio, setAnuncio] = useState("");
+  const streamingPrevRef = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = streamingPrevRef.current;
+    streamingPrevRef.current = streamingMsgId ?? null;
+    if (streamingMsgId && !prev) {
+      setAnuncio("Generando respuesta…");
+    } else if (!streamingMsgId && prev) {
+      const st = useForja.getState();
+      const m = st.sessions
+        .find((s) => s.id === st.activeSessionId)
+        ?.messages.find((x) => x.id === prev);
+      setAnuncio(!m ? "" : m.error ? "La respuesta terminó con un error." : "Respuesta lista.");
+    }
+  }, [streamingMsgId]);
 
 
   /** Notas de memoria del mapa (estilo Obsidian): decisión del usuario que la IA respeta */
@@ -1390,7 +1431,7 @@ export function ChatApp() {
     const t = input.trim();
     if (t.length < 25 || esTurnoTrivial(t) || !hasMessages) return null;
     return recomendarModelo(t, providers, {
-      keyless: ["ollama", "lmstudio", "llamacpp", "jan", "vllm", "mlx", "llamafile", "opencode"],
+      keyless: ["ollama", "lmstudio", "llamacpp", "jan", "vllm", "mlx", "llamafile", "gguf", "opencode"],
       historialUso: useUsage.getState().byModel,
       memoria: activeId ? leerMemoria(activeId) : null,
     });
@@ -1444,12 +1485,18 @@ export function ChatApp() {
   const showPreviewPane = previewOpen && !!previewCode && !estrecha && !focusMode;
 
   const chatArea = (
-    <main className="relative flex h-full min-w-0 flex-1 flex-col">
+    <main id="contenido" tabIndex={-1} className="relative flex h-full min-w-0 flex-1 flex-col outline-none">
       {/* Arriba del todo: si el servidor ya sirve otra copia, se dice y se
           queda dicho hasta que recargues. */}
       <BannerVersionNueva />
+      <div role="status" aria-live="polite" className="sr-only">
+        {anuncio}
+      </div>
       {/* Cabecera */}
       <header className="glass sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border/60 px-3 sm:px-4">
+        <h1 className="sr-only">
+          {hasMessages && activeSession ? activeSession.title : "Forja IA"}
+        </h1>
         {!focusMode && (
           <Button
             variant="ghost"
@@ -1773,7 +1820,15 @@ export function ChatApp() {
                       m.role === "assistant" ? () => continueAgent(m.id) : undefined
                     }
                     onDelete={
-                      streamingMsgId !== m.id ? () => deleteMessage(activeSession!.id, m.id) : undefined
+                      streamingMsgId !== m.id
+                        ? () => {
+                            const deshacer = deleteMessageUndoable(activeSession!.id, m.id, DESHACER_MS);
+                            toast("Mensaje eliminado", {
+                              duration: DESHACER_MS,
+                              action: { label: "Deshacer", onClick: deshacer },
+                            });
+                          }
+                        : undefined
                     }
                     onEdit={m.role === "user" ? (c) => editUserMessage(m.id, c) : undefined}
                     onGuardarRepaso={
@@ -1813,27 +1868,27 @@ export function ChatApp() {
               <span className="font-medium">Contexto que se usará:</span>
               {contextoPre.archivos.length > 0 && (
                 <span className="rounded-full bg-muted px-2 py-0.5">
-                  {contextoPre.archivos.length} archivo(s)
+                  {plural(contextoPre.archivos.length, "archivo", "archivos")}
                 </span>
               )}
               {contextoPre.decisiones.length > 0 && (
                 <span className="rounded-full bg-muted px-2 py-0.5">
-                  {contextoPre.decisiones.length} decisión(es)
+                  {plural(contextoPre.decisiones.length, "decisión", "decisiones")}
                 </span>
               )}
               {contextoPre.errores.length > 0 && (
                 <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-600 dark:text-amber-400">
-                  {contextoPre.errores.length} error(es) previo(s)
+                  {plural(contextoPre.errores.length, "error previo", "errores previos")}
                 </span>
               )}
               {contextoPre.reglas.length > 0 && (
                 <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-red-600 dark:text-red-400">
-                  {contextoPre.reglas.length} regla(s) «no tocar»
+                  {plural(contextoPre.reglas.length, "regla", "reglas")} «no tocar»
                 </span>
               )}
               {contextoPre.notas.length > 0 && (
                 <span className="rounded-full bg-muted px-2 py-0.5">
-                  {contextoPre.notas.length} nota(s)
+                  {plural(contextoPre.notas.length, "nota", "notas")}
                 </span>
               )}
             </div>
@@ -1858,7 +1913,7 @@ export function ChatApp() {
                     toast.success(`Modelo cambiado a ${recomendacion.modelo}`);
                   }}
                 >
-                  Usar
+                  Usar este modelo
                 </Button>
               )}
             </div>
@@ -2181,7 +2236,7 @@ export function ChatApp() {
               const total = memoria.decisiones.length + memoria.errores.length + memoria.tareas.length + memoria.disenos.length + memoria.reglas.length;
               if (total) {
                 toast.info("Memoria del proyecto recuperada", {
-                  description: `${total} dato(s) de .forja/: decisiones, errores, tareas, dirección de diseño y reglas de este repo.`,
+                  description: `${plural(total, "dato", "datos")} de .forja/: decisiones, errores, tareas, dirección de diseño y reglas de este repo.`,
                 });
               }
             }

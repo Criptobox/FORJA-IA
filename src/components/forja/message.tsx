@@ -53,7 +53,17 @@ import { PROVIDER_MAP } from "@/lib/forja/providers";
 import { resolveAttachmentDataUrl } from "@/lib/forja/attachment-blob";
 import type { Attachment } from "@/lib/forja/types";
 import { extraerTarjetas } from "@/lib/forja/repaso";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+
+/** «1,2 s»: decimal y unidad como se escriben en español. */
+const FMT_SEGUNDOS = new Intl.NumberFormat("es", {
+  style: "unit",
+  unit: "second",
+  unitDisplay: "short",
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
 /** Detecta bucles degenerados del modelo (mismo fragmento repetido sin fin) */
 function looksDegenerate(text: string): boolean {
@@ -259,11 +269,12 @@ export const MessageItem = memo(function MessageItem({
       <div data-role="user" className="msg-in group flex flex-col items-end gap-1">
         <div className="flex max-w-[85%] items-end gap-2 sm:max-w-[78%]">
           {editing ? (
-            <div className="flex w-full min-w-0 flex-col gap-2 rounded-2xl border border-forja-violet/40 bg-card p-3">
+            <div className="flex w-full min-w-0 flex-col gap-2 rounded-2xl border border-forja-violet/40 bg-card p-3 focus-within:border-forja-violet focus-within:ring-2 focus-within:ring-forja-violet/30">
               <textarea
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 rows={3}
+                aria-label="Editar mensaje"
                 className="w-full resize-none bg-transparent text-sm outline-none"
                 autoFocus
               />
@@ -337,7 +348,7 @@ export const MessageItem = memo(function MessageItem({
           )}
         </div>
         {!editing && (
-          <div className="touch-actions flex gap-0.5 pr-9 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+          <div className="touch-actions flex gap-0.5 pr-9 opacity-100 transition md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100">
             <IconBtn label="Copiar" onClick={copy}>
               {copied ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
             </IconBtn>
@@ -479,19 +490,36 @@ export const MessageItem = memo(function MessageItem({
                       lineas.length >= c.linea
                         ? lineas.slice(c.linea - 1, c.hasta).join("\n")
                         : null;
+                    const lineasTxt = `${c.linea}${c.hasta !== c.linea ? `-${c.hasta}` : ""}`;
+                    // Botón con desplegable, no `title`: el título solo salía
+                    // con ratón; con teclado o en el móvil no había forma de
+                    // ver las líneas citadas.
                     return (
-                      <span
-                        key={`${c.path}:${c.linea}`}
-                        className="inline-flex cursor-default items-center gap-0.5 rounded-full bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] text-cyan-700 dark:text-cyan-300"
-                        title={
-                          rango !== null
-                            ? `${c.path} líneas ${c.linea}${c.hasta !== c.linea ? `-${c.hasta}` : ""}:\n${rango}`
-                            : `${c.path}:${c.linea} — el archivo no está en el Sandbox: ábrelo para verificar`
-                        }
-                      >
-                        {c.path}:{c.linea}
-                        {c.hasta !== c.linea ? `-${c.hasta}` : ""}
-                      </span>
+                      <Popover key={`${c.path}:${c.linea}`}>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label={`Ver ${c.path}, líneas ${lineasTxt}`}
+                            className="inline-flex items-center gap-0.5 rounded-full bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] text-cyan-700 transition hover:bg-cyan-500/20 dark:text-cyan-300"
+                          >
+                            {c.path}:{lineasTxt}
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-[min(32rem,calc(100vw-1.5rem))] p-0">
+                          <p className="border-b px-3 py-1.5 font-mono text-[11px] text-muted-foreground">
+                            {c.path} · líneas {lineasTxt}
+                          </p>
+                          {rango !== null ? (
+                            <pre className="max-h-64 overflow-auto px-3 py-2 font-mono text-[11px] leading-relaxed">
+                              {rango}
+                            </pre>
+                          ) : (
+                            <p className="px-3 py-2 text-[12px] text-muted-foreground">
+                              El archivo no está en el Sandbox: ábrelo allí para comprobar la cita.
+                            </p>
+                          )}
+                        </PopoverContent>
+                      </Popover>
                     );
                   })}
                 </div>
@@ -546,7 +574,7 @@ export const MessageItem = memo(function MessageItem({
           )}
           {msg.elapsedMs != null && !streaming && (
             <span className="shrink-0 whitespace-nowrap text-[10.5px] text-muted-foreground/50">
-              {(msg.elapsedMs / 1000).toFixed(1)}s
+              {FMT_SEGUNDOS.format(msg.elapsedMs / 1000)}
             </span>
           )}
           {!streaming && msg.ctxSaved != null && msg.ctxSaved > 0 && (
@@ -600,11 +628,12 @@ export const MessageItem = memo(function MessageItem({
               className="shrink-0 whitespace-nowrap rounded-full bg-cyan-500/10 px-1.5 text-[10px] font-medium text-cyan-600 dark:text-cyan-400"
               title="Datos personales enmascarados antes de enviar (escudo PII)"
             >
-              🛡 {msg.piiMasked}
+              <span aria-hidden="true">🛡</span> {msg.piiMasked}
+              <span className="sr-only"> datos personales enmascarados</span>
             </span>
           )}
           {!streaming && (msg.content || msg.generatedImage) && (
-            <div className="touch-actions ml-auto flex shrink-0 gap-0.5 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+            <div className="touch-actions ml-auto flex shrink-0 gap-0.5 opacity-100 transition md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100">
               <IconBtn label={speaking ? "Detener lectura" : "Leer en voz alta"} onClick={toggleSpeak}>
                 {speaking ? (
                   <VolumeX className="size-3.5 text-forja-violet" />
@@ -700,6 +729,7 @@ function IconBtn({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       title={label}
       aria-label={label}
@@ -713,6 +743,7 @@ function IconBtn({
 /** Imagen con esqueleto de carga (para URLs remotas como Pollinations) */
 function ImgWithLoader({ url, alt }: { url: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
+  const { ancho, alto } = medidasDeUrl(url);
   return (
     <div className="relative bg-muted/30">
       {!loaded && (
@@ -723,11 +754,23 @@ function ImgWithLoader({ url, alt }: { url: string; alt: string }) {
       <img
         src={url}
         alt={alt}
+        width={ancho}
+        height={alto}
         onLoad={() => setLoaded(true)}
-        className={cn("w-full max-w-[420px] transition-opacity", loaded ? "opacity-100" : "absolute inset-0 opacity-0")}
+        className={cn("h-auto w-full max-w-[420px] transition-opacity", loaded ? "opacity-100" : "absolute inset-0 opacity-0")}
       />
     </div>
   );
+}
+
+/** Ancho y alto pedidos en la URL (`?width=…&height=…`); 1024 si no vienen. */
+function medidasDeUrl(url: string): { ancho: number; alto: number } {
+  try {
+    const p = new URL(url).searchParams;
+    return { ancho: Number(p.get("width")) || 1024, alto: Number(p.get("height")) || 1024 };
+  } catch {
+    return { ancho: 1024, alto: 1024 };
+  }
 }
 
 /** Miniatura de un adjunto en el historial.
@@ -764,6 +807,8 @@ function AttachmentThumb({ attachment }: { attachment: Attachment }) {
       <img
         src={src}
         alt={attachment.name}
+        width={96}
+        height={96}
         className="size-24 rounded-xl border border-border/60 object-cover shadow-sm"
       />
     </a>

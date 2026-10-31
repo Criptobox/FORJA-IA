@@ -44,6 +44,7 @@ export default function DeployPage() {
   if (estado.tipo === "listo") {
     return (
       <iframe
+        id="contenido"
         title="Sitio desplegado con Forja IA"
         srcDoc={estado.html}
         sandbox="allow-scripts allow-modals allow-forms allow-popups allow-pointer-lock"
@@ -60,8 +61,11 @@ export default function DeployPage() {
         : estado.mensaje;
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background px-6 text-center text-sm text-muted-foreground">
+    <main
+      id="contenido"
+      className="flex min-h-dvh items-center justify-center bg-background px-6 text-center text-sm text-muted-foreground"
+    >
       {mensaje}
-    </div>
+    </main>
   );
 }
