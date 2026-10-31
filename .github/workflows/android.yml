@@ -107,7 +107,20 @@ jobs:
         run: |
           # La clave no está en el repo (es público): solo en los secretos.
           if [ -n "$FORJA_KEYSTORE_B64" ] && [ -n "$FORJA_KEYSTORE_PASS_SECRETO" ]; then
-            echo "$FORJA_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/forja.jks"
+            # Pegado desde el móvil, el secreto suele traer saltos de línea o
+            # espacios: fuera todo lo que no es base64 antes de decodificar.
+            B64=$(printf '%s' "$FORJA_KEYSTORE_B64" | tr -cd 'A-Za-z0-9+/=')
+            echo "Secreto FORJA_KEYSTORE_B64: ${#B64} caracteres útiles (la clave generada tiene 3464)."
+            if ! printf '%s' "$B64" | base64 -d > "$RUNNER_TEMP/forja.jks" 2>/dev/null; then
+              echo "::error::FORJA_KEYSTORE_B64 no es base64 válido (¿se pegó incompleto?). Vuelve a pegar el contenido entero de FORJA_KEYSTORE_B64.txt."
+              exit 1
+            fi
+            PASS=$(printf '%s' "$FORJA_KEYSTORE_PASS_SECRETO" | tr -d '[:space:]')
+            if ! keytool -list -keystore "$RUNNER_TEMP/forja.jks" -storepass "$PASS" -storetype PKCS12 >/dev/null 2>&1; then
+              echo "::error::La clave no abre con FORJA_KEYSTORE_PASS: la contraseña no corresponde a esa clave, o una de las dos se pegó mal."
+              exit 1
+            fi
+            FORJA_KEYSTORE_PASS_SECRETO="$PASS"
             echo "FORJA_KEYSTORE=$RUNNER_TEMP/forja.jks" >> "$GITHUB_ENV"
             echo "FORJA_KEYSTORE_PASS=$FORJA_KEYSTORE_PASS_SECRETO" >> "$GITHUB_ENV"
             echo "FIRMA_ESTABLE=1" >> "$GITHUB_ENV"
