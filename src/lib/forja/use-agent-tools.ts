@@ -227,7 +227,10 @@ export async function ejecutarConTools(
   projectMap: ProjectMap | null = null,
   permisos: PermisosConcedidos = PERMISOS_POR_DEFECTO,
   reglasNo: readonly ReglaNo[] = [],
-  reglasAutorizadas: readonly string[] = []
+  reglasAutorizadas: readonly string[] = [],
+  /** FORJA WEB existe para buscar en tu Knowledge Base: sus herramientas van
+   * aunque esté vacía, y entonces le dicen al modelo que no hay nada. */
+  kbSiempre = false
 ): Promise<string> {
   const providerId = baseOpts.providerId as ProviderId;
 
@@ -235,10 +238,13 @@ export async function ejecutarConTools(
   // modelo ni se le describen las herramientas que se le van a rechazar, así
   // no gasta contexto en ellas ni se queda reintentando. La segunda capa —la
   // que de verdad manda— está en `tool-runner.ts`.
-  const catalogo = sinHerramientasVacias(filtrarCatalogo(TOOL_CATALOG, permisos), {
-    recursos: kbGetResources().length,
-    manifiestos: kbGetProjectManifests().length,
-  });
+  const permitidas = filtrarCatalogo(TOOL_CATALOG, permisos);
+  const catalogo = kbSiempre
+    ? permitidas
+    : sinHerramientasVacias(permitidas, {
+        recursos: kbGetResources().length,
+        manifiestos: kbGetProjectManifests().length,
+      });
 
   // ——— ¿El modelo soporta tools? ———
   // La prueba es cara (un round-trip) y se cachea por modelo+clave.
@@ -431,7 +437,8 @@ export function useAgentTools() {
       projectMap?: ProjectMap | null,
       permisos?: PermisosConcedidos,
       reglasNo?: readonly ReglaNo[],
-      reglasAutorizadas?: readonly string[]
+      reglasAutorizadas?: readonly string[],
+      kbSiempre?: boolean
     ): Promise<string> =>
       ejecutarConTools(
         baseOpts,
@@ -447,7 +454,8 @@ export function useAgentTools() {
         projectMap ?? null,
         permisos ?? PERMISOS_POR_DEFECTO,
         reglasNo ?? [],
-        reglasAutorizadas ?? []
+        reglasAutorizadas ?? [],
+        kbSiempre ?? false
       ),
     []
   );

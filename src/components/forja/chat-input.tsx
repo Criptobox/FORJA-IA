@@ -498,7 +498,8 @@ export function ChatInput({
             {/* HUD de contexto (v3.32): estimación honesta (≈, chars/4) contra
              * una ventana de REFERENCIA ajustable en Ajustes — no un dato del
              * proveedor. Se pinta con la conversación ya empezada. */}
-            {hudCtx && hudCtx.tokens > 0 && (
+            {/* Solo con conversación: lo fijo sin nada escrito no es nada que medir. */}
+            {hudCtx && hudCtx.tokens - (hudCtx.fijos ?? 0) > 0 && (
               <HudCtx tokens={hudCtx.tokens} ventana={hudCtx.ventana} fijos={hudCtx.fijos} />
             )}
           </div>
@@ -579,7 +580,7 @@ function HudCtx({ tokens, ventana, fijos = 0 }: { tokens: number; ventana: numbe
         (fijos > 0
           ? ` (≈${fmtTokens(fijos)} de instrucciones fijas —prompt de sistema, skills y, con el agente, herramientas— y ≈${fmtTokens(Math.max(0, tokens - fijos))} de conversación)`
           : "") +
-        ` contra una ventana de ${fmtTokens(ventana)} tokens. Es una estimación local, no un dato del proveedor.${aviso}`
+        ` contra tu ventana de referencia de ${fmtTokens(ventana)} tokens. Es una estimación local, no un dato del proveedor.${aviso}`
       }
       aria-label={`Contexto estimado: ${pct} por ciento de la ventana`}
     >

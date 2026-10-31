@@ -143,6 +143,9 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
     // contenido de un recurso de Drive o MEGA). La lista va exacta a
     // propósito: comprueba que el catálogo TRADUCIDO llega entero al
     // modelo, que es distinto de que exista en `tools-catalog.ts`.
+    // Con la Knowledge Base vacía (como aquí) las tres kb_* no viajan: solo
+    // podrían contestar «no hay recursos» y costaban ~900 tokens por vuelta
+    // (ver `sinHerramientasVacias`). FORJA WEB las fuerza (forja-web.spec).
     expect(names).toEqual([
       "apply_patch",
       "ask_memory",
@@ -152,9 +155,6 @@ test.describe("Tools del agente (PLAN-V4 punto 2)", () => {
       "fetch_api",
       "get_quota",
       "git_snapshot",
-      "kb_project_search",
-      "kb_read",
-      "kb_search",
       "list_files",
       "read_console",
       "read_file",
