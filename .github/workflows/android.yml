@@ -130,10 +130,18 @@ jobs:
         working-directory: android/forja-app
         run: gradle assembleRelease --no-daemon --stacktrace
 
-      - name: Renombrar
+      - name: Renombrar y comprobar lo que lleva dentro
         run: |
           cp android/forja-app/app/build/outputs/apk/release/app-release.apk forja-ia.apk
           ls -la forja-ia.apk
+          # Sin esto, una APK que abre la interfaz en blanco pasaba como buena.
+          for f in assets/web/index.html assets/web/_next/static lib/arm64-v8a/libllama-server.so; do
+            if ! unzip -l forja-ia.apk | grep -q " $f"; then
+              echo "::error::La APK no lleva $f"
+              exit 1
+            fi
+          done
+          echo "Archivos de _next/ en la APK: $(unzip -l forja-ia.apk | grep -c ' assets/web/_next/')"
 
       - uses: actions/upload-artifact@v4
         with:
