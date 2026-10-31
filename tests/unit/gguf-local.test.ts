@@ -136,6 +136,12 @@ describe("herramientas y errores", () => {
     expect(msg).toMatch(/hilo nuevo/);
   });
 
+  it("el fallo de wllama con UTF-8 no válido dice que se regenere, no «error desconocido»", () => {
+    const msg = explicarErrorGguf(new Error("Invalid typed array length: 1163217991"), 8192);
+    expect(msg).toMatch(/Regenerar/);
+    expect(msg).not.toMatch(/contexto/);
+  });
+
   it("sin memoria sugiere un modelo más pequeño", () => {
     expect(explicarErrorGguf(new Error("RangeError: Array buffer allocation failed"), 4096)).toMatch(/más pequeño/);
   });

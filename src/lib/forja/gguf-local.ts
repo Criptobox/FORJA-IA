@@ -332,8 +332,9 @@ export function generarLocal(
     const w = instancia;
     if (!w) throw new Error(explicarErrorGguf(null, nCtxCargado));
     const params = parametrosParaWllama(cuerpo, nCtxCargado);
-    try {
-      await w.createChatCompletion({
+    let emitido = false;
+    const generar = () =>
+      w.createChatCompletion({
         ...(params as unknown as Parameters<Wllama["createChatCompletion"]>[0]),
         stream: true,
         abortSignal: signal,
@@ -341,12 +342,43 @@ export function generarLocal(
           if (c.timings?.predicted_per_second) {
             useGgufEstado.setState({ tokensPorSegundo: c.timings.predicted_per_second });
           }
+          const d = c.choices?.[0]?.delta;
+          if (d?.content || d?.tool_calls?.length) emitido = true;
           onData(conUso(c));
         },
       });
-    } catch (e) {
-      if (signal.aborted || (e as Error)?.name === "AbortError") throw abortado();
-      throw new Error(explicarErrorGguf(e, nCtxCargado));
+    for (let intento = 0; ; intento++) {
+      try {
+        await generar();
+        return;
+      } catch (e) {
+        if (signal.aborted || (e as Error)?.name === "AbortError") throw abortado();
+        if (!esFalloDeBytes(e)) throw new Error(explicarErrorGguf(e, nCtxCargado));
+        // El modelo soltó bytes que no forman UTF-8 válido y wllama se cae al
+        // serializarlos (el contexto sigue sano: la llamada siguiente va
+        // bien). Sin nada escrito, se reintenta una vez; con texto ya en
+        // pantalla, la respuesta se da por terminada ahí en vez de tirarla.
+        if (!emitido && intento === 0) continue;
+        if (emitido) {
+          console.warn("[gguf] el modelo generó UTF-8 no válido; la respuesta se corta ahí");
+          onData({
+            id: "gguf-corte",
+            object: "chat.completion.chunk",
+            created: Math.floor(Date.now() / 1000),
+            model: nombre,
+            choices: [{ index: 0, delta: {}, finish_reason: "stop", logprobs: null }],
+          });
+          return;
+        }
+        throw new Error(explicarErrorGguf(e, nCtxCargado));
+      }
     }
   });
+}
+
+/** Fallo de wllama 3.8 al serializar texto con UTF-8 no válido: su worker lee
+ * la longitud de la respuesta donde no está («Invalid typed array length»).
+ * Se distingue por el mensaje para no tapar fallos de verdad del motor. */
+function esFalloDeBytes(e: unknown): boolean {
+  return /Invalid typed array length/i.test((e as Error)?.message ?? "");
 }

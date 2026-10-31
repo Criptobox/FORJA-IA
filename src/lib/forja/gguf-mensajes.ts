@@ -181,6 +181,13 @@ export function plantillaConHerramientas(plantilla: string | null | undefined): 
 export function explicarErrorGguf(err: unknown, nCtx: number): string {
   const tipo = (err as { type?: string } | null)?.type;
   const texto = err instanceof Error ? err.message : String(err ?? "");
+  // Antes que las demás: «Invalid» también casaría con «no se pudo cargar».
+  if (/Invalid typed array length/i.test(texto)) {
+    return (
+      "El modelo local generó caracteres no válidos y el motor no pudo seguir. Pulsa «Regenerar»; " +
+      "si se repite, prueba otra cuantización del modelo (Q4_K_M o Q5_K_M)."
+    );
+  }
   if (tipo === "kv_cache_full" || /context|n_ctx|kv cache|too long/i.test(texto)) {
     const pide = texto.match(/request \((\d+) tokens\)|n_prompt_tokens:\s*(\d+)/);
     const tokens = pide ? Number(pide[1] ?? pide[2]) : null;

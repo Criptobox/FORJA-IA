@@ -34,6 +34,13 @@ export default defineConfig({
      * `use` en el tipado de Playwright 1.62 y `npm run build` lo rechaza —el
      * build sí comprueba los tipos de la configuración, `tsc --noEmit` no. */
     contextOptions: { reducedMotion: "reduce" },
+    /* El service worker de la app (public/sw.js) toma el control de la página
+     * al poco de cargar, y una petición que pasa por él ya no la ve
+     * `page.route`. Los specs que interceptan el envío al modelo fallaban o no
+     * según quién llegara antes, el SW o el Enter (modos-agente, modo-ahorro,
+     * qa-movil, retoque-parche…). Ningún E2E prueba el propio SW, así que se
+     * bloquea para todos. */
+    serviceWorkers: "block",
   },
   webServer: {
     command: "npm run dev",
