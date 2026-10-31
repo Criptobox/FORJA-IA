@@ -29,9 +29,15 @@ vi.mock("../../src/lib/forja/gguf-local", () => ({
   soportaHerramientas: async () => true,
 }));
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   AVISO_IMAGEN,
   agruparGguf,
+  aligerarParaContexto,
+  proporcionReal,
+  tokensEstimados,
+  type CuerpoOpenAI,
   contextoEfectivo,
   esArchivoGguf,
   explicarErrorGguf,
@@ -42,6 +48,7 @@ import {
 } from "../../src/lib/forja/gguf-mensajes";
 import { streamChat, fetchModels } from "../../src/lib/forja/chat-client";
 import { isFreeModel } from "../../src/lib/forja/free-models";
+import { esDemasiadoGrande, limiteDelMensaje } from "../../src/lib/forja/decisiones";
 import { buildTaskChain } from "../../src/lib/forja/task-router";
 import { DEFAULT_SETTINGS, type ProviderConfig } from "../../src/lib/forja/types";
 import { TOOL_CATALOG } from "../../src/lib/forja/tools-catalog";
@@ -225,5 +232,85 @@ describe("en la app", () => {
     expect(onToolCalls).toHaveBeenCalledWith([{ id: "c1", name: "write_file", args: { path: "a.txt" } }], expect.anything());
     expect(onUsage).toHaveBeenCalled();
     expect(onFinish).toHaveBeenCalled();
+  });
+});
+
+describe("que la petición quepa en el contexto del modelo local", () => {
+  /** Petición real: encargo de página con el modo agente (sistema + 24
+   * herramientas, ~10.000 tokens). Es la de la captura que destapó esto. */
+  const real = JSON.parse(
+    readFileSync(join(process.cwd(), "tests/fixtures/peticion-agente-pagina.json"), "utf8")
+  ) as CuerpoOpenAI;
+  const sistema = (c: CuerpoOpenAI) =>
+    c.messages.filter((m) => m.role === "system").map((m) => m.content as string).join("\n");
+
+  it("la petición real no cabe tal cual en 8.192", () => {
+    expect(tokensEstimados(real)).toBeGreaterThan(8192);
+  });
+
+  it("aligerada cabe en 8.192 y conserva lo esencial", () => {
+    const r = aligerarParaContexto(real, 8192);
+    expect(r.cabe).toBe(true);
+    expect(r.tokens).toBeLessThanOrEqual(8192 - 2048);
+    expect(r.cuerpo.tools, "primero se van las herramientas").toBeUndefined();
+    expect(r.quitado[0]).toMatch(/herramientas/);
+    const s = sistema(r.cuerpo);
+    expect(s).toContain("Eres Forja IA");
+    expect(s, "la dirección de diseño se queda").toContain("DIRECCIÓN DE DISEÑO");
+    expect(s, "el formato del agente se queda").toContain("MODO AGENTE");
+    expect(s, "los datos que dio el usuario se quedan").toContain("Hechos declarados por el usuario");
+    // y el mensaje del usuario, entero
+    expect(r.cuerpo.messages.at(-1)).toEqual(real.messages.at(-1));
+  });
+
+  it("con contexto de sobra no se toca nada", () => {
+    const r = aligerarParaContexto(real, 32768);
+    expect(r.quitado).toEqual([]);
+    expect(r.cuerpo.tools).toHaveLength(real.tools!.length);
+    expect(sistema(r.cuerpo)).toBe(sistema(real));
+  });
+
+  it("quita los bloques opcionales por orden y dice cuáles", () => {
+    const r = aligerarParaContexto(real, 4096);
+    expect(r.quitado).toEqual(expect.arrayContaining(["skills activas", "kit de efectos"]));
+    expect(sistema(r.cuerpo)).not.toContain("Skill activa:");
+  });
+
+  it("los mensajes viejos se van de uno en uno; la última pregunta, nunca", () => {
+    const largo = "x".repeat(4000);
+    const c: CuerpoOpenAI = {
+      messages: [
+        { role: "system", content: "Eres Forja IA." },
+        { role: "user", content: largo },
+        { role: "assistant", content: "", tool_calls: [{ id: "t1" }] },
+        { role: "tool", content: largo, tool_call_id: "t1" },
+        { role: "assistant", content: largo },
+        { role: "user", content: "¿y ahora?" },
+      ],
+    };
+    const r = aligerarParaContexto(c, 2048);
+    expect(r.cabe).toBe(true);
+    expect(r.cuerpo.messages[0]).toEqual({ role: "system", content: "Eres Forja IA." });
+    expect(r.cuerpo.messages.at(-1)).toEqual({ role: "user", content: "¿y ahora?" });
+    expect(r.cuerpo.messages.some((m) => m.role === "tool"), "sin resultados de herramienta huérfanos").toBe(false);
+    expect(r.quitado.at(-1)).toMatch(/mensajes? antiguos?/);
+  });
+
+  it("si ni así cabe, lo dice", () => {
+    const c: CuerpoOpenAI = { messages: [{ role: "user", content: "x".repeat(40000) }] };
+    expect(aligerarParaContexto(c, 2048).cabe).toBe(false);
+  });
+
+  it("la proporción real sale del número que da llama.cpp", () => {
+    const c: CuerpoOpenAI = { messages: [{ role: "user", content: "x".repeat(3000) }] };
+    const p = proporcionReal(c, "request (1008 tokens) exceeds the available context size (512 tokens)");
+    expect(p).toBeCloseTo((3000 / 1000) * 0.95, 2);
+    expect(proporcionReal(c, "otro error")).toBeNull();
+  });
+
+  it("el error de «no cabe» lo reconoce la app como tal, no como proveedor caído", () => {
+    const msg = explicarErrorGguf(new Error("request (10022 tokens) exceeds the available context size (8192 tokens)"), 8192);
+    expect(esDemasiadoGrande(0, msg)).toBe(true);
+    expect(limiteDelMensaje(msg)).toEqual({ limite: 8192, pedido: 10022 });
   });
 });

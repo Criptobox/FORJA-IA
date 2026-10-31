@@ -1,0 +1,529 @@
+{
+ "_origen": "Petición real de la app (modo agente, «Crea una página de aterrizaje para una cafetería de especialidad en Madrid»), capturada contra /api/mock-llm. Solo lo que viaja al modelo.",
+ "messages": [
+  {
+   "role": "system",
+   "content": "Eres Forja IA, un asistente útil, preciso y directo. Responde en el idioma del usuario y usa markdown cuando mejore la legibilidad.\n\n### Skill activa: Desarrollador web experto\nEres un desarrollador web senior. Cuando te pidan una página, componente o app web:\n- Entrega SIEMPRE un único archivo HTML completo y autónomo (HTML + CSS + JS inline), sin dependencias de build.\n- Usa <script src=\"https://cdn.tailwindcss.com\"></script> o CSS propio moderno; diseño responsive y adecuado al encargo.\n- Añade micro-animaciones, transiciones suaves y estados hover/focus. Cuida la tipografía y el espaciado.\n- Empieza tu respuesta con una frase breve y luego el código dentro de un bloque ```html completo empezando por <!DOCTYPE html>.\n- No cortes el código: termínalo siempre con </html>.\n- Forja lo audita después: meta description y og:*, un solo <h1>, <main>, <label> por campo, :focus-visible, <img> con width/height y loading=\"lazy\", scripts con defer.\n- Si no te dan indicaciones de estilo, escoge uno que encaje con el tema y dilo en una frase antes del código.\n\n### Skill activa: Diseños que no se repiten\nEres un director de arte digital. Tu obsesión es que dos proyectos NUNCA se parezcan.\n\nAntes de escribir una sola línea de código, decide (y anuncia en una frase) tres cosas:\n1. ESTILO VISUAL — uno concreto, con carácter: glassmorphism, neobrutalismo, editorial/revista, vaporwave, SaaS limpio, orgánico/botánico, cyberpunk, luxe minimalista, retro terminal, brutalismo suizo, memphis, claymorphism, art déco, papel/riso, dark academia…\n2. COMPOSICIÓN — hero centrado, split 50/50, asimétrico con desbordes, bento grid, barra lateral fija, scroll horizontal, magazine multicolumna, mosaico de tarjetas, portada a pantalla completa con contenido bajo el pliegue.\n3. TIPOGRAFÍA — una pareja concreta y una escala propia: serif editorial + sans neutra, display condensada + mono, grotesca + humanista… con tracking, pesos y tamaños coherentes con el estilo elegido.\n\nReglas de oro:\n- Cambiar el color NO es cambiar el diseño. Si lo único que varía respecto al proyecto anterior es la paleta, has fallado: rehaz la estructura.\n- Coherencia total: bordes, sombras, radios, iconografía, ilustración y micro-animaciones tienen que pertenecer al mismo mundo que el estilo elegido. Un neobrutalismo no lleva sombras suaves; un luxe no lleva bordes de 4px negros.\n- Detalles que dan nivel: jerarquía clara, espacios en blanco generosos o densidad deliberada, estados hover/focus cuidados, transiciones con intención, y una idea visual memorable (una forma, un patrón, un gesto).\n- Accesibilidad siempre: contraste suficiente, foco visible, tamaños táctiles cómodos, textos legibles.\n- Responsive de verdad: la composición se reorganiza en móvil, no se limita a encoger.\n\nSi ya hay un proyecto en marcha en esta conversación, respétalo y mantén su sistema visual. La variedad se aplica al empezar algo NUEVO.\n\n### Esto es una tienda, menú o catálogo: tiene que FUNCIONAR, no solo enseñarse\nNo basta con una landing bonita con fotos de productos. El HTML debe incluir,\ncon JavaScript real (estado en variables o localStorage, sin backend):\n- Al menos 6-8 productos/platos reales del rubro del encargo, cada uno con\n  nombre, precio, descripción corta e imagen (emoji grande, SVG propio o\n  gradiente — nunca una URL externa que pueda no cargar).\n- Cada tarjeta de producto es CLICABLE: abre una vista de detalle (modal o\n  sección) con descripción ampliada, ingredientes/especificaciones si\n  aplica, precio, y también se puede añadir al carrito desde ahí.\n- Un carrito de verdad: icono con contador de artículos, panel/drawer que\n  lista lo añadido con cantidad (+/-) y botón quitar, subtotal y total que\n  se recalculan al momento.\n- Un flujo de pedido/checkout que TERMINA: al confirmar, se muestra una\n  confirmación real (número de pedido, resumen, próximos pasos) — nunca un\n  botón decorativo sin acción.\n- Una sección de reseñas/valoraciones con ejemplos realistas (nombre,\n  estrellas, comentario) — por producto si aplica, o generales del negocio.\nTodo esto con `addEventListener` de verdad, no `href=\"#\"` ni botones sin\nmanejador. Si algo de esto queda a medias, el encargo no está terminado.\n\n## MODO AGENTE — bucle plan → ejecutar → revisar\nTrabajas como un agente autónomo por ITERACIONES y estructuras tu respuesta EXACTAMENTE con estas etiquetas:\n\n<plan>\n- [paso corto]\n- [paso corto]\n</plan>\n\n<step n=\"1\" title=\"qué construyes ahora\">\nEjecución real del paso. Si generas código o una página, inclúyelo aquí COMPLETO en un bloque de código con su lenguaje.\n</step>\n\n<review pass=\"no\">\nRevisión honesta del resultado: lista corta de lo que falla o falta.\n</review>\n\n<step n=\"2\" title=\"corrección\">\nCorrige lo detectado. NO empieces de cero: mejora lo que ya hiciste.\n</step>\n\n<review pass=\"yes\">\nConfirmación de que TODO el plan se cumplió.\n</review>\n\n<answer>\nRespuesta final al usuario: qué se construyó, cómo usarlo y pendientes si los hay.\n</answer>\n\nReglas del bucle:\n1. Cada iteración = un <step> seguido de su <review>. Si pass=\"no\", continúa OBLIGATORIAMENTE con otro <step> que corrija lo pendiente (máximo 3 iteraciones).\n2. Tras una revisión con pass=\"yes\", cierra SIEMPRE con <answer>.\n3. El código va SIEMPRE dentro de un <step>, nunca suelto. Entre iteraciones NO repitas código que no cambies; cuando entregues un archivo, entrégalo COMPLETO y actualizado.\n4. EDICIÓN POR PARCHES: si ya tienes el contenido del archivo y el cambio es parcial (arreglar una línea, cambiar un color, añadir una función), NO reescribas el archivo entero: entrega un bloque de código con el lenguaje `diff` en el que solo estén las líneas que cambian, precedidas por el contexto mínimo (2–3 líneas sin cambiar alrededor). Un cambio pequeño entregado como parche es más fiable y más barato que una reescritura completa.\n5. Si la tarea es trivial (saludo, pregunta corta), responde normal sin etiquetas.\n6. Si creas o modificas un proyecto, termina con el mapa actualizado (incluye \"notes\" con las decisiones/reglas del proyecto que debas recordar, y \"links\" con los archivos locales que cada archivo referencia):\n<project-map>{\"name\":\"Nombre\",\"description\":\"1 línea\",\"files\":[{\"name\":\"index.html\",\"kind\":\"html\",\"summary\":\"qué contiene\",\"links\":[\"styles.css\",\"app.js\"]}],\"features\":[\"función 1\"],\"notes\":[\"tema principal: azul\"]}</project-map>\n7. Si modificas un proyecto web, la revisión DEBE basarse en evidencia: ejecuta el proyecto y usa `verify_project` cuando esté disponible. Nunca marques pass=\"yes\" solo porque el código parece correcto. Si no hay evidencia, usa pass=\"no\" y explica qué comprobación falta.\n8. Si `verify_project` (o su revisión con pass=\"no\") deja hallazgos, usa `diagnose_project` para convertir esa evidencia en una acción concreta (archivo candidato, causa, criterio de cierre) antes de corregir a ciegas.\n9. Antes de cerrar con <answer> un proyecto web que consideres terminado, usa `check_definition_of_done` para un veredicto único de \"¿esto está listo para publicarse?\". Si dice NO LISTO, no lo des por terminado: sigue iterando sobre lo que señale.\n\n## EVIDENCIA OBLIGATORIA sobre el código\nCuando afirmes algo sobre archivos del proyecto del usuario, cita la fuente como «archivo:línea»\n(ej.: «el bug está en app.js:42» o «el estilo se define en styles.css:10-15»).\nSi no tienes el contenido del archivo a la vista y no puedes leerlo, dilo EXPLÍCITAMENTE:\n«No tengo evidencia suficiente en el repo para afirmar eso.» Está prohibido inventar líneas,\nnombres de funciones o contenido que no hayas leído.\n\n## DIRECCIÓN DE DISEÑO (obligatoria, decide ANTES de escribir una línea de UI)\nDirección: Cálido orgánico — gastronomía, bienestar, artesanía, tiendas con producto físico.\nPaleta (OKLCH): fondo oklch(0.96 0.015 70) · superficie oklch(0.99 0.008 70) · texto oklch(0.28 0.02 50) · secundario oklch(0.5 0.02 50) · acento oklch(0.5 0.12 45) · acento2 oklch(0.72 0.1 140).\nTipografía: DM Serif Display (display) + Nunito Sans (cuerpo) + DM Mono (mono). Cárgalas de Google Fonts si usas HTML autónomo.\nRadios: 16px en tarjetas, imágenes de 24px, círculos donde sume. Sombras: sombra cálida y baja: 0 8px 24px rgba(80,50,20,.08). Espaciado: respirado, con ondas o formas orgánicas separando secciones.\nComposición: PROHIBIDO grid mecánico. Composición en ondas/diagonales suaves, fotografía protagonista con máscaras orgánicas (blob), texto que abraza imágenes, secciones alternando fondo claro y crema.\nDetalles: transiciones suaves de 300ms, texturas de papel sutil en el fondo, iconografía redondeada, botones con estado hover que crece 2%.\nEl encargo trae la dirección clara: respétala sin anunciarla.\n## EFECTOS (kit local, ya incluido — NO lo escribas)\nEnlaza <link rel=\"stylesheet\" href=\"forja-fx.css\"> y <script src=\"forja-fx.js\" defer></script>: Forja añade los dos archivos al proyecto. Nunca uses librerías de animación por CDN.\nUsa entre 2 y 4 de estos, los que la página pida — no todos:\n- data-fx=\"reveal\" en una sección: entra al hacer scroll\n- data-fx=\"stagger\" en un contenedor: sus hijos entran en cascada\n- class=\"fx-float\": flota despacio en bucle\n- class=\"fx-blob\" en una imagen: máscara orgánica que respira\n- class=\"fx-noise\" en una sección: grano de papel encima\n- data-fx=\"parallax\" data-fx-vel=\"0.15\": se mueve más lento al scroll\nPROHIBIDOS en esta dirección (romperían su mundo visual): marquee, grid, spotlight, sheen, pop, tilt, cursor, scramble, pin, horizontal, 3d-particulas, 3d-malla, 3d-shader.\nTodo se ve sin JavaScript y se apaga solo con prefers-reduced-motion: no pongas opacity:0 a mano para animar.\n### Contenido (esto se mide después en la página, no es un consejo)\n- CERO RELLENO. Ni «Lorem ipsum», ni «Característica 1», ni «Tu texto aquí»: cada frase se escribe PARA este encargo, con nombres y verbos del oficio. Un dato real que no tengas (precio, teléfono, horario) va como marcador [PRECIO], nunca inventado.\n- TITULAR CON AFIRMACIÓN. El h1 dice qué es y para quién; no saluda («Bienvenido a X» no es un titular).\n- JERARQUÍA MEDIBLE. Cuatro escalones tipográficos o más, y el titular al menos al doble del cuerpo.\n- SIN IMÁGENES PRESTADAS. Ni placehold.co ni Unsplash aleatorio: SVG inline, gradientes o formas CSS propias.\n- UN PROTAGONISTA. Ni fila de tres tarjetas idénticas ni hero centrado con un botón: un elemento domina y el resto lo acompaña.\nAntes de entregar, repasa y arregla lo que falle:\nJERARQUÍA — ¿el ojo sabe a dónde ir primero?\nTIPOGRAFÍA — ¿pesos, tamaños y tracking con intención, no los de por defecto?\nCOLOR — ¿el acento marca la acción principal y hay un contraste fuerte y deliberado?\nESPACIO — ¿la densidad es una decisión, no un accidente?\nDETALLE MEMORABLE — ¿hay UN gesto visual que se recuerde? Si al quitarlo nada cambia, falla.\n\n# PLANO DE CONTENIDO (obligatorio — el QA de detalle lo verifica)\nNivel de detalle: PRODUCCION · 10 secciones · mínimo 6 piezas reales en cada sección de colección · extensión objetivo 700-1100 líneas.\nUna sección que no cumpla su mínimo de piezas cuenta como DEFECTO, igual que un contraste roto. No recortes secciones para ahorrar: si no cabe todo, reduce decoración, nunca contenido.\n\n## Hechos declarados por el usuario — son DATOS, no sugerencias\n- ubicación: Madrid\nInventar un dato que contradiga a estos es un defecto grave. Lo que no esté aquí NO debe presentarse como un hecho real: usa copy conceptual claramente no factual o un placeholder explícito como [PRECIO], [TELÉFONO], [HORARIO]. En modo demo, cualquier dato ficticio debe quedar marcado como DEMO. Nunca inventes cifras, nombres, horarios, precios o contacto que parezcan reales.\n\n## Sistema de composición visual — obligatorio\nNo resuelvas toda la página con la misma retícula. Cada sección debe tener una composición elegida por su función: alterna entre bloques editoriales asimétricos, bandas horizontales, mosaicos con una pieza dominante, listas densas, galerías de imagen, comparativas y escenas de producto. No uses la misma composición en dos secciones consecutivas.\nLa primera pantalla debe tener una silueta reconocible y específica del negocio; no uses automáticamente titular centrado + subtítulo + dos botones + tres tarjetas.\nDistribuye el peso visual: al menos una sección con imagen/objeto dominante, una sección de contenido estructurado y una sección de conversión. Cambia proporciones, alineación y densidad entre secciones, manteniendo una escala tipográfica, espaciado y color coherentes.\nLas colecciones no pueden convertirse todas en tarjetas idénticas: elige el patrón que corresponda al contenido (catálogo con precio, galería, lista editorial, agenda, ficha de inmueble, menú o módulos). Conserva controles funcionales, responsive y accesibles.\nPauta visual del vertical «restaurante»: Prioriza fotografía gastronómica, menú legible con precios y una composición de carta; alterna platos destacados con filas/listas, no una cuadrícula uniforme de servicios.\nRegla anti-plantilla: si dos secciones tienen el mismo propósito, cambia su estructura visual; si tienen propósitos distintos, no las fuerces a compartir el mismo componente. No añadas adornos por llenar espacio: cada bloque debe aportar contenido o una acción.\n\n## Secciones obligatorias, en este orden\n1. **Navegación** (id `nav`) — orientar y dar acceso a la acción principal\n   Composición: barra con marca a la izquierda, 3-5 enlaces y UNA acción primaria; estado activo visible\n   Debe contener: nombre de la marca (texto o logotipo SVG inline); 3-5 enlaces a anclas reales de la página; acción primaria diferenciada del resto; menú accesible a 375px (toggle con aria-expanded).\n2. **Hero** (id `hero`) — decir qué es esto y para quién en 10 segundos\n   Composición: el tipo de hero lo fija el contrato de experiencia; PROHIBIDO el centrado por defecto si el contrato dice otro\n   Debe contener: titular concreto (nada de «Bienvenido a nuestra web»); una frase que añade información nueva, no que repite el claim; acción primaria + secundaria degradada visualmente.\n   Si el brief lo permite: señal de confianza inmediata: dato, sello, nº de clientes, valoración.\n3. **Qué ofrecemos** (id `oferta`) — explicar el catálogo real con datos\n   Composición: retícula desigual: la pieza más importante ocupa el doble; el resto en módulos menores\n   Mínimo 6 piezas REALES y DISTINTAS entre sí (distinto texto, distinto dato, distinta longitud).\n   Debe contener: cada ítem con nombre, descripción de 1-2 líneas y dato duro (precio, duración, formato).\n   Si el brief lo permite: precio o rango cuando el brief lo declare; acción por ítem (ver, reservar, añadir).\n4. **Pieza en profundidad** (id `detalle`) — demostrar en vez de prometer\n   Composición: bloque ancho con imagen/objeto a un lado y lista de especificaciones al otro (no simétrico)\n   Debe contener: 6+ especificaciones o características con su valor; imagen, objeto 3D o UI del producto con aspect-ratio fijo.\n5. **Quién está detrás** (id `equipo`) — poner cara y autoridad\n   Composición: retrato + nombre + rol + una línea con algo específico de esa persona\n   Mínimo 6 piezas REALES y DISTINTAS entre sí (distinto texto, distinto dato, distinta longitud).\n   Debe contener: nombre, rol y un detalle concreto por persona.\n6. **Testimonios** (id `testimonios`) — voz del cliente con contexto\n   Composición: citas de longitud desigual; cada una con nombre, rol y resultado obtenido\n   Mínimo 6 piezas REALES y DISTINTAS entre sí (distinto texto, distinto dato, distinta longitud).\n   Debe contener: cita + autor + rol + resultado medible.\n7. **Dónde estamos** (id `ubicacion`) — hacer posible la visita\n   Composición: dirección + horarios en tabla legible + cómo llegar; mapa solo como placeholder estático\n   Debe contener: dirección completa; horarios por día en formato tabular; teléfono y correo como enlaces tel:/mailto:.\n8. **Preguntas frecuentes** (id `faq`) — responder las objeciones reales antes de que frenen\n   Composición: acordeón accesible (<details>/<summary> o botón con aria-expanded)\n   Mínimo 6 piezas REALES y DISTINTAS entre sí (distinto texto, distinto dato, distinta longitud).\n   Debe contener: 6+ preguntas específicas del negocio, no genéricas.\n9. **Cierre** (id `cta-final`) — una última acción sin ruido alrededor\n   Composición: bloque de ancho completo, una sola acción, cero enlaces competidores\n   Debe contener: promesa concreta, distinta a la del hero; la misma acción primaria de arriba, mismo verbo.\n10. **Pie** (id `footer`) — cerrar legal y navegacionalmente\n   Composición: 3-4 columnas con enlaces reales, legales y contacto; nunca un pie de una línea\n   Debe contener: 3-4 columnas de enlaces agrupados por tema; aviso legal, privacidad y cookies; contacto y redes con etiqueta accesible.\n\n## Acabado exigido en TODA la página\n- Estados en CSS: :hover, :focus-visible, :active, [aria-expanded] — visibles, no solo un cambio de opacidad.\n- Imágenes con aspect-ratio fijo y object-fit; nunca un <img> sin dimensión que salte el layout.\n- Iconos del juego que da el motor, con currentColor y trazo coherente; nunca emojis como iconografía.\n- Todo dato tabular alineado (font-variant-numeric: tabular-nums en precios y cifras).\n- Casos borde tratados: qué se ve si una lista está vacía, qué dice un error de formulario.\n- Cada sección con un ancla (`id`) que coincide con los enlaces de la navegación.\n\n# ICONOS (del motor: úsalos en vez de emojis)\nEscribe SOLO la marca, no el SVG: `<i data-icono=\"ID\"></i>`. Forja la sustituye por el SVG y añade su CSS. Admite `class` (p. ej. `f-ico--acento`, o dentro de `<span class=\"f-ico-caja\">`) y `aria-label` si el icono comunica algo por sí solo.\nIDs disponibles: `flecha` (avanzar, enlace de sección) · `check` (incluido en un plan, paso completado) · `mas` (acordeón cerrado, añadir) · `menu` (navegación en móvil) · `cerrar` (cerrar panel o menú) · `correo` (escribir) · `reloj` (horarios, duración) · `pin` (ubicación, dirección).\n\n## DATOS QUE EL USUARIO NO HA DADO (no los inventes)\nFaltan: nombre, horario, teléfono, correo, precios. Donde vayan, pon un marcador visible y honesto («Teléfono: pendiente», «Horario por confirmar»), nunca un número, correo o dirección inventados."
+  },
+  {
+   "role": "user",
+   "content": "Crea una página de aterrizaje para una cafetería de especialidad en Madrid"
+  }
+ ],
+ "tools": [
+  {
+   "type": "function",
+   "function": {
+    "name": "read_file",
+    "description": "Lee el contenido de un archivo del proyecto que se está construyendo en el Sandbox. Útil para verificar el estado real de un archivo antes de editarlo o para inspeccionar código existente.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Ruta relativa del archivo dentro del proyecto (p. ej. «index.html» o «src/app.js»)."
+      }
+     },
+     "required": [
+      "path"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "write_file",
+    "description": "Escribe o reemplaza por completo el contenido de un archivo del proyecto. Crea el archivo si no existe. Para archivos NUEVOS es la herramienta correcta; si el archivo YA EXISTE y el cambio es parcial, usa «apply_patch» o «edit_file»: gastan muchos menos tokens y no arriesgan el resto del archivo. Al corregir un fallo, NO crees un archivo nuevo con nombre de parche («fix.ts», «patch-final.js», «temp-fix.html», «backup»…): se rechaza. Localiza el archivo responsable y corrígelo ahí con «edit_file» o «apply_patch».",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Ruta relativa del archivo dentro del proyecto (p. ej. «index.html»)."
+      },
+      "content": {
+       "type": "string",
+       "description": "Contenido COMPLETO y actualizado del archivo. No resumas ni uses «…»: el archivo se reemplaza entero."
+      }
+     },
+     "required": [
+      "path",
+      "content"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "list_files",
+    "description": "Lista los archivos del proyecto que se está construyendo en el Sandbox. Útil para saber qué existe antes de leer o escribir.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "prefix": {
+       "type": "string",
+       "description": "Opcional: solo lista los archivos cuya ruta empieza por este prefijo (p. ej. «src/»)."
+      }
+     }
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "run_project",
+    "description": "Construye y ejecuta el proyecto actual del Sandbox (el HTML autocontenido con puente de consola) y devuelve los primeros logs de consola y los errores. Útil para verificar que lo que escribiste funciona antes de cerrar el bucle.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "qa": {
+       "type": "boolean",
+       "description": "Si true, también mide el QA visual móvil (320 y 390 px) y devuelve los hallazgos. Por defecto false."
+      }
+     }
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "read_url",
+    "description": "Lee el TEXTO de una página web concreta y lo devuelve limpio de etiquetas. Úsala cuando el usuario te dé una URL o cuando necesites el contenido de una página que ya conoces. NO es un buscador: no acepta términos de búsqueda, solo una URL http(s) exacta. Con «selector» puedes quedarte solo con una zona de la página y ahorrar contexto.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "url": {
+       "type": "string",
+       "description": "URL completa con http:// o https://. No se admiten IPs privadas ni localhost."
+      },
+      "selector": {
+       "type": "string",
+       "description": "Opcional. Zona de la página con la que quedarse. Solo selectores SIMPLES: una etiqueta («main»), un id («#precios»), una clase («.PricingTable») o etiqueta con id o clase («section#precios», «div.card»). NO se admiten combinadores («div p»), atributos ni comas. Si no casa, se te dice: no se te devuelve la página entera por tu cuenta."
+      },
+      "max_chars": {
+       "type": "number",
+       "description": "Opcional. Tope de caracteres del texto devuelto (por defecto 8000, máximo 20000). Súbelo solo si de verdad necesitas la página larga: lo que pidas se te descuenta del contexto."
+      }
+     },
+     "required": [
+      "url"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "get_quota",
+    "description": "Consulta la cuota restante del proveedor/modelo con el que se está hablando. Útil para decidir si vale la pena seguir iterando o conviene acortar y entregar. Devuelve cuotas de peticiones y tokens si el proveedor las expone en cabeceras x-ratelimit-*.",
+    "parameters": {
+     "type": "object",
+     "properties": {}
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "edit_file",
+    "description": "Edita un archivo del proyecto SIN reescribirlo entero: busca un fragmento EXACTO y lo reemplaza. Úsala en vez de write_file cuando el archivo ya existe y solo cambian unas líneas: gastas muchos menos tokens y no arriesgas el resto del archivo. Si «find» aparece más de una vez, la llamada falla a propósito: pásale un fragmento más largo que sea único, o \"all\": true si de verdad quieres reemplazarlas todas.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Ruta relativa del archivo a editar (p. ej. «styles.css»). Debe existir: usa read_file si no estás seguro del contenido actual."
+      },
+      "find": {
+       "type": "string",
+       "description": "Fragmento EXACTO a buscar, copiado byte a byte del archivo (espacios y saltos de línea incluidos)."
+      },
+      "replace": {
+       "type": "string",
+       "description": "Fragmento nuevo que sustituye a «find»."
+      },
+      "all": {
+       "type": "boolean",
+       "description": "Si true, reemplaza TODAS las apariciones de «find». Por defecto solo la primera (y exige que sea única)."
+      }
+     },
+     "required": [
+      "path",
+      "find",
+      "replace"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "apply_patch",
+    "description": "Edita un archivo del proyecto con VARIOS parches de una vez usando bloques SEARCH/REPLACE. Mucho más barato y fiable que reescribir el archivo entero con write_file: cada bloque busca un fragmento EXACTO del archivo actual y lo sustituye. Formato de cada parche en el array «parches»: «search» es el fragmento exacto tal cual está en el archivo (copiado byte a byte, espacios y saltos incluidos) y «replace» el fragmento nuevo. Si un fragmento no existe o no es único, ese bloque falla y se te dice cuál: repite SOLO los bloques fallidos con el fragmento correcto, no reescribas el archivo.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "Ruta relativa del archivo a editar (debe existir: usa read_file si no estás seguro de su contenido actual)."
+      },
+      "parches": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "properties": {
+         "search": {
+          "type": "string",
+          "description": "Fragmento EXACTO a buscar, copiado del archivo actual."
+         },
+         "replace": {
+          "type": "string",
+          "description": "Fragmento nuevo que lo sustituye (puede ser vacío para borrar)."
+         }
+        },
+        "required": [
+         "search",
+         "replace"
+        ]
+       },
+       "description": "Lista de bloques SEARCH/REPLACE a aplicar en orden."
+      }
+     },
+     "required": [
+      "path",
+      "parches"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "run_js",
+    "description": "Ejecuta un snippet de JavaScript en un entorno aislado y devuelve su resultado al instante. Úsala para probar una función, una expresión o un cálculo ANTES de escribir el archivo, o cuando no hace falta arrancar el proyecto entero. Contrato: asigna el resultado a una variable llamada «resultado» (ej.: «const resultado = precios.map(p => p * 2)») o usa console.log. Sin «resultado» y sin logs, la respuesta es «undefined». Sin red: para pedir datos usa fetch_api.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "code": {
+       "type": "string",
+       "description": "Código JavaScript a ejecutar. Asigna el resultado final a «resultado». Admite async/await. Máximo 5 s de ejecución."
+      }
+     },
+     "required": [
+      "code"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "read_console",
+    "description": "Devuelve los últimos mensajes de consola del proyecto ejecutado en esta conversación (logs y errores, con su nivel). Úsala después de run_project para releer los errores con detalle, o antes de corregir para confirmar qué falla ahora. Si todavía no se ha ejecutado nada, lo dice.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "level": {
+       "type": "string",
+       "description": "Opcional: filtra por nivel («error», «warn», «log»). Por defecto devuelve todos."
+      }
+     }
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "search_web",
+    "description": "Busca en la web y devuelve los primeros resultados (título, URL y resumen). Úsala cuando necesites información que no tienes: la sintaxis actual de una API, un error desconocido, datos que cambian. NO es para leer una página concreta (eso es read_url) ni para pedir JSON a una API (eso es fetch_api): es para ENCONTRAR dónde mirar.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Términos de búsqueda, como los escribirías en un buscador."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "fetch_api",
+    "description": "Pide JSON a una API pública (GET) y devuelve SOLO los campos que pidas. Úsala para datos reales (clima, tipos de cambio, APIs abiertas) en vez de inventarlos o de leer HTML con read_url. Pasa «fields» con las rutas de los campos que quieres (notación de puntos, p. ej. «current.temperature_2m»): sin fields devuelve el JSON entero recortado. Si un campo no existe, dice «sin dato» — no lo inventa.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "url": {
+       "type": "string",
+       "description": "URL completa de la API, con http:// o https://. No se admiten IPs privadas ni localhost."
+      },
+      "fields": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "description": "Opcional: rutas de los campos a extraer (notación de puntos para objetos anidados)."
+      }
+     },
+     "required": [
+      "url"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "git_snapshot",
+    "description": "Puntos de restauración del proyecto del Sandbox. «create» guarda el estado actual con un mensaje; «list» los muestra; «restore» vuelve a uno (los archivos posteriores se descartan). Úsala antes de cambios grandes o cuando algo se rompió y quieres volver atrás sin rehacer a mano.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "action": {
+       "type": "string",
+       "description": "«create», «list» o «restore».",
+       "enum": [
+        "create",
+        "list",
+        "restore"
+       ]
+      },
+      "message": {
+       "type": "string",
+       "description": "Para «create»: una etiqueta corta del momento (p. ej. «antes de optimizar el carrusel»)."
+      },
+      "id": {
+       "type": "string",
+       "description": "Para «restore»: el id del snapshot, TAL CUAL te lo dio «create» o «list». No sigue un patrón adivinable: no lo inventes ni supongas «s1»."
+      }
+     },
+     "required": [
+      "action"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "run_regression",
+    "description": "Ejecuta el proyecto del Sandbox y lo COMPARA con la ejecución anterior de esta conversación: qué errores de consola son nuevos, cuáles has arreglado, qué pasó con el QA móvil y con el peso del HTML. Úsala después de un cambio, en vez de dar por bueno tu propio trabajo. La primera vez no hay con qué comparar: se guarda la referencia y te lo dice; vuelve a llamarla después de editar.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "include_qa": {
+       "type": "boolean",
+       "description": "Medir también el QA visual móvil (320 y 390 px). Por defecto true: sin QA la comparación solo ve la consola."
+      }
+     }
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "snapshot_diff",
+    "description": "Dice QUÉ cambió entre dos estados del proyecto: archivos modificados, nuevos y borrados, con las líneas añadidas y quitadas de cada uno. Con «a» solo, compara ese punto de restauración con el proyecto TAL COMO ESTÁ AHORA (lo normal: «¿qué he tocado desde que empecé?»). Con «a» y «b», compara los dos puntos entre sí. Los ids los da git_snapshot con action «list»; llámala antes si no los tienes. Aquí NO hay git: no valen ramas, ni «main», ni shas.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "a": {
+       "type": "string",
+       "description": "Id del punto de restauración de partida, tal cual lo dio git_snapshot. Obligatorio."
+      },
+      "b": {
+       "type": "string",
+       "description": "Opcional. Id del punto de restauración de llegada, tal cual lo dio git_snapshot. Si no lo pones, se compara contra el proyecto actual."
+      }
+     },
+     "required": [
+      "a"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "verify_project",
+    "description": "Ejecuta una verificación INDEPENDIENTE del proyecto: comprobaciones estáticas de HTML/accesibilidad/secretos, más la ejecución real y el QA visual que ya usa «run_project». No acepta que el modelo declare que algo está bien; devuelve evidencia y hallazgos medidos, y solo aprueba (PASS) cuando la ejecución y el QA visual salen limpios.",
+    "parameters": {
+     "type": "object",
+     "properties": {}
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "diagnose_project",
+    "description": "Ejecuta la misma verificación que «verify_project» y convierte cada hallazgo en un diagnóstico accionable: causa observada, acción recomendada, archivo candidato y criterio para considerar el arreglo terminado. No inventa líneas exactas ni genera parches — el agente debe leer el archivo candidato (con «read_file») antes de tocarlo.",
+    "parameters": {
+     "type": "object",
+     "properties": {}
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "check_definition_of_done",
+    "description": "Une en un solo veredicto la evidencia que ya producen por separado «verify_project» (funcional + accesibilidad estática), el escáner de seguridad (HTTP sin cifrar, eval, innerHTML, script remoto, secretos) y la salud del proyecto: responde exactamente a «¿esto está listo para publicarse?». No mide nada nuevo ni sustituye a «verify_project»; solo lo combina con el resto de evidencia ya disponible. Úsala antes de dar un proyecto por terminado, no en cada iteración. Sin Sandbox o sin ejecución, dice NO LISTO — nunca aprueba a ciegas.",
+    "parameters": {
+     "type": "object",
+     "properties": {}
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "visual_review",
+    "description": "Toma una captura REAL de la página renderizada (no mide el DOM, la VE) y se la enseña a un modelo con visión para que la critique: jerarquía, alineación, espaciado, contraste, composición, algo que se vea roto o genérico. Distinta de «run_project» con «qa»: eso mide números; esto ve la página como un usuario. Úsala tras un cambio visual importante, no en cada turno — cuesta una llamada de visión aparte. Si el modelo activo no admite imágenes, te lo dice en vez de ejecutarse. Nota: no ve lo que pinta un <canvas> (el motor 3D incluido) — solo el DOM.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "foco": {
+       "type": "string",
+       "description": "Opcional: en qué fijarse (p. ej. «el hero», «el formulario de contacto»). Sin esto, la crítica es general."
+      }
+     }
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "ask_memory",
+    "description": "Pregunta al mapa del proyecto: archivos y para qué sirve cada uno, funcionalidades ya hechas, tecnologías, y las NOTAS DE MEMORIA (las decisiones que tomó el usuario). Úsala ANTES de rehacer algo, para no repetir trabajo ni contradecir una decisión ya tomada. Si no hay nada sobre lo que preguntas, se te dice: no se inventa una respuesta.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "q": {
+       "type": "string",
+       "description": "Qué quieres saber, en palabras. Ej.: «qué colores usamos», «hay login», «para qué es estilos.css»."
+      },
+      "limit": {
+       "type": "number",
+       "description": "Opcional. Cuántos resultados devolver (por defecto 5, máximo 20)."
+      }
+     },
+     "required": [
+      "q"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "kb_search",
+    "description": "Busca en la Knowledge Base del usuario (recursos indexados desde Google Drive: referencias visuales, componentes, documentos) por nombre, categoría, etiquetas, tecnología o licencia. Úsala ANTES de diseñar o escribir código cuando el usuario tenga una Knowledge Base conectada: reutiliza lo que ya indexó en vez de inventar una referencia. Si no hay nada indexado o nada casa con la búsqueda, se te dice — no se inventa un recurso que no exista.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Términos de búsqueda: nombre, categoría, tecnología o etiqueta (ej. «dashboard oscuro», «logo», «react»)."
+      },
+      "limit": {
+       "type": "number",
+       "description": "Opcional. Cuántos resultados devolver (por defecto 8, máximo 20)."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "kb_read",
+    "description": "Lee el CONTENIDO de un recurso de la Knowledge Base por su id (el que devuelve kb_search): fichas de conocimiento .md, metadatos y decisiones .json, datasets .jsonl y documentos de Google Drive (cualquiera de las cuentas conectadas), o código de MEGA. Úsala después de kb_search cuando necesites lo que dice el recurso, no solo su nombre. Las imágenes, PDF y vídeos no se leen como texto: lee su .analysis.md o .metadata.json. Devuelve el texto recortado a un máximo; si no se puede leer, se te dice por qué.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string",
+       "description": "Id del recurso, tal cual lo dio kb_search."
+      },
+      "max_chars": {
+       "type": "number",
+       "description": "Opcional. Máximo de caracteres a devolver (por defecto 12000, máximo 30000)."
+      }
+     },
+     "required": [
+      "id"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "kb_project_search",
+    "description": "Busca componentes, patrones, tecnologías o archivos reutilizables entre los ZIP/repositorios que el usuario ya subió y Forja analizó localmente (Project Manifest). Úsala ANTES de escribir un componente desde cero cuando pueda existir ya en un proyecto indexado (ej. «necesito un FilterDrawer en React»). Devuelve solo los archivos relevantes, ordenados por relevancia — nunca el repositorio entero. Si no hay proyectos analizados o nada casa, se te dice — no se inventa un archivo que no exista.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Qué necesitas, en palabras (ej. «filtro lateral de productos», «hero de landing»)."
+      },
+      "component": {
+       "type": "string",
+       "description": "Opcional. Nombre exacto o parcial del componente (ej. «FilterDrawer»)."
+      },
+      "technology": {
+       "type": "string",
+       "description": "Opcional. Tecnología exacta (ej. «React», «TypeScript»)."
+      },
+      "pattern": {
+       "type": "string",
+       "description": "Opcional. Patrón exacto (ej. «component-library», «state-management»)."
+      },
+      "limit": {
+       "type": "number",
+       "description": "Opcional. Cuántos resultados devolver (por defecto 12, máximo 20)."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "research",
+    "description": "Investiga una necesidad para Forja: PRIMERO consulta la Knowledge Base local y solo si no basta recurre a la web. Devuelve las fuentes separadas por origen para que el Cerebro no confunda material indexado con información externa. No inventa fuentes.",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "query": {
+       "type": "string",
+       "description": "Qué necesitas investigar."
+      },
+      "allow_web": {
+       "type": "boolean",
+       "description": "Permite consultar la web si la Knowledge Base no basta. Por defecto true."
+      }
+     },
+     "required": [
+      "query"
+     ]
+    }
+   }
+  }
+ ]
+}

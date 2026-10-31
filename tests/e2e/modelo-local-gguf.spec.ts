@@ -112,3 +112,42 @@ test("el modo agente funciona con el modelo local", async ({ page }) => {
   expect((await enviar(page, "crea un archivo hola.txt")).at(-1)).toBe("Respuesta lista.");
   expect((await ultimaRespuesta(page)).error).toBe(false);
 });
+
+test("un encargo de página con el agente cabe en el contexto del modelo local", async ({ page }) => {
+  // El caso de la captura: «Crea una página…» con el agente puesto mandaba
+  // ~10.000 tokens (prompt de sistema + 24 herramientas) a un modelo con
+  // 8.192, y el error salía como «no está respondiendo».
+  await page.goto("/");
+  await page.locator("textarea").first().waitFor({ timeout: 60_000 });
+  await page.getByRole("button", { name: "Ajustes", exact: true }).first().click();
+  const dialogo = page.getByRole("dialog");
+  const tab = dialogo.getByRole("tab", { name: /Proveedores|Modelos/ }).first();
+  if (await tab.count()) await tab.click();
+  await dialogo.getByRole("button", { name: "Abrir Modelo local (.gguf)" }).click();
+  await dialogo.locator('input[aria-label="Archivo .gguf"]').setInputFiles(GGUF);
+  await expect(page.getByText(/«forja-diminuto» listo/)).toBeVisible({ timeout: 30_000 });
+  await page.keyboard.press("Escape");
+
+  await page.getByRole("button", { name: "Más opciones" }).click();
+  await page.getByRole("button", { name: "Modo agente" }).click();
+  await escucharAnuncios(page);
+  await page.getByRole("textbox", { name: "Mensaje" }).fill(
+    "Crea una página de aterrizaje para una cafetería de especialidad en Madrid"
+  );
+  await page.keyboard.press("Enter");
+  // primero llega la propuesta de diseño; construir lanza la generación
+  await page.getByRole("button", { name: "Construir sin elegir" }).click({ timeout: 30_000 });
+  await page.waitForFunction(
+    () => (window as unknown as { __an: string[] }).__an.some((t) => /lista|error/.test(t)),
+    null,
+    { timeout: 180_000 }
+  );
+  const r = await ultimaRespuesta(page);
+  expect(r.contenido, "sin el error de contexto").not.toMatch(/no cabe|ocupa \d+ tokens/);
+  expect(r.error).toBe(false);
+  await expect(page.getByText(/no está respondiendo/)).toHaveCount(0);
+
+  // El contador ya no dice «≈83»: cuenta también las instrucciones fijas.
+  const ctx = await page.getByText(/^ctx ≈/).textContent();
+  expect(ctx).toMatch(/ctx ≈\d+(,\d)?k/);
+});

@@ -170,6 +170,135 @@ export function parametrosParaWllama(cuerpo: CuerpoOpenAI, nCtx: number): Parame
   };
 }
 
+/** Caracteres por token para estimar sin tokenizador (wllama 3 no lo expone).
+ * Conservador: con texto en castellano y código, los tokenizadores de Llama y
+ * Qwen rondan 3,5. Si llama.cpp dice que no cabe, el número real del error
+ * corrige la proporción (ver `proporcionReal`). */
+export const GGUF_CARACTERES_POR_TOKEN = 3.2;
+
+/** Herramientas nativas solo a partir de este contexto: el catálogo ocupa unos
+ * 5.000 tokens y el prompt de sistema de un encargo de página otros tantos.
+ * Por debajo, el agente trabaja en su modo de texto, que no las necesita. */
+export const GGUF_CONTEXTO_PARA_HERRAMIENTAS = 16384;
+
+/** Bloques del prompt de sistema que se pueden quitar si no cabe, en orden: los
+ * primeros son los que menos pierde la respuesta. La instrucción base, la
+ * dirección de diseño, los datos que dio el usuario y el formato del modo
+ * agente no están aquí: sin ellos la respuesta sería otra cosa. */
+const BLOQUES_OPCIONALES: readonly { cabecera: RegExp; nombre: string }[] = [
+  { cabecera: /^#{1,4} Skill activa:/, nombre: "skills activas" },
+  { cabecera: /^#{1,4} EFECTOS\b/, nombre: "kit de efectos" },
+  { cabecera: /^#{1,4} ICONOS\b/, nombre: "catálogo de iconos" },
+  { cabecera: /^#{1,4} EVIDENCIA OBLIGATORIA/, nombre: "reglas de evidencia" },
+  { cabecera: /^#{1,4} Acabado exigido/, nombre: "lista de acabados" },
+  { cabecera: /^#{1,4} Sistema de composición visual/, nombre: "sistema de composición" },
+  { cabecera: /^#{1,4} Esto es una tienda/, nombre: "guía de tienda" },
+  { cabecera: /^#{1,4} Contenido \(/, nombre: "reglas de contenido" },
+  { cabecera: /^#{1,4} PLANO DE CONTENIDO/, nombre: "plano de contenido" },
+  { cabecera: /^#{1,4} Secciones obligatorias/, nombre: "lista de secciones" },
+];
+
+/** Tokens estimados de una petición: texto de los mensajes, herramientas y
+ * lo que añade la plantilla de chat por mensaje. */
+export function tokensEstimados(cuerpo: CuerpoOpenAI, caracteresPorToken = GGUF_CARACTERES_POR_TOKEN): number {
+  return Math.ceil(caracteresDe(cuerpo) / caracteresPorToken) + cuerpo.messages.length * 8;
+}
+
+function caracteresDe(cuerpo: CuerpoOpenAI): number {
+  let n = 0;
+  for (const m of cuerpo.messages) {
+    n += textoDeContenido(m.content).length;
+    if (m.tool_calls) n += JSON.stringify(m.tool_calls).length;
+  }
+  if (cuerpo.tools?.length) n += JSON.stringify(cuerpo.tools).length;
+  return n;
+}
+
+/** Proporción real a partir de lo que dijo llama.cpp («request (N tokens)»),
+ * con un 5 % de margen. null si el error no trae el número. */
+export function proporcionReal(cuerpo: CuerpoOpenAI, mensajeError: string): number | null {
+  const m = mensajeError.match(/request \((\d+) tokens\)|n_prompt_tokens:\s*(\d+)/);
+  const tokens = m ? Number(m[1] ?? m[2]) : 0;
+  if (!tokens) return null;
+  const sinPlantilla = Math.max(1, tokens - cuerpo.messages.length * 8);
+  return (caracteresDe(cuerpo) / sinPlantilla) * 0.95;
+}
+
+export interface Aligerado {
+  cuerpo: CuerpoOpenAI;
+  /** Qué se quitó, en palabras, para decírselo al usuario. Vacío si cupo tal cual. */
+  quitado: string[];
+  tokens: number;
+  cabe: boolean;
+}
+
+/** Quita de la petición lo que haga falta para que quepa en el contexto del
+ * modelo local, en este orden: herramientas nativas, bloques opcionales del
+ * prompt de sistema y, por último, los mensajes más viejos. El último mensaje
+ * del usuario no se toca nunca. Deja sitio para la respuesta: un cuarto del
+ * contexto, sin pasar de lo que pidió la app. */
+export function aligerarParaContexto(
+  cuerpo: CuerpoOpenAI,
+  nCtx: number,
+  caracteresPorToken = GGUF_CARACTERES_POR_TOKEN
+): Aligerado {
+  const pedido = cuerpo.max_tokens && cuerpo.max_tokens > 0 ? cuerpo.max_tokens : GGUF_MAX_TOKENS_POR_DEFECTO;
+  const respuesta = Math.max(64, Math.min(pedido, Math.floor(nCtx / 4)));
+  const presupuesto = nCtx - respuesta - 64;
+  let c: CuerpoOpenAI = { ...cuerpo, messages: [...cuerpo.messages], max_tokens: respuesta };
+  const quitado: string[] = [];
+  const medir = () => tokensEstimados(c, caracteresPorToken);
+  const listo = (): Aligerado => {
+    const tokens = medir();
+    return { cuerpo: c, quitado, tokens, cabe: tokens <= presupuesto };
+  };
+  if (medir() <= presupuesto) return listo();
+
+  if (c.tools?.length) {
+    c = { ...c, tools: undefined };
+    quitado.push("herramientas nativas (el agente sigue en su modo de texto)");
+    if (medir() <= presupuesto) return listo();
+  }
+
+  for (const b of BLOQUES_OPCIONALES) {
+    let alguno = false;
+    c = {
+      ...c,
+      messages: c.messages.map((m) => {
+        if (m.role !== "system" || typeof m.content !== "string") return m;
+        const trozos = m.content.split(/\n(?=#{1,4} )/);
+        const quedan = trozos.filter((t) => !b.cabecera.test(t));
+        if (quedan.length === trozos.length) return m;
+        alguno = true;
+        return { ...m, content: quedan.join("\n") };
+      }),
+    };
+    if (alguno) {
+      quitado.push(b.nombre);
+      if (medir() <= presupuesto) return listo();
+    }
+  }
+
+  // Mensajes viejos: de uno en uno desde el principio, sin dejar un resultado
+  // de herramienta huérfano al frente. Ni el sistema ni la última pregunta.
+  const ultimoUsuario = c.messages.map((m) => m.role).lastIndexOf("user");
+  let viejos = 0;
+  while (medir() > presupuesto) {
+    const i = c.messages.findIndex((m) => m.role !== "system");
+    if (i < 0 || i >= ultimoUsuario - viejos) break;
+    const msgs = [...c.messages];
+    msgs.splice(i, 1);
+    viejos++;
+    while (msgs[i] && (msgs[i].role === "tool" || msgs[i].tool_call_id) && i < ultimoUsuario - viejos) {
+      msgs.splice(i, 1);
+      viejos++;
+    }
+    c = { ...c, messages: msgs };
+  }
+  if (viejos) quitado.push(viejos === 1 ? "1 mensaje antiguo" : `${viejos} mensajes antiguos`);
+  return listo();
+}
+
 /** ¿La plantilla de chat del modelo sabe de herramientas? Si la menciona, el
  * agente usa la llamada nativa (llama.cpp la valida con gramática); si no,
  * cae al camino XML, que cualquier modelo que siga instrucciones puede usar. */
@@ -193,10 +322,14 @@ export function explicarErrorGguf(err: unknown, nCtx: number): string {
     const tokens = pide ? Number(pide[1] ?? pide[2]) : null;
     return (
       (tokens
-        ? `La petición ocupa ${tokens} tokens y el contexto del modelo local es de ${nCtx}. `
+        ? `La petición ocupa ${tokens} tokens y el contexto del modelo local es de ${nCtx}, aun quitando lo opcional. `
         : `La conversación no cabe en el contexto del modelo local (${nCtx} tokens). `) +
       "Empieza un hilo nuevo, resume la conversación o sube el contexto en Ajustes → Proveedores → Modelo local " +
-      "(sin pasar del que admite el modelo)."
+      "(sin pasar del que admite el modelo)." +
+      // Cola en el formato que la app ya reconoce como «no cabe» (decisiones.ts):
+      // así aprende el límite de este modelo y recorta el historial en vez de
+      // tratarlo como un proveedor caído.
+      (tokens ? ` (maximum context length: limit ${nCtx}, requested ${tokens})` : " (maximum context length)")
     );
   }
   if (/memory|out of memory|allocate|Aborted\(\)|RangeError/i.test(texto)) {

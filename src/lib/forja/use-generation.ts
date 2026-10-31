@@ -1037,7 +1037,9 @@ export function useGeneration(ctx: CtxGeneracion) {
               // una regla que acaba de crear tiene que valer para este envío.
               // …salvo las que el usuario AUTORIZÓ en el modal de este turno.
               useForja.getState().sessions.find((x) => x.id === sessionId)?.reglasNo ?? [],
-              reglasAutorizadasRef.current
+              reglasAutorizadasRef.current,
+              // FORJA WEB busca en la Knowledge Base aunque esté vacía.
+              forjaWeb
             );
           } catch (err) {
             const aborted = err instanceof DOMException && err.name === "AbortError";
