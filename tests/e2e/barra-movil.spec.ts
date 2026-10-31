@@ -69,8 +69,11 @@ test.describe("barra inferior móvil", () => {
     await page.getByRole("button", { name: "Web Studio", exact: true }).click();
     const dialogo = page.getByRole("dialog", { name: /Forja Web Studio/ });
     await expect(dialogo).toBeVisible();
-    const caja = await dialogo.boundingBox();
-    expect(Math.round(caja?.width ?? 0)).toBe(390);
+    // El diálogo entra con zoom (95 % → 100 %): medido de una vez salía 384-389
+    // según el fotograma. Se espera a que el ancho se asiente, sin aflojar el 390.
+    await expect
+      .poll(async () => Math.round((await dialogo.boundingBox())?.width ?? 0))
+      .toBe(390);
     // el brief está a la vista sin apilar antes las tarjetas de estado
     await expect(dialogo.getByText("Brief del trabajo")).toBeInViewport();
     // el flujo es su propia página
