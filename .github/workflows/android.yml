@@ -58,7 +58,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build-llama/bin/llama-server
-          key: llama-server-android-arm64-${{ env.LLAMA_CPP_TAG }}-v1
+          key: llama-server-android-arm64-${{ env.LLAMA_CPP_TAG }}-v2
 
       - name: Compilar llama-server para Android (arm64)
         if: steps.cache-llama.outputs.cache-hit != 'true'
@@ -84,7 +84,11 @@ jobs:
             -DCMAKE_C_FLAGS="-march=armv8.2-a+dotprod+fp16" \
             -DCMAKE_CXX_FLAGS="-march=armv8.2-a+dotprod+fp16"
           cmake --build build-llama --config Release --target llama-server -j "$(nproc)"
+          # Sin símbolos de depuración: 168 MB → unos pocos. Gradle no sabe
+          # quitárselos a un ejecutable («Unable to strip»), así que aquí.
+          "$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip" --strip-unneeded build-llama/bin/llama-server
           file build-llama/bin/llama-server
+          ls -la build-llama/bin/llama-server
 
       - name: Montar assets y binario nativo
         run: |
