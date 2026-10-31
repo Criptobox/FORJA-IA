@@ -35,6 +35,8 @@ import {
   AVISO_IMAGEN,
   agruparGguf,
   aligerarParaContexto,
+  esAbortoDelMotor,
+  esDispositivoMovil,
   proporcionReal,
   tokensEstimados,
   type CuerpoOpenAI,
@@ -48,7 +50,7 @@ import {
 } from "../../src/lib/forja/gguf-mensajes";
 import { streamChat, fetchModels } from "../../src/lib/forja/chat-client";
 import { isFreeModel } from "../../src/lib/forja/free-models";
-import { esDemasiadoGrande, limiteDelMensaje } from "../../src/lib/forja/decisiones";
+import { esDemasiadoGrande, limiteDelMensaje, motivoDelFallo, tituloFailover } from "../../src/lib/forja/decisiones";
 import { buildTaskChain } from "../../src/lib/forja/task-router";
 import { DEFAULT_SETTINGS, type ProviderConfig } from "../../src/lib/forja/types";
 import { TOOL_CATALOG } from "../../src/lib/forja/tools-catalog";
@@ -312,5 +314,37 @@ describe("que la petición quepa en el contexto del modelo local", () => {
     const msg = explicarErrorGguf(new Error("request (10022 tokens) exceeds the available context size (8192 tokens)"), 8192);
     expect(esDemasiadoGrande(0, msg)).toBe(true);
     expect(limiteDelMensaje(msg)).toEqual({ limite: 8192, pedido: 10022 });
+  });
+});
+
+describe("cuando el motor se detiene (móviles)", () => {
+  it("reconoce el aborto de llama.cpp tal como lo devuelve wllama", () => {
+    expect(esAbortoDelMotor(new Error("(ABORT) "))).toBe(true);
+    expect(esAbortoDelMotor(new Error("Aborted(OOM)"))).toBe(true);
+    expect(esAbortoDelMotor(new Error("(ABORT) exit(1)"))).toBe(true);
+    expect(esAbortoDelMotor(new Error("request (100 tokens) exceeds"))).toBe(false);
+  });
+
+  it("explica el aborto con qué hacer y el detalle del motor, no «(ABORT)»", () => {
+    const msg = explicarErrorGguf(new Error("(ABORT) "), 8192, "ggml_webgpu: buffer size exceeds limit");
+    expect(msg).toMatch(/memoria/);
+    expect(msg).toMatch(/4\.096/);
+    expect(msg).toContain("ggml_webgpu: buffer size exceeds limit");
+    expect(msg).not.toContain("(ABORT)");
+  });
+
+  it("detecta móviles por el navegador o por su pista", () => {
+    expect(esDispositivoMovil("Mozilla/5.0 (Linux; Android 14; Pixel 8) Mobile Safari")).toBe(true);
+    expect(esDispositivoMovil("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)")).toBe(true);
+    expect(esDispositivoMovil("Mozilla/5.0 (X11; Linux x86_64) Chrome/130")).toBe(false);
+    expect(esDispositivoMovil("Mozilla/5.0 (X11; Linux x86_64)", true)).toBe(true);
+  });
+
+  it("si falla el modelo del navegador, el aviso no dice «no está respondiendo»", () => {
+    const motivo = motivoDelFallo(0, false, false, false, false, true);
+    expect(motivo).toBe("local");
+    expect(tituloFailover(motivo, "Modelo local (.gguf)")).not.toMatch(/no está respondiendo/);
+    // un «no cabe» del modelo local sigue siendo «no cabe»
+    expect(motivoDelFallo(0, false, false, true, false, true)).toBe("grande");
   });
 });

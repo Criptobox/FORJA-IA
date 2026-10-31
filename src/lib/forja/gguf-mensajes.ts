@@ -306,10 +306,34 @@ export function plantillaConHerramientas(plantilla: string | null | undefined): 
   return !!plantilla && /\btools?\b|tool_calls|<tool_call>/i.test(plantilla);
 }
 
-/** Error de wllama → mensaje que dice qué hacer. */
-export function explicarErrorGguf(err: unknown, nCtx: number): string {
+/** ¿El motor de llama.cpp se detuvo por dentro? wllama lo avisa como
+ * «(ABORT) …» (abort() de C, GGML_ABORT, memoria agotada) o «exit(N)». Tras
+ * eso el worker está muerto: hay que crearlo de nuevo. */
+export function esAbortoDelMotor(err: unknown): boolean {
+  const texto = err instanceof Error ? err.message : String(err ?? "");
+  return /\(ABORT\)|Aborted\(|\bexit\(\d+\)/.test(texto);
+}
+
+/** Móvil o tableta: aquí WebGPU no es de fiar para un LLM (las GPUs admiten
+ * búferes mucho más pequeños y una carga larga cuelga el navegador entero). */
+export function esDispositivoMovil(ua: string, mobileHint?: boolean): boolean {
+  return mobileHint === true || /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+}
+
+/** Error de wllama → mensaje que dice qué hacer. `causa` es lo último que
+ * llama.cpp escribió en su log antes de fallar, si se sabe. */
+export function explicarErrorGguf(err: unknown, nCtx: number, causa?: string | null): string {
   const tipo = (err as { type?: string } | null)?.type;
   const texto = err instanceof Error ? err.message : String(err ?? "");
+  const detalle = causa ? ` Detalle del motor: ${causa}` : "";
+  if (esAbortoDelMotor(err)) {
+    return (
+      "El motor del modelo local se detuvo en este dispositivo: casi siempre es falta de memoria. " +
+      "Prueba un modelo más pequeño (0,5-1,5B en Q4_K_M) o baja el contexto a 4.096 en Ajustes → " +
+      "Proveedores → Modelo local, y pulsa «Regenerar»." +
+      detalle
+    );
+  }
   // Antes que las demás: «Invalid» también casaría con «no se pudo cargar».
   if (/Invalid typed array length/i.test(texto)) {
     return (

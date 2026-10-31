@@ -34,6 +34,8 @@ export function GgufPanel() {
   const est = useGgufEstado();
   const contexto = useGgufAjustes((s) => s.contexto);
   const setContexto = useGgufAjustes((s) => s.setContexto);
+  const gpu = useGgufAjustes((s) => s.gpu);
+  const setGpu = useGgufAjustes((s) => s.setGpu);
   const setProviderConfig = useForja((s) => s.setProviderConfig);
   const setSettings = useForja((s) => s.setSettings);
   const defaultModelKey = useForja((s) => s.settings.defaultModelKey);
@@ -287,6 +289,27 @@ export function GgufPanel() {
             {est.tokensPorSegundo ? `${FMT_TOKS.format(est.tokensPorSegundo)} tokens/s` : "Sin medir aún"}
           </span>
         </div>
+      </div>
+
+      {/* Dónde corre: GPU o CPU */}
+      <div className="space-y-1.5">
+        <Label htmlFor="gguf-gpu" className="text-xs">
+          Aceleración
+        </Label>
+        <select
+          id="gguf-gpu"
+          value={gpu}
+          onChange={(e) => setGpu(e.target.value as typeof gpu)}
+          className="h-10 w-full rounded-md border border-input bg-background px-2 text-sm text-foreground"
+        >
+          <option value="auto">Automática: GPU en ordenador, CPU en móvil</option>
+          <option value="no">Solo CPU (más lento, lo más estable)</option>
+          <option value="si">Probar la GPU también en el móvil</option>
+        </select>
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          En los móviles la GPU suele quedarse corta para un modelo de lenguaje y puede colgar el
+          navegador. Si falla, la app pasa sola a «Solo CPU». Se aplica al cargar el modelo.
+        </p>
       </div>
 
       {/* Contexto */}

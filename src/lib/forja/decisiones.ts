@@ -227,16 +227,20 @@ export function decidirTrasError(e: EstadoIntento): Decision {
  *  TODOS los avisos del failover decían «cuota gratis agotada», también cuando
  *  el proveedor estaba caído o la clave era de pago. Decirle a alguien con una
  *  clave Pro que se le acabó la cuota gratis manda a mirar donde no es. */
-export type MotivoFailover = "cuota" | "caido" | "retirado" | "grande" | "limite" | "otro";
+export type MotivoFailover = "cuota" | "caido" | "retirado" | "grande" | "limite" | "local" | "otro";
 
 export function motivoDelFallo(
   status: number,
   mensajeCuota: boolean,
   modeloMuerto = false,
   demasiadoGrande = false,
-  limiteLocal = false
+  limiteLocal = false,
+  /** El que falló es el modelo .gguf del navegador: no hay servidor que «no
+   * responda»; es el motor de este dispositivo el que no pudo. */
+  modeloDelNavegador = false
 ): MotivoFailover {
   if (limiteLocal) return "limite";
+  if (modeloDelNavegador && !demasiadoGrande) return "local";
   if (status === 402 || status === 429 || mensajeCuota) return "cuota";
   if (modeloMuerto) return "retirado";
   if (demasiadoGrande) return "grande";
@@ -252,6 +256,7 @@ export function tituloFailover(motivo: MotivoFailover, proveedor: string): strin
   if (motivo === "retirado") return `Ese modelo ya no existe en ${proveedor}`;
   if (motivo === "grande") return `La conversación no le cabe a ese modelo`;
   if (motivo === "limite") return `Límite de gasto: sigue un modelo gratis`;
+  if (motivo === "local") return `El modelo local no pudo en este dispositivo`;
   return `${proveedor} falló`;
 }
 
@@ -262,6 +267,7 @@ export function tituloSinAlternativa(motivo: MotivoFailover, proveedor: string):
   if (motivo === "retirado") return `Ese modelo ya no existe en ${proveedor}`;
   if (motivo === "grande") return `La conversación no le cabe a ese modelo`;
   if (motivo === "limite") return `Límite de gasto alcanzado y ningún modelo gratis disponible`;
+  if (motivo === "local") return `El modelo local no pudo en este dispositivo`;
   return `${proveedor} falló`;
 }
 
