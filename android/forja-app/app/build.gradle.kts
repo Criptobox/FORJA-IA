@@ -51,6 +51,13 @@ android {
 
     buildFeatures { buildConfig = true }
 
+    // Por defecto, Android descarta de los assets las carpetas que empiezan
+    // por «_» (patrón «<dir>_*»), y Next pone TODO su JS y CSS en «_next/»:
+    // la app abría el HTML sin estilos ni lógica. Mismo patrón sin esa regla.
+    androidResources {
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }
+
     // llama-server va como «libllama-server.so» en jniLibs: Android solo deja
     // ejecutar binarios desde nativeLibraryDir, y para eso tienen que
     // extraerse al instalar (empaquetado «legacy»).
