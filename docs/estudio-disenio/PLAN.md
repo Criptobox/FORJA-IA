@@ -54,6 +54,9 @@ compararlas y descargarlas.
 - Memoria de gustos (aprobado/descartado → ejemplos), revisor que corrige
   antes de mostrar, modo autónomo «objetivo → N pantallas».
 
+## Estado
+- **Fase 1 hecha** (esta rama): `src/lib/forja/estudio/*` (modelo, prompts, tokens, HTML, crítica, exportación, generador con la cadena Auto) + `src/components/forja/estudio/estudio.tsx` + pestaña «Estudio» por defecto en `/forja`. Pruebas: `tests/unit/estudio.test.ts`, `tests/e2e/estudio.spec.ts`.
+
 ## 3. Reglas de trabajo
 - Rama `estudio-disenio`, PR revisable; nada directo a `main`.
 - Reutilizar módulos existentes; no duplicar el motor.
