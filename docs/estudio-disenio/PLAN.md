@@ -55,6 +55,7 @@ compararlas y descargarlas.
   antes de mostrar, modo autónomo «objetivo → N pantallas».
 
 ## Estado
+- **Fase 2 hecha**: PNG por pantalla (×2, reutiliza el capturador aislado de `screenshot.ts`, parametrizado sin cambiar el del QA), «ZIP + imágenes» y modo presentación (flechas / ← →) en pantalla completa. Pendiente de esta fase: PNG de lo pintado en `<canvas>` (límite de la técnica).
 - **Fase 1 hecha** (esta rama): `src/lib/forja/estudio/*` (modelo, prompts, tokens, HTML, crítica, exportación, generador con la cadena Auto) + `src/components/forja/estudio/estudio.tsx` + pestaña «Estudio» por defecto en `/forja`. Pruebas: `tests/unit/estudio.test.ts`, `tests/e2e/estudio.spec.ts`.
 
 ## 3. Reglas de trabajo

@@ -20,6 +20,8 @@ import { leerPlan, pedidoIterar, promptPlan, promptSistema } from "../../src/lib
 import { criticar, problemasParaCorregir } from "../../src/lib/forja/estudio/critica";
 import { indiceHtml, rutasPantallas, zipProyecto } from "../../src/lib/forja/estudio/exportar";
 import { readZip } from "../../src/lib/forja/zip";
+import { dataUrlABytes, htmlParaCaptura, TIPO_CAPTURA } from "../../src/lib/forja/estudio/captura";
+import { scriptCaptura, SCREENSHOT_SCRIPT } from "../../src/lib/forja/screenshot";
 
 const D = DIRECCIONES[0];
 const HTML = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Reservas</title><style>:root{--color-acento:red}</style></head><body><h1>Reserva tu corte</h1></body></html>`;
@@ -198,5 +200,40 @@ describe("estudio · crítica y exportación", () => {
     p = agregarPantallas(p, [{ nombre: "Inicio", proposito: "" }, { nombre: "Inicio", proposito: "" }]);
     const rutas = [...rutasPantallas(p).values()];
     expect(new Set(rutas).size).toBe(2);
+  });
+});
+
+describe("estudio · captura PNG", () => {
+  it("el capturador del QA no cambia: por defecto sigue en JPEG y con su mensaje", () => {
+    expect(scriptCaptura()).toBe(SCREENSHOT_SCRIPT);
+    expect(SCREENSHOT_SCRIPT).toContain("'image/jpeg', 0.85");
+    expect(SCREENSHOT_SCRIPT).toContain("type: 'forja-shot-result'");
+  });
+
+  it("el del Estudio pide PNG nítido con su propio mensaje", () => {
+    const h = htmlParaCaptura(HTML);
+    expect(h).toContain("'image/png'");
+    expect(h).toContain(`type: '${TIPO_CAPTURA}'`);
+    expect(h).toContain("Math.min(2, 2600 / w)");
+    expect(h).not.toContain("forja-shot-result");
+    // el script va dentro de <body>, antes del cierre
+    expect(h.indexOf("<script>")).toBeLessThan(h.lastIndexOf("</body>"));
+  });
+
+  it("inyecta aunque no haya </body> ni </html>", () => {
+    expect(htmlParaCaptura("<p>x</p>")).toMatch(/^<p>x<\/p><script>/);
+  });
+
+  it("dataUrlABytes decodifica base64", () => {
+    expect([...dataUrlABytes("data:image/png;base64,iVBORw0K")]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a]);
+  });
+
+  it("el ZIP lleva las imágenes que se le pasan, con el mismo nombre que su HTML", async () => {
+    let p = proyectoCon(1);
+    const [a] = p.pantallas;
+    p = actualizarPantalla(p, a.id, (s) => conNuevaVersion(s, { pedido: "generar", archivos: [{ path: "index.html", text: HTML }], entrada: "index.html" }));
+    const zip = zipProyecto(p, new Map([[a.id, new Uint8Array([1, 2, 3])]]));
+    const entradas = await readZip(zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength) as ArrayBuffer);
+    expect(entradas.map((e) => e.path)).toContain("imagenes/01-pantalla-1.png");
   });
 });

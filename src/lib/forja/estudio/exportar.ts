@@ -46,8 +46,9 @@ ${items}
 </ul></main></body></html>`;
 }
 
-/** ZIP del proyecto completo (solo pantallas que ya tienen una versión). */
-export function zipProyecto(p: ProyectoDiseno): Uint8Array {
+/** ZIP del proyecto completo (solo pantallas que ya tienen una versión).
+ * `imagenes`: PNG ya capturados por pantalla (id → bytes), van a `imagenes/`. */
+export function zipProyecto(p: ProyectoDiseno, imagenes?: ReadonlyMap<string, Uint8Array>): Uint8Array {
   const d = direccionDe(p);
   const rutas = rutasPantallas(p);
   const files: { path: string; data: Uint8Array }[] = [
@@ -58,7 +59,10 @@ export function zipProyecto(p: ProyectoDiseno): Uint8Array {
   for (const s of p.pantallas) {
     const v = versionActual(s);
     if (!v) continue;
-    files.push({ path: rutas.get(s.id) as string, data: encodeText(htmlDeVersion(v, d)) });
+    const ruta = rutas.get(s.id) as string;
+    files.push({ path: ruta, data: encodeText(htmlDeVersion(v, d)) });
+    const png = imagenes?.get(s.id);
+    if (png) files.push({ path: ruta.replace(/^pantallas\//, "imagenes/").replace(/\.html$/, ".png"), data: png });
   }
   return writeZip(files);
 }

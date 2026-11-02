@@ -13,10 +13,13 @@ import {
   ArrowLeft,
   ArrowUp,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Code2,
   Columns2,
   Download,
   FileArchive,
+  ImageDown,
   Loader2,
   Maximize2,
   Monitor,
@@ -57,6 +60,7 @@ import {
 import { htmlDeVersion } from "@/lib/forja/estudio/html";
 import { criticar, problemasParaCorregir } from "@/lib/forja/estudio/critica";
 import { zipProyecto } from "@/lib/forja/estudio/exportar";
+import { capturarPng, dataUrlABytes } from "@/lib/forja/estudio/captura";
 import type { Dispositivo, Pantalla, PantallaPlan, ProyectoDiseno, TipoProyecto, VersionPantalla } from "@/lib/forja/estudio/tipos";
 
 /* ------------------------------ utilidades ------------------------------ */
@@ -367,11 +371,35 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
     }
   };
 
-  const descargarZip = () => {
-    if (!proyecto.pantallas.some((s) => s.versiones.length)) return toast.error("Aún no hay pantallas generadas");
-    const zip = zipProyecto(proyecto);
+  const [empaquetando, setEmpaquetando] = useState(false);
+  const descargarZip = async (conImagenes: boolean) => {
+    const listas = proyecto.pantallas.filter((s) => versionActual(s));
+    if (!listas.length) return toast.error("Aún no hay pantallas generadas");
+    const imagenes = new Map<string, Uint8Array>();
+    if (conImagenes) {
+      // de una en una: cada captura monta su propio iframe aislado
+      setEmpaquetando(true);
+      const dim = DISPOSITIVOS[dispositivo];
+      const aviso = toast.loading(`Capturando 0/${listas.length}…`);
+      let fallos = 0;
+      for (const [i, s] of listas.entries()) {
+        toast.loading(`Capturando ${i + 1}/${listas.length}: ${s.nombre}`, { id: aviso });
+        const v = versionActual(s);
+        if (!v) continue;
+        try {
+          imagenes.set(s.id, dataUrlABytes(await capturarPng(htmlDeVersion(v, d), dim.ancho, dim.alto)));
+        } catch {
+          fallos++;
+        }
+      }
+      toast.dismiss(aviso);
+      setEmpaquetando(false);
+      if (fallos) toast.warning(`${fallos} pantalla${fallos > 1 ? "s" : ""} sin imagen (van solo en HTML)`);
+    }
+    const zip = zipProyecto(proyecto, imagenes);
     descargar(nombreDescarga(proyecto.nombre, "zip"), new Uint8Array(zip).buffer as ArrayBuffer, "application/zip");
   };
+  const conVersion = proyecto.pantallas.filter((s) => s.versiones.length).map((s) => s.id);
 
   return (
     <div className="space-y-3">
@@ -417,8 +445,11 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
               </Button>
             )
           )}
-          <Button size="sm" variant="outline" onClick={descargarZip} className="gap-1.5">
+          <Button size="sm" variant="outline" onClick={() => void descargarZip(false)} disabled={empaquetando} className="gap-1.5">
             <FileArchive className="size-3.5" /> ZIP del proyecto
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => void descargarZip(true)} disabled={empaquetando} className="gap-1.5" title="Incluye cada pantalla en PNG">
+            {empaquetando ? <Loader2 className="size-3.5 animate-spin" /> : <ImageDown className="size-3.5" />} ZIP + imágenes
           </Button>
         </div>
       </div>
@@ -548,13 +579,22 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
             onComparar={() => setComparar(sel.id)}
             onRenombrar={(nombre, proposito) => cambio((p) => actualizarPantalla(p, sel.id, (x) => ({ ...x, nombre, proposito })))}
             onVersion={(i) => cambio((p) => actualizarPantalla(p, sel.id, (x) => elegirVersion(x, i)))}
+            dispositivo={dispositivo}
           />
         ) : (
           <div />
         )}
       </div>
 
-      <DialogoCompleta key={`${completa}-${dispositivo}`} proyecto={proyecto} pantallaId={completa} onClose={() => setCompleta(null)} inicial={dispositivo} />
+      <DialogoCompleta
+        key={`${completa}-${dispositivo}`}
+        proyecto={proyecto}
+        pantallaId={completa}
+        onClose={() => setCompleta(null)}
+        inicial={dispositivo}
+        recorrido={conVersion}
+        onIr={setCompleta}
+      />
       <DialogoCodigo proyecto={proyecto} pantallaId={codigo} onClose={() => setCodigo(null)} />
       <DialogoComparar key={comparar ?? "cerrado"} proyecto={proyecto} pantallaId={comparar} onClose={() => setComparar(null)} dispositivo={dispositivo} />
     </div>
@@ -641,6 +681,7 @@ function PanelPantalla(props: {
   onComparar: () => void;
   onRenombrar: (nombre: string, proposito: string) => void;
   onVersion: (i: number) => void;
+  dispositivo: Dispositivo;
 }) {
   const { s, d } = props;
   const v = versionActual(s);
@@ -654,6 +695,19 @@ function PanelPantalla(props: {
     setCambio("");
   };
   const actual = s.actual >= 0 ? s.actual : s.versiones.length - 1;
+  const [capturando, setCapturando] = useState(false);
+  const bajarPng = async () => {
+    const dim = DISPOSITIVOS[props.dispositivo];
+    setCapturando(true);
+    try {
+      const url = await capturarPng(html, dim.ancho, dim.alto);
+      descargar(`${slug(props.proyecto.nombre)}-${slug(s.nombre)}.png`, new Uint8Array(dataUrlABytes(url)).buffer as ArrayBuffer, "image/png");
+    } catch (e) {
+      toast.error("No se pudo hacer la imagen", { description: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setCapturando(false);
+    }
+  };
 
   return (
     <aside className="space-y-3 rounded-2xl border border-border/60 bg-card/50 p-3" aria-label="Pantalla seleccionada">
@@ -709,6 +763,9 @@ function PanelPantalla(props: {
             onClick={() => descargar(`${slug(props.proyecto.nombre)}-${slug(s.nombre)}.html`, html, "text/html")}
           >
             <Download className="size-3.5" /> HTML
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1" disabled={capturando} onClick={bajarPng} title={`Imagen a ${DISPOSITIVOS[props.dispositivo].nombre.toLowerCase()}`}>
+            {capturando ? <Loader2 className="size-3.5 animate-spin" /> : <ImageDown className="size-3.5" />} PNG
           </Button>
         </div>
       )}
@@ -781,8 +838,23 @@ function usarPantalla(p: ProyectoDiseno, id: string | null) {
   return id ? p.pantallas.find((s) => s.id === id) ?? null : null;
 }
 
-function DialogoCompleta({ proyecto, pantallaId, onClose, inicial }: { proyecto: ProyectoDiseno; pantallaId: string | null; onClose: () => void; inicial: Dispositivo }) {
+/** Pantalla completa y modo presentación: flechas (o ← →) recorren las
+ * pantallas del proyecto en orden, para enseñarlas como un prototipo. */
+function DialogoCompleta(props: {
+  proyecto: ProyectoDiseno;
+  pantallaId: string | null;
+  onClose: () => void;
+  inicial: Dispositivo;
+  recorrido: string[];
+  onIr: (id: string) => void;
+}) {
+  const { proyecto, pantallaId, onClose, inicial, recorrido, onIr } = props;
   const s = usarPantalla(proyecto, pantallaId);
+  const pos = pantallaId ? recorrido.indexOf(pantallaId) : -1;
+  const ir = (delta: number) => {
+    if (pos < 0 || !recorrido.length) return;
+    onIr(recorrido[(pos + delta + recorrido.length) % recorrido.length]);
+  };
   // Se reinicia con `key` desde fuera al abrir otra pantalla.
   const [disp, setDisp] = useState<Dispositivo>(inicial);
   const v = s ? versionActual(s) : null;
@@ -790,8 +862,27 @@ function DialogoCompleta({ proyecto, pantallaId, onClose, inicial }: { proyecto:
   const dim = DISPOSITIVOS[disp];
   return (
     <Dialog open={!!s} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="flex h-[92dvh] max-w-[96vw] flex-col gap-2 rounded-2xl p-3 sm:max-w-[96vw]">
+      <DialogContent
+        className="flex h-[92dvh] max-w-[96vw] flex-col gap-2 rounded-2xl p-3 sm:max-w-[96vw]"
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight") ir(1);
+          else if (e.key === "ArrowLeft") ir(-1);
+        }}
+      >
         <DialogHeader className="flex-row items-center gap-2 space-y-0 pr-8">
+          {recorrido.length > 1 && pos >= 0 && (
+            <div className="flex items-center gap-1">
+              <Button size="icon" variant="outline" className="size-7" aria-label="Pantalla anterior" onClick={() => ir(-1)}>
+                <ChevronLeft className="size-4" />
+              </Button>
+              <span className="text-[11.5px] tabular-nums text-muted-foreground">
+                {pos + 1}/{recorrido.length}
+              </span>
+              <Button size="icon" variant="outline" className="size-7" aria-label="Pantalla siguiente" onClick={() => ir(1)}>
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          )}
           <DialogTitle className="text-[14px]">{s?.nombre}</DialogTitle>
           <DialogDescription className="sr-only">Vista completa de la pantalla</DialogDescription>
           <div className="ml-auto inline-flex rounded-lg border border-border/60 p-0.5">

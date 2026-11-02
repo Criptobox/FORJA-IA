@@ -35,7 +35,9 @@ async function seed(page: Page) {
 }
 
 function html(titulo: string, extra = ""): string {
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${titulo}</title><style>:root{--color-acento:red}</style></head><body><h1>${titulo}</h1>${extra}</body></html>`;
+  // Con estilos de verdad (fondo, degradado, sombra, radio): la captura PNG
+  // tiene que conservarlos, no solo el texto.
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${titulo}</title><style>:root{--color-acento:#e5484d}body{margin:0;padding:24px;background:#10162f;color:#f5f5f5;font-family:system-ui}h1{font-size:40px}.cta{display:inline-block;padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,var(--color-acento),#f5a524);box-shadow:0 10px 30px rgba(0,0,0,.4);font-weight:700}</style></head><body><h1>${titulo}</h1><a class="cta">Reservar cita</a>${extra}</body></html>`;
 }
 
 /** Respuesta SSE estilo OpenAI con el texto troceado (como un streaming real). */
@@ -121,6 +123,36 @@ test("planifica, genera las pantallas con el sistema de diseño, itera, compara 
   const descarga = page.waitForEvent("download");
   await page.getByRole("button", { name: "ZIP del proyecto" }).click();
   expect((await descarga).suggestedFilename()).toMatch(/\.zip$/);
+
+  // PNG real de la pantalla seleccionada (capturador aislado en un iframe)
+  const png = page.waitForEvent("download");
+  await panel.getByRole("button", { name: "PNG" }).click();
+  const descargaPng = await png;
+  expect(descargaPng.suggestedFilename()).toMatch(/\.png$/);
+  const ruta = await descargaPng.path();
+  const bytes = (await import("node:fs")).readFileSync(ruta);
+  if (process.env.CAPTURA_PNG) (await import("node:fs")).copyFileSync(ruta, process.env.CAPTURA_PNG);
+  expect([...bytes.subarray(0, 4)], "es un PNG de verdad").toEqual([0x89, 0x50, 0x4e, 0x47]);
+  const ancho = bytes.readUInt32BE(16);
+  expect(ancho, "nítido: el doble del ancho del móvil").toBe(780);
+
+  // ZIP con las imágenes dentro
+  const zipImg = page.waitForEvent("download");
+  await page.getByRole("button", { name: "ZIP + imágenes" }).click();
+  const { readZip } = await import("../../src/lib/forja/zip");
+  const zb = (await import("node:fs")).readFileSync(await (await zipImg).path());
+  const nombres = (await readZip(zb.buffer.slice(zb.byteOffset, zb.byteOffset + zb.byteLength) as ArrayBuffer)).map((e) => e.path);
+  expect(nombres).toEqual(expect.arrayContaining(["imagenes/01-inicio.png", "imagenes/02-reservar.png"]));
+
+  // modo presentación: las flechas recorren las pantallas
+  await page.getByRole("button", { name: "Pantalla completa" }).first().click();
+  const pres = page.getByRole("dialog");
+  await expect(pres.getByText("1/2")).toBeVisible();
+  await pres.getByRole("button", { name: "Pantalla siguiente" }).click();
+  await expect(page.getByRole("dialog").getByRole("heading", { name: "Reservar" })).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("dialog").getByRole("heading", { name: "Inicio" })).toBeVisible();
+  await page.keyboard.press("Escape");
 
   // y el proyecto sobrevive a recargar
   await page.reload();
