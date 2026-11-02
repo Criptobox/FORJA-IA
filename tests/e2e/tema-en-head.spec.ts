@@ -21,6 +21,15 @@ import { expect, test, type Page } from "./fixtures";
 
 const MODEL_ID = "mock-tema-en-head";
 
+/* Este spec es el único que exige CERO `pageerror`, así que no puede usar
+ * `serviceWorkers: "block"` (playwright.config.ts): para bloquearlos,
+ * Playwright inyecta en CADA marco un script que lee
+ * `navigator.serviceWorker`, y dentro del iframe sandboxed de la vista previa
+ * (sin `allow-same-origin`) esa lectura lanza un SecurityError. El error lo
+ * provocaba el arnés, no la página ni Forja; con los service workers
+ * permitidos solo en este archivo, lo que se mide vuelve a ser la página. */
+test.use({ serviceWorkers: "allow" });
+
 async function seed(page: Page) {
   await page.addInitScript((model: string) => {
     try {
