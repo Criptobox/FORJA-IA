@@ -45,7 +45,30 @@ const CALIDAD_JPEG = 0.85;
  * sandbox sin `allow-same-origin`. No espera una petición: quien lo
  * inyecta ya sabe que lo quiere, así que no hace falta el ida-y-vuelta que
  * sí necesita el QA (que se puede pedir a varios anchos). */
-export const SCREENSHOT_SCRIPT = `(function(){
+/** Lo que cambia entre usos del capturador. Por defecto, el QA por visión
+ * (JPEG pequeño, tres pantallas de alto): con `{}` sale EXACTAMENTE el mismo
+ * script de siempre. El Estudio lo pide en PNG nítido y más alto, para
+ * descargarlo — la técnica y sus límites son los mismos. */
+export interface OpcionesCaptura {
+  /** «png» o «jpeg» (por defecto jpeg al 85%) */
+  formato?: "png" | "jpeg";
+  /** lado máximo de la imagen en px (por defecto 1152) */
+  ladoMaximo?: number;
+  /** escala máxima sobre el tamaño real: 2 = nítida en pantallas retina (por defecto 1) */
+  escalaMax?: number;
+  /** alto máximo, en «pantallas» del ancho de la página (por defecto 3) */
+  altoPantallas?: number;
+  /** tipo del mensaje que vuelve al padre (por defecto 'forja-shot-result') */
+  tipoMensaje?: string;
+}
+
+export function scriptCaptura(o: OpcionesCaptura = {}): string {
+  const ladoMaximo = o.ladoMaximo ?? LADO_MAXIMO;
+  const escalaMax = o.escalaMax ?? 1;
+  const altoPantallas = o.altoPantallas ?? 3;
+  const tipo = o.tipoMensaje ?? "forja-shot-result";
+  const salida = o.formato === "png" ? `'image/png'` : `'image/jpeg', ${CALIDAD_JPEG}`;
+  return `(function(){
 if (window.__forjaShot) return;
 window.__forjaShot = true;
 ${FX_ASENTAR}
@@ -57,7 +80,7 @@ function capturar(){
     tocadosFx = asentarFx();
     var de = document.documentElement;
     var w = de.clientWidth;
-    var h = Math.min(de.scrollHeight, w * 3); // tope: 3 pantallas, no la web entera
+    var h = Math.min(de.scrollHeight, w * ${altoPantallas}); // tope: 3 pantallas, no la web entera
     var xml = new XMLSerializer().serializeToString(de);
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '">' +
       '<foreignObject width="100%" height="100%">' + xml + '</foreignObject></svg>';
@@ -65,7 +88,7 @@ function capturar(){
     var img = new Image();
     img.onload = function(){
       try {
-        var escala = Math.min(1, ${LADO_MAXIMO} / w);
+        var escala = Math.min(${escalaMax}, ${ladoMaximo} / w);
         var outW = Math.max(1, Math.round(w * escala));
         var outH = Math.max(1, Math.round(h * escala));
         var canvas = document.createElement('canvas');
@@ -89,28 +112,32 @@ function capturar(){
         ctx.fillStyle = fondo;
         ctx.fillRect(0, 0, outW, outH);
         ctx.drawImage(img, 0, 0, w, h, 0, 0, outW, outH);
-        var dataUrl = canvas.toDataURL('image/jpeg', ${CALIDAD_JPEG});
+        var dataUrl = canvas.toDataURL(${salida});
         if (tocadosFx) desasentarFx(tocadosFx);
-        parent.postMessage({ type: 'forja-shot-result', ok: true, dataUrl: dataUrl }, '*');
+        parent.postMessage({ type: '${tipo}', ok: true, dataUrl: dataUrl }, '*');
       } catch (e) {
         if (tocadosFx) desasentarFx(tocadosFx);
-        parent.postMessage({ type: 'forja-shot-result', ok: false, error: String((e && e.message) || e) }, '*');
+        parent.postMessage({ type: '${tipo}', ok: false, error: String((e && e.message) || e) }, '*');
       }
     };
     img.onerror = function(){
       if (tocadosFx) desasentarFx(tocadosFx);
-      parent.postMessage({ type: 'forja-shot-result', ok: false, error: 'No se pudo componer la imagen de la página.' }, '*');
+      parent.postMessage({ type: '${tipo}', ok: false, error: 'No se pudo componer la imagen de la página.' }, '*');
     };
     img.src = svgUrl;
   } catch (e) {
     if (tocadosFx) desasentarFx(tocadosFx);
-    parent.postMessage({ type: 'forja-shot-result', ok: false, error: String((e && e.message) || e) }, '*');
+    parent.postMessage({ type: '${tipo}', ok: false, error: String((e && e.message) || e) }, '*');
   }
 }
 function auto(){ setTimeout(capturar, 400); }
 if (document.readyState === "complete") auto();
 else window.addEventListener("load", auto);
 })();`;
+}
+
+/** El capturador del QA por visión (el de siempre). */
+export const SCREENSHOT_SCRIPT = scriptCaptura();
 
 /** Inyecta el capturador en el HTML de la vista previa (idempotente). */
 export function injectScreenshot(html: string): string {

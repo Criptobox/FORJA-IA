@@ -15,6 +15,7 @@ import {
   Flame,
   Gauge,
   Hammer,
+  LayoutTemplate,
   Layers,
   Palette,
   ScrollText,
@@ -28,6 +29,7 @@ import { FichaTab } from "@/components/forja/ficha-tab";
 import { AdnTab } from "@/components/forja/adn-tab";
 import { JuecesTab, AntigenericoTab } from "@/components/forja/calidad-tabs";
 import { MotorTab } from "@/components/forja/motor-tab";
+import { Estudio } from "@/components/forja/estudio/estudio";
 import { cargarMotor, MOTOR_VERSION, type Motor } from "@/lib/forja/motor-client";
 import { APP_VERSION } from "@/lib/forja/app-version";
 import { useForja } from "@/lib/forja/store";
@@ -35,15 +37,15 @@ import { useForja } from "@/lib/forja/store";
 
 // Pestañas válidas: el sidebar puede abrir el Estudio directamente en
 // cualquiera de ellas con /forja?tab=… — sin pestañas del navegador.
-const PESTANAS_VALIDAS = ["inicio", "ficha", "adn", "jueces", "antigenerico", "motor"];
+const PESTANAS_VALIDAS = ["estudio", "inicio", "ficha", "adn", "jueces", "antigenerico", "motor"];
 
 export default function ForjaEstudio() {
   const [motor, setMotor] = useState<Motor | null>(null);
   const [error, setError] = useState("");
   const settings = useForja((s) => s.settings);
-  // Se inicia en "inicio" y se corrige tras montar (evita desajuste de
+  // Se inicia en "estudio" y se corrige tras montar (evita desajuste de
   // hidratación si la URL trae ?tab=…).
-  const [tab, setTab] = useState("inicio");
+  const [tab, setTab] = useState("estudio");
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search).get("tab");
@@ -55,7 +57,7 @@ export default function ForjaEstudio() {
   const cambiarTab = (t: string) => {
     setTab(t);
     const url = new URL(window.location.href);
-    if (t === "inicio") url.searchParams.delete("tab");
+    if (t === "estudio") url.searchParams.delete("tab");
     else url.searchParams.set("tab", t);
     window.history.replaceState(null, "", url);
   };
@@ -68,7 +70,7 @@ export default function ForjaEstudio() {
 
   return (
     <div className="h-dvh overflow-auto bg-background text-foreground">
-      <main id="contenido" tabIndex={-1} className="mx-auto max-w-6xl space-y-5 px-3 py-4 outline-none sm:px-4 sm:py-6">
+      <main id="contenido" tabIndex={-1} className={`mx-auto space-y-5 px-3 py-4 outline-none sm:px-4 sm:py-6 ${tab === "estudio" ? "max-w-[1600px]" : "max-w-6xl"}`}>
         {/* cabecera */}
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -95,24 +97,28 @@ export default function ForjaEstudio() {
           </div>
         </header>
 
-        {error && (
+        {error && tab !== "estudio" && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-[12.5px] text-red-600 dark:text-red-400">
             No se pudo cargar el motor: {error}
           </div>
         )}
 
-        {!motor && !error && (
+        {!motor && !error && tab !== "estudio" && (
           <div className="flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-card/50 p-6 text-[13px] text-muted-foreground">
             <Flame className="size-4 animate-pulse text-orange-500" /> Calentando
             el yunque: cargando el motor del módulo…
           </div>
         )}
 
-        {motor && (
+        {/* El Estudio no necesita el motor cargado; el resto de pestañas sí. */}
+        {(
           <Tabs value={tab} onValueChange={cambiarTab} className="gap-4">
             <TabsList className="h-9 w-full flex-nowrap items-center justify-start gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:h-auto sm:flex-wrap sm:overflow-visible">
+              <TabsTrigger value="estudio" className="gap-1.5 flex-none sm:flex-1">
+                <LayoutTemplate className="size-3.5" /> Estudio
+              </TabsTrigger>
               <TabsTrigger value="inicio" className="gap-1.5 flex-none sm:flex-1">
-                <Compass className="size-3.5" /> Inicio · Catálogo
+                <Compass className="size-3.5" /> Motor · Catálogo
               </TabsTrigger>
               <TabsTrigger value="ficha" className="gap-1.5 flex-none sm:flex-1">
                 <Hammer className="size-3.5" /> Ficha → Maqueta
@@ -131,6 +137,11 @@ export default function ForjaEstudio() {
               </TabsTrigger>
             </TabsList>
 
+            <TabsContent value="estudio">
+              <Estudio />
+            </TabsContent>
+            {motor && (
+              <>
             <TabsContent value="inicio">
               <Catalogo motor={motor} />
             </TabsContent>
@@ -149,6 +160,8 @@ export default function ForjaEstudio() {
             <TabsContent value="motor">
               <MotorTab motor={motor} cfgUsuario={{ maxTokensPorRol: settings.maxTokensPorRol }} />
             </TabsContent>
+              </>
+            )}
           </Tabs>
         )}
       </main>
