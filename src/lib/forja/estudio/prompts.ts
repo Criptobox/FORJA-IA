@@ -18,7 +18,7 @@ function marco(p: ProyectoDiseno): string {
 }
 
 /** System prompt de cualquier generación de pantalla del proyecto. */
-export function promptSistema(p: ProyectoDiseno, d: DireccionVisual): string {
+export function promptSistema(p: ProyectoDiseno, d: DireccionVisual, referencias = ""): string {
   const otras = p.pantallas.map((s) => `- ${s.nombre}: ${s.proposito || "—"}`).join("\n");
   return [
     "Eres el diseñador de FORJA Estudio. Diseñas pantallas reales, listas para enseñar a un cliente, que forman UN producto coherente.",
@@ -34,6 +34,7 @@ export function promptSistema(p: ProyectoDiseno, d: DireccionVisual): string {
     promptDireccion({ direccion: d, origen: "proyecto" }),
     "",
     otras ? `## Pantallas del producto (usa los mismos nombres en la navegación)\n${otras}` : "",
+    referencias,
     "",
     "## Formato",
     FORMATO,

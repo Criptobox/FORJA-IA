@@ -237,3 +237,64 @@ describe("estudio · captura PNG", () => {
     expect(entradas.map((e) => e.path)).toContain("imagenes/01-pantalla-1.png");
   });
 });
+
+import { bloqueReferencias, nombreDeArchivo, paletaDePixeles, referenciasDe } from "../../src/lib/forja/estudio/biblioteca";
+import { conReferencias } from "../../src/lib/forja/estudio/proyecto";
+
+describe("estudio · biblioteca", () => {
+  const pix = (rgba: number[][]) => rgba.flat();
+
+  it("la paleta ordena por presencia, ignora transparentes y no repite tonos casi iguales", () => {
+    const azul = [20, 40, 200, 255];
+    const casiAzul = [24, 44, 204, 255];
+    const naranja = [240, 140, 20, 255];
+    const invisible = [0, 255, 0, 0];
+    const p = paletaDePixeles(pix([azul, azul, azul, casiAzul, naranja, invisible, invisible, invisible, invisible]));
+    expect(p).toHaveLength(2);
+    expect(p[0]).toMatch(/^#1[0-9a-f]2[0-9a-f]c[0-9a-f]$/); // el azul primero
+    expect(p.join()).not.toMatch(/#0[0-9a-f]f[0-9a-f]0[0-9a-f]/); // el verde transparente no cuenta
+  });
+
+  it("la paleta da el color real de la imagen, no el centro del cubo", () => {
+    expect(paletaDePixeles(pix([[255, 0, 0, 255], [255, 0, 0, 255], [0, 0, 255, 255]]))).toEqual(["#ff0000", "#0000ff"]);
+  });
+
+  it("paleta vacía para una imagen totalmente transparente", () => {
+    expect(paletaDePixeles(pix([[1, 2, 3, 0]]))).toEqual([]);
+  });
+
+  it("nombreDeArchivo limpia extensión y guiones", () => {
+    expect(nombreDeArchivo("hero_cafe-final.PNG")).toBe("hero cafe final");
+    expect(nombreDeArchivo(".png")).toBe("Referencia");
+  });
+
+  it("el bloque del prompt lleva nombres y paletas, y las instrucciones de visión solo con imágenes", () => {
+    const refs = [{ nombre: "Café Luna", paleta: ["#112233", "#ffaa00"] }];
+    const sinImg = bloqueReferencias(refs, 0);
+    expect(sinImg).toContain("«Café Luna»: paleta #112233, #ffaa00");
+    const conImg = bloqueReferencias(refs, 1);
+    expect(conImg.length).toBeGreaterThan(sinImg.length);
+    expect(conImg).toContain("no con el de la imagen");
+    expect(bloqueReferencias([], 0)).toBe("");
+  });
+
+  it("referenciasDe conserva el orden y descarta las borradas", () => {
+    const bib = [
+      { id: "a", nombre: "A", origen: "subida" as const, paleta: [], blobId: "a", creada: 1 },
+      { id: "b", nombre: "B", origen: "drive" as const, paleta: [], blobId: "b", creada: 2 },
+    ];
+    expect(referenciasDe(["b", "x", "a"], bib).map((r) => r.id)).toEqual(["b", "a"]);
+    expect(referenciasDe(undefined, bib)).toEqual([]);
+  });
+
+  it("las referencias del proyecto no se repiten y tienen tope", () => {
+    const p = crearProyecto({ brief: "x", tipo: "web", referencias: ["a", "a", "b"] });
+    expect(p.referencias).toEqual(["a", "b"]);
+    expect(conReferencias(p, ["1", "2", "3", "4", "5", "6", "7"]).referencias).toHaveLength(6);
+  });
+
+  it("el system prompt incluye el bloque de referencias", () => {
+    const p = proyectoCon(1);
+    expect(promptSistema(p, D, bloqueReferencias([{ nombre: "Ref", paleta: [] }], 0))).toContain("Referencias visuales del usuario");
+  });
+});

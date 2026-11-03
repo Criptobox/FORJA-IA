@@ -55,6 +55,29 @@ export interface ProyectoDiseno {
   creado: number;
   actualizado: number;
   pantallas: Pantalla[];
+  /** ids de referencias de la Biblioteca que guían el diseño (opcional:
+   * los proyectos guardados antes de la Biblioteca no lo traen) */
+  referencias?: string[];
+}
+
+/** De dónde salió una referencia de la Biblioteca. */
+export type OrigenReferencia = "subida" | "pantalla" | "drive";
+
+/** Una imagen de la Biblioteca: inspiración, captura o diseño anterior.
+ * La imagen vive en IndexedDB (`attachment-blob.ts`) bajo `blobId`; aquí
+ * solo lo ligero, que va en localStorage. */
+export interface Referencia {
+  id: string;
+  nombre: string;
+  origen: OrigenReferencia;
+  /** colores dominantes en hex, del más presente al menos */
+  paleta: string[];
+  blobId: string;
+  ancho?: number;
+  alto?: number;
+  creada: number;
+  /** proyecto del que salió (si es una pantalla guardada) */
+  proyectoId?: string;
 }
 
 /** Lo que propone el plan de pantallas antes de generarlas. */

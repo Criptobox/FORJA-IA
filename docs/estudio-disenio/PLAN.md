@@ -55,6 +55,7 @@ compararlas y descargarlas.
   antes de mostrar, modo autónomo «objetivo → N pantallas».
 
 ## Estado
+- **Fase 3 hecha**: pestaña «Biblioteca» en el Estudio (subir imágenes, elegirlas de Google Drive con la cuenta conectada, «A biblioteca» desde una pantalla generada). Cada imagen se reduce a 1024 px / JPEG, se guarda en IndexedDB (metadatos en localStorage) y se le saca la paleta real. Al crear un proyecto (o desde «Referencias» en el editor) se eligen hasta 6: la paleta viaja siempre en el system prompt y, con Auto o un modelo con visión, hasta 4 imágenes van adjuntas con las instrucciones de `referencia-visual.ts`. Pruebas: `tests/unit/estudio.test.ts` (biblioteca), `tests/e2e/estudio-biblioteca.spec.ts`. Pendiente: guardar proyectos enteros como plantilla.
 - **Fase 2 hecha**: PNG por pantalla (×2, reutiliza el capturador aislado de `screenshot.ts`, parametrizado sin cambiar el del QA), «ZIP + imágenes» y modo presentación (flechas / ← →) en pantalla completa. Pendiente de esta fase: PNG de lo pintado en `<canvas>` (límite de la técnica).
 - **Fase 1 hecha** (esta rama): `src/lib/forja/estudio/*` (modelo, prompts, tokens, HTML, crítica, exportación, generador con la cadena Auto) + `src/components/forja/estudio/estudio.tsx` + pestaña «Estudio» por defecto en `/forja`. Pruebas: `tests/unit/estudio.test.ts`, `tests/e2e/estudio.spec.ts`.
 

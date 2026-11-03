@@ -30,6 +30,8 @@ export interface NuevoProyecto {
   direccionId?: string | null;
   /** direcciones usadas en proyectos recientes, para no repetir */
   evitar?: readonly string[];
+  /** referencias de la Biblioteca elegidas al crear */
+  referencias?: string[];
 }
 
 /** Nombre corto a partir del encargo, si el usuario no puso ninguno. */
@@ -55,6 +57,7 @@ export function crearProyecto(n: NuevoProyecto, ahora = Date.now()): ProyectoDis
     creado: ahora,
     actualizado: ahora,
     pantallas: [],
+    referencias: [...new Set(n.referencias ?? [])].slice(0, MAX_REFERENCIAS_PROYECTO),
   };
 }
 
@@ -116,6 +119,14 @@ export function versionActual(s: Pantalla): VersionPantalla | null {
 export function elegirVersion(s: Pantalla, indice: number): Pantalla {
   if (indice < 0 || indice >= s.versiones.length) return s;
   return { ...s, actual: indice };
+}
+
+/** Referencias por proyecto: más no aportan y encarecen cada llamada. */
+export const MAX_REFERENCIAS_PROYECTO = 6;
+
+/** Fija las referencias del proyecto (sin duplicados, máximo 6). */
+export function conReferencias(p: ProyectoDiseno, ids: readonly string[]): ProyectoDiseno {
+  return tocar(p, { referencias: [...new Set(ids)].slice(0, MAX_REFERENCIAS_PROYECTO) });
 }
 
 export function cambiarDireccion(p: ProyectoDiseno, direccionId: string): ProyectoDiseno {

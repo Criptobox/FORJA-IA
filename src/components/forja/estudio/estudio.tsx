@@ -15,11 +15,13 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  BookImage,
   Code2,
   Columns2,
   Download,
   FileArchive,
   ImageDown,
+  Images,
   Loader2,
   Maximize2,
   Monitor,
@@ -49,6 +51,7 @@ import { modelosDisponibles } from "@/lib/forja/estudio/generador";
 import {
   agregarPantallas,
   cambiarDireccion,
+  conReferencias,
   direccionDe,
   elegirVersion,
   eliminarPantalla,
@@ -61,6 +64,7 @@ import { htmlDeVersion } from "@/lib/forja/estudio/html";
 import { criticar, problemasParaCorregir } from "@/lib/forja/estudio/critica";
 import { zipProyecto } from "@/lib/forja/estudio/exportar";
 import { capturarPng, dataUrlABytes } from "@/lib/forja/estudio/captura";
+import { SelectorReferencias, VistaBiblioteca, ChipsReferencias, guardarEnBiblioteca } from "./biblioteca";
 import type { Dispositivo, Pantalla, PantallaPlan, ProyectoDiseno, TipoProyecto, VersionPantalla } from "@/lib/forja/estudio/tipos";
 
 /* ------------------------------ utilidades ------------------------------ */
@@ -164,6 +168,8 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
   const [direccion, setDireccion] = useState<string | null>(null);
   const [plan, setPlan] = useState<PantallaPlan[] | null>(null);
   const [aBorrar, setABorrar] = useState<string | null>(null);
+  const [refs, setRefs] = useState<string[]>([]);
+  const [vista, setVista] = useState<"proyectos" | "biblioteca">("proyectos");
 
   const pedirPlan = async () => {
     if (!brief.trim()) return toast.error("Describe qué quieres diseñar");
@@ -177,15 +183,48 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
   const crearYGenerar = (pantallas: PantallaPlan[]) => {
     const limpias = pantallas.filter((p) => p.nombre.trim());
     if (!limpias.length) return toast.error("Añade al menos una pantalla");
-    const p = crear({ brief, tipo, direccionId: direccion });
+    const p = crear({ brief, tipo, direccionId: direccion, referencias: refs });
     cambiar(p.id, (x) => agregarPantallas(x, limpias));
     const ids = useEstudio.getState().proyectos.find((x) => x.id === p.id)?.pantallas.map((s) => s.id) ?? [];
     abrir(p.id);
     void generar(p.id, ids);
   };
 
+  const pestanas = (
+    <div className="inline-flex rounded-xl border border-border/60 p-0.5" role="tablist" aria-label="Estudio">
+      {(
+        [
+          ["proyectos", "Proyectos", Sparkles],
+          ["biblioteca", "Biblioteca", Images],
+        ] as const
+      ).map(([id, nombre, Icono]) => (
+        <button
+          key={id}
+          role="tab"
+          aria-selected={vista === id}
+          onClick={() => setVista(id)}
+          className={cn(
+            "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px]",
+            vista === id ? "bg-orange-500 text-white" : "text-muted-foreground"
+          )}
+        >
+          <Icono className="size-3.5" /> {nombre}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (vista === "biblioteca")
+    return (
+      <div className="space-y-4">
+        {pestanas}
+        <VistaBiblioteca />
+      </div>
+    );
+
   return (
     <div className="space-y-6">
+      {pestanas}
       <section className="rounded-2xl border border-border/60 bg-card/50 p-4 sm:p-5">
         <h2 className="text-lg font-semibold tracking-tight">¿Qué diseñamos?</h2>
         <p className="mt-0.5 text-[12.5px] text-muted-foreground">
@@ -240,6 +279,15 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
             ))}
           </div>
         </div>
+
+        <details className="mt-3 rounded-xl border border-border/60 px-3 py-2" open={refs.length > 0 || undefined}>
+          <summary className="cursor-pointer text-[12px] font-medium">
+            Referencias visuales{refs.length ? ` · ${refs.length} elegida${refs.length > 1 ? "s" : ""}` : " (opcional)"}
+          </summary>
+          <div className="mt-2">
+            <SelectorReferencias elegidas={refs} onCambio={setRefs} />
+          </div>
+        </details>
 
         {!plan ? (
           <div className="mt-4 flex flex-wrap gap-2">
@@ -355,6 +403,7 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
   const [completa, setCompleta] = useState<string | null>(null);
   const [codigo, setCodigo] = useState<string | null>(null);
   const [comparar, setComparar] = useState<string | null>(null);
+  const [verRefs, setVerRefs] = useState(false);
 
   const sel = proyecto.pantallas.find((s) => s.id === selId) ?? proyecto.pantallas[0] ?? null;
   const pendientes = proyecto.pantallas.filter((s) => s.estado === "vacia" || s.estado === "error");
@@ -433,6 +482,10 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
           </select>
         </label>
         <SelectorModelo valor={modelo} onCambio={setModelo} />
+        <Button size="sm" variant="outline" onClick={() => setVerRefs(true)} className="gap-1.5" title="Imágenes de la Biblioteca que guían el diseño">
+          <ChipsReferencias ids={proyecto.referencias ?? []} />
+          <Images className="size-3.5" /> Referencias{proyecto.referencias?.length ? ` (${proyecto.referencias.length})` : ""}
+        </Button>
         <div className="ml-auto flex flex-wrap gap-1.5">
           {ocupado ? (
             <Button size="sm" variant="outline" onClick={detener} className="gap-1.5">
@@ -597,6 +650,18 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
       />
       <DialogoCodigo proyecto={proyecto} pantallaId={codigo} onClose={() => setCodigo(null)} />
       <DialogoComparar key={comparar ?? "cerrado"} proyecto={proyecto} pantallaId={comparar} onClose={() => setComparar(null)} dispositivo={dispositivo} />
+      <Dialog open={verRefs} onOpenChange={setVerRefs}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Referencias del proyecto</DialogTitle>
+            <DialogDescription>
+              FORJA sigue su paleta en cada pantalla y, con modelos que ven imágenes, también su composición. Se aplica a lo que generes desde
+              ahora.
+            </DialogDescription>
+          </DialogHeader>
+          <SelectorReferencias elegidas={proyecto.referencias ?? []} onCambio={(ids) => cambio((p) => conReferencias(p, ids))} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -696,6 +761,21 @@ function PanelPantalla(props: {
   };
   const actual = s.actual >= 0 ? s.actual : s.versiones.length - 1;
   const [capturando, setCapturando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const aBiblioteca = async () => {
+    const dim = DISPOSITIVOS[props.dispositivo];
+    setGuardando(true);
+    try {
+      const url = await capturarPng(html, dim.ancho, dim.alto);
+      const r = await guardarEnBiblioteca(url, `${props.proyecto.nombre} · ${s.nombre}`, "pantalla", props.proyecto.id);
+      if (r) toast.success("Guardada en la Biblioteca", { description: "Úsala como referencia en otros proyectos." });
+      else toast.error("El navegador no dejó guardar la imagen");
+    } catch (e) {
+      toast.error("No se pudo guardar", { description: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setGuardando(false);
+    }
+  };
   const bajarPng = async () => {
     const dim = DISPOSITIVOS[props.dispositivo];
     setCapturando(true);
@@ -766,6 +846,9 @@ function PanelPantalla(props: {
           </Button>
           <Button size="sm" variant="outline" className="gap-1" disabled={capturando} onClick={bajarPng} title={`Imagen a ${DISPOSITIVOS[props.dispositivo].nombre.toLowerCase()}`}>
             {capturando ? <Loader2 className="size-3.5 animate-spin" /> : <ImageDown className="size-3.5" />} PNG
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1" disabled={guardando} onClick={aBiblioteca} title="Guardar esta pantalla como referencia">
+            {guardando ? <Loader2 className="size-3.5 animate-spin" /> : <BookImage className="size-3.5" />} A biblioteca
           </Button>
         </div>
       )}

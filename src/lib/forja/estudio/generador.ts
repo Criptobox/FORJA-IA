@@ -17,6 +17,8 @@ import {
 import { separarEtiquetasPensamiento } from "../razonamiento";
 import { useForja } from "../store";
 import { buildTaskChain } from "../task-router";
+import { ordenarParaVision, useCapacidades } from "../capacidades";
+import type { Attachment } from "../types";
 import { isAutoKey, makeModelKey, splitModelKey, type ProviderId } from "../types";
 
 export interface PeticionModelo {
@@ -31,6 +33,8 @@ export interface PeticionModelo {
   /** se avisa cada vez que se prueba un modelo distinto */
   onModelo?: (modelKey: string) => void;
   maxTokens?: number;
+  /** imágenes de referencia: si las hay, primero los modelos que ven */
+  imagenes?: { nombre: string; dataUrl: string }[];
 }
 
 export interface RespuestaModelo {
@@ -45,7 +49,7 @@ export class SinModelosError extends Error {
 }
 
 /** Candidatos en orden: el elegido, o la cadena del modo Auto. */
-export function candidatos(modeloKey: string | null): { providerId: ProviderId; modelId: string }[] {
+export function candidatos(modeloKey: string | null, conImagenes = false): { providerId: ProviderId; modelId: string }[] {
   const st = useForja.getState();
   if (modeloKey && !isAutoKey(modeloKey)) {
     const s = splitModelKey(modeloKey);
@@ -55,11 +59,21 @@ export function candidatos(modeloKey: string | null): { providerId: ProviderId; 
   const bloqueado = (pid: ProviderId, mid: string) =>
     cooldownRemaining(h.entries[makeModelKey(pid, mid)]) > 0 ||
     providerCooldownRemaining(h.providerEntries[pid]) > 0;
-  return buildTaskChain("web", st.providers, bloqueado, 6, h.lastGood?.key ?? null);
+  const cadena = buildTaskChain("web", st.providers, bloqueado, 6, h.lastGood?.key ?? null);
+  // la misma ordenación que usa el chat con imágenes en el turno
+  return conImagenes ? ordenarParaVision(cadena, useCapacidades.getState().sinVision) : cadena;
 }
 
 export async function pedirAlModelo(p: PeticionModelo): Promise<RespuestaModelo> {
-  const lista = candidatos(p.modeloKey);
+  const imagenes = p.imagenes ?? [];
+  const lista = candidatos(p.modeloKey, imagenes.length > 0);
+  const adjuntos: Attachment[] = imagenes.map((im, i) => ({
+    id: `ref-${i}`,
+    name: im.nombre,
+    mediaType: im.dataUrl.slice(5, im.dataUrl.indexOf(";")) || "image/jpeg",
+    dataUrl: im.dataUrl,
+    size: Math.round(im.dataUrl.length * 0.75),
+  }));
   if (!lista.length) throw new SinModelosError();
   const st = useForja.getState();
   const salud = useHealth.getState();
@@ -75,7 +89,7 @@ export async function pedirAlModelo(p: PeticionModelo): Promise<RespuestaModelo>
         providerId: c.providerId,
         config: st.providers[c.providerId],
         modelId: c.modelId,
-        messages: [{ role: "user", content: p.usuario }],
+        messages: [{ role: "user", content: p.usuario, ...(adjuntos.length ? { attachments: adjuntos } : {}) }],
         settings: {
           ...st.settings,
           agentMode: false,
