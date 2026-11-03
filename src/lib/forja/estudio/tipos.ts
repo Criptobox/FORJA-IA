@@ -42,6 +42,9 @@ export interface Pantalla {
   actual: number;
   estado: EstadoPantalla;
   error?: string;
+  /** skills de pantalla elegidas a mano (`skills.ts`); sin el campo se
+   * eligen solas por el nombre y el propósito */
+  skills?: string[];
 }
 
 export interface ProyectoDiseno {

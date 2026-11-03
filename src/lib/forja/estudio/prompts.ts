@@ -6,6 +6,7 @@
 
 import { promptDireccion, type DireccionVisual } from "../design-directions";
 import { tokensCss, urlFuentes } from "./tokens";
+import { bloqueSkills, skillsDePantalla } from "./skills";
 import type { Pantalla, PantallaPlan, ProyectoDiseno } from "./tipos";
 
 const FORMATO =
@@ -43,13 +44,18 @@ export function promptSistema(p: ProyectoDiseno, d: DireccionVisual, referencias
     .join("\n");
 }
 
-/** Pedido de una pantalla nueva. */
-export function pedidoPantalla(p: ProyectoDiseno, s: Pick<Pantalla, "nombre" | "proposito">): string {
+/** Pedido de una pantalla nueva. Lleva las skills de patrón de ESA pantalla
+ * (formulario, listado, acceso…): van aquí y no en el system prompt porque
+ * cambian de una pantalla a otra y el system prompt es del proyecto. */
+export function pedidoPantalla(p: ProyectoDiseno, s: Pick<Pantalla, "nombre" | "proposito" | "skills">): string {
   return [
     `Producto: ${p.brief}`,
     `Diseña la pantalla «${s.nombre}»${s.proposito ? `: ${s.proposito}` : ""}.`,
     "Contenido realista y específico de este producto (nombres, cifras plausibles marcadas como [DATO] si no las conoces).",
-  ].join("\n");
+    bloqueSkills(skillsDePantalla(s, p.tipo)),
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /** Pedido de un cambio sobre la pantalla actual: cambio quirúrgico, no rehacer. */
@@ -65,7 +71,7 @@ export function pedidoIterar(s: Pick<Pantalla, "nombre">, codigoActual: string, 
 }
 
 /** Pedido de una variante: misma marca, otra composición. */
-export function pedidoVariante(p: ProyectoDiseno, s: Pick<Pantalla, "nombre" | "proposito">, codigoActual: string): string {
+export function pedidoVariante(p: ProyectoDiseno, s: Pick<Pantalla, "nombre" | "proposito" | "skills">, codigoActual: string): string {
   return [
     pedidoPantalla(p, s),
     "Ya existe una versión (abajo). Diseña una VARIANTE claramente distinta: otra composición, otra jerarquía y otro gesto memorable, con el mismo sistema de diseño y el mismo contenido.",

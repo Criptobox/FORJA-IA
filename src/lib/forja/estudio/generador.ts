@@ -19,6 +19,8 @@ import { useForja } from "../store";
 import { buildTaskChain } from "../task-router";
 import { ordenarParaVision, useCapacidades } from "../capacidades";
 import type { Attachment } from "../types";
+import type { LlamadaModelo } from "../motor/tipos";
+import { RuntimeModelo } from "../motor/runtime-modelo";
 import { isAutoKey, makeModelKey, splitModelKey, type ProviderId } from "../types";
 
 export interface PeticionModelo {
@@ -126,4 +128,37 @@ export async function pedirAlModelo(p: PeticionModelo): Promise<RespuestaModelo>
 export function modelosDisponibles(limite = 60): string[] {
   const st = useForja.getState();
   return buildTaskChain("web", st.providers, undefined, limite).map((c) => c.modelKey);
+}
+
+/** La cadena Auto (o el modelo elegido) con la firma `LlamadaModelo` del
+ * motor, para enchufarla al runtime del adaptador OpenDesign
+ * (`RuntimeModelo`). `ultimo()` dice qué modelo respondió de verdad. */
+export function llamadaAuto(
+  modeloKey: string | null,
+  signal: AbortSignal
+): { llamada: LlamadaModelo; ultimo: () => string } {
+  let ultimo = "";
+  const llamada: LlamadaModelo = async (a) => {
+    const r = await pedirAlModelo({
+      sistema: a.system,
+      usuario: a.user,
+      modeloKey,
+      signal,
+      maxTokens: a.maxTokens,
+    });
+    ultimo = r.modelKey;
+    return r.texto;
+  };
+  return { llamada, ultimo: () => ultimo };
+}
+
+/** Runtime del adaptador OpenDesign sobre los modelos del Estudio. */
+export function runtimeEstudio(modeloKey: string | null, signal: AbortSignal): RuntimeModelo {
+  const { llamada, ultimo } = llamadaAuto(modeloKey, signal);
+  const elegido = modeloKey && !isAutoKey(modeloKey) ? splitModelKey(modeloKey) : null;
+  return new RuntimeModelo({
+    llamada,
+    modelo: elegido ?? { providerId: "auto", modelId: "cadena-gratis" },
+    productor: ultimo,
+  });
 }

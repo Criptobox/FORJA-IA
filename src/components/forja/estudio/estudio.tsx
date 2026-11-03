@@ -62,6 +62,7 @@ import {
 } from "@/lib/forja/estudio/proyecto";
 import { htmlDeVersion } from "@/lib/forja/estudio/html";
 import { criticar, problemasParaCorregir } from "@/lib/forja/estudio/critica";
+import { alternarSkill, MAX_SKILLS_PANTALLA, ORIGEN_SKILLS, SKILLS_PANTALLA, skillsDePantalla } from "@/lib/forja/estudio/skills";
 import { zipProyecto } from "@/lib/forja/estudio/exportar";
 import { capturarPng, dataUrlABytes } from "@/lib/forja/estudio/captura";
 import { SelectorReferencias, VistaBiblioteca, ChipsReferencias, guardarEnBiblioteca } from "./biblioteca";
@@ -632,6 +633,7 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
             onComparar={() => setComparar(sel.id)}
             onRenombrar={(nombre, proposito) => cambio((p) => actualizarPantalla(p, sel.id, (x) => ({ ...x, nombre, proposito })))}
             onVersion={(i) => cambio((p) => actualizarPantalla(p, sel.id, (x) => elegirVersion(x, i)))}
+            onSkills={(skills) => cambio((p) => actualizarPantalla(p, sel.id, (x) => ({ ...x, skills })))}
             dispositivo={dispositivo}
           />
         ) : (
@@ -746,12 +748,16 @@ function PanelPantalla(props: {
   onComparar: () => void;
   onRenombrar: (nombre: string, proposito: string) => void;
   onVersion: (i: number) => void;
+  /** skills elegidas a mano; `undefined` = automáticas */
+  onSkills: (skills: string[] | undefined) => void;
   dispositivo: Dispositivo;
 }) {
   const { s, d } = props;
+  const tipo = props.proyecto.tipo;
   const v = versionActual(s);
   const html = useMemo(() => (v ? htmlDeVersion(v, d) : ""), [v, d]);
-  const critica = useMemo(() => (html ? criticar(html) : null), [html]);
+  const skills = useMemo(() => skillsDePantalla(s, tipo), [s, tipo]);
+  const critica = useMemo(() => (html ? criticar(html, skills, tipo) : null), [html, skills, tipo]);
   const [cambio, setCambio] = useState("");
   const enviar = () => {
     const t = cambio.trim();
@@ -794,6 +800,42 @@ function PanelPantalla(props: {
       <div className="space-y-1.5">
         <Input value={s.nombre} onChange={(e) => props.onRenombrar(e.target.value, s.proposito)} aria-label="Nombre de la pantalla" className="h-8 text-[13px] font-semibold" />
         <Input value={s.proposito} onChange={(e) => props.onRenombrar(s.nombre, e.target.value)} aria-label="Para qué sirve" placeholder="Para qué sirve" className="h-8 text-[12px]" />
+      </div>
+
+      <div data-testid="skills-pantalla">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <p className="text-[12px] font-medium" title={`Adaptadas de Open Design Agent Kit (${ORIGEN_SKILLS.licencia})`}>
+            Patrones {s.skills ? "(a mano)" : "(automáticos)"}
+          </p>
+          {s.skills && (
+            <button type="button" className="text-[11px] text-muted-foreground underline" onClick={() => props.onSkills(undefined)}>
+              Automáticos
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {SKILLS_PANTALLA.map((k) => {
+            const activa = skills.includes(k.id);
+            const lleno = !activa && skills.length >= MAX_SKILLS_PANTALLA + 1;
+            return (
+              <button
+                key={k.id}
+                type="button"
+                aria-pressed={activa}
+                disabled={lleno}
+                title={lleno ? `Máximo ${MAX_SKILLS_PANTALLA + 1}: quita otro antes` : k.texto.split("\n")[1]}
+                onClick={() => props.onSkills(alternarSkill(s, tipo, k.id))}
+                className={cn(
+                  "rounded-md border px-1.5 py-0.5 text-[11px] disabled:opacity-40",
+                  activa ? "border-orange-500 bg-orange-500/10" : "border-border/60 text-muted-foreground"
+                )}
+              >
+                {k.nombre}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-1 text-[10.5px] text-muted-foreground">Viajan con la pantalla al generarla y se comprueban en la crítica.</p>
       </div>
 
       <div>
@@ -886,9 +928,14 @@ function PanelPantalla(props: {
             <div className="h-full rounded-full bg-orange-500" style={{ width: `${critica.identidad}%` }} />
           </div>
           <p className="text-[11.5px] text-muted-foreground">{critica.motivo}</p>
-          {critica.sintomas.length + critica.avisos.length > 0 ? (
+          {critica.patrones.length + critica.sintomas.length + critica.avisos.length > 0 ? (
             <>
               <ul className="space-y-1 text-[11.5px]">
+                {critica.patrones.map((x, i) => (
+                  <li key={`p${i}`} data-testid="fallo-patron">
+                    <b>Patrón</b> — <span className="text-muted-foreground">{x}</span>
+                  </li>
+                ))}
                 {critica.sintomas.map((x, i) => (
                   <li key={`s${i}`}>
                     <b>{x.nombre}</b> — <span className="text-muted-foreground">{x.alternativa}</span>
