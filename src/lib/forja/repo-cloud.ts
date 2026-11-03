@@ -105,7 +105,6 @@ export async function fetchRepoInfo(
   const j = (await res.json()) as {
     default_branch?: string;
     private?: boolean;
-    html_url?: string;
     permissions?: { push?: boolean };
   };
   return {
@@ -114,7 +113,10 @@ export async function fetchRepoInfo(
     defaultBranch: j.default_branch || "main",
     isPrivate: !!j.private,
     canPush: !!j.permissions?.push,
-    htmlUrl: j.html_url || `https://github.com/${owner}/${repo}`,
+    // El enlace se construye aquí, no se copia de la respuesta: acaba en un
+    // href, y así nunca puede ser otra cosa que una página de github.com
+    // (usuario y repo codificados), venga lo que venga de la red.
+    htmlUrl: `https://github.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
   };
 }
 
