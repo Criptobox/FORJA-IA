@@ -177,3 +177,23 @@ test.describe("Bienvenida contextual (D3)", () => {
     await expect(page.getByRole("button", { name: /Continuar/ })).toHaveCount(0);
   });
 });
+
+test.describe("Pantalla de inicio (saludo, orbe y atajos)", () => {
+  test("saluda según la hora, enseña el orbe y los atajos hacen lo suyo", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.clock.setFixedTime(new Date(2026, 10, 3, 9, 30));
+    await seed(page);
+    await page.goto("/");
+
+    await expect(page.getByTestId("saludo")).toHaveText("Buenos días", { timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /¿Qué quieres crear/ })).toBeVisible();
+    await expect(page.locator(".fj-orbe")).toBeVisible();
+
+    const atajos = page.getByRole("group", { name: "Atajos para empezar" });
+    await expect(atajos.getByRole("link", { name: "Diseñar app" })).toHaveAttribute("href", "/forja");
+
+    // «Web» envía su encargo de verdad (no solo rellena)
+    await atajos.getByRole("button", { name: "Web" }).click();
+    await expect(page.locator('[data-role="user"]').first()).toContainText("página de aterrizaje para una cafetería", { timeout: 30_000 });
+  });
+});
