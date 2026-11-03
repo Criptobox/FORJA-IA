@@ -1,5 +1,5 @@
 "use client";
-/** Forja IA — Empty state del chat: saludo, orbe, una pregunta y atajos en
+/** Forja IA — Empty state del chat: saludo, Chispa, una pregunta y atajos en
  * píldora junto al cuadro de escribir (calmado, el compositor manda). */
 import type { LucideIcon } from "lucide-react";
 import {
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
+import { Chispa } from "./chispa";
 import { useForja } from "@/lib/forja/store";
 import { PROVIDERS } from "@/lib/forja/providers";
 import { makeModelKey } from "@/lib/forja/types";
@@ -149,8 +150,12 @@ export function Welcome({
           {saludo}
         </p>
 
-        <div className="stagger-in my-7 sm:my-9" style={{ "--stagger": 1 } as React.CSSProperties}>
-          <div aria-hidden className="fj-orbe" />
+        <div className="stagger-in mt-4 mb-5 flex flex-col items-center sm:mt-6 sm:mb-7" style={{ "--stagger": 1 } as React.CSSProperties}>
+          <p className="chispa-bocadillo mb-2" aria-hidden>
+            ¿Encendemos algo? 🔥
+          </p>
+          <Chispa estado="inicio" size={124} titulo="Chispa, la llama de Forja, te saluda" />
+          <div className="chispa-suelo" aria-hidden />
         </div>
 
         <h2

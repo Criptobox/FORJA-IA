@@ -7,10 +7,13 @@
  * secciones van de las previstas, tokens y tiempo. Mismo lenguaje visual que
  * la maqueta de marca «Forja IA · Creando algo». Al terminar se pliega en
  * una línea de resumen.
+ *
+ * Chispa (la mascota) forja en su yunque mientras dura; la barra va por
+ * PASOS reales (hechos de los previstos), no un porcentaje inventado.
  */
 import { Check } from "lucide-react";
 import type { ProgresoCreacion } from "@/lib/forja/progreso-creacion";
-import { ForjaStateLoader } from "./forja-state-loader";
+import { Chispa } from "./chispa";
 
 export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { progreso: ProgresoCreacion; titulo?: string }) {
   const { pasos, actual, loader, terminado } = progreso;
@@ -21,6 +24,7 @@ export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { p
     const entrega = pasos.find((p) => p.id === "entrega")?.meta;
     return (
       <div className="fj-creacion-resumen" data-testid="creacion-resumen">
+        <Chispa estado="listo" size={22} className="fj-creacion-chispa-mini" />
         <span className="fj-creacion-check" aria-hidden>
           <Check className="size-3" />
         </span>
@@ -44,13 +48,33 @@ export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { p
         </span>
         {pasos[1].meta && <span className="fj-creacion-badge">{pasos[1].meta}</span>}
       </div>
-      <div className="fj-timeline-stage">
-        <p className="fj-creacion-titulo">{titulo}</p>
-        <p className="fj-creacion-sub">
-          Paso <strong>{actual + 1}</strong> de <strong>{pasos.length}</strong> · {paso.titulo.toLowerCase()}
-        </p>
-        <ForjaStateLoader state={loader} size={88} />
-        <span className="fj-timeline-state-label">estado: {loader}</span>
+      <div className="fj-creacion-escena">
+        <div className="fj-creacion-yunque">
+          <Chispa
+            estado={loader === "finalizado" ? "listo" : "forjando"}
+            size={84}
+            titulo={loader === "finalizado" ? "Chispa celebra: ya está" : "Chispa forjando tu encargo"}
+          />
+          {loader !== "finalizado" && (
+            <span className="chispa-chispas" aria-hidden>
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="fj-creacion-titulo">{titulo}…</p>
+          <p className="fj-creacion-sub">
+            Paso <strong>{actual + 1}</strong> de <strong>{pasos.length}</strong> · {paso.titulo.toLowerCase()}
+          </p>
+          <div className="fj-creacion-segmentos" role="progressbar" aria-label="Pasos completados" aria-valuemin={0} aria-valuemax={pasos.length} aria-valuenow={hechos}>
+            {pasos.map((p) => (
+              <span key={p.id} data-estado={p.estado} />
+            ))}
+          </div>
+        </div>
       </div>
       <ul className="fj-timeline">
         {pasos.map((p) => (

@@ -178,8 +178,8 @@ test.describe("Bienvenida contextual (D3)", () => {
   });
 });
 
-test.describe("Pantalla de inicio (saludo, orbe y atajos)", () => {
-  test("saluda según la hora, enseña el orbe y los atajos hacen lo suyo", async ({ page }) => {
+test.describe("Pantalla de inicio (saludo, Chispa y atajos)", () => {
+  test("saluda según la hora, enseña a Chispa y los atajos hacen lo suyo", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.clock.setFixedTime(new Date(2026, 10, 3, 9, 30));
     await seed(page);
@@ -187,7 +187,7 @@ test.describe("Pantalla de inicio (saludo, orbe y atajos)", () => {
 
     await expect(page.getByTestId("saludo")).toHaveText("Buenos días", { timeout: 30_000 });
     await expect(page.getByRole("heading", { name: /¿Qué quieres crear/ })).toBeVisible();
-    await expect(page.locator(".fj-orbe")).toBeVisible();
+    await expect(page.getByTestId("chispa-inicio")).toBeVisible();
 
     const atajos = page.getByRole("group", { name: "Atajos para empezar" });
     await expect(atajos.getByRole("link", { name: "Diseñar app" })).toHaveAttribute("href", "/forja");
