@@ -88,8 +88,9 @@ export function referenciasDe(path: string, text: string): string[] {
   return [...refs];
 }
 
-/** Grafo no dirigido de dependencias entre los archivos vigentes. */
-export function grafoDeArchivos(archivos: ReadonlyMap<string, { text: string }>): Map<string, Set<string>> {
+/** Dependencias dirigidas: `de` referencia (importa, enlaza, carga) a `a`.
+ * Solo lo que está escrito en el código: nada inferido. Sin duplicados. */
+export function aristasDeArchivos(archivos: ReadonlyMap<string, { text: string }>): { de: string; a: string }[] {
   const rutas = [...archivos.keys()];
   const porBase = new Map<string, string[]>();
   for (const r of rutas) porBase.set(base(r), [...(porBase.get(base(r)) ?? []), r]);
@@ -103,15 +104,28 @@ export function grafoDeArchivos(archivos: ReadonlyMap<string, { text: string }>)
     return sinExtension.length === 1 ? sinExtension[0] : null;
   };
 
-  const g = new Map<string, Set<string>>();
-  for (const r of rutas) g.set(r, new Set());
+  const vistas = new Set<string>();
+  const out: { de: string; a: string }[] = [];
   for (const [r, a] of archivos) {
     for (const ref of referenciasDe(r, a.text)) {
       const destino = resolver(ref);
       if (!destino || destino === r) continue;
-      g.get(r)?.add(destino);
-      g.get(destino)?.add(r);
+      const clave = `${r}\u0000${destino}`;
+      if (vistas.has(clave)) continue;
+      vistas.add(clave);
+      out.push({ de: r, a: destino });
     }
+  }
+  return out;
+}
+
+/** Grafo no dirigido de dependencias entre los archivos vigentes. */
+export function grafoDeArchivos(archivos: ReadonlyMap<string, { text: string }>): Map<string, Set<string>> {
+  const g = new Map<string, Set<string>>();
+  for (const r of archivos.keys()) g.set(r, new Set());
+  for (const { de, a } of aristasDeArchivos(archivos)) {
+    g.get(de)?.add(a);
+    g.get(a)?.add(de);
   }
   return g;
 }
