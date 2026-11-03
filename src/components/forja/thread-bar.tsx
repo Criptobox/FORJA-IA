@@ -55,7 +55,7 @@ export function ThreadBar({
   };
 
   return (
-    <div className="flex items-center gap-1.5 border-b border-border/60 bg-muted/20 px-3 py-1.5 text-xs sm:px-4">
+    <div className="mx-2 mt-1.5 flex items-center gap-1.5 rounded-2xl border border-border/60 bg-card/60 px-3 py-1.5 text-xs backdrop-blur sm:mx-3 sm:px-4">
       <Layers className="size-3.5 shrink-0 text-forja-cyan" />
 
       {editando ? (

@@ -62,7 +62,9 @@ export function Chispa({
 
   return (
     <svg
-      viewBox={avatar ? "30 20 140 150" : "0 0 200 240"}
+      // el avatar encuadra la llama ENTERA (punta y base redondeada); antes
+      // el recorte la dejaba con la base plana, como cortada
+      viewBox={avatar ? "-4 2 208 208" : "0 0 200 240"}
       width={size}
       height={avatar ? size : Math.round(size * 1.2)}
       className={cn("chispa", `chispa--${estado}`, className)}

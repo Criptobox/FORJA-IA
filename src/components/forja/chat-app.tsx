@@ -1515,7 +1515,21 @@ export function ChatApp() {
   const showPreviewPane = previewOpen && !!previewCode && !estrecha && !focusMode;
 
   const chatArea = (
-    <main id="contenido" tabIndex={-1} className="relative flex h-full min-w-0 flex-1 flex-col outline-none">
+    <main
+      id="contenido"
+      tabIndex={-1}
+      className="relative flex h-full min-w-0 flex-1 flex-col outline-none"
+      style={{
+        /* Fondo del chat: degradado sutil del tema activo. Usa los acentos de
+         * marca (violeta y cian) muy diluidos sobre el fondo, así cambia con
+         * el acento elegido en Ajustes y queda bien en claro y oscuro. Va en
+         * TODA la columna, no solo en la zona de mensajes: si no, el
+         * compositor y la barra de abajo quedaban sobre el fondo liso y se
+         * veían metidos en un rectángulo más oscuro. */
+        background:
+          "linear-gradient(160deg, color-mix(in oklab, var(--forja-violet) 6%, transparent) 0%, transparent 38%, color-mix(in oklab, var(--forja-cyan) 5%, transparent) 100%)",
+      }}
+    >
       {/* Arriba del todo: si el servidor ya sirve otra copia, se dice y se
           queda dicho hasta que recargues. */}
       <BannerVersionNueva />
@@ -1523,7 +1537,7 @@ export function ChatApp() {
         {anuncio}
       </div>
       {/* Cabecera */}
-      <header className="glass sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border/60 px-3 sm:px-4">
+      <header className="forja-cabecera sticky top-0 z-20 flex h-14 items-center gap-2 px-2.5 sm:px-3">
         <h1 className="sr-only">
           {hasMessages && activeSession ? activeSession.title : "Forja IA"}
         </h1>
@@ -1781,16 +1795,6 @@ export function ChatApp() {
         ref={scrollRef}
         onScroll={onScroll}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
-        style={{
-          /* Fondo del chat: degradado sutil del tema activo. Usa los
-           * acentos de marca (violeta y cian) muy diluidos sobre el
-           * fondo, así cambia con el acento que el usuario elija en
-           * Ajustes (esmeralda, ámbar, rosa, cian, naranja…) y queda
-           * bien en claro y oscuro. La dirección diagonal le da vida
-           * sin distraer de los mensajes. */
-          background:
-            "linear-gradient(160deg, color-mix(in oklab, var(--forja-violet) 6%, transparent) 0%, transparent 38%, color-mix(in oklab, var(--forja-cyan) 5%, transparent) 100%)",
-        }}
       >
         {!hasMessages ? (
           <Welcome
