@@ -54,12 +54,15 @@ export function normalizar(s: string): string {
     .replace(/[̀-ͯ]/g, "");
 }
 
-/** Solo el marcado y el texto visible: fuera <style>, <script> y comentarios. */
+/** Solo el marcado y el texto visible: fuera <style>, <script> y comentarios.
+ * No es un saneador (el HTML nunca se pinta desde aquí): solo prepara el
+ * texto para las comprobaciones. Aun así tolera cierres como `</script >` o
+ * `</script foo>`, y un bloque sin cerrar se quita hasta el final. */
 function cuerpo(html: string): string {
   return html
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<!--[\s\S]*?-->/g, " ");
+    .replace(/<style\b[\s\S]*?(?:<\/style\b[^>]*>|$)/gi, " ")
+    .replace(/<script\b[\s\S]*?(?:<\/script\b[^>]*>|$)/gi, " ")
+    .replace(/<!--[\s\S]*?(?:--!?>|$)/g, " ");
 }
 
 function texto(html: string): string {

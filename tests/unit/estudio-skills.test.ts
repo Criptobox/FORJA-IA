@@ -166,6 +166,10 @@ describe("estudio · autocomprobación de las skills", () => {
 
   it("el CSS y los scripts no cuentan como texto visible", () => {
     expect(skillPorId("bienvenida")!.comprobar(doc("<script>const omitir = 1</script><button>Empezar</button>"), "app").length).toBe(1);
+    // cierres raros y bloques sin cerrar también se quitan
+    for (const raro of ["<script>omitir</script >", '<script>omitir</script foo="1">', "<style>.omitir{}</style >", "<!-- omitir --!>", "<script>omitir"]) {
+      expect(skillPorId("bienvenida")!.comprobar(doc(`<button>Empezar</button>${raro}`), "app").length, raro).toBe(1);
+    }
   });
 
   it("comprobarSkills junta sin repetir y la crítica los pone primero en «Corregir»", () => {
