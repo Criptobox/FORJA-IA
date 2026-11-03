@@ -1,21 +1,26 @@
 "use client";
-/** Forja IA — Empty state del chat: hero compacto, un CTA y atajos para construir. */
+/** Forja IA — Empty state del chat: saludo, Chispa, una pregunta y atajos en
+ * píldora junto al cuadro de escribir (calmado, el compositor manda). */
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowUpRight,
   Bug,
+  ChartColumn,
   ClipboardPaste,
-  Eye,
+  Gamepad2,
+  GitBranch,
+  Globe,
   History,
-  Infinity as InfinityIcon,
   KeyRound,
+  PenLine,
   Puzzle,
-  ShieldCheck,
+  Smartphone,
   Sparkles,
   Telescope,
 } from "lucide-react";
-import { ForjaLogo } from "./logo";
+import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
+import { Chispa } from "./chispa";
 import { useForja } from "@/lib/forja/store";
 import { PROVIDERS } from "@/lib/forja/providers";
 import { makeModelKey } from "@/lib/forja/types";
@@ -27,94 +32,58 @@ const START = [
   { name: "TokenRouter", color: "#22D3EE" },
 ];
 
-const PILLS: { icon: LucideIcon; label: string; className: string }[] = [
-  { icon: ShieldCheck, label: "Claves locales", className: "text-forja-violet" },
-  { icon: InfinityIcon, label: "Sin cuotas", className: "text-forja-cyan" },
-  { icon: Eye, label: "Vista previa", className: "text-forja-pink" },
-];
-
-type Thumb = "web" | "juego" | "datos" | "texto" | "repo";
-
-const SUGGESTIONS: {
-  thumb: Thumb;
+/** Atajos en píldora: cada uno rellena y envía un encargo, abre Repo Studio
+ * o lleva al Estudio de diseño. Pocos y con icono de color, como en un
+ * lanzador: la pantalla respira y el cuadro de escribir manda. */
+const ATAJOS: {
+  icon: LucideIcon;
   color: string;
-  title: string;
-  hint: string;
-  text: string;
+  label: string;
+  text?: string;
   openRepos?: boolean;
+  href?: string;
 }[] = [
   {
-    thumb: "web",
-    color: "#f97316",
-    title: "Página de aterrizaje",
-    hint: "HTML de una pieza",
+    icon: Globe,
+    color: "#2563eb",
+    label: "Web",
     text: "Crea una página de aterrizaje para una cafetería de especialidad, en un solo archivo HTML con diseño moderno y animaciones",
   },
+  { icon: Smartphone, color: "#8b5cf6", label: "Diseñar app", href: "/forja" },
   {
-    thumb: "juego",
+    icon: Gamepad2,
     color: "#06b6d4",
-    title: "Un juego",
-    hint: "Serpiente táctil",
+    label: "Juego",
     text: "Crea el juego de la serpiente en un solo archivo HTML con controles táctiles, puntuación y diseño pulido",
   },
   {
-    thumb: "datos",
+    icon: ChartColumn,
     color: "#ec4899",
-    title: "Panel de datos",
-    hint: "Gastos y gráficos",
+    label: "Panel de datos",
     text: "Crea un panel de gastos mensuales en HTML con gráficos animados y guardado en el navegador",
   },
-  {
-    thumb: "texto",
-    color: "#10b981",
-    title: "Escribe por mí",
-    hint: "Correo profesional",
-    text: "Ayúdame a redactar un correo profesional para mi jefe",
-  },
-  {
-    thumb: "repo",
-    color: "#f59e0b",
-    title: "Un repositorio",
-    hint: "Pega un enlace de GitHub",
-    text: "",
-    openRepos: true,
-  },
+  { icon: PenLine, color: "#10b981", label: "Escribir", text: "Ayúdame a redactar un correo profesional para mi jefe" },
+  { icon: GitBranch, color: "#f59e0b", label: "Repositorio", openRepos: true },
 ];
 
-/** Miniatura CSS de cada arranque (las reglas .forja-th viven en globals.css). */
-function Miniatura({ kind, color, wide }: { kind: Thumb; color: string; wide?: boolean }) {
-  const body =
-    kind === "web" ? (
-      <>
-        <u className="hd" />
-        <span className="r"><u /><u /></span>
-        <u style={{ flex: "none", height: 6, width: "60%" }} />
-      </>
-    ) : kind === "juego" ? (
-      <span className="gm"><u /><u /><u /></span>
-    ) : kind === "datos" ? (
-      <span className="bars">
-        <u style={{ height: "35%" }} /><u style={{ height: "70%" }} /><u style={{ height: "50%" }} /><u style={{ height: "90%" }} />
-      </span>
-    ) : kind === "texto" ? (
-      <>
-        <u style={{ width: "45%" }} /><u /><u /><u style={{ width: "70%" }} />
-      </>
-    ) : (
-      <>
-        <u style={{ width: "35%", background: color }} /><span className="r"><u /><u /></span><span className="r"><u /><u /></span>
-      </>
-    );
-  return (
-    <span
-      aria-hidden
-      className="forja-th"
-      style={{ "--c": color, ...(wide ? { aspectRatio: "16 / 5" } : null) } as React.CSSProperties}
-    >
-      {body}
-    </span>
+/** «Buenos días / tardes / noches» según la hora del dispositivo. En el
+ * servidor (y en la hidratación) dice «Hola», así no hay desajuste. */
+export function saludoPorHora(hora: number): string {
+  if (hora >= 6 && hora < 14) return "Buenos días";
+  if (hora >= 14 && hora < 21) return "Buenas tardes";
+  return "Buenas noches";
+}
+const sinSuscripcion = () => () => {};
+function useSaludo(): string {
+  return useSyncExternalStore(
+    sinSuscripcion,
+    () => saludoPorHora(new Date().getHours()),
+    () => "Hola"
   );
 }
+
+const PILDORA =
+  "lift-card inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border/50 bg-muted/60 px-3.5 py-2 text-[13px] font-medium text-foreground/90 backdrop-blur-sm hover:border-forja-violet/40 hover:bg-card";
 
 export function Welcome({
   onPick,
@@ -161,62 +130,51 @@ export function Welcome({
     setSettings({ defaultModelKey: makeModelKey(firstReady.id, providers[firstReady.id].models[0]) });
   };
 
-  return (
-    <div className="relative flex min-h-full flex-col items-center justify-start overflow-hidden px-4 py-6 sm:justify-center sm:py-8">
-      {/* Halo de color: solo en el empty state, no ensucia el chat. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-[-8%] size-[min(28rem,100vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--forja-violet)_42%,transparent),transparent_68%)] opacity-50 blur-3xl dark:opacity-30" />
-        <div className="absolute right-[8%] top-[28%] size-[min(18rem,70vw)] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--forja-cyan)_38%,transparent),transparent_70%)] opacity-40 blur-3xl dark:opacity-25" />
-        <div className="absolute bottom-[8%] left-[12%] size-[min(14rem,60vw)] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--forja-pink)_32%,transparent),transparent_70%)] opacity-30 blur-3xl dark:opacity-20" />
-      </div>
+  const saludo = useSaludo();
 
-      <div className="relative w-full max-w-[34rem] text-center">
-        <div className="stagger-in mb-4 flex justify-center" style={{ "--stagger": 0 } as React.CSSProperties}>
-          <div className="relative">
-            <div className="absolute inset-[-18%] -z-10 rounded-full forja-gradient-bg opacity-20 blur-2xl" />
-            <ForjaLogo size={56} glow />
-          </div>
+  return (
+    <div className="relative flex min-h-full flex-col items-center overflow-hidden px-4 pb-4 pt-5 sm:pt-8">
+      {/* Velo de color arriba (como el cielo de la referencia), solo en la
+          bienvenida: no ensucia el chat. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[55%] bg-[linear-gradient(180deg,color-mix(in_oklab,var(--forja-cyan)_16%,transparent),transparent)] dark:opacity-60"
+      />
+
+      <div className="relative flex w-full max-w-[34rem] flex-1 flex-col items-center justify-center text-center">
+        <p
+          className="stagger-in text-[13px] text-muted-foreground"
+          style={{ "--stagger": 0 } as React.CSSProperties}
+          data-testid="saludo"
+        >
+          {saludo}
+        </p>
+
+        <div className="stagger-in mt-4 mb-5 flex flex-col items-center sm:mt-6 sm:mb-7" style={{ "--stagger": 1 } as React.CSSProperties}>
+          <p className="chispa-bocadillo mb-2" aria-hidden>
+            ¿Encendemos algo? 🔥
+          </p>
+          <Chispa estado="inicio" size={124} titulo="Chispa, la llama de Forja, te saluda" />
+          <div className="chispa-suelo" aria-hidden />
         </div>
 
-        <p
-          className="stagger-in text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground/80"
-          style={{ "--stagger": 1 } as React.CSSProperties}
-        >
-          Forja
-        </p>
         <h2
-          className="stagger-in mt-1 text-[1.85rem] font-semibold tracking-tight sm:text-[2.15rem]"
+          className="stagger-in text-balance text-[1.6rem] font-semibold tracking-tight sm:text-[1.9rem]"
           style={{ "--stagger": 2 } as React.CSSProperties}
         >
-          ¿Qué construimos{" "}
-          <span className="forja-gradient-text">hoy</span>?
+          ¿Qué quieres crear <span className="forja-gradient-text">hoy</span>?
         </h2>
         <p
-          className="stagger-in mx-auto mt-2 max-w-sm text-pretty text-[13px] leading-relaxed text-muted-foreground sm:text-sm"
+          className="stagger-in mx-auto mt-1.5 max-w-xs text-pretty text-[13px] leading-relaxed text-muted-foreground"
           style={{ "--stagger": 3 } as React.CSSProperties}
         >
-          Todos tus modelos, forjados en uno. Pide una página y la ves nacer al lado.
+          Escribe tu idea abajo y la ves nacer al lado.
         </p>
-
-        <div
-          className="stagger-in mt-4 flex flex-wrap items-center justify-center gap-1.5"
-          style={{ "--stagger": 4 } as React.CSSProperties}
-        >
-          {PILLS.map((p) => (
-            <span
-              key={p.label}
-              className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/50 px-2.5 py-1 text-[11px] text-muted-foreground backdrop-blur-sm"
-            >
-              <p.icon className={cn("size-3", p.className)} />
-              {p.label}
-            </span>
-          ))}
-        </div>
 
         {!anyProvider && (
           <div
-            className="stagger-in glow-accent mt-6 rounded-2xl border border-border/70 bg-card/80 p-4 text-left shadow-sm backdrop-blur-sm"
-            style={{ "--stagger": 5 } as React.CSSProperties}
+            className="stagger-in glow-accent mt-6 w-full rounded-2xl border border-border/70 bg-card/80 p-4 text-left shadow-sm backdrop-blur-sm"
+            style={{ "--stagger": 4 } as React.CSSProperties}
           >
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl forja-gradient-bg text-white shadow-md shadow-violet-500/20">
@@ -275,51 +233,66 @@ export function Welcome({
             </Button>
           </div>
         )}
+      </div>
 
-        {/* Fila contextual (D3, PLAN-V7): acciones nacidas de TU estado —
-            lo último que dejaste a medias y las ofertas del momento — no
-            sugerencias genéricas. Solo si hay algo real que retomar. */}
+      {/* Abajo, pegado al cuadro de escribir: los atajos y, si hay algo real
+          que retomar, la fila contextual (D3, PLAN-V7). */}
+      <div className="relative mt-6 w-full max-w-[34rem] space-y-2.5">
+        <div
+          className="stagger-in flex flex-wrap justify-center gap-2"
+          style={{ "--stagger": 5 } as React.CSSProperties}
+          aria-label="Atajos para empezar"
+          role="group"
+        >
+          {ATAJOS.map((a) => {
+            const icono = <a.icon className="size-4" style={{ color: a.color }} aria-hidden />;
+            if (a.href)
+              return (
+                <a key={a.label} href={a.href} className={PILDORA} title="Estudio de diseño: pantallas de app y webs">
+                  {icono}
+                  {a.label}
+                </a>
+              );
+            return (
+              <button
+                key={a.label}
+                type="button"
+                className={PILDORA}
+                onClick={() => {
+                  if (a.openRepos) {
+                    onOpenRepos?.();
+                    return;
+                  }
+                  if (anyProvider) onPick(a.text ?? "");
+                  else onOpenSettings();
+                }}
+                title={a.openRepos ? "Abrir Repo Studio" : anyProvider ? a.text : "Primero conecta un proveedor"}
+              >
+                {icono}
+                {a.label}
+              </button>
+            );
+          })}
+        </div>
+
         {recent && onResume && (
           <div
-            className="stagger-in mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3"
-            style={{ "--stagger": 5 } as React.CSSProperties}
+            className="stagger-in flex flex-wrap justify-center gap-2"
+            style={{ "--stagger": 6 } as React.CSSProperties}
           >
             <button
               type="button"
               onClick={() => onResume(recent.id)}
               title={`Volver a «${recent.title}», con su contexto delante`}
-              className="lift-card raise group flex min-w-0 items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-2.5 text-left hover:border-forja-violet/40 col-span-2 sm:col-span-1"
+              className={cn(PILDORA, "max-w-full bg-card/70")}
             >
-              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl" style={{ color: "#f97316", background: "color-mix(in srgb, #f97316 16%, transparent)" }}>
-                  <History className="size-[18px]" />
-                </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
-                  Continuar «{recent.title}»
-                </span>
-                <span className="block truncate text-[11px] leading-tight text-muted-foreground">
-                  Retoma donde lo dejaste
-                </span>
-              </span>
+              <History className="size-4 shrink-0 text-orange-500" aria-hidden />
+              <span className="truncate">Continuar «{recent.title}»</span>
             </button>
             {onOpenRadar && (
-              <button
-                type="button"
-                onClick={onOpenRadar}
-                title="Ofertas y novedades de modelos gratis"
-                className="lift-card raise group flex min-w-0 items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-2.5 text-left hover:border-forja-violet/40"
-              >
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl" style={{ color: "#06b6d4", background: "color-mix(in srgb, #06b6d4 16%, transparent)" }}>
-                  <Telescope className="size-[18px]" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
-                    Modelos gratis de hoy
-                  </span>
-                  <span className="block truncate text-[11px] leading-tight text-muted-foreground">
-                    Lo fresco, sin gastar
-                  </span>
-                </span>
+              <button type="button" onClick={onOpenRadar} title="Ofertas y novedades de modelos gratis" className={cn(PILDORA, "bg-card/70")}>
+                <Telescope className="size-4 text-cyan-500" aria-hidden />
+                Modelos gratis de hoy
               </button>
             )}
             {onFill && (
@@ -331,64 +304,26 @@ export function Welcome({
                   )
                 }
                 title="Pega un stack trace y te lo traduce"
-                className="lift-card raise group flex min-w-0 items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-2.5 text-left hover:border-forja-violet/40"
+                className={cn(PILDORA, "bg-card/70")}
               >
-                <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl" style={{ color: "#ef4444", background: "color-mix(in srgb, #ef4444 16%, transparent)" }}>
-                  <Bug className="size-[18px]" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
-                    Descifrar un error
-                  </span>
-                  <span className="block truncate text-[11px] leading-tight text-muted-foreground">
-                    Pega el stack trace
-                  </span>
-                </span>
+                <Bug className="size-4 text-red-500" aria-hidden />
+                Descifrar un error
               </button>
             )}
           </div>
         )}
 
-        {/* Bento de arranques: miniaturas CSS puras (sin imágenes) que adelantan
-            qué tipo de cosa vas a forjar. El último ocupa el ancho entero. */}
-        <div className="mt-5 grid grid-cols-2 gap-2.5">
-          {SUGGESTIONS.map((s, i) => (
-            <button
-              key={s.title}
-              type="button"
-              style={{ "--stagger": 6 + i } as React.CSSProperties}
-              onClick={() => {
-                if (s.openRepos) {
-                  onOpenRepos?.();
-                  return;
-                }
-                if (anyProvider) onPick(s.text);
-                else onOpenSettings();
-              }}
-              title={s.openRepos ? "Abrir Repo Studio" : anyProvider ? s.text : "Primero conecta un proveedor"}
-              className={cn(
-                "stagger-in lift-card raise group flex min-w-0 flex-col rounded-2xl border border-border/60 bg-card p-1.5 pb-2.5 text-left hover:border-forja-violet/40",
-                i === SUGGESTIONS.length - 1 && SUGGESTIONS.length % 2 === 1 && "col-span-2"
-              )}
-            >
-              <Miniatura kind={s.thumb} color={s.color} wide={i === SUGGESTIONS.length - 1 && SUGGESTIONS.length % 2 === 1} />
-              <span className="mt-2 block truncate px-1.5 text-[13.5px] font-semibold leading-tight text-foreground">
-                {s.title}
-              </span>
-              <span className="block truncate px-1.5 text-[11.5px] leading-tight text-muted-foreground">{s.hint}</span>
-            </button>
-          ))}
-        </div>
-
         {onOpenSkills && anyProvider && (
-          <button
-            type="button"
-            onClick={onOpenSkills}
-            className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/50 px-3 py-1.5 text-[11.5px] text-muted-foreground transition hover:border-forja-violet/30 hover:text-foreground"
-          >
-            <Puzzle className="size-3.5 text-forja-violet" />
-            Skills · desarrollador, mentor, traductor…
-          </button>
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={onOpenSkills}
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] text-muted-foreground transition hover:text-foreground"
+            >
+              <Puzzle className="size-3.5 text-forja-violet" />
+              Skills · desarrollador, mentor, traductor…
+            </button>
+          </div>
         )}
       </div>
     </div>

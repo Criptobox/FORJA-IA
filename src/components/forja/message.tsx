@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { etiquetaCorta } from "@/lib/forja/senalar";
 import { Markdown } from "./markdown";
-import { SparkleAvatar } from "./sparkle-avatar";
+import { Chispa } from "./chispa";
 import { AgentAnswer, AgentTraceView } from "./agent-trace";
 import { CreacionEnCurso } from "./creacion-en-curso";
 import { esEncargoDeCreacion, progresoCreacion } from "@/lib/forja/progreso-creacion";
@@ -366,12 +366,19 @@ export const MessageItem = memo(function MessageItem({
 
   return (
     <div data-role="assistant" className="msg-in group flex gap-2.5">
-      <SparkleAvatar size={22} generating={streaming} className="mt-0.5" />
+      {/* Chispa como avatar: quieta en las respuestas ya escritas (decenas de
+          SVG animados a la vez no aportan nada) y viva mientras escribe. */}
+      <span className="mt-0.5 shrink-0">
+        <Chispa estado="avatar" size={26} className={streaming ? undefined : "chispa--quieta"} />
+      </span>
       <div className="min-w-0 max-w-[88%] flex-1 sm:max-w-[82%]">
         {msg.error ? (
-          <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3.5 py-2.5 text-sm text-destructive">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+          <div className="flex items-center gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+            <Chispa estado="error" size={44} className="shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[12.5px] font-semibold text-foreground">Uy, se me apagó el fuego</p>
+              <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+            </div>
           </div>
         ) : msg.generatedImage ? (
           <div className="overflow-hidden rounded-2xl rounded-tl-md border border-border/50 bg-card/80 shadow-sm">

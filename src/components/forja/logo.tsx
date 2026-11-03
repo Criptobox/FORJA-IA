@@ -4,7 +4,7 @@
  * para que el cambio sea quirúrgico en los puntos donde se pinta: cabecera
  * de la barra lateral (26px), bienvenida (56px con glow), trace del agente
  * (18px), onboarding (64px con glow) y pantalla de generación (56px).
- * El SparkleAvatar va aparte para las burbujas del chat.
+ * Las burbujas del chat llevan a Chispa (chispa.tsx), la mascota.
  *
  * Los degradados salen del logo maestro (motor-forja/marca/forja-logo.svg):
  * metal que pasa por el fuego, del durazno al naranja profundo.
