@@ -3,7 +3,7 @@
  *
  * Sale del prototipo «Fusión Definitiva»: el menú hamburguesa deja de ser la
  * única puerta en el móvil. Las pestañas reutilizan las pantallas que ya
- * existen (conversaciones, selector de modelo, herramientas); aquí solo vive
+ * existen (Cerebro, Estudio, herramientas); aquí solo vive
  * la presentación. En escritorio (≥ lg) no se pinta: ahí manda la barra lateral.
  *
  * Los nombres accesibles llevan el prefijo «Pestaña» a propósito: hay E2E que
@@ -19,7 +19,6 @@ import {
   Database,
   FlaskConical,
   FolderGit2,
-  FolderKanban,
   GraduationCap,
   Github,
   Hammer,
@@ -31,8 +30,8 @@ import {
   Swords,
   Ticket,
   Wand2,
-  Cpu,
   Layers,
+  Palette,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
@@ -40,12 +39,16 @@ import { ThemeSegmented, VersionLine } from "./sidebar";
 import { InstallButton } from "./pwa";
 import { cn } from "@/lib/utils";
 
-export type PestanaMovil = "crear" | "proyectos" | "modelos" | "ecosistema";
+/** Las conversaciones se abren con el ☰ de la cabecera y el modelo con su
+ * selector, también arriba: repetirlos aquí era gastar dos pestañas en lo
+ * que ya está a un toque. En su lugar, el Cerebro (lo que Forja sabe del
+ * proyecto) y el Estudio de diseño, que en el móvil no tenía entrada. */
+export type PestanaMovil = "crear" | "cerebro" | "estudio" | "ecosistema";
 
 const TABS: { id: PestanaMovil; label: string; icon: ReactNode }[] = [
   { id: "crear", label: "Crear", icon: <Wand2 className="size-[18px]" /> },
-  { id: "proyectos", label: "Proyectos", icon: <FolderKanban className="size-[18px]" /> },
-  { id: "modelos", label: "Modelos", icon: <Cpu className="size-[18px]" /> },
+  { id: "cerebro", label: "Cerebro", icon: <Brain className="size-[18px]" /> },
+  { id: "estudio", label: "Estudio", icon: <Palette className="size-[18px]" /> },
   { id: "ecosistema", label: "Ecosistema", icon: <Layers className="size-[18px]" /> },
 ];
 

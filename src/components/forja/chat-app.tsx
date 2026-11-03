@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/resizable";
 import { Sidebar } from "./sidebar";
 import { EcosistemaSheet, MobileNav, type PestanaMovil } from "./mobile-nav";
+import { CerebroSheet } from "./cerebro-sheet";
 import { ChatInput } from "./chat-input";
 import { MessageItem } from "./message";
 import { PropuestaCard } from "./propuesta-card";
@@ -235,6 +236,7 @@ export function ChatApp() {
   const [focusProvider, setFocusProvider] = useState<ProviderId | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ecoOpen, setEcoOpen] = useState(false);
+  const [cerebroOpen, setCerebroOpen] = useState(false);
   const [usageOpen, setUsageOpen] = useState(false);
   const [failuresOpen, setFailuresOpen] = useState(false);
   // U2-U6 (PLAN-V7): diálogos de utilidad que abre el slash (/snip, /plantillas,
@@ -1989,23 +1991,26 @@ export function ChatApp() {
                 : undefined
         }
       />
-      {/* Barra de 4 pestañas (solo móvil): Crear · Proyectos · Modelos · Ecosistema */}
+      {/* Barra de 4 pestañas (solo móvil): Crear · Cerebro · Estudio · Ecosistema */}
       {!focusMode && (
         <MobileNav
-          activa={ecoOpen ? "ecosistema" : sidebarOpen ? "proyectos" : "crear"}
+          activa={ecoOpen ? "ecosistema" : cerebroOpen ? "cerebro" : "crear"}
           onSelect={(id: PestanaMovil) => {
             if (id === "crear") {
               setEcoOpen(false);
+              setCerebroOpen(false);
               setSidebarOpen(false);
               if (hasMessages) createSession();
               requestAnimationFrame(() => {
                 document.querySelector<HTMLTextAreaElement>("textarea")?.focus();
               });
-            } else if (id === "proyectos") {
-              setSidebarOpen(true);
-            } else if (id === "modelos") {
-              window.dispatchEvent(new CustomEvent("forja-open-model-picker"));
+            } else if (id === "cerebro") {
+              setEcoOpen(false);
+              setCerebroOpen(true);
+            } else if (id === "estudio") {
+              window.location.assign("/forja");
             } else {
+              setCerebroOpen(false);
               setEcoOpen(true);
             }
           }}
@@ -2123,6 +2128,20 @@ export function ChatApp() {
       </Sheet>
 
       {/* Hoja de Ecosistema (móvil) */}
+      <CerebroSheet
+        open={cerebroOpen}
+        onOpenChange={setCerebroOpen}
+        mensajes={messages}
+        sessionId={activeId}
+        onPreguntar={(t) => {
+          setInput(t);
+          requestAnimationFrame(() => {
+            document.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+          });
+        }}
+        onOpenMemoria={() => setMemoriaOpen(true)}
+        onOpenKnowledgeBase={() => setKbOpen(true)}
+      />
       <EcosistemaSheet
         open={ecoOpen}
         onOpenChange={setEcoOpen}
