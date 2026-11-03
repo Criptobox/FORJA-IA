@@ -160,3 +160,76 @@ test.describe("Cerebro con un proyecto", () => {
     await expect(page.locator("textarea").first()).toHaveValue(/^Sobre `index\.html` \(usa app\.js, styles\.css\): $/);
   });
 });
+
+test.describe("Cerebro con un repo de GitHub", () => {
+  test.use({ viewport: { width: 390, height: 780 } });
+
+  test("mapea un repo (zipball simulado) y pregunta por un archivo nombrando el repo", async ({ page }) => {
+    const { writeZip } = await import("../../src/lib/forja/zip");
+    const { encodeText } = await import("../../src/lib/forja/sandbox");
+    await page.addInitScript(() => {
+      if (window.top !== window.self) return;
+      localStorage.setItem("forja-github-token", "e2e-token-falso");
+      localStorage.setItem(
+        "forja-ai-v1",
+        JSON.stringify({
+          state: { sessions: [], activeSessionId: null, onboardingDone: true, favorites: [], radarSeenIds: [], skills: [], settings: {}, providers: {}, version: 1 },
+          version: 0,
+        })
+      );
+    });
+    // GitHub sirve el zipball con una carpeta raíz «owner-repo-sha/» delante
+    const zip = Buffer.from(
+      writeZip([
+        { path: "demo-repo-abc/src/app/page.tsx", data: encodeText('import { Boton } from "@/components/boton";') },
+        { path: "demo-repo-abc/src/components/boton.tsx", data: encodeText('import "./boton.css"; import { cn } from "../lib/utils";') },
+        { path: "demo-repo-abc/src/components/boton.css", data: encodeText(".b{}") },
+        { path: "demo-repo-abc/src/lib/utils.ts", data: encodeText("export const cn = 1") },
+      ])
+    );
+    await page.route("**/api.github.com/**", async (route) => {
+      const url = route.request().url();
+      if (url.includes("/zipball/")) return route.fulfill({ status: 200, contentType: "application/zip", body: zip });
+      if (/\/repos\/demo\/repo$/.test(url))
+        return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ default_branch: "main", private: false, html_url: "https://github.com/demo/repo", permissions: { push: true } }) });
+      return route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+    });
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "Pestaña Cerebro" }).click();
+    const hoja = page.getByRole("dialog", { name: "Cerebro" });
+    await hoja.getByRole("radio", { name: "Un repo de GitHub" }).click();
+    await hoja.getByLabel("Repositorio").fill("demo/repo");
+    await hoja.getByRole("button", { name: "Mapear" }).click();
+
+    await expect(hoja.getByText("4 archivos · 3 conexiones")).toBeVisible({ timeout: 15_000 });
+    await hoja.getByRole("button", { name: "Archivo src/components/boton.tsx" }).click();
+    const ficha = hoja.getByTestId("cerebro-nodo");
+    await expect(ficha).toContainText("src/components/boton.css");
+    await expect(ficha).toContainText("src/lib/utils.ts");
+    await expect(ficha).toContainText("src/app/page.tsx");
+    await ficha.getByRole("button", { name: "Preguntar por este archivo" }).click();
+    await expect(page.locator("textarea").first()).toHaveValue(/^En el repo demo\/repo, sobre `src\/components\/boton\.tsx`/);
+
+    // y vuelve a la conversación sin perder el repo mapeado
+    await page.getByRole("button", { name: "Pestaña Cerebro" }).click();
+    await expect(hoja.getByRole("radio", { name: "Un repo de GitHub" })).toHaveAttribute("aria-checked", "true");
+  });
+
+  test("sin GitHub conectado, lleva a Repos para conectarlo", async ({ page }) => {
+    await page.addInitScript(() => {
+      if (window.top !== window.self) return;
+      localStorage.setItem(
+        "forja-ai-v1",
+        JSON.stringify({ state: { sessions: [], activeSessionId: null, onboardingDone: true, favorites: [], radarSeenIds: [], skills: [], settings: {}, providers: {}, version: 1 }, version: 0 })
+      );
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Pestaña Cerebro" }).click();
+    const hoja = page.getByRole("dialog", { name: "Cerebro" });
+    await hoja.getByRole("radio", { name: "Un repo de GitHub" }).click();
+    await hoja.getByRole("button", { name: "Conectar en Repos" }).click();
+    await expect(hoja).toBeHidden();
+    await expect(page.getByRole("dialog", { name: /Repo/ })).toBeVisible();
+  });
+});

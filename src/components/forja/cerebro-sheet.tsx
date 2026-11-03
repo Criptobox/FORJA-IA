@@ -6,19 +6,48 @@
  *    (`lib/forja/cerebro.ts`). Toca un nodo y ves qué usa y quién lo usa;
  *    «Preguntar por este archivo» lo pone en el compositor. Es el mismo grafo
  *    con el que Forja decide qué archivos manda al modelo en cada turno.
+ *    También mapea un repo de GitHub: se descarga entero en una sola petición
+ *    (el mismo zipball que usa «Todo el repo al Sandbox») y se dibujan sus
+ *    archivos más conectados.
  *  · Memoria: decisiones, errores y reglas que ya guarda la app.
  *  · Conocimiento: la base de documentos propia.
  */
-import { useMemo, useState } from "react";
-import { Brain, ChevronRight, Database, MessageSquarePlus, Network } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Brain, ChevronRight, Database, FolderGit2, Loader2, MessageSquarePlus, Network } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
-import { disponerMapa, mapaDelProyecto, preguntaSobre, TIPOS, type NodoMapa } from "@/lib/forja/cerebro";
+import {
+  disponerMapa,
+  mapaDeArchivos,
+  mapaDelProyecto,
+  preguntaSobre,
+  recortarMapa,
+  TIPOS,
+  type MapaProyecto,
+  type NodoMapa,
+} from "@/lib/forja/cerebro";
+import { ghGetToken, ghListRepos, type GhRepoItem } from "@/lib/forja/github-upload";
+import { fetchRepoInfo, fetchRepoZip, parseRepoInput } from "@/lib/forja/repo-cloud";
 import { leerMemoria } from "@/lib/forja/memoria-proyecto";
 import { cn } from "@/lib/utils";
 import { Chispa } from "./chispa";
 
 const ANCHO = 340;
-const ALTO = 300;
+/** El lienzo crece con el número de archivos para que quepan sus nombres. */
+const altoPara = (n: number) => Math.min(720, Math.max(300, n * 22));
+/** Archivos que se dibujan de un repo (los más conectados). */
+const MAX_NODOS_REPO = 24;
+/** Último repo mapeado: comodidad de este navegador, no dato del proyecto. */
+const CLAVE_REPO = "forja-cerebro-repo";
+
+const VACIO: MapaProyecto = { nodos: [], aristas: [] };
+
+type Fuente = "chat" | "repo";
+interface MapaRepo {
+  nombre: string;
+  mapa: MapaProyecto;
+  total: number;
+  omitidos: number;
+}
 
 export function CerebroSheet({
   open,
@@ -28,6 +57,7 @@ export function CerebroSheet({
   onPreguntar,
   onOpenMemoria,
   onOpenKnowledgeBase,
+  onOpenRepos,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,16 +67,92 @@ export function CerebroSheet({
   onPreguntar: (texto: string) => void;
   onOpenMemoria: () => void;
   onOpenKnowledgeBase: () => void;
+  /** abre Repos para conectar GitHub */
+  onOpenRepos: () => void;
 }) {
-  const mapa = useMemo(() => (open ? mapaDelProyecto(mensajes) : { nodos: [], aristas: [] }), [open, mensajes]);
-  const pos = useMemo(() => disponerMapa(mapa, ANCHO, ALTO), [mapa]);
+  const [fuente, setFuente] = useState<Fuente>("chat");
   const [elegido, setElegido] = useState<string | null>(null);
+  const [repoMapa, setRepoMapa] = useState<MapaRepo | null>(null);
+  const [repoTexto, setRepoTexto] = useState(() => {
+    try {
+      return localStorage.getItem(CLAVE_REPO) ?? "";
+    } catch {
+      return "";
+    }
+  });
+  const [misRepos, setMisRepos] = useState<GhRepoItem[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [errorRepo, setErrorRepo] = useState("");
+  const token = open && fuente === "repo" ? ghGetToken() : "";
+
+  // la lista de tus repos, para elegir sin teclear (solo con GitHub conectado)
+  useEffect(() => {
+    if (!token || misRepos.length) return;
+    const ctl = new AbortController();
+    ghListRepos(token, { signal: ctl.signal })
+      .then(setMisRepos)
+      .catch(() => {
+        /* sin lista: se puede escribir owner/repo a mano */
+      });
+    return () => ctl.abort();
+  }, [token, misRepos.length]);
+
+  const mapear = async () => {
+    const elegidoRepo = parseRepoInput(repoTexto);
+    if (!elegidoRepo) {
+      setErrorRepo("Escribe el repo como usuario/repo o pega su enlace de GitHub.");
+      return;
+    }
+    if (!token) return;
+    setCargando(true);
+    setErrorRepo("");
+    try {
+      const deLista = misRepos.find(
+        (r) => r.owner.toLowerCase() === elegidoRepo.owner.toLowerCase() && r.repo.toLowerCase() === elegidoRepo.repo.toLowerCase()
+      );
+      const rama = deLista?.defaultBranch ?? (await fetchRepoInfo(token, elegidoRepo.owner, elegidoRepo.repo)).defaultBranch;
+      const { files, skipped } = await fetchRepoZip(token, elegidoRepo.owner, elegidoRepo.repo, rama);
+      const completo = mapaDeArchivos(new Map(files.map((f) => [f.path, { text: f.content }])));
+      const { mapa: recortado, total } = recortarMapa(completo, MAX_NODOS_REPO);
+      const nombre = `${elegidoRepo.owner}/${elegidoRepo.repo}`;
+      setRepoMapa({ nombre, mapa: recortado, total, omitidos: skipped });
+      setElegido(null);
+      try {
+        localStorage.setItem(CLAVE_REPO, nombre);
+      } catch {
+        /* sin almacenamiento: no pasa nada */
+      }
+    } catch (e) {
+      setErrorRepo(e instanceof Error ? e.message : String(e));
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const mapaChat = useMemo(() => (open ? mapaDelProyecto(mensajes) : VACIO), [open, mensajes]);
+  const mapa: MapaProyecto = useMemo(
+    () => (fuente === "repo" ? (repoMapa?.mapa ?? VACIO) : mapaChat),
+    [fuente, repoMapa, mapaChat]
+  );
+  const alto = altoPara(mapa.nodos.length);
+  const pos = useMemo(() => disponerMapa(mapa, ANCHO, alto), [mapa, alto]);
   const nodo: NodoMapa | null = mapa.nodos.find((n) => n.id === elegido) ?? null;
   const memoria = useMemo(
     () => (open && sessionId ? leerMemoria(sessionId) : null),
     [open, sessionId]
   );
   const tiposUsados = [...new Set(mapa.nodos.map((n) => n.tipo))];
+  // con muchas conexiones las líneas se aclaran para que se lean los nombres
+  const denso = mapa.aristas.length > mapa.nodos.length * 1.5;
+  // los archivos de los que depende todo (los que más se usan)
+  const clave = useMemo(
+    () =>
+      [...mapa.nodos]
+        .filter((n) => n.loUsan.length > 1)
+        .sort((x, y) => y.loUsan.length - x.loUsan.length || x.id.localeCompare(y.id))
+        .slice(0, 6),
+    [mapa]
+  );
   const vecinos = new Set(nodo ? [...nodo.usa, ...nodo.loUsan] : []);
   const ir = (fn: () => void) => () => {
     onOpenChange(false);
@@ -74,24 +180,121 @@ export function CerebroSheet({
               </h3>
               {mapa.nodos.length > 0 && (
                 <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {mapa.nodos.length} archivo{mapa.nodos.length === 1 ? "" : "s"} · {mapa.aristas.length} conexi
-                  {mapa.aristas.length === 1 ? "ón" : "ones"}
+                  {fuente === "repo" && repoMapa && repoMapa.total > mapa.nodos.length
+                    ? `${mapa.nodos.length} de ${repoMapa.total} archivos`
+                    : `${mapa.nodos.length} archivo${mapa.nodos.length === 1 ? "" : "s"}`}{" "}
+                  · {mapa.aristas.length} conexi{mapa.aristas.length === 1 ? "ón" : "ones"}
                 </span>
               )}
             </div>
 
-            {mapa.nodos.length === 0 ? (
+            <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl bg-muted/60 p-1" role="radiogroup" aria-label="Qué mapear">
+              {(
+                [
+                  ["chat", "Esta conversación"],
+                  ["repo", "Un repo de GitHub"],
+                ] as const
+              ).map(([id, texto]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="radio"
+                  aria-checked={fuente === id}
+                  onClick={() => {
+                    setFuente(id);
+                    setElegido(null);
+                  }}
+                  className={cn(
+                    "min-h-9 rounded-lg text-[12.5px] font-medium transition",
+                    fuente === id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                  )}
+                >
+                  {texto}
+                </button>
+              ))}
+            </div>
+
+            {fuente === "repo" && (
+              <div className="mt-2.5" data-testid="cerebro-repo">
+                {!token ? (
+                  <div className="rounded-xl border border-dashed border-border p-3 text-center">
+                    <p className="text-[12.5px]">Conecta GitHub para mapear tus repos.</p>
+                    <button
+                      type="button"
+                      onClick={ir(onOpenRepos)}
+                      className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-[12.5px] font-medium"
+                    >
+                      <FolderGit2 className="size-3.5" /> Conectar en Repos
+                    </button>
+                  </div>
+                ) : (
+                  <form
+                    className="flex gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void mapear();
+                    }}
+                  >
+                    <label className="sr-only" htmlFor="cerebro-repo-input">
+                      Repositorio
+                    </label>
+                    <input
+                      id="cerebro-repo-input"
+                      list="cerebro-mis-repos"
+                      value={repoTexto}
+                      onChange={(e) => setRepoTexto(e.target.value)}
+                      placeholder="usuario/repo"
+                      autoComplete="off"
+                      className="min-h-10 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-forja-violet/40"
+                    />
+                    <datalist id="cerebro-mis-repos">
+                      {misRepos.map((r) => (
+                        <option key={r.fullName} value={r.fullName} />
+                      ))}
+                    </datalist>
+                    <button
+                      type="submit"
+                      disabled={cargando || !repoTexto.trim()}
+                      className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-xl bg-[linear-gradient(135deg,#fb923c,#f97316_45%,#ef4444)] px-3.5 text-[12.5px] font-medium text-white disabled:opacity-50"
+                    >
+                      {cargando ? <Loader2 className="size-3.5 animate-spin" /> : <Network className="size-3.5" />} Mapear
+                    </button>
+                  </form>
+                )}
+                {errorRepo && (
+                  <p role="alert" className="mt-1.5 text-[12px] text-destructive">
+                    {errorRepo}
+                  </p>
+                )}
+                {repoMapa && !cargando && (
+                  <p className="mt-1.5 text-[11.5px] text-muted-foreground">
+                    {repoMapa.nombre}
+                    {repoMapa.total > repoMapa.mapa.nodos.length && ` · se ven los ${repoMapa.mapa.nodos.length} más conectados`}
+                    {repoMapa.omitidos > 0 && ` · ${repoMapa.omitidos} binarios o muy grandes fuera`}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {cargando ? (
+              <div className="flex flex-col items-center py-5 text-center">
+                <Chispa estado="forjando" size={70} />
+                <p className="mt-2 text-[13px] font-medium">Leyendo el repo…</p>
+              </div>
+            ) : fuente === "repo" && !repoMapa ? null : mapa.nodos.length === 0 ? (
               <div className="flex flex-col items-center py-5 text-center" data-testid="cerebro-vacio">
                 <Chispa estado="inicio" size={70} />
                 <p className="mt-2 text-[13px] font-medium">Aún no hay nada que mapear</p>
                 <p className="mt-0.5 max-w-[16rem] text-[12px] text-muted-foreground">
-                  Cuando Forja cree archivos en esta conversación, aquí verás cómo se conectan entre sí.
+                  {fuente === "repo"
+                    ? "Este repo no tiene archivos de texto que mapear."
+                    : "Cuando Forja cree archivos en esta conversación, aquí verás cómo se conectan entre sí."}
                 </p>
               </div>
             ) : (
               <>
                 <svg
-                  viewBox={`0 0 ${ANCHO} ${ALTO}`}
+                  viewBox={`0 0 ${ANCHO} ${alto}`}
                   className="mt-2 block h-auto w-full touch-manipulation rounded-xl bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--forja-violet)_8%,transparent),transparent_70%)]"
                   role="group"
                   aria-label="Mapa de archivos del proyecto"
@@ -119,8 +322,8 @@ export function CerebroSheet({
                         x2={q.x - (dx / d) * 16}
                         y2={q.y - (dy / d) * 16}
                         stroke="currentColor"
-                        strokeWidth={activa ? 2 : 1.2}
-                        className={activa ? "text-forja-violet" : "text-muted-foreground/50"}
+                        strokeWidth={activa ? 2 : denso ? 0.8 : 1.2}
+                        className={activa ? "text-forja-violet" : denso ? "text-muted-foreground/25" : "text-muted-foreground/50"}
                         markerEnd="url(#cerebro-flecha)"
                       />
                     );
@@ -167,6 +370,31 @@ export function CerebroSheet({
                   ))}
                 </div>
 
+                {clave.length >= 2 && (
+                  <div className="mt-2.5" data-testid="cerebro-clave">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Los que más se usan</p>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {clave.map((n) => (
+                        <button
+                          key={n.id}
+                          type="button"
+                          aria-pressed={n.id === elegido}
+                          onClick={() => setElegido(n.id === elegido ? null : n.id)}
+                          title={n.id}
+                          className={cn(
+                            "inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full border px-2.5 text-[12px]",
+                            n.id === elegido ? "border-forja-violet bg-forja-violet/10" : "border-border/60 bg-card"
+                          )}
+                        >
+                          <span className="size-2 shrink-0 rounded-full" style={{ background: TIPOS[n.tipo].color }} />
+                          <span className="truncate">{n.nombre}</span>
+                          <span className="tabular-nums text-muted-foreground">{n.loUsan.length}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {nodo ? (
                   <div className="mt-2.5 rounded-xl border border-border/60 bg-muted/40 p-2.5" data-testid="cerebro-nodo">
                     <p className="truncate font-mono text-[12.5px] font-semibold">{nodo.id}</p>
@@ -176,16 +404,20 @@ export function CerebroSheet({
                     <dl className="mt-1.5 space-y-0.5 text-[12px]">
                       <div className="flex gap-1.5">
                         <dt className="shrink-0 text-muted-foreground">Usa:</dt>
-                        <dd className="min-w-0 truncate">{nodo.usa.join(", ") || "nada"}</dd>
+                        <dd className="min-w-0 truncate">{lista(nodo.usa, "nada")}</dd>
                       </div>
                       <div className="flex gap-1.5">
                         <dt className="shrink-0 text-muted-foreground">Lo usan:</dt>
-                        <dd className="min-w-0 truncate">{nodo.loUsan.join(", ") || "nadie"}</dd>
+                        <dd className="min-w-0 truncate">{lista(nodo.loUsan, "nadie")}</dd>
                       </div>
                     </dl>
                     <button
                       type="button"
-                      onClick={ir(() => onPreguntar(preguntaSobre(nodo)))}
+                      onClick={ir(() =>
+                        onPreguntar(
+                          fuente === "repo" && repoMapa ? `En el repo ${repoMapa.nombre}, ${preguntaSobre(nodo).replace(/^Sobre/, "sobre")}` : preguntaSobre(nodo)
+                        )
+                      )}
                       className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[linear-gradient(135deg,#fb923c,#f97316_45%,#ef4444)] px-3.5 text-[12.5px] font-medium text-white shadow-sm"
                     >
                       <MessageSquarePlus className="size-3.5" /> Preguntar por este archivo
@@ -226,6 +458,13 @@ export function CerebroSheet({
       </SheetContent>
     </Sheet>
   );
+}
+
+/** «a, b» o, si son muchos, «12 archivos: a, b, c…» (la fila se recorta). */
+function lista(rutas: readonly string[], vacio: string): string {
+  if (!rutas.length) return vacio;
+  const nombres = rutas.map((r) => r.split("/").pop() || r);
+  return rutas.length > 3 ? `${rutas.length} archivos: ${nombres.join(", ")}` : rutas.join(", ");
 }
 
 function FilaCerebro(p: { icono: React.ReactNode; color: string; titulo: string; detalle: string; onClick: () => void }) {

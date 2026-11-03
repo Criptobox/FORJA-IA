@@ -2141,6 +2141,7 @@ export function ChatApp() {
         }}
         onOpenMemoria={() => setMemoriaOpen(true)}
         onOpenKnowledgeBase={() => setKbOpen(true)}
+        onOpenRepos={() => setReposOpen(true)}
       />
       <EcosistemaSheet
         open={ecoOpen}

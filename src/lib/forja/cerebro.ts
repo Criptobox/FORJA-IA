@@ -59,21 +59,51 @@ interface MensajeLeible {
   content: string;
 }
 
-/** El mapa de la conversación: un nodo por archivo vigente. */
-export function mapaDelProyecto(mensajes: readonly MensajeLeible[]): MapaProyecto {
-  const archivos = archivosVigentes(mensajes);
+/** El mapa de cualquier conjunto de archivos (ruta → texto). */
+export function mapaDeArchivos(archivos: ReadonlyMap<string, { text: string }>): MapaProyecto {
   const aristas = aristasDeArchivos(archivos);
-  const nodos: NodoMapa[] = [...archivos.values()]
-    .map((a) => ({
-      id: a.path,
-      nombre: a.path.split("/").pop() || a.path,
-      tipo: tipoDeArchivo(a.path),
+  const usa = new Map<string, string[]>();
+  const loUsan = new Map<string, string[]>();
+  for (const e of aristas) {
+    usa.set(e.de, [...(usa.get(e.de) ?? []), e.a]);
+    loUsan.set(e.a, [...(loUsan.get(e.a) ?? []), e.de]);
+  }
+  const nodos: NodoMapa[] = [...archivos.entries()]
+    .map(([ruta, a]) => ({
+      id: ruta,
+      nombre: ruta.split("/").pop() || ruta,
+      tipo: tipoDeArchivo(ruta),
       caracteres: a.text.length,
-      usa: aristas.filter((x) => x.de === a.path).map((x) => x.a),
-      loUsan: aristas.filter((x) => x.a === a.path).map((x) => x.de),
+      usa: usa.get(ruta) ?? [],
+      loUsan: loUsan.get(ruta) ?? [],
     }))
     .sort((x, y) => x.id.localeCompare(y.id));
   return { nodos, aristas };
+}
+
+/** El mapa de la conversación: un nodo por archivo vigente. */
+export function mapaDelProyecto(mensajes: readonly MensajeLeible[]): MapaProyecto {
+  return mapaDeArchivos(archivosVigentes(mensajes));
+}
+
+/** Un repo puede tener cientos de archivos y en un móvil no se leen más de
+ * unas decenas: se quedan los más conectados (los que vertebran el proyecto)
+ * y las conexiones entre ellos. `total` dice cuántos había. */
+export function recortarMapa(mapa: MapaProyecto, max = 40): { mapa: MapaProyecto; total: number } {
+  const total = mapa.nodos.length;
+  if (total <= max) return { mapa, total };
+  const grado = (n: NodoMapa) => n.usa.length + n.loUsan.length;
+  const elegidos = new Set(
+    [...mapa.nodos]
+      .sort((x, y) => grado(y) - grado(x) || x.id.localeCompare(y.id))
+      .slice(0, max)
+      .map((n) => n.id)
+  );
+  const nodos = mapa.nodos
+    .filter((n) => elegidos.has(n.id))
+    .map((n) => ({ ...n, usa: n.usa.filter((x) => elegidos.has(x)), loUsan: n.loUsan.filter((x) => elegidos.has(x)) }));
+  const aristas = mapa.aristas.filter((e) => elegidos.has(e.de) && elegidos.has(e.a));
+  return { mapa: { nodos, aristas }, total };
 }
 
 /** Hueco mínimo entre dos nodos para que sus etiquetas no se pisen. */
@@ -152,7 +182,7 @@ export function disponerMapa(mapa: MapaProyecto, ancho: number, alto: number, ma
   // Pasada final: las etiquetas van debajo de cada nodo y miden más que él,
   // así que dos nodos a la misma altura y demasiado juntos se separan hasta
   // que sus nombres no se pisen (por el eje en que menos se solapan).
-  for (let vuelta = 0; vuelta < 60; vuelta++) {
+  for (let vuelta = 0; vuelta < 200; vuelta++) {
     let movido = false;
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
