@@ -67,6 +67,7 @@ import { zipProyecto } from "@/lib/forja/estudio/exportar";
 import { capturarPng, dataUrlABytes } from "@/lib/forja/estudio/captura";
 import { SelectorReferencias, VistaBiblioteca, ChipsReferencias, guardarEnBiblioteca } from "./biblioteca";
 import { SelectorEstilo } from "./selector-estilo";
+import { rasgosDeHtml, resumenGustos, textoRasgo } from "@/lib/forja/estudio/gustos";
 import type { Dispositivo, Pantalla, PantallaPlan, ProyectoDiseno, TipoProyecto, VersionPantalla } from "@/lib/forja/estudio/tipos";
 
 /* ------------------------------ utilidades ------------------------------ */
@@ -182,6 +183,19 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
     }
   };
 
+  // Modo autónomo: objetivo → N pantallas de un toque (planifica, crea y
+  // genera todas; cada una pasa por el revisor antes de enseñarse).
+  const [cuantas, setCuantas] = useState(4);
+  const autonomo = async () => {
+    if (!brief.trim()) return toast.error("Describe qué quieres diseñar");
+    try {
+      const propuesta = await planificar(brief, tipo, cuantas);
+      crearYGenerar(propuesta.slice(0, cuantas));
+    } catch (e) {
+      toast.error("No se pudo planificar", { description: e instanceof Error ? e.message : String(e) });
+    }
+  };
+
   const crearYGenerar = (pantallas: PantallaPlan[]) => {
     const limpias = pantallas.filter((p) => p.nombre.trim());
     if (!limpias.length) return toast.error("Añade al menos una pantalla");
@@ -260,6 +274,8 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
           <SelectorEstilo direcciones={DIRECCIONES} valor={direccion} onCambio={setDireccion} />
         </div>
 
+        <GustosAprendidos />
+
         <details className="mt-3 rounded-xl border border-border/60 px-3 py-2" open={refs.length > 0 || undefined}>
           <summary className="cursor-pointer text-[12px] font-medium">
             Referencias visuales{refs.length ? ` · ${refs.length} elegida${refs.length > 1 ? "s" : ""}` : " (opcional)"}
@@ -282,6 +298,26 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
             >
               Solo una pantalla
             </Button>
+            <div className="flex w-full flex-wrap items-center gap-2 rounded-xl border border-dashed border-orange-500/40 p-2 sm:w-auto" data-testid="modo-autonomo">
+              <Button onClick={() => void autonomo()} disabled={!brief.trim() || ocupado} variant="secondary" className="gap-1.5">
+                <Sparkles className="size-4 text-orange-500" /> Hazlo todo
+              </Button>
+              <label className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                <select
+                  aria-label="Pantallas del modo autónomo"
+                  value={cuantas}
+                  onChange={(e) => setCuantas(Number(e.target.value))}
+                  className="h-8 rounded-lg border border-border/60 bg-background px-1.5 text-[12px] text-foreground"
+                >
+                  {[3, 4, 5, 6].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+                pantallas, sin preguntar
+              </label>
+            </div>
           </div>
         ) : (
           <div className="mt-4 space-y-2">
@@ -466,6 +502,18 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
           <ChipsReferencias ids={proyecto.referencias ?? []} />
           <Images className="size-3.5" /> Referencias{proyecto.referencias?.length ? ` (${proyecto.referencias.length})` : ""}
         </Button>
+        <label
+          className="flex items-center gap-1.5 text-[12px] text-muted-foreground"
+          title="Si la crítica encuentra fallos concretos, Forja corrige la pantalla una vez antes de enseñártela (una llamada más, solo cuando hace falta)"
+        >
+          <input
+            type="checkbox"
+            checked={proyecto.revisarAntes !== false}
+            onChange={(e) => cambio((p) => ({ ...p, revisarAntes: e.target.checked, actualizado: Date.now() }))}
+            className="size-4 accent-orange-500"
+          />
+          Revisar antes de mostrar
+        </label>
         <div className="ml-auto flex flex-wrap gap-1.5">
           {ocupado ? (
             <Button size="sm" variant="outline" onClick={detener} className="gap-1.5">
@@ -899,6 +947,7 @@ function PanelPantalla(props: {
               </button>
             ))}
           </div>
+          {v && <VotoVersion versionId={v.id} html={html} />}
         </div>
       )}
 
@@ -945,6 +994,64 @@ function PanelPantalla(props: {
         </div>
       )}
     </aside>
+  );
+}
+
+/** 👍 / 👎 de la versión que se ve: alimenta la memoria de gustos. Los
+ * rasgos se sacan del HTML aquí mismo, sin modelo. */
+function VotoVersion({ versionId, html }: { versionId: string; html: string }) {
+  const voto = useEstudio((st) => st.gustos[versionId]?.voto ?? null);
+  const votar = useEstudio((st) => st.votar);
+  const marcar = (nuevo: "si" | "no") =>
+    votar(versionId, voto === nuevo ? null : { voto: nuevo, rasgos: rasgosDeHtml(html), cuando: Date.now() });
+  return (
+    <div className="mt-1.5 flex items-center gap-1.5" data-testid="voto-version">
+      <span className="text-[11.5px] text-muted-foreground">¿Te gusta esta versión?</span>
+      <button
+        type="button"
+        aria-pressed={voto === "si"}
+        aria-label="Me gusta"
+        onClick={() => marcar("si")}
+        className={cn("rounded-md border px-2 py-0.5 text-[13px]", voto === "si" ? "border-emerald-500 bg-emerald-500/15" : "border-border/60")}
+      >
+        👍
+      </button>
+      <button
+        type="button"
+        aria-pressed={voto === "no"}
+        aria-label="No me gusta"
+        onClick={() => marcar("no")}
+        className={cn("rounded-md border px-2 py-0.5 text-[13px]", voto === "no" ? "border-red-500 bg-red-500/15" : "border-border/60")}
+      >
+        👎
+      </button>
+    </div>
+  );
+}
+
+/** Lo que Forja ha aprendido de tus votos, en una línea, con «Olvidar». */
+function GustosAprendidos() {
+  const gustos = useEstudio((st) => st.gustos);
+  const olvidar = useEstudio((st) => st.olvidarGustos);
+  const r = useMemo(() => resumenGustos(Object.values(gustos)), [gustos]);
+  if (!r.votos) return null;
+  return (
+    <div className="mt-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-[12px]" data-testid="gustos-aprendidos">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-medium">Tus gustos · {r.votos} voto{r.votos === 1 ? "" : "s"}</span>
+        <button type="button" onClick={olvidar} className="text-[11.5px] text-muted-foreground underline">
+          Olvidar
+        </button>
+      </div>
+      {r.gusta.length + r.evita.length > 0 ? (
+        <p className="mt-0.5 text-muted-foreground">
+          {r.gusta.length > 0 && <>Te gusta: {r.gusta.map(textoRasgo).join(", ")}. </>}
+          {r.evita.length > 0 && <>Evitas: {r.evita.map(textoRasgo).join(", ")}.</>}
+        </p>
+      ) : (
+        <p className="mt-0.5 text-muted-foreground">Vota alguna pantalla más y Forja empezará a tenerlos en cuenta.</p>
+      )}
+    </div>
   );
 }
 

@@ -36,8 +36,10 @@ async function seed(page: Page) {
 
 function html(titulo: string, extra = ""): string {
   // Con estilos de verdad (fondo, degradado, sombra, radio): la captura PNG
-  // tiene que conservarlos, no solo el texto.
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${titulo}</title><style>:root{--color-acento:#e5484d}body{margin:0;padding:24px;background:#10162f;color:#f5f5f5;font-family:system-ui}h1{font-size:40px}.cta{display:inline-block;padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,var(--color-acento),#f5a524);box-shadow:0 10px 30px rgba(0,0,0,.4);font-weight:700}</style></head><body><h1>${titulo}</h1><a class="cta">Reservar cita</a>${extra}</body></html>`;
+  // tiene que conservarlos, no solo el texto. Trae navegación con el lugar
+  // marcado y un campo con etiqueta: cumple los patrones de sus pantallas, así
+  // que el revisor (fase 5) no gasta una corrección en ellas.
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${titulo}</title><style>:root{--color-acento:#e5484d}body{margin:0;padding:24px;background:#10162f;color:#f5f5f5;font-family:system-ui}h1{font-size:40px}.cta{display:inline-block;padding:14px 22px;border-radius:14px;background:linear-gradient(135deg,var(--color-acento),#f5a524);box-shadow:0 10px 30px rgba(0,0,0,.4);font-weight:700}</style></head><body><nav><a href="#" aria-current="page">Inicio</a> <a href="#">Reservar</a></nav><h1>${titulo}</h1><label for="nombre">Nombre</label><input id="nombre"><a class="cta">Reservar cita</a>${extra}</body></html>`;
 }
 
 /** Respuesta SSE estilo OpenAI con el texto troceado (como un streaming real). */
