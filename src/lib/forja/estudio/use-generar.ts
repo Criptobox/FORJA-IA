@@ -20,6 +20,10 @@ import {
 } from "./prompts";
 import { actualizarPantalla, conNuevaVersion, direccionDe, versionActual } from "./proyecto";
 import { useEstudio } from "./store";
+import { bloqueReferencias, referenciasDe } from "./biblioteca";
+import { imagenDe, useBiblioteca } from "./biblioteca-store";
+import { visionPorNombre } from "../capacidades";
+import { isAutoKey, splitModelKey } from "../types";
 import type { PantallaPlan, TipoProyecto } from "./tipos";
 
 export type ModoGeneracion =
@@ -91,9 +95,18 @@ export function useGenerar(modeloKey: string | null) {
       st.cambiar(proyectoId, (pp) =>
         actualizarPantalla(pp, pantallaId, (x) => ({ ...x, estado: "generando", error: undefined }))
       );
+      // Referencias de la Biblioteca: como texto siempre; como imágenes solo
+      // si el modelo elegido parece ver (o con Auto, que ordena por visión).
+      const refs = referenciasDe(p.referencias, useBiblioteca.getState().referencias).slice(0, 4);
+      const elegido = modeloKey && !isAutoKey(modeloKey) ? splitModelKey(modeloKey) : null;
+      const adjuntar = refs.length > 0 && (!elegido || visionPorNombre(elegido.modelId));
+      const imagenes = adjuntar
+        ? (await Promise.all(refs.map(async (x) => ({ nombre: x.nombre, dataUrl: (await imagenDe(x)) ?? "" })))).filter((x) => x.dataUrl)
+        : [];
       try {
         const r = await pedirAlModelo({
-          sistema: promptSistema(p, d),
+          sistema: promptSistema(p, d, bloqueReferencias(refs, imagenes.length)),
+          imagenes,
           usuario,
           modeloKey,
           signal: ac.signal,
