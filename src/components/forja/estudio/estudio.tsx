@@ -66,6 +66,7 @@ import { alternarSkill, MAX_SKILLS_PANTALLA, ORIGEN_SKILLS, SKILLS_PANTALLA, ski
 import { zipProyecto } from "@/lib/forja/estudio/exportar";
 import { capturarPng, dataUrlABytes } from "@/lib/forja/estudio/captura";
 import { SelectorReferencias, VistaBiblioteca, ChipsReferencias, guardarEnBiblioteca } from "./biblioteca";
+import { SelectorEstilo } from "./selector-estilo";
 import type { Dispositivo, Pantalla, PantallaPlan, ProyectoDiseno, TipoProyecto, VersionPantalla } from "@/lib/forja/estudio/tipos";
 
 /* ------------------------------ utilidades ------------------------------ */
@@ -256,29 +257,7 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
         </div>
         <div className="mt-3">
           <p className="mb-1.5 text-[12px] font-medium">Estilo</p>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => setDireccion(null)}
-              className={cn("rounded-lg border px-2.5 py-1.5 text-[12px]", !direccion ? "border-orange-500 bg-orange-500/10" : "border-border/60")}
-            >
-              <Sparkles className="mr-1 inline size-3.5 text-orange-500" />
-              Que elija FORJA
-            </button>
-            {DIRECCIONES.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setDireccion(d.id)}
-                title={d.cuando}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px]",
-                  direccion === d.id ? "border-orange-500 bg-orange-500/10" : "border-border/60"
-                )}
-              >
-                <Muestras d={d} />
-                {d.nombre}
-              </button>
-            ))}
-          </div>
+          <SelectorEstilo direcciones={DIRECCIONES} valor={direccion} onCambio={setDireccion} />
         </div>
 
         <details className="mt-3 rounded-xl border border-border/60 px-3 py-2" open={refs.length > 0 || undefined}>
@@ -510,7 +489,7 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
 
       <div className="grid gap-3 lg:grid-cols-[210px_minmax(0,1fr)_320px]">
         {/* pantallas */}
-        <aside className="rounded-2xl border border-border/60 bg-card/50 p-2" aria-label="Pantallas">
+        <aside className="min-w-0 rounded-2xl border border-border/60 bg-card/50 p-2" aria-label="Pantallas">
           {/* en el móvil, una fila que se desliza: el lienzo queda más arriba */}
           <ul className="flex gap-1 overflow-x-auto [scrollbar-width:none] lg:block lg:space-y-1">
             {proyecto.pantallas.map((s, i) => (
@@ -595,13 +574,19 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
               {Math.round(zoom * 100)}%
             </label>
           </div>
-          <div className="flex max-h-[calc(100dvh-220px)] min-h-[420px] flex-wrap content-start gap-5 overflow-auto p-4">
+          {/* En el móvil, un carrusel: las pantallas una junto a otra, se pasan
+              con el dedo y encajan al centro — sin un scroll vertical metido
+              dentro del de la página. En escritorio, la cuadrícula de siempre. */}
+          <div
+            data-testid="lienzo-pantallas"
+            className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain p-4 [scrollbar-width:none] lg:max-h-[calc(100dvh-220px)] lg:min-h-[420px] lg:snap-none lg:flex-wrap lg:content-start lg:gap-5 lg:overflow-auto"
+          >
             {proyecto.pantallas.length === 0 && (
               <p className="m-auto text-[13px] text-muted-foreground">Añade una pantalla para empezar.</p>
             )}
             {proyecto.pantallas.map((s) => (
+              <div key={s.id} className="shrink-0 snap-center">
               <TarjetaPantalla
-                key={s.id}
                 s={s}
                 d={d}
                 dispositivo={dispositivo}
@@ -613,6 +598,7 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
                 onAbrir={() => setCompleta(s.id)}
                 onGenerar={() => void generar(proyecto.id, [s.id])}
               />
+              </div>
             ))}
           </div>
         </section>
@@ -796,7 +782,7 @@ function PanelPantalla(props: {
   };
 
   return (
-    <aside className="space-y-3 rounded-2xl border border-border/60 bg-card/50 p-3" aria-label="Pantalla seleccionada">
+    <aside className="min-w-0 space-y-3 rounded-2xl border border-border/60 bg-card/50 p-3" aria-label="Pantalla seleccionada">
       <div className="space-y-1.5">
         <Input value={s.nombre} onChange={(e) => props.onRenombrar(e.target.value, s.proposito)} aria-label="Nombre de la pantalla" className="h-8 text-[13px] font-semibold" />
         <Input value={s.proposito} onChange={(e) => props.onRenombrar(s.nombre, e.target.value)} aria-label="Para qué sirve" placeholder="Para qué sirve" className="h-8 text-[12px]" />

@@ -6,7 +6,7 @@ import {
   parseRepoInput,
   type CloudFile,
 } from "../../src/lib/forja/repo-cloud";
-import { fetchTree, readCloudFile } from "../../src/lib/forja/repo-cloud";
+import { fetchRepoInfo, fetchTree, readCloudFile } from "../../src/lib/forja/repo-cloud";
 
 const GH = "https://api.github.com";
 
@@ -198,5 +198,27 @@ describe("CloudFile tipo", () => {
   it("shape esperada", () => {
     const f: CloudFile = { path: "a", size: 1, sha: "s" };
     expect(f.path).toBe("a");
+  });
+});
+
+describe("fetchRepoInfo · enlace a GitHub", () => {
+  it("construye htmlUrl con usuario y repo, sin copiar el html_url de la respuesta", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify({ default_branch: "dev", html_url: "javascript:alert(1)", permissions: { push: true } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      )
+    );
+    try {
+      const info = await fetchRepoInfo("t", "demo", "mi.repo");
+      expect(info.htmlUrl).toBe("https://github.com/demo/mi.repo");
+      expect(info.defaultBranch).toBe("dev");
+      expect(info.canPush).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

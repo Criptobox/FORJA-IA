@@ -369,7 +369,7 @@ export const MessageItem = memo(function MessageItem({
       {/* Chispa como avatar: quieta en las respuestas ya escritas (decenas de
           SVG animados a la vez no aportan nada) y viva mientras escribe. */}
       <span className="mt-0.5 shrink-0">
-        <Chispa estado="avatar" size={26} className={streaming ? undefined : "chispa--quieta"} />
+        <Chispa estado="avatar" size={30} className={streaming ? undefined : "chispa--quieta"} />
       </span>
       <div className="min-w-0 max-w-[88%] flex-1 sm:max-w-[82%]">
         {msg.error ? (

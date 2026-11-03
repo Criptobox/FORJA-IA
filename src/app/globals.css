@@ -1338,6 +1338,30 @@ html[data-accent="naranja"] {
   .chispa-chispas i { animation: none !important; }
 }
 
+/* Cabecera flotante: la misma cápsula que la barra de pestañas, arriba. Se
+   separa de los bordes, respeta la zona segura (muesca / barra de estado) y
+   el cristal deja ver el chat que pasa por debajo al hacer scroll. */
+.forja-cabecera {
+  margin: calc(6px + env(safe-area-inset-top, 0px)) 8px 0;
+  border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--card) 80%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 60%, transparent) inset,
+    0 14px 30px -18px rgb(60 25 5 / 0.35),
+    0 3px 10px -6px rgb(0 0 0 / 0.12);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+.dark .forja-cabecera {
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 8%, transparent) inset,
+    0 16px 34px -16px rgb(0 0 0 / 0.75);
+}
+@media (min-width: 640px) {
+  .forja-cabecera { margin-left: 12px; margin-right: 12px; }
+}
+
 /* Barra de pestañas flotante: una cápsula redondeada separada de los bordes,
    con cristal esmerilado y una píldora de color que marca dónde estás.
    El hueco de abajo respeta la zona segura del móvil (barra de gestos). */

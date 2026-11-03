@@ -72,29 +72,26 @@ export default function ForjaEstudio() {
     <div className="h-dvh overflow-auto bg-background text-foreground">
       <main id="contenido" tabIndex={-1} className={`mx-auto space-y-5 px-3 py-4 outline-none sm:px-4 sm:py-6 ${tab === "estudio" ? "max-w-[1600px]" : "max-w-6xl"}`}>
         {/* cabecera */}
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Hammer className="size-7 text-orange-500" />
-            <div>
-              <h1 className="text-base font-semibold tracking-tight sm:text-lg">
-                FORJA IA · <span className="forja-gradient-text">Estudio</span>
-              </h1>
-              <p className="text-[12px] text-muted-foreground">
-                El taller completo del módulo, con el tema de tu app — sin
-                pestañas ajenas.
-              </p>
-            </div>
+        {/* cabecera: la misma cápsula que el chat; en el móvil, solo lo que sirve
+            para diseñar (la versión del motor se queda para pantallas grandes) */}
+        <header className="forja-cabecera !mx-0 flex items-center gap-2 px-2 py-1.5 sm:gap-3 sm:px-3">
+          <Button asChild size="icon" variant="ghost" className="size-10 shrink-0 rounded-full">
+            <Link href="/" aria-label="Volver al chat">
+              <ArrowLeft className="size-[18px]" />
+            </Link>
+          </Button>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-[15px] font-semibold tracking-tight sm:text-lg">
+              <span className="forja-gradient-text">Estudio</span> de diseño
+            </h1>
+            <p className="truncate text-[11.5px] text-muted-foreground">Pantallas de apps y webs con un estilo coherente</p>
           </div>
-          <div className="flex items-center gap-2">
+          <span className="hidden sm:inline-flex">
             <Chip tono="fuego">
               v{APP_VERSION} · motor #{MOTOR_VERSION}
             </Chip>
-            <Button asChild size="sm" variant="outline" className="gap-1.5">
-              <Link href="/">
-                <ArrowLeft className="size-3.5" /> Volver al chat
-              </Link>
-            </Button>
-          </div>
+          </span>
+          <Hammer className="mr-1 size-6 shrink-0 text-orange-500" aria-hidden />
         </header>
 
         {error && tab !== "estudio" && (
@@ -118,22 +115,27 @@ export default function ForjaEstudio() {
                 <LayoutTemplate className="size-3.5" /> Estudio
               </TabsTrigger>
               <TabsTrigger value="inicio" className="gap-1.5 flex-none sm:flex-1">
-                <Compass className="size-3.5" /> Motor · Catálogo
+                <Compass className="size-3.5" /> <span className="sm:hidden">Motor</span>
+                <span className="hidden sm:inline">Motor · Catálogo</span>
               </TabsTrigger>
               <TabsTrigger value="ficha" className="gap-1.5 flex-none sm:flex-1">
-                <Hammer className="size-3.5" /> Ficha → Maqueta
+                <Hammer className="size-3.5" /> <span className="sm:hidden">Ficha</span>
+                <span className="hidden sm:inline">Ficha → Maqueta</span>
               </TabsTrigger>
               <TabsTrigger value="adn" className="gap-1.5 flex-none sm:flex-1">
-                <Layers className="size-3.5" /> ADN 2.0
+                <Layers className="size-3.5" /> <span className="sm:hidden">ADN</span>
+                <span className="hidden sm:inline">ADN 2.0</span>
               </TabsTrigger>
               <TabsTrigger value="jueces" className="gap-1.5 flex-none sm:flex-1">
-                <Gauge className="size-3.5" /> Jueces · Evidencia
+                <Gauge className="size-3.5" /> <span className="sm:hidden">Jueces</span>
+                <span className="hidden sm:inline">Jueces · Evidencia</span>
               </TabsTrigger>
               <TabsTrigger value="antigenerico" className="gap-1.5 flex-none sm:flex-1">
                 <ShieldAlert className="size-3.5" /> Anti-genérico
               </TabsTrigger>
               <TabsTrigger value="motor" className="gap-1.5 flex-none sm:flex-1">
-                <Flame className="size-3.5" /> Motor · Eficiencia + Aprendizaje
+                <Flame className="size-3.5" /> <span className="sm:hidden">Eficiencia</span>
+                <span className="hidden sm:inline">Motor · Eficiencia + Aprendizaje</span>
               </TabsTrigger>
             </TabsList>
 

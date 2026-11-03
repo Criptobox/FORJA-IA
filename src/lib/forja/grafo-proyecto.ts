@@ -88,13 +88,43 @@ export function referenciasDe(path: string, text: string): string[] {
   return [...refs];
 }
 
+const EXTENSIONES = ["", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".vue", ".svelte", ".css", ".scss", ".json"];
+
+/** Resuelve `ref` como ruta del proyecto: relativa a la carpeta de `desde`
+ * («./a», «../b/c»), absoluta desde la raíz («/js/app.js») o con el alias
+ * «@/» de Next/Vite (= «src/»). Prueba extensiones y `index.*`. Si no casa
+ * EXACTAMENTE con un archivo, null: el resto de heurísticas decide. */
+function resolverRelativa(ref: string, desde: string, archivos: ReadonlyMap<string, unknown>): string | null {
+  const limpio = ref.split(/[?#]/)[0];
+  let partes: string[];
+  if (limpio.startsWith("@/")) partes = ["src", ...limpio.slice(2).split("/")];
+  else if (limpio.startsWith("/")) partes = limpio.slice(1).split("/");
+  // relativa a la carpeta del archivo (referenciasDe ya quitó el «./»)
+  else partes = [...desde.split("/").slice(0, -1), ...limpio.split("/")];
+  const pila: string[] = [];
+  for (const p of partes) {
+    if (!p || p === ".") continue;
+    if (p === "..") pila.pop();
+    else pila.push(p);
+  }
+  const ruta = pila.join("/");
+  if (!ruta) return null;
+  for (const ext of EXTENSIONES) if (archivos.has(ruta + ext)) return ruta + ext;
+  for (const ext of EXTENSIONES.slice(1)) if (archivos.has(`${ruta}/index${ext}`)) return `${ruta}/index${ext}`;
+  return null;
+}
+
 /** Dependencias dirigidas: `de` referencia (importa, enlaza, carga) a `a`.
  * Solo lo que está escrito en el código: nada inferido. Sin duplicados. */
 export function aristasDeArchivos(archivos: ReadonlyMap<string, { text: string }>): { de: string; a: string }[] {
   const rutas = [...archivos.keys()];
   const porBase = new Map<string, string[]>();
   for (const r of rutas) porBase.set(base(r), [...(porBase.get(base(r)) ?? []), r]);
-  const resolver = (ref: string): string | null => {
+  const resolver = (ref: string, desde: string): string | null => {
+    // 1. ruta relativa a la carpeta del archivo (lo normal en un repo):
+    //    "./utils" → "src/lib/utils.ts", "../store" → "src/store/index.ts"
+    const relativa = resolverRelativa(ref, desde, archivos);
+    if (relativa) return relativa;
     const limpio = ref.replace(/^\/+/, "");
     if (archivos.has(limpio)) return limpio;
     // import "./store" sin extensión, o una ruta relativa desde otra carpeta
@@ -108,7 +138,7 @@ export function aristasDeArchivos(archivos: ReadonlyMap<string, { text: string }
   const out: { de: string; a: string }[] = [];
   for (const [r, a] of archivos) {
     for (const ref of referenciasDe(r, a.text)) {
-      const destino = resolver(ref);
+      const destino = resolver(ref, r);
       if (!destino || destino === r) continue;
       const clave = `${r}\u0000${destino}`;
       if (vistas.has(clave)) continue;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { disponerMapa, mapaDelProyecto, preguntaSobre, tipoDeArchivo } from "../../src/lib/forja/cerebro";
+import { disponerMapa, mapaDeArchivos, mapaDelProyecto, preguntaSobre, recortarMapa, tipoDeArchivo } from "../../src/lib/forja/cerebro";
 import { aristasDeArchivos, grafoDeArchivos } from "../../src/lib/forja/grafo-proyecto";
 
 const bloque = (ruta: string, codigo: string, lang = "html") => "```" + lang + " " + ruta + "\n" + codigo + "\n```";
@@ -97,5 +97,45 @@ describe("cerebro · utilidades", () => {
       "Sobre `app.js` (usa datos.js; lo usan index.html): "
     );
     expect(preguntaSobre({ id: "notas.md", usa: [], loUsan: [] })).toBe("Sobre `notas.md`: ");
+  });
+});
+
+describe("cerebro · repos con carpetas", () => {
+  const repo = new Map(
+    Object.entries({
+      "src/app/page.tsx": 'import { Boton } from "@/components/boton"; import { usar } from "../lib/store"; import x from "react";',
+      "src/components/boton.tsx": 'import "./boton.css"; import { cn } from "../lib/utils";',
+      "src/components/boton.css": ".b{}",
+      "src/lib/store/index.ts": 'export * from "./tipos";',
+      "src/lib/store/tipos.ts": "export type T = 1",
+      "src/lib/utils.ts": "export const cn = 1",
+      "otra/utils.ts": "// mismo nombre en otra carpeta",
+      "public/index.html": '<script src="/js/app.js"></script>',
+      "js/app.js": "",
+    }).map(([k, v]) => [k, { text: v }])
+  );
+
+  it("resuelve «@/», «../», «./», index.* y rutas absolutas, sin confundir archivos con el mismo nombre", () => {
+    const ar = aristasDeArchivos(repo).map((e) => `${e.de} > ${e.a}`).sort();
+    expect(ar).toEqual([
+      "public/index.html > js/app.js",
+      "src/app/page.tsx > src/components/boton.tsx",
+      "src/app/page.tsx > src/lib/store/index.ts",
+      "src/components/boton.tsx > src/components/boton.css",
+      "src/components/boton.tsx > src/lib/utils.ts",
+      "src/lib/store/index.ts > src/lib/store/tipos.ts",
+    ]);
+  });
+
+  it("mapaDeArchivos y recortarMapa se quedan con los más conectados", () => {
+    const m = mapaDeArchivos(repo);
+    expect(m.nodos).toHaveLength(9);
+    const r = recortarMapa(m, 4);
+    expect(r.total).toBe(9);
+    expect(r.mapa.nodos).toHaveLength(4);
+    expect(r.mapa.nodos.map((n) => n.id)).toContain("src/components/boton.tsx");
+    const ids = new Set(r.mapa.nodos.map((n) => n.id));
+    for (const e of r.mapa.aristas) expect(ids.has(e.de) && ids.has(e.a)).toBe(true);
+    expect(recortarMapa(m, 50).mapa).toBe(m);
   });
 });
