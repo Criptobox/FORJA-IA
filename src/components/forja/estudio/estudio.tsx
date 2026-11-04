@@ -33,6 +33,8 @@ import {
   Square,
   Tablet,
   Trash2,
+  Copy,
+  LayoutTemplate,
   Wand2,
   X,
 } from "lucide-react";
@@ -68,6 +70,7 @@ import { capturarPng, dataUrlABytes } from "@/lib/forja/estudio/captura";
 import { SelectorReferencias, VistaBiblioteca, ChipsReferencias, guardarEnBiblioteca } from "./biblioteca";
 import { SelectorEstilo } from "./selector-estilo";
 import { rasgosDeHtml, resumenGustos, textoRasgo } from "@/lib/forja/estudio/gustos";
+import { MAX_CHARS_DISENOS, plantillaDeProyecto, proyectoDesdePlantilla, tamanoDisenos, type PlantillaDiseno } from "@/lib/forja/estudio/plantillas";
 import type { Dispositivo, Pantalla, PantallaPlan, ProyectoDiseno, TipoProyecto, VersionPantalla } from "@/lib/forja/estudio/tipos";
 
 /* ------------------------------ utilidades ------------------------------ */
@@ -356,6 +359,20 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
         )}
       </section>
 
+      <TusPlantillas
+        brief={brief}
+        onUsarEstructura={(t) => {
+          // estructura + estilo de la plantilla con el encargo nuevo: el plan
+          // ya está hecho, así que no hace falta la llamada de planificar
+          setTipo(t.tipo);
+          setDireccion(t.direccionId);
+          if (!brief.trim()) setBrief(t.briefOriginal);
+          setPlan(t.pantallas.map((s) => ({ nombre: s.nombre, proposito: s.proposito })));
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          toast.info("Estructura cargada", { description: "Ajusta el encargo y las pantallas, y pulsa «Crear y generar»." });
+        }}
+      />
+
       {proyectos.length > 0 && (
         <section>
           <h3 className="mb-2 text-[13.5px] font-semibold">Tus proyectos</h3>
@@ -420,6 +437,7 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
   const [codigo, setCodigo] = useState<string | null>(null);
   const [comparar, setComparar] = useState<string | null>(null);
   const [verRefs, setVerRefs] = useState(false);
+  const [aPlantilla, setAPlantilla] = useState(false);
 
   const sel = proyecto.pantallas.find((s) => s.id === selId) ?? proyecto.pantallas[0] ?? null;
   const pendientes = proyecto.pantallas.filter((s) => s.estado === "vacia" || s.estado === "error");
@@ -498,6 +516,9 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
           </select>
         </label>
         <SelectorModelo valor={modelo} onCambio={setModelo} />
+        <Button size="sm" variant="outline" onClick={() => setAPlantilla(true)} className="gap-1.5" title="Reutiliza su estructura, su estilo y (si quieres) sus diseños en otro proyecto">
+          <LayoutTemplate className="size-3.5" /> Guardar como plantilla
+        </Button>
         <Button size="sm" variant="outline" onClick={() => setVerRefs(true)} className="gap-1.5" title="Imágenes de la Biblioteca que guían el diseño">
           <ChipsReferencias ids={proyecto.referencias ?? []} />
           <Images className="size-3.5" /> Referencias{proyecto.referencias?.length ? ` (${proyecto.referencias.length})` : ""}
@@ -698,7 +719,127 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
           <SelectorReferencias elegidas={proyecto.referencias ?? []} onCambio={(ids) => cambio((p) => conReferencias(p, ids))} />
         </DialogContent>
       </Dialog>
+      <DialogoPlantilla proyecto={proyecto} abierto={aPlantilla} onCerrar={() => setAPlantilla(false)} />
     </div>
+  );
+}
+
+/** Guardar el proyecto como plantilla: nombre y, si caben, sus diseños. */
+function DialogoPlantilla({ proyecto, abierto, onCerrar }: { proyecto: ProyectoDiseno; abierto: boolean; onCerrar: () => void }) {
+  const guardar = useEstudio((st) => st.guardarPlantilla);
+  const [nombre, setNombre] = useState(proyecto.nombre);
+  const [conDisenos, setConDisenos] = useState(true);
+  const tamano = useMemo(() => (abierto ? tamanoDisenos(proyecto) : 0), [abierto, proyecto]);
+  const caben = tamano <= MAX_CHARS_DISENOS;
+  const hechas = proyecto.pantallas.filter((s) => s.versiones.length).length;
+  return (
+    <Dialog open={abierto} onOpenChange={(o) => !o && onCerrar()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Guardar como plantilla</DialogTitle>
+          <DialogDescription>
+            Guarda su estilo y sus {proyecto.pantallas.length} pantallas para empezar otro proyecto sin volver a planificar.
+          </DialogDescription>
+        </DialogHeader>
+        <label className="block text-[12.5px] font-medium" htmlFor="nombre-plantilla">
+          Nombre
+        </label>
+        <Input id="nombre-plantilla" value={nombre} onChange={(e) => setNombre(e.target.value)} className="h-9" />
+        <label className="flex items-start gap-2 text-[12.5px]">
+          <input
+            type="checkbox"
+            checked={conDisenos && caben}
+            disabled={!caben || hechas === 0}
+            onChange={(e) => setConDisenos(e.target.checked)}
+            className="mt-0.5 size-4 accent-orange-500"
+          />
+          <span>
+            Incluir los diseños ({hechas} de {proyecto.pantallas.length} pantallas, {Math.ceil(tamano / 1024)} KB)
+            <span className="block text-[11.5px] text-muted-foreground">
+              {caben
+                ? "El proyecto nuevo arranca con ellos hechos: no gasta tokens hasta que pidas un cambio."
+                : "Ocupan demasiado para guardarlos en el navegador: se guardará solo la estructura."}
+            </span>
+          </span>
+        </label>
+        <div className="flex justify-end gap-2 pt-1">
+          <Button variant="ghost" size="sm" onClick={onCerrar}>
+            Cancelar
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              const t = plantillaDeProyecto(proyecto, { nombre, conDisenos: conDisenos && caben });
+              guardar(t);
+              toast.success("Plantilla guardada", { description: `«${t.nombre}» está en la portada del Estudio.` });
+              onCerrar();
+            }}
+          >
+            Guardar
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Las plantillas guardadas, en la portada: abrir una copia (con sus
+ * diseños, 0 tokens) o usar su estructura con el encargo nuevo. */
+function TusPlantillas({
+  brief,
+  onUsarEstructura,
+}: {
+  brief: string;
+  onUsarEstructura: (t: PlantillaDiseno) => void;
+}) {
+  const plantillas = useEstudio((st) => st.plantillas);
+  const borrar = useEstudio((st) => st.borrarPlantilla);
+  const anadir = useEstudio((st) => st.anadirProyecto);
+  if (!plantillas.length) return null;
+  return (
+    <section aria-labelledby="tus-plantillas">
+      <h3 id="tus-plantillas" className="mb-2 text-[13.5px] font-semibold">
+        Tus plantillas
+      </h3>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {plantillas.map((t) => {
+          const d = direccionDe(t);
+          return (
+            <div key={t.id} className="rounded-2xl border border-border/60 bg-card/50 p-3" data-testid="plantilla">
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-[13.5px] font-semibold">{t.nombre}</span>
+                <Muestras d={d} />
+              </div>
+              <p className="mt-1 text-[11.5px] text-muted-foreground">
+                {t.tipo === "app" ? "App" : "Web"} · {d.nombre} · {t.pantallas.length} pantallas
+                {t.conDisenos ? " · con diseños" : ""}
+              </p>
+              <p className="mt-1 line-clamp-1 text-[11.5px] text-muted-foreground">{t.pantallas.map((s) => s.nombre).join(" · ")}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {t.conDisenos && (
+                  <Button
+                    size="sm"
+                    className="h-8 gap-1"
+                    onClick={() => {
+                      anadir(proyectoDesdePlantilla(t, { brief, conDisenos: true }));
+                      toast.success("Proyecto creado desde la plantilla", { description: "Con sus diseños: pide los cambios que quieras." });
+                    }}
+                  >
+                    <Copy className="size-3.5" /> Abrir copia
+                  </Button>
+                )}
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => onUsarEstructura(t)}>
+                  <LayoutTemplate className="size-3.5" /> Usar estructura
+                </Button>
+                <Button size="icon" variant="ghost" className="ml-auto size-8" aria-label={`Borrar la plantilla ${t.nombre}`} onClick={() => borrar(t.id)}>
+                  <Trash2 className="size-3.5 text-muted-foreground" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

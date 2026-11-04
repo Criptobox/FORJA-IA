@@ -9,6 +9,7 @@ import { safeLocalStorage } from "../store";
 import { crearProyecto, type NuevoProyecto } from "./proyecto";
 import type { ProyectoDiseno } from "./tipos";
 import { MAX_VOTOS, type VotoGusto } from "./gustos";
+import { conPlantilla, type PlantillaDiseno } from "./plantillas";
 
 /** Proyectos que se conservan (los más recientes). */
 export const MAX_PROYECTOS = 30;
@@ -26,6 +27,12 @@ interface EstadoEstudio {
   /** vota una versión; `null` quita el voto */
   votar: (versionId: string, voto: VotoGusto | null) => void;
   olvidarGustos: () => void;
+  /** proyectos guardados como plantilla (`plantillas.ts`) */
+  plantillas: PlantillaDiseno[];
+  guardarPlantilla: (t: PlantillaDiseno) => void;
+  borrarPlantilla: (id: string) => void;
+  /** mete un proyecto ya hecho (p. ej. desde una plantilla) y lo abre */
+  anadirProyecto: (p: ProyectoDiseno) => void;
 }
 
 export const useEstudio = create<EstadoEstudio>()(
@@ -60,6 +67,11 @@ export const useEstudio = create<EstadoEstudio>()(
           return { gustos: Object.fromEntries(recientes) };
         }),
       olvidarGustos: () => set({ gustos: {} }),
+      plantillas: [],
+      guardarPlantilla: (t) => set((s) => ({ plantillas: conPlantilla(s.plantillas, t) })),
+      borrarPlantilla: (id) => set((s) => ({ plantillas: s.plantillas.filter((x) => x.id !== id) })),
+      anadirProyecto: (p) =>
+        set((s) => ({ proyectos: [p, ...s.proyectos].slice(0, MAX_PROYECTOS), activoId: p.id })),
     }),
     {
       name: "forja-estudio-v1",

@@ -1526,8 +1526,13 @@ export function ChatApp() {
          * TODA la columna, no solo en la zona de mensajes: si no, el
          * compositor y la barra de abajo quedaban sobre el fondo liso y se
          * veían metidos en un rectángulo más oscuro. */
-        background:
+        background: [
+          // En la bienvenida, el velo cálido de arriba: desde el borde
+          // superior, por detrás de la cabecera flotante (si empezaba bajo
+          // ella, dejaba una franja de otro tono alrededor de la cápsula).
+          ...(hasMessages ? [] : ["linear-gradient(180deg, color-mix(in oklab, var(--forja-cyan) 13%, transparent), transparent 55%)"]),
           "linear-gradient(160deg, color-mix(in oklab, var(--forja-violet) 6%, transparent) 0%, transparent 38%, color-mix(in oklab, var(--forja-cyan) 5%, transparent) 100%)",
+        ].join(", "),
       }}
     >
       {/* Arriba del todo: si el servidor ya sirve otra copia, se dice y se
