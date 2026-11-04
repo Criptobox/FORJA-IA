@@ -3,9 +3,9 @@ import { expect, test, type Page, type Route } from "@playwright/test";
 /** FORJA IA — Estudio: skills de pantalla (fase 4).
  *
  * Con un proveedor simulado: la pantalla «Iniciar sesión» lleva su skill de
- * acceso en el pedido, el panel la muestra como patrón activo, la crítica
- * marca lo que la skill pide y el HTML no cumple, «Corregir con IA» se lo
- * devuelve al modelo, y cambiar los patrones a mano se guarda. */
+ * acceso en el pedido, el panel la muestra como patrón activo, el revisor
+ * corrige solo lo que la skill pide y el HTML no cumple (la crítica lo sigue
+ * marcando en la v1), y cambiar los patrones a mano se guarda. */
 
 async function seed(page: Page) {
   await page.addInitScript(() => {
@@ -89,12 +89,14 @@ test("las skills viajan con la pantalla, se comprueban en la crítica y se puede
   await expect(skills.getByRole("button", { name: "Acceso y registro" })).toHaveAttribute("aria-pressed", "true");
   await expect(skills.getByRole("button", { name: "Listado / tabla" })).toHaveAttribute("aria-pressed", "false");
 
-  // la crítica marca lo que pide la skill y «Corregir con IA» lo manda
-  await expect(panel.getByTestId("fallo-patron").first()).toContainText("correo/contraseña");
-  await panel.getByRole("button", { name: "Corregir con IA" }).click();
-  await expect(panel.getByRole("button", { name: /^v2 · Corrección/ })).toBeVisible({ timeout: 20_000 });
+  // el revisor (fase 5) ve lo que pide la skill y lo corrige SOLO, una vez,
+  // antes de enseñarla: v2 «Revisión automática» y la petición lleva el fallo
+  await expect(panel.getByRole("button", { name: /^v2 · Revisión automática/ })).toBeVisible({ timeout: 20_000 });
   expect(cuerpos.at(-1)!.messages.at(-1)!.content).toContain("correo/contraseña");
   await expect(panel.getByTestId("fallo-patron")).toHaveCount(0);
+  // y en la v1 la crítica sigue marcando lo que faltaba
+  await panel.getByRole("button", { name: /^v1 · / }).click();
+  await expect(panel.getByTestId("fallo-patron").first()).toContainText("correo/contraseña");
 
   // cambiar los patrones a mano se guarda y sobrevive a recargar
   await skills.getByRole("button", { name: "Acceso y registro" }).click();

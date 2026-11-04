@@ -61,6 +61,9 @@ export interface ProyectoDiseno {
   /** ids de referencias de la Biblioteca que guían el diseño (opcional:
    * los proyectos guardados antes de la Biblioteca no lo traen) */
   referencias?: string[];
+  /** pasar cada pantalla nueva por el revisor antes de enseñarla
+   * (`revisor.ts`); sin el campo, sí */
+  revisarAntes?: boolean;
 }
 
 /** De dónde salió una referencia de la Biblioteca. */

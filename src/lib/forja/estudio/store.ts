@@ -8,6 +8,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { safeLocalStorage } from "../store";
 import { crearProyecto, type NuevoProyecto } from "./proyecto";
 import type { ProyectoDiseno } from "./tipos";
+import { MAX_VOTOS, type VotoGusto } from "./gustos";
 
 /** Proyectos que se conservan (los más recientes). */
 export const MAX_PROYECTOS = 30;
@@ -20,6 +21,11 @@ interface EstadoEstudio {
   cambiar: (id: string, f: (p: ProyectoDiseno) => ProyectoDiseno) => void;
   borrar: (id: string) => void;
   abrir: (id: string | null) => void;
+  /** votos de gusto por id de versión (memoria de gustos, `gustos.ts`) */
+  gustos: Record<string, VotoGusto>;
+  /** vota una versión; `null` quita el voto */
+  votar: (versionId: string, voto: VotoGusto | null) => void;
+  olvidarGustos: () => void;
 }
 
 export const useEstudio = create<EstadoEstudio>()(
@@ -41,6 +47,19 @@ export const useEstudio = create<EstadoEstudio>()(
           activoId: s.activoId === id ? null : s.activoId,
         })),
       abrir: (id) => set({ activoId: id }),
+      gustos: {},
+      votar: (versionId, voto) =>
+        set((s) => {
+          const g = { ...s.gustos };
+          if (voto) g[versionId] = voto;
+          else delete g[versionId];
+          // solo los más recientes: el gusto cambia y localStorage no es infinito
+          const recientes = Object.entries(g)
+            .sort((a, b) => b[1].cuando - a[1].cuando)
+            .slice(0, MAX_VOTOS);
+          return { gustos: Object.fromEntries(recientes) };
+        }),
+      olvidarGustos: () => set({ gustos: {} }),
     }),
     {
       name: "forja-estudio-v1",

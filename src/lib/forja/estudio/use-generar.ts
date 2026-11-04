@@ -7,7 +7,11 @@
  * se pinta en vivo (`parciales`), sin tocar el almacenamiento hasta el final. */
 
 import { useCallback, useRef, useState } from "react";
-import { codigoParaEditar, extraerPantalla, htmlParcial } from "./html";
+import { codigoParaEditar, extraerPantalla, htmlDeVersion, htmlParcial } from "./html";
+import { criticar } from "./critica";
+import { bloqueGustos } from "./gustos";
+import { necesitaRevision, PEDIDO_REVISION, problemasDeRevision } from "./revisor";
+import { skillsDePantalla } from "./skills";
 import { pedirAlModelo } from "./generador";
 import {
   pedidoCorregir,
@@ -30,7 +34,7 @@ export type ModoGeneracion =
   | { tipo: "nueva" }
   | { tipo: "iterar"; cambio: string }
   | { tipo: "variante" }
-  | { tipo: "corregir"; problemas: string[] };
+  | { tipo: "corregir"; problemas: string[]; /** la pidió el revisor, no la persona */ automatica?: boolean };
 
 const ETIQUETA: Record<ModoGeneracion["tipo"], string> = {
   nueva: "Generada",
@@ -53,14 +57,14 @@ export function useGenerar(modeloKey: string | null) {
   const detener = useCallback(() => abortRef.current?.abort(), []);
 
   const planificar = useCallback(
-    async (brief: string, tipo: TipoProyecto): Promise<PantallaPlan[]> => {
+    async (brief: string, tipo: TipoProyecto, cuantas?: number): Promise<PantallaPlan[]> => {
       const ac = new AbortController();
       abortRef.current = ac;
       setOcupado(true);
       try {
         const r = await pedirAlModelo({
           sistema: "Eres un diseñador de producto. Respondes solo con la lista pedida, sin introducción.",
-          usuario: promptPlan(brief, tipo),
+          usuario: promptPlan(brief, tipo, cuantas),
           modeloKey,
           signal: ac.signal,
           maxTokens: 800,
@@ -75,21 +79,25 @@ export function useGenerar(modeloKey: string | null) {
   );
 
   const generarUna = useCallback(
-    async (proyectoId: string, pantallaId: string, modo: ModoGeneracion, ac: AbortController) => {
+    /** Genera una versión. Devuelve los problemas que el revisor quiere
+     * corregir (o null si la pantalla salió bien o no toca revisar). */
+    async (proyectoId: string, pantallaId: string, modo: ModoGeneracion, ac: AbortController): Promise<string[] | null> => {
       const st = useEstudio.getState();
       const p = st.proyectos.find((x) => x.id === proyectoId);
       const s = p?.pantallas.find((x) => x.id === pantallaId);
-      if (!p || !s) return;
+      if (!p || !s) return null;
+      // la memoria de gustos: una línea, y solo en lo que se diseña de cero
+      const gustos = bloqueGustos(Object.values(st.gustos));
       const d = direccionDe(p);
       const v = versionActual(s);
       const codigo = v ? codigoParaEditar(v) : "";
       const usuario =
         modo.tipo === "nueva" || !v
-          ? pedidoPantalla(p, s)
+          ? pedidoPantalla(p, s, gustos)
           : modo.tipo === "iterar"
             ? pedidoIterar(s, codigo, modo.cambio)
             : modo.tipo === "variante"
-              ? pedidoVariante(p, s, codigo)
+              ? pedidoVariante(p, s, codigo, gustos)
               : pedidoCorregir(s, codigo, modo.problemas);
 
       st.cambiar(proyectoId, (pp) =>
@@ -118,7 +126,12 @@ export function useGenerar(modeloKey: string | null) {
           actualizarPantalla(pp, pantallaId, (x) =>
             ext
               ? conNuevaVersion(x, {
-                  pedido: modo.tipo === "iterar" ? `${ETIQUETA.iterar}: ${modo.cambio}` : ETIQUETA[modo.tipo],
+                  pedido:
+                    modo.tipo === "iterar"
+                      ? `${ETIQUETA.iterar}: ${modo.cambio}`
+                      : modo.tipo === "corregir" && modo.automatica
+                        ? PEDIDO_REVISION
+                        : ETIQUETA[modo.tipo],
                   archivos: ext.archivos,
                   entrada: ext.entrada,
                   modelo: r.modelKey,
@@ -126,6 +139,15 @@ export function useGenerar(modeloKey: string | null) {
               : { ...x, estado: x.versiones.length ? "lista" : "error", error: "El modelo no devolvió HTML. Prueba otra vez u otro modelo." }
           )
         );
+        // El revisor: solo lo recién diseñado (nueva o variante), nunca una
+        // corrección (así no hay bucle), y solo si la crítica —que no gasta
+        // tokens— encuentra fallos que merezcan una llamada.
+        if (ext && (modo.tipo === "nueva" || modo.tipo === "variante") && p.revisarAntes !== false) {
+          const html = htmlDeVersion(ext, d);
+          const c = criticar(html, skillsDePantalla(s, p.tipo), p.tipo);
+          if (necesitaRevision(c)) return problemasDeRevision(c);
+        }
+        return null;
       } catch (e) {
         const cancelado = esAbort(e);
         useEstudio.getState().cambiar(proyectoId, (pp) =>
@@ -136,6 +158,7 @@ export function useGenerar(modeloKey: string | null) {
           }))
         );
         if (cancelado) throw e;
+        return null;
       } finally {
         setParciales((m) => {
           const { [pantallaId]: _fuera, ...resto } = m;
@@ -158,7 +181,11 @@ export function useGenerar(modeloKey: string | null) {
         try {
           for (const id of pantallaIds) {
             if (ac.signal.aborted) break;
-            await generarUna(proyectoId, id, modo, ac);
+            const problemas = await generarUna(proyectoId, id, modo, ac);
+            // una sola pasada de corrección, con la lista corta del revisor
+            if (problemas?.length && !ac.signal.aborted) {
+              await generarUna(proyectoId, id, { tipo: "corregir", problemas, automatica: true }, ac);
+            }
           }
         } catch {
           /* cancelado: el resto de la cola no se genera */
