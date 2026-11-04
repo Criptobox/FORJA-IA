@@ -16,7 +16,7 @@ import { estadoChispaDe, type ProgresoCreacion } from "@/lib/forja/progreso-crea
 import { Chispa } from "./chispa";
 
 export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { progreso: ProgresoCreacion; titulo?: string }) {
-  const { pasos, actual, loader, terminado } = progreso;
+  const { pasos, actual, terminado } = progreso;
   const hechos = pasos.filter((p) => p.estado === "done").length;
 
   if (terminado) {
