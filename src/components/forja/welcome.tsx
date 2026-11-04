@@ -134,13 +134,9 @@ export function Welcome({
 
   return (
     <div className="relative flex min-h-full flex-col items-center overflow-hidden px-4 pb-4 pt-5 sm:pt-8">
-      {/* Velo de color arriba (como el cielo de la referencia), solo en la
-          bienvenida: no ensucia el chat. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[55%] bg-[linear-gradient(180deg,color-mix(in_oklab,var(--forja-cyan)_16%,transparent),transparent)] dark:opacity-60"
-      />
-
+      {/* El velo de color de arriba ya no va aquí: lo pinta la columna entera
+          (chat-app.tsx) para que empiece detrás de la cabecera y no deje una
+          franja de otro tono alrededor de la cápsula. */}
       <div className="relative flex w-full max-w-[34rem] flex-1 flex-col items-center justify-center text-center">
         <p
           className="stagger-in text-[13px] text-muted-foreground"
