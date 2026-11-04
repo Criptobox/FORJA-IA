@@ -27,7 +27,9 @@ export interface Cita {
 }
 
 const RX_CITA =
-  /`?([\w./-]+\.(?:html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs))`?\s*:\s*(\d{1,5})(?:\s*[-–]\s*(\d{1,5}))?/g;
+  // `(?<![\w./-])`: empieza al principio de la ruta. Sin él, el patrón era
+  // cuadrático en palabras largas sin punto (ver rutas-en-texto.ts).
+  /`?(?<![\w./-])([\w./-]+\.(?:html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs))`?\s*:\s*(\d{1,5})(?:\s*[-–]\s*(\d{1,5}))?/g;
 const RX_VERBAL =
   /(?:l[íi]nea\s+(\d{1,5})(?:\s*[-–a]\s*(\d{1,5}))?\s+(?:de|del archivo|en)\s+`?([\w./-]+\.(?:html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs))`?)/gi;
 
