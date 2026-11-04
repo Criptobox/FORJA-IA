@@ -60,6 +60,29 @@ async function enviar(page: Page, texto: string) {
   await page.keyboard.press("Enter");
 }
 
+/** Tras cada página, la app la mide sola (carga, botones, móvil a 390 px) y,
+ * si encuentra algo, abre OTRO turno para corregirlo. Mientras ese turno
+ * corre, Enter no envía. Así que se reintenta hasta que el mensaje está en
+ * la conversación (sin esto, el retoque a veces no salía nunca). */
+async function enviarCuandoPueda(page: Page, texto: string) {
+  const enviado = async () => (await mensajes(page)).some((m) => m.role === "user" && m.content.includes(texto));
+  await expect(async () => {
+    if (!(await enviado())) {
+      await enviar(page, texto);
+      await page.waitForTimeout(500);
+    }
+    expect(await enviado()).toBe(true);
+  }).toPass({ timeout: 30_000 });
+}
+
+/** La respuesta a ESE mensaje, no la última: detrás pueden venir turnos de
+ * la revisión automática (y su respuesta, aún vacía, sería la última). */
+async function respuestaA(page: Page, texto: string): Promise<string> {
+  const ms = await mensajes(page);
+  const i = ms.findIndex((m) => m.role === "user" && m.content.includes(texto));
+  return i < 0 ? "" : (ms.slice(i + 1).find((m) => m.role === "assistant")?.content ?? "");
+}
+
 test("el retoque pide un parche, se aplica y la página queda completa", async ({ page }) => {
   await seed(page);
   await page.goto("/");
@@ -77,18 +100,21 @@ test("el retoque pide un parche, se aplica y la página queda completa", async (
   const primerSistema = JSON.parse(cuerpos.find((c) => c.includes("hazme una landing")) ?? "{}").messages.find((m: { role: string }) => m.role === "system")?.content ?? "";
   expect(primerSistema, "una web nueva NO se pide como parche").not.toContain("RETOQUE POR PARCHE");
 
-  await page.waitForTimeout(1500);
-  await enviar(page, "cambia el botón a verde");
-  await expect.poll(async () => (await mensajes(page)).filter((m) => m.role === "assistant").length, { timeout: 20_000 }).toBe(2);
+  await enviarCuandoPueda(page, "cambia el botón a verde");
+  await expect.poll(() => respuestaA(page, "cambia el botón a verde"), { timeout: 20_000 }).toContain("resultado del parche");
 
   // el cuerpo del envío del chat (hay otras llamadas al mismo modelo, como el título)
-  const delRetoque = cuerpos.filter((c) => c.includes("cambia el botón a verde") && c.includes('"system"'));
+  // y no los de la revisión automática que vengan detrás (llevan el retoque en el historial)
+  const delRetoque = cuerpos.filter((c) => {
+    const ms = (JSON.parse(c).messages ?? []) as { role: string; content: unknown }[];
+    return ms.some((m) => m.role === "system") && String(ms.at(-1)?.content ?? "").includes("cambia el botón a verde");
+  });
   expect(delRetoque.length).toBeGreaterThan(0);
   const ultimoCuerpo = JSON.parse(delRetoque[delRetoque.length - 1]);
   const sistema = ultimoCuerpo.messages.find((m: { role: string }) => m.role === "system")?.content ?? "";
   expect(sistema).toContain("RETOQUE POR PARCHE");
 
-  const respuesta = (await mensajes(page)).filter((m) => m.role === "assistant").pop()?.content ?? "";
+  const respuesta = await respuestaA(page, "cambia el botón a verde");
   expect(respuesta).toContain("<<<<<<< SEARCH");
   expect(respuesta, "el archivo completo, ya parcheado, se añade localmente").toContain("resultado del parche");
   expect(respuesta).toContain("background: green");
@@ -102,9 +128,8 @@ test("si el parche no casa, el archivo no se toca y se pide completo", async ({ 
 
   await enviar(page, "hazme una landing para mi cafetería");
   await expect.poll(async () => (await mensajes(page)).filter((m) => m.role === "assistant").length, { timeout: 20_000 }).toBe(1);
-  await page.waitForTimeout(1500);
 
-  await enviar(page, "cambia el botón a verde, fallar");
+  await enviarCuandoPueda(page, "cambia el botón a verde, fallar");
   await expect(page.getByText("El parche no casó")).toBeVisible({ timeout: 20_000 });
 
   // se pidió el archivo completo, y el modelo lo entregó entero ya en verde
