@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  esModeloDeChat,
   esSoloFiltroSeguridad,
   filterFreeModels,
   isFreeModel,
@@ -77,6 +78,11 @@ describe("esSoloFiltroSeguridad", () => {
       esSoloFiltroSeguridad('{"User Safety": "safe", "Response Safety": "safe"}')
     ).toBe(true);
     expect(esSoloFiltroSeguridad('{"user safety":"unsafe"}')).toBe(true);
+  });
+
+  it("detecta «unsafe» con su categoría (visto en la app real con un nemoguard de NVIDIA)", () => {
+    expect(esSoloFiltroSeguridad('{"User Safety": "unsafe", "Safety Categories": "Unauthorized Advice"}')).toBe(true);
+    expect(esSoloFiltroSeguridad('{"User Safety": "unsafe", "Safety Categories": "Violence, Criminal Planning/Confessions"}')).toBe(true);
   });
 
   it("mayúsculas, minúsculas y «unsafe» también cuentan", () => {
@@ -214,5 +220,45 @@ describe("runtimes locales", () => {
       jan: { apiKey: "", enabled: true, models: [] },
     };
     expect(pickFailoverCandidate(providers, "gemini")).toBeNull();
+  });
+});
+
+describe("esModeloDeChat", () => {
+  it("deja fuera clasificadores de seguridad, embeddings, rerankers y voz (NVIDIA los lista todos)", () => {
+    for (const m of [
+      "nvidia/llama-3.1-nemoguard-8b-content-safety",
+      "nvidia/llama-3.1-nemoguard-8b-topic-control",
+      "meta/llama-guard-4-12b",
+      "nvidia/nv-embedqa-e5-v5",
+      "nvidia/llama-3.2-nv-rerankqa-1b-v2",
+      "nvidia/nemotron-4-340b-reward",
+      "nvidia/parakeet-ctc-1.1b-asr",
+      "openai/whisper-large-v3",
+    ]) {
+      expect(esModeloDeChat(m), m).toBe(false);
+    }
+  });
+
+  it("los de chat siguen dentro", () => {
+    for (const m of [
+      "moonshotai/kimi-k3",
+      "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "meta/llama-3.3-70b-instruct",
+      "deepseek-ai/deepseek-r1",
+      "gemini-3.7-flash",
+      "qwen/qwen3-coder-480b-a35b-instruct",
+    ]) {
+      expect(esModeloDeChat(m), m).toBe(true);
+    }
+  });
+
+  it("el failover tampoco elige un clasificador aunque vaya primero en la lista", () => {
+    const next = pickFailoverCandidate(
+      { nvidia: { apiKey: "k", enabled: true, models: ["nvidia/llama-3.1-nemoguard-8b-content-safety", "meta/llama-3.3-70b-instruct"] } },
+      "groq",
+      undefined,
+      ["nvidia"]
+    );
+    expect(next?.modelId).toBe("meta/llama-3.3-70b-instruct");
   });
 });

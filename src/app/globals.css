@@ -1271,6 +1271,15 @@ html[data-accent="naranja"] {
   animation: chispa-saluda 1.8s ease-in-out infinite;
 }
 .chispa-gota { animation: chispa-gota 2.2s ease-in infinite; }
+/* «pensando»: los puntos de la nube se encienden por turnos */
+.chispa-punto {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chispa-punto 1.2s ease-in-out infinite;
+}
+.chispa-punto--2 { animation-delay: 0.2s; }
+.chispa-punto--3 { animation-delay: 0.4s; }
+@keyframes chispa-punto { 0%, 60%, 100% { opacity: 0.35; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1.15); } }
 .chispa-humo {
   transform-box: fill-box;
   transform-origin: center;

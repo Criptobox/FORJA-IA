@@ -44,6 +44,19 @@ export function isFreeModel(providerId: ProviderId, modelId: string): boolean {
   return curated.some((m) => id === m.toLowerCase());
 }
 
+/** Modelos que NO conversan: clasificadores de seguridad (nemoguard,
+ * llama-guard, «content-safety»), embeddings, rerankers, modelos de
+ * recompensa, voz e imagen. NVIDIA los lista todos en `/models` junto a los
+ * de chat, y el modo Auto llegaba a elegir uno: la «respuesta» era
+ * `{"User Safety": "unsafe", "Safety Categories": "…"}`. */
+const PATRON_NO_CHAT =
+  /guard|safety|embed|rerank|reward|retriever|parakeet|whisper|canary|\btts\b|\basr\b|nvclip|\bclip\b|paddleocr|nv-ingest|deplot|stable-diffusion|flux\b|sdxl/i;
+
+/** ¿Sirve este modelo para conversar? (para elegirlo en Auto y en el failover) */
+export function esModeloDeChat(modelId: string): boolean {
+  return !PATRON_NO_CHAT.test(modelId);
+}
+
 /** Filtra una lista dejando solo los modelos gratis */
 export function filterFreeModels<T extends string>(
   providerId: ProviderId,
@@ -123,7 +136,12 @@ const PATRON_FILTRO_SEGURIDAD = /"?(?:user|response|prompt)\s*safety"?\s*:\s*"?(
 export function esSoloFiltroSeguridad(text: string): boolean {
   const t = text.trim();
   if (!t || !PATRON_FILTRO_SEGURIDAD.test(t)) return false;
-  const sinFiltro = t.replace(new RegExp(PATRON_FILTRO_SEGURIDAD.source, "gi"), "").trim();
+  const sinFiltro = t
+    .replace(new RegExp(PATRON_FILTRO_SEGURIDAD.source, "gi"), "")
+    // la categoría que acompaña a un «unsafe»: {"…", "Safety Categories": "Unauthorized Advice"}
+    .replace(/"?safety\s*categor(?:y|ies)"?\s*:\s*("[^"]*"|[^\n,}]*)/gi, "")
+    .replace(/[{}[\],\s]/g, "")
+    .trim();
   // Lo que sobra tras quitar el/los aviso(s) es prácticamente nada: esto
   // ERA solo el filtro, no una respuesta con el filtro delante.
   return sinFiltro.length < 20;
@@ -177,7 +195,7 @@ export function pickFailoverCandidate(
     const cfg = usable(id);
     if (!cfg) continue;
     const free = filterFreeModels(id, cfg.models);
-    const modelId = free.find((m) => !isBlocked?.(id, m)) ?? null;
+    const modelId = free.find((m) => esModeloDeChat(m) && !isBlocked?.(id, m)) ?? null;
     if (modelId) return { providerId: id, modelId };
   }
   return null;

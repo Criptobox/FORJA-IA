@@ -721,8 +721,11 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
           ? { max_tokens: 16384 }
           : {}),
     };
-    // Kimi K3 y otros NIM de razonamiento: el snippet de Build manda esto.
-    if (providerId === "nvidia" && /kimi-k3|kimi-k2|deepseek-r1|nemotron/i.test(modelId)) {
+    // Kimi K3/K2: el snippet de Build manda esto. SOLO ellos: con nemotron
+    // (y deepseek-r1) «max» hacía que se gastara los 16k tokens pensando y
+    // cerrara sin escribir nada; el failover saltaba al siguiente modelo, que
+    // empezaba de cero, y así varias veces (visto con nemotron-3.5-lightning).
+    if (providerId === "nvidia" && /kimi-k3|kimi-k2/i.test(modelId)) {
       body.reasoning_effort = "max";
     }
     if (tools?.length) {

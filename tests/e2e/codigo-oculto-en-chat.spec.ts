@@ -76,6 +76,9 @@ test("mientras escribe, no se ve el HTML crudo creciendo: se ve el aviso de trab
   const respuesta = page.locator("[data-role='assistant']").last();
   // el panel «Creando…» aparece MIENTRAS se escribe, con el paso real…
   await expect(respuesta.getByTestId("creacion-en-curso")).toContainText("Escribiendo archivos", { timeout: 30_000 });
+  // …y Chispa forja SOLO cuando ya se escriben archivos (antes forjaba todo el rato)
+  await expect(respuesta.locator('[data-paso="escribiendo"][data-estado="running"]')).toBeVisible({ timeout: 30_000 });
+  await expect(respuesta.getByTestId("creacion-en-curso").getByTestId("chispa-forjando")).toBeVisible();
   // …y en ese mismo momento el HTML crudo NO está visible en el chat: ni
   // como texto suelto ni como un <pre> con el código a medio escribir
   await expect(respuesta).not.toContainText("<!DOCTYPE");

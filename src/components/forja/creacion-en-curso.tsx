@@ -12,7 +12,7 @@
  * PASOS reales (hechos de los previstos), no un porcentaje inventado.
  */
 import { Check } from "lucide-react";
-import type { ProgresoCreacion } from "@/lib/forja/progreso-creacion";
+import { estadoChispaDe, type ProgresoCreacion } from "@/lib/forja/progreso-creacion";
 import { Chispa } from "./chispa";
 
 export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { progreso: ProgresoCreacion; titulo?: string }) {
@@ -39,6 +39,12 @@ export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { p
   }
 
   const paso = pasos[actual];
+  const estadoChispa = estadoChispaDe(progreso);
+  const tituloChispa = {
+    listo: "Chispa celebra: ya está",
+    forjando: "Chispa forjando tu encargo",
+    pensando: "Chispa pensando tu encargo",
+  }[estadoChispa];
   return (
     <div className="fj-timeline-card fj-creacion" aria-live="polite" data-testid="creacion-en-curso">
       <div className="fj-creacion-cabecera">
@@ -50,12 +56,8 @@ export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { p
       </div>
       <div className="fj-creacion-escena">
         <div className="fj-creacion-yunque">
-          <Chispa
-            estado={loader === "finalizado" ? "listo" : "forjando"}
-            size={84}
-            titulo={loader === "finalizado" ? "Chispa celebra: ya está" : "Chispa forjando tu encargo"}
-          />
-          {loader !== "finalizado" && (
+          <Chispa estado={estadoChispa} size={84} titulo={tituloChispa} />
+          {estadoChispa === "forjando" && (
             <span className="chispa-chispas" aria-hidden>
               <i />
               <i />

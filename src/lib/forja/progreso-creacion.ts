@@ -129,3 +129,12 @@ export function progresoCreacion(e: EntradaProgreso): ProgresoCreacion {
   const loader: ProgresoCreacion["loader"] = terminado ? "finalizado" : hay ? "trabajando" : "pensando";
   return { pasos, actual: Math.max(0, actual), loader, archivos, terminado };
 }
+
+/** Qué hace Chispa en cada momento de la creación: piensa mientras se
+ * entiende el encargo, se elige modelo o el modelo razona; forja cuando ya
+ * llegan archivos; celebra al entregar. (Antes forjaba todo el rato.) */
+export function estadoChispaDe(p: Pick<ProgresoCreacion, "pasos" | "actual" | "loader">): "pensando" | "forjando" | "listo" {
+  const id = p.pasos[p.actual]?.id;
+  if (p.loader === "finalizado" || id === "entrega") return "listo";
+  return id === "escribiendo" ? "forjando" : "pensando";
+}
