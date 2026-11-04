@@ -3,6 +3,7 @@
  * + Arena A/B, modo imagen, documentos (PDF), atajos de teclado, bóveda PIN y lista virtualizada. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { rutasEnTexto } from "@/lib/forja/rutas-en-texto";
 import {
   Brain,
   Download,
@@ -935,7 +936,7 @@ export function ChatApp() {
         session?.reglasNo?.length
       ) {
         const pathsMencionados = [
-          ...(text.match(/[\w./-]+\.(html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs)/g) ?? []),
+          ...rutasEnTexto(text),
           ...(sandboxInitial?.files ?? []).map((f) => f.path),
         ];
         const afectadas: { id: string; patron: string; motivo: string; path: string }[] = [];

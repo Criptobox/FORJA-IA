@@ -13,6 +13,7 @@
  */
 
 import type { MemoriaProyecto } from "./memoria-proyecto";
+import { rutasEnTexto } from "./rutas-en-texto";
 import type { ProjectMap } from "./types";
 
 /** Resultado de la búsqueda de contexto para UN turno. */
@@ -51,7 +52,7 @@ export function extraerKeywords(prompt: string): string[] {
   const out: string[] = [];
 
   // rutas y nombres de archivo con extensión primero (máxima señal)
-  const rutas = t.match(/[\w./-]+\.(html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs)/g) ?? [];
+  const rutas = rutasEnTexto(t);
   for (const r of rutas) {
     if (!out.includes(r)) out.push(r);
   }
@@ -163,7 +164,7 @@ export function buscarContexto(
   const reglas = datos.reglas ?? [];
   const mencionados = [
     ...res.archivos,
-    ...(prompt.match(/[\w./-]+\.(html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs)/g) ?? []),
+    ...rutasEnTexto(prompt),
   ];
   const vistos = new Set<string>();
   for (const r of reglas) {

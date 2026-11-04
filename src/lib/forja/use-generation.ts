@@ -20,6 +20,7 @@
  * que un failover que cambió el modelo en el store siga usándolo.
  */
 import { useCallback, useMemo, useRef, useState } from "react";
+import { rutasEnTexto } from "./rutas-en-texto";
 import { toast } from "sonner";
 import { useForja, uid } from "./store";
 import {
@@ -1552,11 +1553,7 @@ export function useGeneration(ctx: CtxGeneracion) {
             const respuesta = parseAgentTrace(content);
             const infoAdelantada = agentStalled(respuesta, true);
             const archivosTocados = Array.from(
-              new Set(
-                [...respuesta.blocks.flatMap((b) => ("body" in b ? [b.body] : []))]
-                  .join("\n")
-                  .match(/[\w./-]+\.(html?|css|js|jsx|ts|tsx|json|md|svg|py|mjs|cjs)/g) ?? []
-              )
+              new Set(rutasEnTexto(respuesta.blocks.flatMap((b) => ("body" in b ? [b.body] : [])).join("\n")))
             ).slice(0, 8);
             const mem = leerMemoria(sessionId);
             let memNueva = addTareaMemoria(mem, objetivo, {
