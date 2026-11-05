@@ -1670,25 +1670,40 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ path: stri
       '<div class="ca',
     ].join("\n");
     const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ id: "m", choices: [{ delta: { content: parcial }, index: 0 }] })}\n\n`
-          )
-        );
-        // El corte va con un respiro: si se rompe el cuerpo en el mismo tick
-        // que el `enqueue`, el cliente ni llega a leer el trozo y entonces no
-        // hay trabajo a medias que rescatar — que es justo lo que se prueba.
-        setTimeout(() => {
-          try {
-            controller.error(new Error("El proveedor cortó la conexión"));
-          } catch {
-            /* ya cerrado */
-          }
-        }, 150);
+    // El corte llega cuando el trozo YA salió, y con un segundo de respiro.
+    // Antes era un respiro fijo de 150 ms tras el `enqueue`, y fallaba la
+    // mitad de las veces: `controller.error()` tira lo que siga en la cola y,
+    // aunque el trozo ya haya salido, con un corte tan pegado el navegador a
+    // veces da el «network error» ANTES de entregar los bytes que tenía. El
+    // cliente no recibía nada que rescatar (medido: 0 caracteres) y el
+    // repuesto empezaba de cero — el fallo intermitente de `failover-continua`.
+    // Un proveedor real que se cae lo hace mucho después de su último trozo;
+    // ahora el simulador también: `pull` llega cuando el trozo se lo llevó el
+    // consumidor, y el corte un segundo después.
+    let entregado = false;
+    const stream = new ReadableStream(
+      {
+        start(controller) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ id: "m", choices: [{ delta: { content: parcial }, index: 0 }] })}\n\n`
+            )
+          );
+        },
+        pull(controller) {
+          if (entregado) return;
+          entregado = true;
+          return new Promise<void>((r) => setTimeout(r, 1000)).then(() => {
+            try {
+              controller.error(new Error("El proveedor cortó la conexión"));
+            } catch {
+              /* ya cerrado */
+            }
+          });
+        },
       },
-    });
+      { highWaterMark: 1 }
+    );
     return new Response(stream, {
       headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" },
     });

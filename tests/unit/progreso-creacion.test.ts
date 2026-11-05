@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { esEncargoDeCreacion, progresoCreacion } from "../../src/lib/forja/progreso-creacion";
+import { esEncargoDeCreacion, estadoChispaDe, progresoCreacion } from "../../src/lib/forja/progreso-creacion";
 
 const encargo = "hazme una landing para mi cafetería en Cádiz";
 const estados = (p: ReturnType<typeof progresoCreacion>) => p.pasos.map((x) => `${x.id}:${x.estado}`);
@@ -48,5 +48,16 @@ describe("progresoCreacion", () => {
     expect(p.pasos[1].meta).toBe("Forja IA");
     expect(p.pasos[4].meta).toBe("12,4 s · 4100 tokens") // en español, 4 cifras no se agrupan;
     expect(p.pasos[3].meta).not.toContain("✎");
+  });
+});
+
+describe("estadoChispaDe: Chispa cambia según el paso", () => {
+  it("piensa, luego forja y al final celebra", () => {
+    const pensando = progresoCreacion({ encargo, contenido: "", streaming: true, modelo: "x::y" });
+    expect(estadoChispaDe(pensando)).toBe("pensando");
+    const escribiendo = progresoCreacion({ encargo, contenido: "**index.html**\n```html\n<p>x", streaming: true, modelo: "x::y" });
+    expect(estadoChispaDe(escribiendo)).toBe("forjando");
+    const hecho = progresoCreacion({ encargo, contenido: "**index.html**\n```html\n<p>x</p>\n```", streaming: false, modelo: "x::y" });
+    expect(estadoChispaDe(hecho)).toBe("listo");
   });
 });

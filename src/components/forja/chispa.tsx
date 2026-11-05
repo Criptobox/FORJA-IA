@@ -11,7 +11,7 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-export type EstadoChispa = "inicio" | "forjando" | "listo" | "error" | "avatar";
+export type EstadoChispa = "inicio" | "pensando" | "forjando" | "listo" | "error" | "avatar";
 
 const SILUETA =
   "M100 200 C55 200 34 170 36 134 C38 106 52 90 60 70 C66 86 72 94 80 96 C74 68 86 38 114 8 C112 36 122 52 136 68 C142 58 146 46 144 34 C164 60 170 94 166 130 C168 172 146 200 100 200 Z";
@@ -166,6 +166,39 @@ export function Chispa({
                 {guante(108, 169, 1, true)}
               </>
             )}
+          </>
+        )}
+
+        {estado === "pensando" && (
+          <>
+            {/* una ceja recta y la otra arriba: está dándole vueltas */}
+            {ceja("M60 100 Q76 96 94 102")}
+            {ceja("M106 96 Q124 82 142 92")}
+            <g className="chispa-parpadeo">
+              <ellipse cx="78" cy="120" rx="15" ry="18" fill={url("ojo")} />
+              <ellipse cx="122" cy="120" rx="15" ry="18" fill={url("ojo")} />
+            </g>
+            {/* mira arriba, hacia la nube */}
+            <circle cx="84" cy="113" r="8.5" fill={url("iris")} />
+            <circle cx="128" cy="113" r="8.5" fill={url("iris")} />
+            <circle cx="86" cy="111" r="4.2" fill="#2a0d02" />
+            <circle cx="130" cy="111" r="4.2" fill="#2a0d02" />
+            <circle cx="88" cy="108" r="2" fill="#fff" />
+            <circle cx="132" cy="108" r="2" fill="#fff" />
+            <path d="M86 158 Q98 152 112 156" stroke="#7a1a06" strokeWidth="4" fill="none" strokeLinecap="round" />
+            {brazo("M48 150 Q54 172 76 176")}
+            {guante(80, 176)}
+            {/* la mano a la barbilla */}
+            {brazo("M152 150 Q146 178 118 172")}
+            {guante(112, 168, 0.95, true)}
+            <g className="chispa-piensa" aria-hidden>
+              <circle cx="152" cy="74" r="4" fill="#f1f0f5" opacity=".85" />
+              <circle cx="163" cy="58" r="6.5" fill="#f1f0f5" opacity=".9" />
+              <rect x="150" y="10" width="48" height="34" rx="17" fill="#f1f0f5" />
+              <circle className="chispa-punto" cx="163" cy="27" r="3.6" fill="#e2621b" />
+              <circle className="chispa-punto chispa-punto--2" cx="174" cy="27" r="3.6" fill="#e2621b" />
+              <circle className="chispa-punto chispa-punto--3" cx="185" cy="27" r="3.6" fill="#e2621b" />
+            </g>
           </>
         )}
 

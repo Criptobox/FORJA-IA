@@ -162,6 +162,23 @@ describe("NVIDIA NIM habla como el snippet de Build", () => {
     expect(body.reasoning_effort).toBe("max");
     expect(body.max_tokens).toBe(16384);
   });
+
+  it("a nemotron NO le pide razonar al máximo: se gastaba los tokens pensando y no escribía nada", async () => {
+    const { llamadas, fn } = fakeFetch({ choices: [{ message: { content: "ok" } }] });
+    vi.stubGlobal("fetch", fn);
+    await streamChat({
+      providerId: "nvidia",
+      config: cfg(),
+      modelId: "nvidia/nemotron-3.5-lightning-30b-a3b",
+      messages: [{ role: "user", content: "hola" }],
+      settings: { ...DEFAULT_SETTINGS, stream: false, maxTokens: null },
+      signal: new AbortController().signal,
+      onDelta: () => {},
+      onDone: () => {},
+    });
+    const body = JSON.parse(String(llamadas[0].init?.body ?? "{}"));
+    expect(body.reasoning_effort).toBeUndefined();
+  });
 });
 
 describe("fetchModels usa el mismo camino que el chat", () => {

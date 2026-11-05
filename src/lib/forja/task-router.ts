@@ -10,6 +10,7 @@ import {
 import { makeModelKey } from "./types";
 import { esClaveOpcional } from "./opencode-zen";
 import {
+  esModeloDeChat,
   filterFreeModels,
   KEYLESS_PROVIDERS,
   type AutoCandidate,
@@ -169,7 +170,9 @@ export function buildTaskChain(
   const ranked: { providerId: ProviderId; modelId: string; score: number; listIndex: number }[] = [];
   for (const [id, cfg] of Object.entries(providers) as [ProviderId, FailoverProviderCfg][]) {
     if (!usable(providers, id)) continue;
-    const free = filterFreeModels(id, cfg.models);
+    // solo modelos que conversan: un clasificador de seguridad o un
+    // embedding no puede escribir una web (ver `esModeloDeChat`)
+    const free = filterFreeModels(id, cfg.models).filter(esModeloDeChat);
     free.forEach((modelId, listIndex) => {
       if (isBlocked?.(id, modelId)) return;
       let score = scoreModel(kind, id, modelId);

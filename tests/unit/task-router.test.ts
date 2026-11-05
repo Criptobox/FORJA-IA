@@ -55,6 +55,17 @@ describe("buildTaskChain", () => {
     expect(chain.some((c) => c.providerId === "groq")).toBe(true);
   });
 
+  it("Auto nunca elige un modelo que no conversa (nemoguard, embeddings…)", () => {
+    const chain = buildTaskChain("web", {
+      nvidia: {
+        apiKey: "k",
+        enabled: true,
+        models: ["nvidia/llama-3.1-nemoguard-8b-content-safety", "nvidia/nv-embedqa-e5-v5", "meta/llama-3.3-70b-instruct"],
+      },
+    });
+    expect(chain.map((c) => c.modelId)).toEqual(["meta/llama-3.3-70b-instruct"]);
+  });
+
   it("para chat prioriza un modelo rápido (Groq) por encima de NIM", () => {
     const chain = buildTaskChain("chat", providers);
     expect(chain[0]?.providerId).toBe("groq");
