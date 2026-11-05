@@ -146,6 +146,18 @@ test("planifica, genera las pantallas con el sistema de diseño, itera, compara 
   const nombres = (await readZip(zb.buffer.slice(zb.byteOffset, zb.byteOffset + zb.byteLength) as ArrayBuffer)).map((e) => e.path);
   expect(nombres).toEqual(expect.arrayContaining(["imagenes/01-inicio.png", "imagenes/02-reservar.png"]));
 
+  // todo el lienzo en UNA imagen: las dos pantallas juntas, cada una a 780 px
+  // (el doble del móvil) con márgenes y hueco de la lámina
+  const lamina = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Lienzo PNG" }).click();
+  const descargaLamina = await lamina;
+  expect(descargaLamina.suggestedFilename()).toMatch(/^lienzo-.*\.png$/);
+  const lam = (await import("node:fs")).readFileSync(await descargaLamina.path());
+  expect([...lam.subarray(0, 4)], "la lámina es un PNG de verdad").toEqual([0x89, 0x50, 0x4e, 0x47]);
+  if (process.env.CAPTURA_LAMINA) (await import("node:fs")).copyFileSync(await descargaLamina.path(), process.env.CAPTURA_LAMINA);
+  expect(lam.readUInt32BE(16), "dos pantallas de 780 + hueco + márgenes").toBe(2 * 780 + 64 + 2 * 96);
+  expect(lam.readUInt32BE(20), "más alta que una sola pantalla").toBeGreaterThan(844 * 2);
+
   // modo presentación: las flechas recorren las pantallas
   await page.getByRole("button", { name: "Pantalla completa" }).first().click();
   const pres = page.getByRole("dialog");

@@ -67,6 +67,7 @@ import { criticar, problemasParaCorregir } from "@/lib/forja/estudio/critica";
 import { alternarSkill, MAX_SKILLS_PANTALLA, ORIGEN_SKILLS, SKILLS_PANTALLA, skillsDePantalla } from "@/lib/forja/estudio/skills";
 import { zipProyecto } from "@/lib/forja/estudio/exportar";
 import { capturarPng, dataUrlABytes } from "@/lib/forja/estudio/captura";
+import { componerLamina, type PantallaLamina } from "@/lib/forja/estudio/lamina";
 import { SelectorReferencias, VistaBiblioteca, ChipsReferencias, guardarEnBiblioteca } from "./biblioteca";
 import { SelectorEstilo } from "./selector-estilo";
 import { rasgosDeHtml, resumenGustos, textoRasgo } from "@/lib/forja/estudio/gustos";
@@ -482,6 +483,39 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
     const zip = zipProyecto(proyecto, imagenes);
     descargar(nombreDescarga(proyecto.nombre, "zip"), new Uint8Array(zip).buffer as ArrayBuffer, "application/zip");
   };
+  /** Todo el lienzo en una sola imagen: cada pantalla se captura y se juntan
+   * en una lámina, con su nombre debajo. */
+  const descargarLamina = async () => {
+    const listas = proyecto.pantallas.filter((s) => versionActual(s));
+    if (!listas.length) return toast.error("Aún no hay pantallas generadas");
+    setEmpaquetando(true);
+    const dim = DISPOSITIVOS[dispositivo];
+    const aviso = toast.loading(`Capturando 0/${listas.length}…`);
+    const hechas: PantallaLamina[] = [];
+    let fallos = 0;
+    try {
+      for (const [i, s] of listas.entries()) {
+        toast.loading(`Capturando ${i + 1}/${listas.length}: ${s.nombre}`, { id: aviso });
+        const v = versionActual(s);
+        if (!v) continue;
+        try {
+          hechas.push({ nombre: s.nombre, dataUrl: await capturarPng(htmlDeVersion(v, d), dim.ancho, dim.alto) });
+        } catch {
+          fallos++;
+        }
+      }
+      if (!hechas.length) throw new Error("Ninguna pantalla se pudo capturar");
+      toast.loading("Juntando la lámina…", { id: aviso });
+      const png = await componerLamina(proyecto.nombre, hechas, dim.ancho);
+      descargar(nombreDescarga(`lienzo ${proyecto.nombre}`, "png"), png, "image/png");
+      if (fallos) toast.warning(`${fallos} pantalla${fallos > 1 ? "s" : ""} no entraron en la imagen`);
+    } catch (e) {
+      toast.error("No se pudo hacer la imagen", { description: e instanceof Error ? e.message : String(e) });
+    } finally {
+      toast.dismiss(aviso);
+      setEmpaquetando(false);
+    }
+  };
   const conVersion = proyecto.pantallas.filter((s) => s.versiones.length).map((s) => s.id);
 
   return (
@@ -552,6 +586,9 @@ function EditorProyecto({ proyecto, modelo, setModelo, gen }: { proyecto: Proyec
           </Button>
           <Button size="sm" variant="outline" onClick={() => void descargarZip(true)} disabled={empaquetando} className="gap-1.5" title="Incluye cada pantalla en PNG">
             {empaquetando ? <Loader2 className="size-3.5 animate-spin" /> : <ImageDown className="size-3.5" />} ZIP + imágenes
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => void descargarLamina()} disabled={empaquetando} className="gap-1.5" title="Todas las pantallas juntas en una sola imagen">
+            <ImageDown className="size-3.5" /> Lienzo PNG
           </Button>
         </div>
       </div>
