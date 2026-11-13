@@ -154,3 +154,23 @@ describe("el resultado entra al Estudio", () => {
     expect(JSON.parse(v.archivos[1].text)).toMatchObject({ format: "estilos-tinta-project", draft: { selected: ["h-search"] } });
   });
 });
+
+import { debeOfrecerTinta } from "@/lib/forja/tinta/chat";
+
+describe("Tinta en el chat: cuándo se ofrece", () => {
+  const base = { activada: true, imagenes: 0 };
+  it("al pedir una app nueva", () => {
+    expect(debeOfrecerTinta({ ...base, texto: "hazme una app para mi cafetería con pedidos" })).toBe(true);
+    expect(debeOfrecerTinta({ ...base, texto: "Crea una aplicación de rutinas para el gimnasio" })).toBe(true);
+  });
+  it("no en webs, retoques, charlas ni con «directo»", () => {
+    expect(debeOfrecerTinta({ ...base, texto: "hazme una landing para mi cafetería" })).toBe(false);
+    expect(debeOfrecerTinta({ ...base, texto: "cambia el color del botón de mi app" })).toBe(false);
+    expect(debeOfrecerTinta({ ...base, texto: "¿qué framework me recomiendas para una app?" })).toBe(false);
+    expect(debeOfrecerTinta({ ...base, texto: "hazme una app de tareas, directo" })).toBe(false);
+  });
+  it("no con imágenes de referencia ni si está apagado en Ajustes", () => {
+    expect(debeOfrecerTinta({ ...base, imagenes: 1, texto: "hazme una app para mi cafetería" })).toBe(false);
+    expect(debeOfrecerTinta({ ...base, activada: false, texto: "hazme una app para mi cafetería" })).toBe(false);
+  });
+});

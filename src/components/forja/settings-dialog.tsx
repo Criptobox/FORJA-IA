@@ -507,6 +507,22 @@ export function SettingsDialog({
               />
             </div>
 
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-4 py-3">
+              <div className="min-w-0">
+                <Label className="text-[13px]">Ofrecer «Diseño con Tinta» al pedir una app</Label>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  Al pedir una app nueva, eliges antes de gastar nada: diseño con la biblioteca Tinta (el
+                  equipo de agentes arma todas las pantallas con muy pocos tokens) o app funcional con
+                  código. Escribe «directo» en el encargo para saltártelo una vez.
+                </p>
+              </div>
+              <Switch
+                aria-label="Ofrecer Diseño con Tinta al pedir una app"
+                checked={settings.tintaEnChat !== false}
+                onCheckedChange={(v) => setSettings({ tintaEnChat: v })}
+              />
+            </div>
+
             {settings.agentMode && (
               <div className="rounded-xl border border-border/60 px-4 py-3">
                 <Label className="text-[13px]">Permisos del agente</Label>
