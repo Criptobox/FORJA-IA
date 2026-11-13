@@ -9,10 +9,10 @@
  *   Tinta → FORJA  { tipo: "tinta:respuesta", id, ok, datos | error }
  *   Tinta → FORJA  { tipo: "tinta:listo", api }   (al arrancar)
  *
- * Por qué un iframe y no un import: el motor de Tinta mide el contraste real de
- * cada bloque con el DOM y sigue evolucionando en su propio repositorio; aquí
- * se usa una copia versionada (scripts/tinta-actualizar.mjs). La frontera es
- * esta interfaz, con tipos.
+ * Por qué un iframe y no un import: el motor de Tinta son scripts clásicos del
+ * navegador (`tinta/web/`) que miden el contraste real de cada bloque con el
+ * DOM. Se empaquetan en un solo HTML con `npm run tinta`
+ * (scripts/tinta-construir.mjs). La frontera es esta interfaz, con tipos.
  *
  * Esta parte es pura: el canal (iframe, ventana) se inyecta, así se prueba sin DOM. */
 

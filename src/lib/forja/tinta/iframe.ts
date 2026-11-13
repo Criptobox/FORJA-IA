@@ -6,10 +6,10 @@
  * el DOM) y a pantalla completa mientras trabaja el equipo de agentes, que es
  * lo único que enseña. Solo acepta mensajes de ese iframe y del mismo origen. */
 import { crearClienteTinta, type CanalTinta, type ClienteTinta } from "./cliente";
-import { TINTA_ESTILOS_VERSION } from "./version";
+import { TINTA_VERSION } from "./version";
 
 /** La versión va en la dirección para que una copia nueva no se sirva desde caché. */
-export const RUTA_MOTOR = `/tinta/motor.html?motor=1&v=${TINTA_ESTILOS_VERSION}`;
+export const RUTA_MOTOR = `/tinta/motor.html?motor=1&v=${TINTA_VERSION}`;
 
 let actual: { cliente: ClienteTinta; mostrar: (si: boolean) => void } | null = null;
 

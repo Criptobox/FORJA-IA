@@ -1,2 +1,2 @@
-/** Versión de Estilos de la que sale public/tinta/motor.html (la escribe scripts/tinta-actualizar.mjs). */
-export const TINTA_ESTILOS_VERSION = "12.68";
+/** Huella del motor Tinta construido (la escribe scripts/tinta-construir.mjs; no se edita a mano). */
+export const TINTA_VERSION = "a449e8007c2d";

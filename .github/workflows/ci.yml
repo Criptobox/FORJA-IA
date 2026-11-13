@@ -53,6 +53,11 @@ jobs:
       - name: Tests unitarios
         run: npm run test
 
+      - name: Motor Tinta (pruebas y que public/tinta/motor.html esté al día)
+        run: |
+          npm run test:tinta
+          npm run tinta -- --check
+
   e2e:
     name: E2E en Chromium
     runs-on: ubuntu-latest
