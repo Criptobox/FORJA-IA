@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
  * - POST /api/mock-llm/v1/chat/completions — chat streaming/no-streaming
  *   · system con «MODO AGENTE» → respuesta con bucle plan→step→review→answer+project-map
  *   · mensaje con página/html/landing/juego → documento HTML en ```html
+ *   · instrucciones de la biblioteca Tinta → una receta de bloques en ```json
  *   · mensaje multimodal (imágenes) → confirma que las vio
  *   · resto → saludo de prueba
  * - GET /api/mock-llm/v1/models — lista de modelos
@@ -151,6 +152,13 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // Si el último mensaje es resultado de un tool, el agente ya ejecutó
   // la herramienta. Respondemos con una respuesta final que confirma que
   // el tool se ejecutó.
+  // Biblioteca Tinta (Estudio ▸ «Con la biblioteca Tinta»): el modelo solo
+  // devuelve una RECETA de bloques del catálogo, nunca HTML.
+  const pideTinta = msgs.some((m) => typeof m.content === "string" && (m.content as string).includes("asistente de diseño de Estilos Tinta"));
+  if (pideTinta) {
+    const receta = { idea: "Cafetería con pedidos", bloques: [{ id: "h-search" }, { id: "c-coffee", copias: 2 }, { id: "a-coral" }, { id: "n-soft" }], paleta: "mandarina", tipografia: null, fondo: null, modo: "claro" };
+    return "¡Buena idea! Armo una cafetería con tarjetas grandes y barra inferior.\n```json\n" + JSON.stringify(receta) + "\n```";
+  }
   const lastIsToolResult = last?.role === "tool";
   if (lastIsToolResult) {
     return `He ejecutado la herramienta que pediste. El resultado fue:\n\n> ${raw.slice(0, 200)}\n\nAhora puedo darte la respuesta final: la iteración con tools funcionó correctamente.`;
