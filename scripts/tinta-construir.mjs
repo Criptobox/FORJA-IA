@@ -28,12 +28,45 @@ export const VERSION_TS = new URL("src/lib/forja/tinta/version.ts", RAIZ);
 
 const uri = (ruta, mime) => `data:${mime};base64,${readFileSync(new URL(ruta, WEB)).toString("base64")}`;
 
+/** Las etiquetas <script src="…"></script> de crear.html, recorriendo el texto
+ *  (sin expresiones regulares sobre HTML): devuelve sus rutas y el HTML sin ellas. */
+export function separarScripts(html) {
+  const rutas = [];
+  let salida = "";
+  let desde = 0;
+  const bajo = html.toLowerCase();
+  for (;;) {
+    const ini = bajo.indexOf("<script", desde);
+    if (ini < 0) break;
+    const finApertura = html.indexOf(">", ini);
+    if (finApertura < 0) throw new Error("crear.html tiene una etiqueta <script sin cerrar");
+    const apertura = html.slice(ini, finApertura + 1);
+    const i = apertura.indexOf('src="');
+    if (i < 0) {
+      // un <script> en línea se queda tal cual
+      salida += html.slice(desde, finApertura + 1);
+      desde = finApertura + 1;
+      continue;
+    }
+    const ruta = apertura.slice(i + 5, apertura.indexOf('"', i + 5));
+    const cierre = bajo.indexOf("</script", finApertura);
+    const finCierre = cierre < 0 ? -1 : html.indexOf(">", cierre);
+    if (!ruta || finCierre < 0) throw new Error("crear.html enlaza un script que el empaquetador no entiende");
+    rutas.push(ruta);
+    salida += html.slice(desde, ini);
+    desde = finCierre + 1;
+  }
+  return { rutas, html: salida + html.slice(desde) };
+}
+
 /** Devuelve { html, version, versionTs } sin escribir nada. */
 export function construir() {
   let html = readFileSync(new URL("crear.html", WEB), "utf8");
   const css = readFileSync(new URL("css/crear.css", WEB), "utf8").replace("../fonts/plus-jakarta-sans.woff2", uri("fonts/plus-jakarta-sans.woff2", "font/woff2"));
   const equipo = readFileSync(new URL("css/equipo.css", WEB), "utf8");
-  const rutas = [...html.matchAll(/<script src="([^"]+)"><\/script[^>]*>/gi)].map((m) => m[1]);
+  const separado = separarScripts(html);
+  const rutas = separado.rutas;
+  html = separado.html;
   if (!rutas.length) throw new Error("crear.html no enlaza ningún script");
   const js = Buffer.concat(rutas.flatMap((r, i) => (i ? [Buffer.from("\n;\n"), readFileSync(new URL(r, WEB))] : [readFileSync(new URL(r, WEB))])));
   if (!js.includes("tinta:pedir")) throw new Error("Los scripts no traen el modo motor (tinta:pedir)");
@@ -43,9 +76,6 @@ export function construir() {
     "'),c=>c.charCodeAt(0)));document.body.appendChild(s);})();";
   html = html.replace('<link rel="stylesheet" href="css/crear.css">', () => "<style>" + css + "</style>");
   html = html.replace('<link rel="stylesheet" href="css/equipo.css">', () => "<style>" + equipo + "</style>");
-  html = html.replace(/<script src="[^"]+"><\/script[^>]*>/gi, "");
-  // Ningún script enlazado puede quedarse fuera del paquete: si crear.html usa otra forma, mejor fallar que perderlo.
-  if (/<script\b[^>]*\bsrc\s*=/i.test(html)) throw new Error("crear.html enlaza un script que el empaquetador no reconoce");
   html = html.replace("</body>", () => "<script>" + arranque + "</script></body>");
   html = html.replace("images/tinta-avatar.webp", () => uri("images/tinta-avatar.webp", "image/webp"));
   html = html.replace("icons/icon-192.png", () => uri("icons/icon-192.png", "image/png"));
