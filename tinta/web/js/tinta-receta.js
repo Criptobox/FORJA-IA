@@ -118,7 +118,7 @@
       if (texts && typeof texts === 'object' && !Array.isArray(texts)) {
         const tx = {}; Object.keys(texts).forEach(id => {
           if (!seen.has(id) || !Array.isArray(texts[id])) { warnings.push('Textos de «' + id.slice(0, 40) + '» ignorados: ese bloque no está en la pantalla.'); return; }
-          const arr = texts[id].filter(v => typeof v === 'string' || typeof v === 'number').slice(0, MAX_TEXTS).map(v => String(v).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT_LEN));
+          const arr = texts[id].filter(v => typeof v === 'string' || typeof v === 'number').slice(0, MAX_TEXTS).map(v => String(v).replace(/<[^>]*>/g, '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT_LEN));
           if (arr.some(Boolean)) tx[id] = arr;
         });
         if (Object.keys(tx).length) r.texts = tx;

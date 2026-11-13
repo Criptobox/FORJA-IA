@@ -33,7 +33,7 @@ export function construir() {
   let html = readFileSync(new URL("crear.html", WEB), "utf8");
   const css = readFileSync(new URL("css/crear.css", WEB), "utf8").replace("../fonts/plus-jakarta-sans.woff2", uri("fonts/plus-jakarta-sans.woff2", "font/woff2"));
   const equipo = readFileSync(new URL("css/equipo.css", WEB), "utf8");
-  const rutas = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
+  const rutas = [...html.matchAll(/<script src="([^"]+)"><\/script\s*>/gi)].map((m) => m[1]);
   if (!rutas.length) throw new Error("crear.html no enlaza ningún script");
   const js = Buffer.concat(rutas.flatMap((r, i) => (i ? [Buffer.from("\n;\n"), readFileSync(new URL(r, WEB))] : [readFileSync(new URL(r, WEB))])));
   if (!js.includes("tinta:pedir")) throw new Error("Los scripts no traen el modo motor (tinta:pedir)");
@@ -43,7 +43,9 @@ export function construir() {
     "'),c=>c.charCodeAt(0)));document.body.appendChild(s);})();";
   html = html.replace('<link rel="stylesheet" href="css/crear.css">', () => "<style>" + css + "</style>");
   html = html.replace('<link rel="stylesheet" href="css/equipo.css">', () => "<style>" + equipo + "</style>");
-  html = html.replace(/<script src="[^"]+"><\/script>/g, "");
+  html = html.replace(/<script src="[^"]+"><\/script\s*>/gi, "");
+  // Ningún script enlazado puede quedarse fuera del paquete: si crear.html usa otra forma, mejor fallar que perderlo.
+  if (/<script\b[^>]*\bsrc\s*=/i.test(html)) throw new Error("crear.html enlaza un script que el empaquetador no reconoce");
   html = html.replace("</body>", () => "<script>" + arranque + "</script></body>");
   html = html.replace("images/tinta-avatar.webp", () => uri("images/tinta-avatar.webp", "image/webp"));
   html = html.replace("icons/icon-192.png", () => uri("icons/icon-192.png", "image/png"));
