@@ -163,11 +163,16 @@ describe("Tinta en el chat: cuándo se ofrece", () => {
     expect(debeOfrecerTinta({ ...base, texto: "hazme una app para mi cafetería con pedidos" })).toBe(true);
     expect(debeOfrecerTinta({ ...base, texto: "Crea una aplicación de rutinas para el gimnasio" })).toBe(true);
   });
+  it("no en apps de gestión de datos (eso lo hace mejor el código) ni fuera de los sectores de Tinta", () => {
+    expect(debeOfrecerTinta({ ...base, texto: "crea una app de lista de tareas" })).toBe(false);
+    expect(debeOfrecerTinta({ ...base, texto: "hazme una app de inventario para mi tienda" })).toBe(false);
+    expect(debeOfrecerTinta({ ...base, texto: "crea una app para contar ovejas" })).toBe(false);
+  });
   it("no en webs, retoques, charlas ni con «directo»", () => {
     expect(debeOfrecerTinta({ ...base, texto: "hazme una landing para mi cafetería" })).toBe(false);
     expect(debeOfrecerTinta({ ...base, texto: "cambia el color del botón de mi app" })).toBe(false);
     expect(debeOfrecerTinta({ ...base, texto: "¿qué framework me recomiendas para una app?" })).toBe(false);
-    expect(debeOfrecerTinta({ ...base, texto: "hazme una app de tareas, directo" })).toBe(false);
+    expect(debeOfrecerTinta({ ...base, texto: "hazme una app para mi gimnasio, directo" })).toBe(false);
   });
   it("no con imágenes de referencia ni si está apagado en Ajustes", () => {
     expect(debeOfrecerTinta({ ...base, imagenes: 1, texto: "hazme una app para mi cafetería" })).toBe(false);

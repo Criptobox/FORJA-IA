@@ -80,14 +80,26 @@ test("«Escribir el código» sigue el camino de siempre", async ({ page }) => {
   await page.goto("/");
   const caja = page.getByPlaceholder("Escribe tu mensaje…");
   await expect(caja).toBeVisible({ timeout: 60_000 });
-  await caja.fill("hazme una app de tareas para mi equipo");
+  await caja.fill("hazme una app de rutinas para mi gimnasio");
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("oferta-tinta")).toBeVisible({ timeout: 15_000 });
   await page.getByTestId("oferta-tinta-codigo").click();
   await expect(page.getByTestId("oferta-tinta")).toHaveAttribute("data-estado", "descartada");
   await expect.poll(() => cuerpos.length, { timeout: 30_000 }).toBeGreaterThan(0);
   expect(cuerpos.some((c) => c.includes("asistente de diseño de Estilos Tinta"))).toBe(false);
-  expect(cuerpos.some((c) => c.includes("hazme una app de tareas"))).toBe(true);
+  expect(cuerpos.some((c) => c.includes("hazme una app de rutinas"))).toBe(true);
+});
+
+test("una app de gestión de datos va directa al código, sin la tarjeta", async ({ page }) => {
+  await seed(page);
+  const cuerpos = await contarLlamadas(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("crea una app de lista de tareas");
+  await page.keyboard.press("Enter");
+  await expect.poll(() => cuerpos.length, { timeout: 30_000 }).toBeGreaterThan(0);
+  await expect(page.getByTestId("oferta-tinta")).toHaveCount(0);
 });
 
 test("una landing sigue con la propuesta de diseño, no con Tinta", async ({ page }) => {
