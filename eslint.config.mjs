@@ -36,6 +36,8 @@ const ignores = [
   ".zscripts/**",
   "motor-forja/**",
   "assets/**",
+  // Tinta: scripts clásicos del navegador, con sus propias pruebas (npm run test:tinta).
+  "tinta/**",
 ];
 
 const eslintConfig = [

@@ -41,6 +41,7 @@ import { CerebroSheet } from "./cerebro-sheet";
 import { ChatInput } from "./chat-input";
 import { MessageItem } from "./message";
 import { PropuestaCard } from "./propuesta-card";
+import { TintaCard } from "./tinta-card";
 import { ModelPicker } from "./model-picker";
 import { SettingsDialog } from "./settings-dialog";
 import { PromptLibrary } from "./prompt-library";
@@ -147,6 +148,7 @@ import {
 import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } from "@/lib/forja/memoria-proyecto";
 import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
 import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
+import { debeOfrecerTinta, TEXTO_OFERTA_TINTA, type OfertaTinta } from "@/lib/forja/tinta/chat";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
 import {
   buscarContexto as buscarContextoTurno,
@@ -787,6 +789,64 @@ export function ChatApp() {
     [updateMessage, runGeneration]
   );
 
+  /** Diseño con Tinta desde el chat: receta corta del modelo, el equipo de
+   *  agentes a la vista y la app completa como proyecto del Estudio. Los
+   *  módulos se cargan al usarse: el chat no paga por ellos hasta entonces. */
+  const construirConTinta = useCallback(
+    async (ofertaId: string) => {
+      const st = useForja.getState();
+      const sid = st.activeSessionId;
+      const ses = sid ? st.sessions.find((x) => x.id === sid) : null;
+      if (!sid || !ses) return;
+      const idx = ses.messages.findIndex((x) => x.id === ofertaId);
+      const usuario = [...ses.messages.slice(0, idx)].reverse().find((x) => x.role === "user" && !x.instruction);
+      if (!usuario) return;
+      const brief = usuario.content;
+      const poner = (o: OfertaTinta) => updateMessage(sid, ofertaId, { tintaOferta: o });
+      poner({ estado: "creando" });
+      try {
+        const [{ crearConTinta, TEXTO_PASO }, { motorTinta }, { conAppTinta }, { pedirAlModelo }, { useEstudio }] = await Promise.all([
+          import("@/lib/forja/tinta/crear"),
+          import("@/lib/forja/tinta/iframe"),
+          import("@/lib/forja/tinta/proyecto"),
+          import("@/lib/forja/estudio/generador"),
+          import("@/lib/forja/estudio/store"),
+        ]);
+        const motor = motorTinta();
+        const r = await crearConTinta({
+          brief,
+          modeloKey: ses.modelKey ?? st.settings.defaultModelKey ?? null,
+          signal: new AbortController().signal,
+          cliente: motor.cliente,
+          pedirModelo: pedirAlModelo,
+          mostrarEquipo: motor.mostrar,
+          onPaso: (p) => poner({ estado: "creando", paso: TEXTO_PASO[p] }),
+        });
+        const est = useEstudio.getState();
+        const p = est.crear({ brief, tipo: "app" });
+        est.cambiar(p.id, (x) => conAppTinta(x, r, brief));
+        poner({ estado: "hecha", proyectoId: p.id, pantallas: r.pantallas.length, modelo: r.modelKey, llamadas: r.llamadas });
+      } catch (e) {
+        const cancelado = typeof e === "object" && e !== null && (e as { cancelado?: boolean }).cancelado === true;
+        if (cancelado) poner({ estado: "pendiente" });
+        else poner({ estado: "error", error: e instanceof Error ? e.message : String(e) });
+      }
+    },
+    [updateMessage]
+  );
+
+  /** App funcional con código: se descarta la oferta y se genera como siempre. */
+  const construirConCodigo = useCallback(
+    (ofertaId: string) => {
+      const sid = useForja.getState().activeSessionId;
+      if (!sid) return;
+      updateMessage(sid, ofertaId, { tintaOferta: { estado: "descartada" } });
+      stickToBottomRef.current = true;
+      void runGeneration(sid);
+    },
+    [updateMessage, runGeneration]
+  );
+
   const send = useCallback(
     (textOverride?: string) => {
       const text = (textOverride ?? input).trim();
@@ -924,6 +984,23 @@ export function ChatApp() {
             content: `Propuesta de diseño: ${propuesta.variantes.map((v) => v.nombre).join(" · ")}. Elige una para construir.`,
             createdAt: Date.now(),
             propuestaDiseno: propuesta,
+          });
+          return;
+        }
+        // ——— App nueva: ¿diseño con Tinta o app con código? (0 tokens) ———
+        if (
+          debeOfrecerTinta({
+            texto: text,
+            imagenes: attachments.length,
+            activada: useForja.getState().settings.tintaEnChat !== false,
+          })
+        ) {
+          addMessage(sessionId, {
+            id: uid(),
+            role: "assistant",
+            content: TEXTO_OFERTA_TINTA,
+            createdAt: Date.now(),
+            tintaOferta: { estado: "pendiente" },
           });
           return;
         }
@@ -1847,6 +1924,13 @@ export function ChatApp() {
                       propuesta={m.propuestaDiseno}
                       deshabilitada={!!streamingMsgId}
                       onConstruir={(id, ajustes) => construirDesdePropuesta(m.id, id, ajustes)}
+                    />
+                  ) : m.tintaOferta ? (
+                    <TintaCard
+                      oferta={m.tintaOferta}
+                      deshabilitada={!!streamingMsgId || m.tintaOferta.estado === "creando"}
+                      onTinta={() => void construirConTinta(m.id)}
+                      onCodigo={() => construirConCodigo(m.id)}
                     />
                   ) : (
                   <MessageItem

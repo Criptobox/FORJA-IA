@@ -21,7 +21,9 @@
     "precios": "node scripts/precios.mjs",
     "modelos": "node --experimental-strip-types scripts/modelos.mjs",
     "efectos": "node scripts/efectos.mjs",
-    "check:secretos": "node scripts/check-secretos.mjs"
+    "check:secretos": "node scripts/check-secretos.mjs",
+    "tinta": "node scripts/tinta-construir.mjs",
+    "test:tinta": "node --test tinta/tests/unit/*.test.cjs"
   },
   "dependencies": {
     "@googleworkspace/drive-picker-element": "^0.7.3",

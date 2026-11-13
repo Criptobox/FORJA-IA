@@ -690,7 +690,7 @@ export function useGeneration(ctx: CtxGeneracion) {
       // la burbuja de la semilla se reinyecta aparte, con su instrucción de
       // continuar: si entrara aquí además, el modelo la vería dos veces
       const previos = session.messages.filter(
-        (m) => m.role !== "system" && !m.error && m.id !== semilla?.assistantId && !m.propuestaDiseno
+        (m) => m.role !== "system" && !m.error && m.id !== semilla?.assistantId && !m.propuestaDiseno && !m.tintaOferta
       );
 
       // Escudo PII (inspirado en OrcaRouter): enmascara correos/teléfonos/

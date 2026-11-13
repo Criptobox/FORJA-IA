@@ -35,6 +35,7 @@ import {
   Trash2,
   Copy,
   LayoutTemplate,
+  Layers,
   Wand2,
   X,
 } from "lucide-react";
@@ -49,7 +50,11 @@ import { AUTO_MODEL_KEY } from "@/lib/forja/types";
 import { nombreDescarga } from "@/lib/forja/answer-files";
 import { useEstudio, proyectoActivo } from "@/lib/forja/estudio/store";
 import { useGenerar } from "@/lib/forja/estudio/use-generar";
-import { modelosDisponibles } from "@/lib/forja/estudio/generador";
+import { modelosDisponibles, pedirAlModelo } from "@/lib/forja/estudio/generador";
+import { ErrorTinta } from "@/lib/forja/tinta/cliente";
+import { crearConTinta, TEXTO_PASO, type PasoTinta } from "@/lib/forja/tinta/crear";
+import { motorTinta } from "@/lib/forja/tinta/iframe";
+import { conAppTinta } from "@/lib/forja/tinta/proyecto";
 import {
   agregarPantallas,
   cambiarDireccion,
@@ -200,6 +205,36 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
     }
   };
 
+  // Con la biblioteca Tinta: el modelo solo elige piezas (receta corta) y Tinta
+  // arma la app completa tras el trabajo del equipo de agentes. Muy pocos tokens.
+  const [pasoTinta, setPasoTinta] = useState<PasoTinta | null>(null);
+  const conTinta = async () => {
+    if (!brief.trim()) return toast.error("Describe qué quieres diseñar");
+    const motor = motorTinta();
+    try {
+      const r = await crearConTinta({
+        brief,
+        modeloKey: modelo || null,
+        signal: new AbortController().signal,
+        cliente: motor.cliente,
+        pedirModelo: pedirAlModelo,
+        mostrarEquipo: motor.mostrar,
+        onPaso: setPasoTinta,
+      });
+      const p = crear({ brief, tipo: "app", direccionId: direccion, referencias: refs });
+      cambiar(p.id, (x) => conAppTinta(x, r, brief));
+      abrir(p.id);
+      toast.success("App creada con Tinta", {
+        description: `${r.pantallas.length} pantallas · ${nombreModelo(r.modelKey)} · ${r.llamadas} llamada${r.llamadas > 1 ? "s" : ""} al modelo`,
+      });
+    } catch (e) {
+      if (e instanceof ErrorTinta && e.cancelado) toast("Creación con Tinta cancelada");
+      else toast.error("No se pudo crear con Tinta", { description: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setPasoTinta(null);
+    }
+  };
+
   const crearYGenerar = (pantallas: PantallaPlan[]) => {
     const limpias = pantallas.filter((p) => p.nombre.trim());
     if (!limpias.length) return toast.error("Añade al menos una pantalla");
@@ -302,6 +337,22 @@ function InicioEstudio({ modelo, setModelo, gen }: { modelo: string; setModelo: 
             >
               Solo una pantalla
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => void conTinta()}
+              disabled={!brief.trim() || ocupado || pasoTinta !== null}
+              className="gap-1.5"
+              data-testid="crear-con-tinta"
+              title="El modelo elige piezas de la biblioteca Tinta (300+ bloques) y el equipo de agentes arma la app completa, con todas sus pantallas. Gasta muy pocos tokens."
+            >
+              {pasoTinta ? <Loader2 className="size-4 animate-spin" /> : <Layers className="size-4" />}
+              Con la biblioteca Tinta
+            </Button>
+            {pasoTinta && (
+              <p className="w-full text-[12px] text-muted-foreground" role="status" data-testid="paso-tinta">
+                {TEXTO_PASO[pasoTinta]}
+              </p>
+            )}
             <div className="flex w-full flex-wrap items-center gap-2 rounded-xl border border-dashed border-orange-500/40 p-2 sm:w-auto" data-testid="modo-autonomo">
               <Button onClick={() => void autonomo()} disabled={!brief.trim() || ocupado} variant="secondary" className="gap-1.5">
                 <Sparkles className="size-4 text-orange-500" /> Hazlo todo
