@@ -34,6 +34,17 @@
     }
     return null;
   }
+  /* Texto plano: quita lo que va entre < y > y cualquier < o > suelto (recorriendo el texto, sin regex sobre HTML). */
+  function sinEtiquetas(t) {
+    let out = '';
+    for (let i = 0; i < t.length; i++) {
+      const c = t[i];
+      if (c === '<') { const fin = t.indexOf('>', i + 1); if (fin > 0) i = fin; continue; } // etiqueta entera fuera; un < sin cierre, solo él
+      if (c === '>') continue;
+      out += c;
+    }
+    return out;
+  }
   const pick = (o, names) => { for (const n of names) if (o[n] !== undefined && o[n] !== null) return o[n]; return undefined; };
 
   function create(env) {
@@ -118,7 +129,7 @@
       if (texts && typeof texts === 'object' && !Array.isArray(texts)) {
         const tx = {}; Object.keys(texts).forEach(id => {
           if (!seen.has(id) || !Array.isArray(texts[id])) { warnings.push('Textos de «' + id.slice(0, 40) + '» ignorados: ese bloque no está en la pantalla.'); return; }
-          const arr = texts[id].filter(v => typeof v === 'string' || typeof v === 'number').slice(0, MAX_TEXTS).map(v => String(v).replace(/<[^>]*>/g, '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT_LEN));
+          const arr = texts[id].filter(v => typeof v === 'string' || typeof v === 'number').slice(0, MAX_TEXTS).map(v => sinEtiquetas(String(v)).replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT_LEN));
           if (arr.some(Boolean)) tx[id] = arr;
         });
         if (Object.keys(tx).length) r.texts = tx;
