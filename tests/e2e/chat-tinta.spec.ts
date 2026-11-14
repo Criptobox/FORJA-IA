@@ -42,6 +42,13 @@ async function contarLlamadas(page: Page) {
 }
 
 const TINTA = "asistente de diseño de Estilos Tinta";
+
+/** Envía lo escrito cuando el botón ya se activó (el chat ya tiene el texto). */
+async function enviar(page: Page) {
+  const boton = page.getByRole("button", { name: "Enviar mensaje" });
+  await expect(boton).toBeEnabled();
+  await boton.click();
+}
 const vista = (page: Page) => page.frameLocator('iframe[title="Vista previa de la página generada"]');
 
 test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista previa y se cambia en el chat", async ({ page }) => {
@@ -84,7 +91,7 @@ test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista 
   await expect(page.getByPlaceholder("Pide cambios para la app… se verán en la vista previa")).toBeVisible();
   const chat = page.getByRole("textbox", { name: "Mensaje" });
   await chat.fill("ponla en modo oscuro y llama a la cafetería Café Brisa");
-  await page.keyboard.press("Enter");
+  await enviar(page);
   await expect(page.locator("p", { hasText: /Versión 2 · \d+ pantallas/ })).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("p", { hasText: "Hecho, sin gastar IA: modo oscuro · nombre «Café Brisa»." })).toBeVisible();
   await expect(vista(page).getByText("Café Brisa")).not.toHaveCount(0, { timeout: 30_000 });
@@ -93,7 +100,7 @@ test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista 
 
   // una pregunta no toca la app
   await chat.fill("¿qué paleta usaste?");
-  await page.keyboard.press("Enter");
+  await enviar(page);
   // eso no se entiende en local: va a la IA conectada, con la receta actual
   await expect(page.locator("p", { hasText: "Usa la paleta mandarina con tarjetas grandes" })).toBeVisible({ timeout: 30_000 });
   const pedidos = cuerpos.filter((c) => c.includes(TINTA));
