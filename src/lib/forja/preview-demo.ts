@@ -117,10 +117,10 @@ export type DemoDecision = "escribir" | "abrir" | "nada";
  * que no pidió, y con el panel de vista previa abierto encima.
  */
 export function decideDemo(ctx: DemoContext): DemoDecision {
-  if (ctx.forzado) return "escribir";
-  if (ctx.yaVista) return ctx.hayDemo ? "abrir" : "nada";
-  if (ctx.usuarioConDatos) return "nada";
-  return "escribir";
+  // Un solo camino: el ejemplo ya no se mete solo ni se reabre al entrar.
+  // Confundía: parecía la respuesta de tu IA («Personalizado · demo-preview»)
+  // y tapaba la bienvenida. Solo con ?demo=preview.
+  return ctx.forzado ? "escribir" : "nada";
 }
 
 export function demoReply(): string {

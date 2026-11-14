@@ -127,6 +127,7 @@ import {
   splitModelKey,
   isAutoKey,
   isForjaWebKey,
+  FORJA_WEB_MODEL_KEY,
   AUTO_MODEL_KEY,
   pickManualModel,
   type ProviderId,
@@ -169,6 +170,15 @@ import { ForjaStudioDialog } from "./forja-studio-dialog";
 export function ChatApp() {
   // hidratación
   const hydrated = useForja((s) => s.hydrated);
+  // Un solo camino: sin modelo elegido ni ninguna IA conectada, FORJA WEB
+  // queda puesta. Crea con la biblioteca sin IA; no hay nada que elegir antes.
+  useEffect(() => {
+    if (!hydrated) return;
+    const st = useForja.getState();
+    if (!st.settings.defaultModelKey && candidatos(null).length === 0) {
+      st.setSettings({ defaultModelKey: FORJA_WEB_MODEL_KEY });
+    }
+  }, [hydrated]);
 
   const sessions = useForja((s) => s.sessions);
   const activeId = useForja((s) => s.activeSessionId);
@@ -465,15 +475,9 @@ export function ChatApp() {
   // pantalla grande sobre el botón del pie, y en el móvil sobre el botón del
   // menú, que es lo único que se ve con la barra lateral escondida.
 
-  // Guía inicial: se abre sola en la primera visita
-  useEffect(() => {
-    if (!hydrated) return;
-    if (useForja.getState().onboardingDone) return;
-    const t = setTimeout(() => {
-      if (!useForja.getState().onboardingDone) setOnboardingOpen(true);
-    }, 600);
-    return () => clearTimeout(t);
-  }, [hydrated]);
+  // Un solo camino: la guía ya no se abre sola en la primera visita. Tapaba la
+  // bienvenida y hablaba de claves y modelos cuando crear no los necesita.
+  // Sigue en «Guía» para quien la quiera.
 
   // Demo de vista previa: escribe una landing. En escritorio el split se abre
   // en vivo; en el móvil el chat se queda entero y, al terminar, sale el botón.
@@ -1686,9 +1690,9 @@ export function ChatApp() {
           className={cn(
             "raise h-9 shrink-0 gap-1 px-2.5 text-xs",
             isAutoKey(modelKey) && "forja-gradient-bg border-0 text-white hover:opacity-90",
-            // Con FORJA WEB, en el móvil sobra: no cabe junto al selector, y
-            // desde el propio selector se cambia de modo.
-            isForjaWebKey(modelKey) && "hidden sm:inline-flex"
+            // Con FORJA WEB sobra: no cabe en el móvil y desde el propio
+            // selector se cambia de modo. Un solo camino.
+            isForjaWebKey(modelKey) && "hidden"
           )}
           onClick={() => {
             if (isAutoKey(modelKey)) {
@@ -1920,13 +1924,11 @@ export function ChatApp() {
         {!hasMessages ? (
           <Welcome
             onPick={(t) => send(t)}
-            onOpenSettings={() => setSettingsOpen(true)}
-            onOpenSkills={() => setSkillsOpen(true)}
-            onQuickSetup={(pid) => {
-              setFocusProvider(pid);
+            onOpenSettings={() => {
+              setFocusProvider("gemini");
               setSettingsOpen(true);
             }}
-            onOpenRepos={() => setReposOpen(true)}
+            onOpenSkills={() => setSkillsOpen(true)}
             recent={reciente}
             onResume={(id) => setActiveSession(id)}
             onOpenRadar={() => setRadarOpen(true)}

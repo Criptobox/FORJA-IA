@@ -14,30 +14,15 @@ const ctx = (over: Partial<DemoContext> = {}): DemoContext => ({
 });
 
 describe("decideDemo", () => {
-  it("se escribe para quien llega por primera vez y no tiene nada", () => {
-    expect(decideDemo(ctx())).toBe("escribir");
-  });
-
-  it("NO se mete en la app de alguien que ya tiene cosas suyas", () => {
+  it("ya no se mete solo: ni a quien llega por primera vez ni a quien ya lo vio", () => {
+    expect(decideDemo(ctx())).toBe("nada");
     expect(decideDemo(ctx({ usuarioConDatos: true }))).toBe("nada");
-  });
-
-  it("visto una vez, solo se reabre si sigue estando", () => {
-    expect(decideDemo(ctx({ yaVista: true, hayDemo: true }))).toBe("abrir");
+    expect(decideDemo(ctx({ yaVista: true, hayDemo: true }))).toBe("nada");
     expect(decideDemo(ctx({ yaVista: true, hayDemo: false }))).toBe("nada");
   });
 
-  it("borrarlo no lo resucita en la siguiente visita", () => {
-    expect(decideDemo(ctx({ yaVista: true, hayDemo: false, usuarioConDatos: true }))).toBe("nada");
-  });
-
-  it("?demo=preview manda por encima de todo", () => {
-    expect(decideDemo(ctx({ forzado: true, yaVista: true, usuarioConDatos: true }))).toBe(
-      "escribir"
-    );
-  });
-
-  it("«ya vista» pesa más que «usuario nuevo»: no se reescribe sin pedirlo", () => {
-    expect(decideDemo(ctx({ yaVista: true, hayDemo: true, usuarioConDatos: false }))).toBe("abrir");
+  it("?demo=preview lo escribe siempre", () => {
+    expect(decideDemo(ctx({ forzado: true }))).toBe("escribir");
+    expect(decideDemo(ctx({ forzado: true, yaVista: true, usuarioConDatos: true }))).toBe("escribir");
   });
 });
