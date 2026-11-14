@@ -188,7 +188,7 @@ import { resumenRevisionDetalle, revisionDeDetalle } from "./motor-chat";
 
 /** En el chat cuando no hay ninguna IA conectada: el aviso flotante se pierde. */
 const SIN_MODELOS_TEXTO =
-  "Para crear necesito una IA conectada. Forja trabaja con tus propias claves: abre Ajustes ▸ Proveedores y pega una clave gratis (Gemini o Groq se sacan en un minuto). Después pulsa «Regenerar» en este mensaje y lo construyo.";
+  "Para responder eso necesito una IA conectada. Para crear no hace falta: pídeme «hazme una app para…» o «una web para…» y la arma la biblioteca de Forja sin gastar nada. Para conversar o pedir cambios con tus palabras, conecta una IA gratis en Ajustes ▸ Proveedores (Gemini o Groq se sacan en un minuto).";
 
 
 /** Cuántas veces puede saltar de modelo una MISMA respuesta.

@@ -71,13 +71,14 @@ test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista 
   await expect(page.locator('iframe[title="Motor de diseño Tinta"]')).toHaveCSS("pointer-events", "none");
 
   // la respuesta es de Forja IA, sin la receta, y la app está en la vista previa
-  await expect(page.locator("p", { hasText: /App lista: \d+ pantallas/ })).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator("p", { hasText: "¡Buena idea!" })).toBeVisible();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText('"bloques"')).toHaveCount(0);
   await expect(page.getByText("mock-mini-free")).toHaveCount(0);
   await expect(vista(page).locator("body")).not.toBeEmpty({ timeout: 30_000 });
   await expect(vista(page).getByText("Café Brisa")).toHaveCount(0);
-  expect(cuerpos.filter((c) => c.includes(TINTA))).toHaveLength(1);
+  // la primera versión la hace el equipo: sin gastar IA
+  expect(cuerpos.filter((c) => c.includes(TINTA))).toHaveLength(0);
+  await expect(page.locator("p", { hasText: "sin gastar IA" }).first()).toBeVisible();
 
   // un cambio en el mismo chat: se redibuja sin el equipo y la vista previa cambia
   await expect(page.getByPlaceholder("Pide cambios para la app… se verán en la vista previa")).toBeVisible();
@@ -85,18 +86,19 @@ test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista 
   await chat.fill("ponla en modo oscuro y llama a la cafetería Café Brisa");
   await page.keyboard.press("Enter");
   await expect(page.locator("p", { hasText: /Versión 2 · \d+ pantallas/ })).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator("p", { hasText: "Hecho: la paso a modo oscuro." })).toBeVisible();
+  await expect(page.locator("p", { hasText: "Hecho, sin gastar IA: modo oscuro · nombre «Café Brisa»." })).toBeVisible();
   await expect(vista(page).getByText("Café Brisa")).not.toHaveCount(0, { timeout: 30_000 });
-  const pedidos = cuerpos.filter((c) => c.includes(TINTA));
-  expect(pedidos).toHaveLength(2);
-  // el modelo recibió la receta actual para partir de ella
-  expect(pedidos[1]).toContain("PANTALLA ACTUAL");
-  expect(pedidos[1]).toContain("c-coffee");
+  // el cambio se entendió en local: tampoco gastó IA
+  expect(cuerpos.filter((c) => c.includes(TINTA))).toHaveLength(0);
 
   // una pregunta no toca la app
   await chat.fill("¿qué paleta usaste?");
   await page.keyboard.press("Enter");
+  // eso no se entiende en local: va a la IA conectada, con la receta actual
   await expect(page.locator("p", { hasText: "Usa la paleta mandarina con tarjetas grandes" })).toBeVisible({ timeout: 30_000 });
+  const pedidos = cuerpos.filter((c) => c.includes(TINTA));
+  expect(pedidos).toHaveLength(1);
+  expect(pedidos[0]).toContain("PANTALLA ACTUAL");
   await expect(vista(page).getByText("Café Brisa")).not.toHaveCount(0);
   await page.screenshot({ path: "test-results/forja-web-tinta.png" });
   await expect(page.locator("p", { hasText: /Versión 3/ })).toHaveCount(0);
@@ -155,7 +157,7 @@ test("en el móvil, la app de Tinta se abre en la vista previa", async ({ page }
   await motor.locator("[data-eq=speed]").click();
   await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
   await motor.locator("#eqGo").click();
-  await expect(page.locator("p", { hasText: /App lista: \d+ pantallas/ })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(ancho).toBeLessThanOrEqual(390);
 });

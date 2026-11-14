@@ -25,6 +25,10 @@ import { esEncargoUINueva } from "../design-directions";
 import { esEncargoDeApp } from "../modo-app";
 import { ErrorTinta, type ClienteTinta, type RecetaTinta } from "./cliente";
 import type { PedirModelo } from "./crear";
+import { AYUDA_SIN_IA, cambioLocal, recetaDePlantilla } from "./cambios-locales";
+
+/** «modelo» de lo que se hace sin IA: la biblioteca. */
+export const MODELO_LOCAL = "forja::tinta";
 import type { PasoCreacion, ProgresoCreacion } from "../progreso-creacion";
 
 /** La app de Tinta que vive en un mensaje del chat. */
@@ -54,6 +58,8 @@ export interface EntradaTinta {
   hayApp: boolean;
   /** imágenes adjuntas: Tinta no las ve, mejor el camino normal */
   imagenes: number;
+  /** no hay ninguna IA conectada: todo lo que sea crear lo hace Tinta */
+  sinIA?: boolean;
 }
 
 /** ¿Este mensaje con FORJA WEB lo resuelve Tinta? */
@@ -61,6 +67,7 @@ export function usaTinta(e: EntradaTinta): boolean {
   const t = (e.texto ?? "").trim();
   if (!t || e.imagenes > 0 || PIDE_CODIGO.test(t)) return false;
   if (e.hayApp) return true;
+  if (e.sinIA) return esEncargoUINueva(t);
   return esEncargoUINueva(t) && esEncargoDeApp(t) && !APP_FUNCIONAL.test(t);
 }
 
@@ -115,11 +122,15 @@ export interface ResultadoTurno {
   avisos: string[];
 }
 
-/** Un turno del chat: primera versión (con el equipo de agentes) o cambio
- *  sobre `anterior` (redibujado al momento). */
+/** Un turno del chat. Sin gastar IA siempre que se pueda:
+ *  · primera versión: el equipo de agentes elige el diseño por sector, en local;
+ *  · cambio: se aplica en local si se entiende (`cambios-locales.ts`);
+ *  · solo si no se entiende y hay una IA conectada, se le pide la receta. */
 export async function turnoTinta(o: {
   pedido: string;
   anterior?: AppTinta | null;
+  /** hay alguna IA conectada para lo que no se entienda en local */
+  hayModelo: boolean;
   modeloKey: string | null;
   signal: AbortSignal;
   cliente: ClienteTinta;
@@ -133,20 +144,56 @@ export async function turnoTinta(o: {
   const ant = o.anterior ?? null;
   paso("arrancando");
   await o.cliente.listo();
-  const idea = ant ? `${ant.receta.brief}. ${pedido}` : pedido;
-  const ins = await o.cliente.pedir(
-    "instrucciones",
-    ant ? { idea, actual: recetaParaModelo(ant.receta) } : { idea },
-    { signal: o.signal }
-  );
-  const usuario = ant
-    ? `Lo que pide ahora la persona sobre su app: ${pedido}\n\nSi es un cambio, responde con una frase y la receta COMPLETA con el cambio aplicado (parte de la PANTALLA ACTUAL). Si solo pregunta, responde sin JSON.`
-    : pedido;
+
+  const conEquipo = async (idea: string): Promise<Omit<AppTinta, "version">> => {
+    paso("equipo");
+    o.mostrarEquipo?.(true);
+    try {
+      const eq = await o.cliente.pedir("equipo", { idea }, { ms: 15 * 60_000, signal: o.signal });
+      const receta = recetaDePlantilla(eq.plantilla, idea);
+      if (!receta) throw new ErrorTinta("El equipo no devolvió un diseño. Vuelve a intentarlo.");
+      paso("listo");
+      return { receta, html: eq.html, pantallas: eq.pantallas, modelo: MODELO_LOCAL, llamadas: 0 };
+    } finally {
+      o.mostrarEquipo?.(false);
+    }
+  };
+
+  if (!ant) {
+    const app = await conEquipo(pedido);
+    return { texto: "Diseñada por el equipo con la biblioteca de Forja, sin gastar IA.", app, modelo: MODELO_LOCAL, avisos: [] };
+  }
+
+  const cat = await o.cliente.pedir("catalogo", {}, { signal: o.signal });
+  const local = cambioLocal(pedido, ant.receta, cat);
+  if (local?.rehacer) {
+    const app = await conEquipo(ant.receta.brief || pedido);
+    return { texto: "Otra propuesta del equipo, sin gastar IA.", app, modelo: MODELO_LOCAL, avisos: [] };
+  }
+  if (local) {
+    paso("dibujando");
+    const d = await o.cliente.pedir("dibujar", { receta: local.receta, idea: local.receta.brief }, { signal: o.signal });
+    paso("listo");
+    return {
+      texto: `Hecho, sin gastar IA: ${local.hechos.join(" · ")}.`,
+      app: { receta: local.receta, html: d.html, pantallas: d.pantallas, modelo: MODELO_LOCAL, llamadas: 0 },
+      modelo: MODELO_LOCAL,
+      avisos: [],
+    };
+  }
+  if (!o.hayModelo) {
+    paso("listo");
+    return { texto: AYUDA_SIN_IA, modelo: MODELO_LOCAL, avisos: [] };
+  }
+
+  // Lo que no se entiende en local, a la IA: recibe la receta actual.
+  const ins = await o.cliente.pedir("instrucciones", { idea: `${ant.receta.brief}. ${pedido}`, actual: recetaParaModelo(ant.receta) }, { signal: o.signal });
+  const usuario = `Lo que pide ahora la persona sobre su app: ${pedido}\n\nSi es un cambio, responde con una frase y la receta COMPLETA con el cambio aplicado (parte de la PANTALLA ACTUAL). Si solo pregunta, responde sin JSON.`;
   paso("modelo");
   let r = await o.pedirModelo({ sistema: ins.sistema, usuario, modeloKey: o.modeloKey, signal: o.signal, maxTokens: 2048 });
   let llamadas = 1;
-  // En una conversación con app, una respuesta sin JSON es conversación.
-  if (ant && !r.texto.includes("{")) {
+  // Una respuesta sin JSON es conversación: la app no se toca.
+  if (!r.texto.includes("{")) {
     paso("listo");
     return { texto: r.texto.trim() || "¿Qué quieres cambiar de la app?", modelo: r.modelKey, avisos: [] };
   }
@@ -164,22 +211,10 @@ export async function turnoTinta(o: {
     );
   }
   const receta = leido.receta;
-  const texto = textoVisible(r.texto);
-  if (ant) {
-    paso("dibujando");
-    const d = await o.cliente.pedir("dibujar", { receta, idea: receta.brief || ant.receta.brief }, { signal: o.signal });
-    paso("listo");
-    return { texto: texto || "Hecho.", app: { receta, html: d.html, pantallas: d.pantallas, modelo: r.modelKey, llamadas }, modelo: r.modelKey, avisos: leido.avisos };
-  }
-  paso("equipo");
-  o.mostrarEquipo?.(true);
-  try {
-    const eq = await o.cliente.pedir("equipo", { receta, idea: pedido, nombre: receta.brief || "Tu app" }, { ms: 15 * 60_000, signal: o.signal });
-    paso("listo");
-    return { texto: texto || "Aquí tienes tu app.", app: { receta, html: eq.html, pantallas: eq.pantallas, modelo: r.modelKey, llamadas }, modelo: r.modelKey, avisos: leido.avisos };
-  } finally {
-    o.mostrarEquipo?.(false);
-  }
+  paso("dibujando");
+  const d = await o.cliente.pedir("dibujar", { receta, idea: receta.brief || ant.receta.brief }, { signal: o.signal });
+  paso("listo");
+  return { texto: textoVisible(r.texto) || "Hecho.", app: { receta, html: d.html, pantallas: d.pantallas, modelo: r.modelKey, llamadas }, modelo: r.modelKey, avisos: leido.avisos };
 }
 
 /** La última app de Tinta de la conversación (la que se está editando). */
@@ -195,7 +230,7 @@ export function ultimaApp<M extends { role: string; error?: boolean; tintaApp?: 
 export function resumenApp(app: Pick<AppTinta, "pantallas" | "version">): string {
   const n = app.pantallas.length;
   return app.version === 1
-    ? `App lista: ${n} ${n === 1 ? "pantalla" : "pantallas"} con la biblioteca de diseño de Forja. Pídeme cambios aquí mismo y la vista previa se actualiza.`
+    ? `Listo: ${n} ${n === 1 ? "pantalla" : "pantallas"} con la biblioteca de diseño de Forja. Pídeme cambios aquí mismo y la vista previa se actualiza.`
     : `Versión ${app.version} · ${n} ${n === 1 ? "pantalla" : "pantallas"}.`;
 }
 

@@ -148,6 +148,7 @@ import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } f
 import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
 import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
 import { usaTinta, ultimaApp, resumenApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { candidatos } from "@/lib/forja/estudio/generador";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
 import {
   buscarContexto as buscarContextoTurno,
@@ -835,8 +836,9 @@ export function ChatApp() {
         const r = await turnoTinta({
           pedido,
           anterior,
-          // FORJA WEB no es un modelo: la receta la escribe la cadena Auto.
+          // FORJA WEB no es un modelo: si hace falta IA, la cadena Auto.
           modeloKey: null,
+          hayModelo: candidatos(null).length > 0,
           signal: ctrl.signal,
           cliente: m.cliente,
           pedirModelo: pedirAlModelo,
@@ -1010,7 +1012,12 @@ export function ChatApp() {
           const clave = ses?.modelKey ?? useForja.getState().settings.defaultModelKey;
           if (
             isForjaWebKey(clave ?? "") &&
-            usaTinta({ texto: text, hayApp: !!ultimaApp(ses?.messages ?? []), imagenes: attachments.length })
+            usaTinta({
+              texto: text,
+              hayApp: !!ultimaApp(ses?.messages ?? []),
+              imagenes: attachments.length,
+              sinIA: candidatos(null).length === 0,
+            })
           ) {
             void runTinta(sessionId, text);
             return;

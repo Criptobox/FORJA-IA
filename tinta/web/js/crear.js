@@ -246,6 +246,8 @@ if(m.accion==='ping')return motorReply(m.id,true,{api:MOTOR_API,version:APP_VERS
 if(m.accion==='instrucciones'){const idea=String(d.idea||'').slice(0,1500);return motorReply(m.id,true,{sistema:receta().chatSystem(idea,String(d.actual||'').slice(0,3000)),prompt:receta().prompt(idea)});}
 if(m.accion==='leer'){const r=receta().parse(String(d.texto||''));return motorReply(m.id,true,{ok:r.ok,errores:r.errors,avisos:r.warnings,receta:r.recipe,correccion:r.ok?'':receta().fixPrompt(r)});}
 if(m.accion==='dibujar')return motorReply(m.id,true,motorRender(motorTemplate(d)));
+if(m.accion==='catalogo')return motorReply(m.id,true,{paletas:TintaPalettes.LIST.map(p=>({id:p.id,nombre:p.name,ambiente:p.mood||'',acento:p.accent,fondo:p.bg})),tipografias:TintaFonts.LIST.map(f=>({id:f.id,nombre:f.name,tag:f.tag||''})),fondos:TintaBackgrounds.LIST.map(b=>({id:b.id,nombre:b.name,tag:b.tag||'',grupo:b.group||''})),bloques:CATALOG.map(b=>({id:b.id,rol:b.role,nombre:b.name}))});
+if(m.accion==='equipo'&&!d.receta&&!d.plantilla){if(teamMotorReq)motorReply(teamMotorReq,false,'Sustituido por otra petición');teamMotorReq=m.id;openTeam(String(d.idea||'Mi app').slice(0,300));return;}
 if(m.accion==='equipo'){const t=motorTemplate(d);if(teamMotorReq)motorReply(teamMotorReq,false,'Sustituido por otra petición');teamMotorReq=m.id;t.name=String(d.nombre||'Propuesta de tu IA').slice(0,60);openTeam(t.brief||String(d.idea||'Mi app'),t);return;}
 motorReply(m.id,false,'Acción desconocida: '+String(m.accion).slice(0,40));}catch(e){motorReply(m.id,false,e);}});
 $('equipoDialog').addEventListener('close',()=>setTimeout(()=>{if(teamMotorReq){const id=teamMotorReq;teamMotorReq=null;motorReply(id,false,'Cancelado');}},0));
