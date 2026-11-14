@@ -109,9 +109,9 @@ export function Welcome({
 
         <div className="stagger-in mt-4 mb-5 flex flex-col items-center sm:mt-6 sm:mb-7" style={{ "--stagger": 1 } as React.CSSProperties}>
           <p className="chispa-bocadillo mb-2" aria-hidden>
-            ¿Encendemos algo? 🔥
+            ¿Creamos algo? ✨
           </p>
-          <Chispa estado="inicio" size={124} titulo="Chispa, la llama de Forja, te saluda" />
+          <Chispa estado="inicio" size={124} titulo="Lumen, el guía de Forja, te saluda" />
           <div className="chispa-suelo" aria-hidden />
         </div>
 

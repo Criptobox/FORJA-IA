@@ -378,7 +378,7 @@ export const MessageItem = memo(function MessageItem({
           <div className="flex items-center gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
             <Chispa estado="error" size={44} className="shrink-0" />
             <div className="min-w-0">
-              <p className="text-[12.5px] font-semibold text-foreground">Uy, se me apagó el fuego</p>
+              <p className="text-[12.5px] font-semibold text-foreground">Uy, algo falló</p>
               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
               {msg.sinModelos && (
                 <button
