@@ -162,7 +162,7 @@
         '- "textos" es opcional: por id de bloque, hasta ' + MAX_TEXTS + ' frases cortas en español.',
         '- Al cambiar una pantalla, devuelve la receta COMPLETA con el cambio aplicado.',
         'Formato: {"idea":"…","bloques":[{"id":"…"},{"id":"…","copias":3}],"paleta":"…","tipografia":"…","fondo":null,"modo":"claro","textos":{"id-del-bloque":["Título"]}}',
-        current ? '\nPANTALLA ACTUAL DE LA PERSONA: ' + String(current).slice(0, 400) : ''
+        current ? '\nPANTALLA ACTUAL DE LA PERSONA (receta en JSON; parte de ella y cambia solo lo que pide): ' + String(current).slice(0, 3000) : ''
       ].join('\n').trim();
     }
     return { prompt, parse, fixPrompt, catalogText, toTemplate, chatSystem };

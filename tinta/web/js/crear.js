@@ -243,7 +243,7 @@ function motorRender(t){const snap=draftSnapshot(),idea=$('idea').value,sv=scree
 if(MOTOR){document.documentElement.classList.add('tinta-motor');
 window.addEventListener('message',ev=>{if(ev.source!==window.parent||ev.origin!==location.origin)return;const m=ev.data;if(!m||m.tipo!=='tinta:pedir'||typeof m.id!=='number')return;const d=m.datos||{};try{
 if(m.accion==='ping')return motorReply(m.id,true,{api:MOTOR_API,version:APP_VERSION,bloques:CATALOG.length,plantillas:TintaTemplates.LIST.length});
-if(m.accion==='instrucciones'){const idea=String(d.idea||'').slice(0,1500);return motorReply(m.id,true,{sistema:receta().chatSystem(idea,String(d.actual||'').slice(0,600)),prompt:receta().prompt(idea)});}
+if(m.accion==='instrucciones'){const idea=String(d.idea||'').slice(0,1500);return motorReply(m.id,true,{sistema:receta().chatSystem(idea,String(d.actual||'').slice(0,3000)),prompt:receta().prompt(idea)});}
 if(m.accion==='leer'){const r=receta().parse(String(d.texto||''));return motorReply(m.id,true,{ok:r.ok,errores:r.errors,avisos:r.warnings,receta:r.recipe,correccion:r.ok?'':receta().fixPrompt(r)});}
 if(m.accion==='dibujar')return motorReply(m.id,true,motorRender(motorTemplate(d)));
 if(m.accion==='equipo'){const t=motorTemplate(d);if(teamMotorReq)motorReply(teamMotorReq,false,'Sustituido por otra petición');teamMotorReq=m.id;t.name=String(d.nombre||'Propuesta de tu IA').slice(0,60);openTeam(t.brief||String(d.idea||'Mi app'),t);return;}

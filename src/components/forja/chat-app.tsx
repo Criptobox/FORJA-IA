@@ -41,7 +41,6 @@ import { CerebroSheet } from "./cerebro-sheet";
 import { ChatInput } from "./chat-input";
 import { MessageItem } from "./message";
 import { PropuestaCard } from "./propuesta-card";
-import { TintaCard } from "./tinta-card";
 import { ModelPicker } from "./model-picker";
 import { SettingsDialog } from "./settings-dialog";
 import { PromptLibrary } from "./prompt-library";
@@ -127,6 +126,7 @@ import {
 import {
   splitModelKey,
   isAutoKey,
+  isForjaWebKey,
   AUTO_MODEL_KEY,
   pickManualModel,
   type ProviderId,
@@ -148,7 +148,7 @@ import {
 import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } from "@/lib/forja/memoria-proyecto";
 import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
 import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
-import { debeOfrecerTinta, TEXTO_OFERTA_TINTA, type OfertaTinta } from "@/lib/forja/tinta/chat";
+import { usaTinta, ultimaApp, resumenApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
 import {
   buscarContexto as buscarContextoTurno,
@@ -612,15 +612,17 @@ export function ChatApp() {
     if (!activeSession) return null;
     for (let i = activeSession.messages.length - 1; i >= 0; i--) {
       const m = activeSession.messages[i];
-      if (m.role === "assistant" && !m.error && extractPreviewHtml(m.content)) return m;
+      if (m.role === "assistant" && !m.error && (m.tintaApp?.html || extractPreviewHtml(m.content))) return m;
     }
     return null;
   }, [activeSession]);
 
   const previewCode = useMemo(
-    () => extractPreviewHtml(previewMsg?.content ?? null),
+    () => previewMsg?.tintaApp?.html ?? extractPreviewHtml(previewMsg?.content ?? null),
     [previewMsg]
   );
+  /** El código fuente de la vista previa: el HTML de la app de Tinta, o la respuesta. */
+  const previewSource = previewMsg ? (previewMsg.tintaApp?.html ?? previewMsg.content) : null;
   const previewStreaming = !!streamingMsgId && streamingMsgId === previewMsg?.id;
   /** En el móvil el botón de «ver cómo va» solo sale cuando YA terminó de escribir. */
   const mobilePreviewReady = !!previewCode && !previewStreaming && !focusMode;
@@ -789,62 +791,89 @@ export function ChatApp() {
     [updateMessage, runGeneration]
   );
 
-  /** Diseño con Tinta desde el chat: receta corta del modelo, el equipo de
-   *  agentes a la vista y la app completa como proyecto del Estudio. Los
-   *  módulos se cargan al usarse: el chat no paga por ellos hasta entonces. */
-  const construirConTinta = useCallback(
-    async (ofertaId: string) => {
+  /** FORJA WEB con Tinta: un turno del chat que diseña (o cambia) la app con
+   *  la biblioteca. La primera versión pasa por el equipo de agentes; cada
+   *  cambio se redibuja sobre la receta actual. La respuesta es de «Forja IA»
+   *  y la app sale en la vista previa. Ver `tinta/forja-web.ts`. */
+  const runTinta = useCallback(
+    async (sessionId: string, pedido: string) => {
       const st = useForja.getState();
-      const sid = st.activeSessionId;
-      const ses = sid ? st.sessions.find((x) => x.id === sid) : null;
-      if (!sid || !ses) return;
-      const idx = ses.messages.findIndex((x) => x.id === ofertaId);
-      const usuario = [...ses.messages.slice(0, idx)].reverse().find((x) => x.role === "user" && !x.instruction);
-      if (!usuario) return;
-      const brief = usuario.content;
-      const poner = (o: OfertaTinta) => updateMessage(sid, ofertaId, { tintaOferta: o });
-      poner({ estado: "creando" });
+      const ses = st.sessions.find((x) => x.id === sessionId);
+      if (!ses) return;
+      const anterior = ultimaApp(ses.messages);
+      const cambio = !!anterior;
+      const assistantId = uid();
+      const inicio = Date.now();
+      addMessage(sessionId, {
+        id: assistantId,
+        role: "assistant",
+        content: "",
+        createdAt: inicio,
+        viaForjaWeb: true,
+        tintaProgreso: { paso: "arrancando", cambio },
+      });
+      setStreamingMsgId(assistantId);
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
+      let motor: { mostrar: (si: boolean) => void } | null = null;
       try {
-        const [{ crearConTinta, TEXTO_PASO }, { motorTinta }, { conAppTinta }, { pedirAlModelo }, { useEstudio }] = await Promise.all([
-          import("@/lib/forja/tinta/crear"),
+        const [{ turnoTinta }, { motorTinta }, { pedirAlModelo }] = await Promise.all([
+          import("@/lib/forja/tinta/forja-web"),
           import("@/lib/forja/tinta/iframe"),
-          import("@/lib/forja/tinta/proyecto"),
           import("@/lib/forja/estudio/generador"),
-          import("@/lib/forja/estudio/store"),
         ]);
-        const motor = motorTinta();
-        const r = await crearConTinta({
-          brief,
-          modeloKey: ses.modelKey ?? st.settings.defaultModelKey ?? null,
-          signal: new AbortController().signal,
-          cliente: motor.cliente,
+        const m = motorTinta();
+        motor = m;
+        // Quitar el equipo de agentes de la vista si se pulsa «Parar».
+        ctrl.signal.addEventListener("abort", () => m.mostrar(false), { once: true });
+        const r = await turnoTinta({
+          pedido,
+          anterior,
+          // FORJA WEB no es un modelo: la receta la escribe la cadena Auto.
+          modeloKey: null,
+          signal: ctrl.signal,
+          cliente: m.cliente,
           pedirModelo: pedirAlModelo,
-          mostrarEquipo: motor.mostrar,
-          onPaso: (p) => poner({ estado: "creando", paso: TEXTO_PASO[p] }),
+          mostrarEquipo: m.mostrar,
+          onPaso: (paso) => updateMessage(sessionId, assistantId, { tintaProgreso: { paso, cambio } }),
         });
-        const est = useEstudio.getState();
-        const p = est.crear({ brief, tipo: "app" });
-        est.cambiar(p.id, (x) => conAppTinta(x, r, brief));
-        poner({ estado: "hecha", proyectoId: p.id, pantallas: r.pantallas.length, modelo: r.modelKey, llamadas: r.llamadas });
+        if (!r.app) {
+          updateMessage(sessionId, assistantId, { content: r.texto, model: r.modelo, tintaProgreso: undefined, elapsedMs: Date.now() - inicio });
+          return;
+        }
+        const app: AppTinta = { ...r.app, version: (anterior?.version ?? 0) + 1 };
+        // Solo la versión vigente guarda el HTML (pesa); las anteriores, la receta.
+        const ahora = useForja.getState().sessions.find((x) => x.id === sessionId);
+        for (const x of ahora?.messages ?? []) {
+          if (x.id !== assistantId && x.tintaApp?.html) {
+            updateMessage(sessionId, x.id, { tintaApp: { ...x.tintaApp, html: undefined } });
+          }
+        }
+        updateMessage(sessionId, assistantId, {
+          content: `${r.texto}\n\n${resumenApp(app)}`,
+          tintaApp: app,
+          tintaProgreso: undefined,
+          model: app.modelo,
+          elapsedMs: Date.now() - inicio,
+        });
       } catch (e) {
-        const cancelado = typeof e === "object" && e !== null && (e as { cancelado?: boolean }).cancelado === true;
-        if (cancelado) poner({ estado: "pendiente" });
-        else poner({ estado: "error", error: e instanceof Error ? e.message : String(e) });
+        const cancelado =
+          ctrl.signal.aborted ||
+          (typeof e === "object" && e !== null && (e as { cancelado?: boolean }).cancelado === true);
+        updateMessage(sessionId, assistantId, {
+          content: cancelado
+            ? "Diseño detenido. Escribe otra vez lo que quieres cuando quieras."
+            : `No pude diseñar la app: ${e instanceof Error ? e.message : String(e)}`,
+          error: !cancelado,
+          tintaProgreso: undefined,
+        });
+        motor?.mostrar(false);
+      } finally {
+        if (abortRef.current === ctrl) abortRef.current = null;
+        setStreamingMsgId((cur) => (cur === assistantId ? null : cur));
       }
     },
-    [updateMessage]
-  );
-
-  /** App funcional con código: se descarta la oferta y se genera como siempre. */
-  const construirConCodigo = useCallback(
-    (ofertaId: string) => {
-      const sid = useForja.getState().activeSessionId;
-      if (!sid) return;
-      updateMessage(sid, ofertaId, { tintaOferta: { estado: "descartada" } });
-      stickToBottomRef.current = true;
-      void runGeneration(sid);
-    },
-    [updateMessage, runGeneration]
+    [addMessage, updateMessage, setStreamingMsgId, abortRef]
   );
 
   const send = useCallback(
@@ -964,6 +993,21 @@ export function ChatApp() {
           void runConsensus(sessionId, text);
           return;
         }
+        // ——— FORJA WEB + Tinta: la app se diseña con la biblioteca ———
+        // Con FORJA WEB elegido, una app nueva (o un cambio sobre la app que
+        // ya está en la vista previa) la arma Tinta. Webs y landings siguen
+        // con el sistema de FORJA WEB de siempre.
+        {
+          const ses = useForja.getState().sessions.find((x) => x.id === sessionId);
+          const clave = ses?.modelKey ?? useForja.getState().settings.defaultModelKey;
+          if (
+            isForjaWebKey(clave ?? "") &&
+            usaTinta({ texto: text, hayApp: !!ultimaApp(ses?.messages ?? []), imagenes: attachments.length })
+          ) {
+            void runTinta(sessionId, text);
+            return;
+          }
+        }
         // ——— Design First (Plan Maestro 2026 §4) ———
         // Web nueva sin identidad fijada: primero la propuesta (0 tokens), y
         // se construye cuando el usuario elige. Ver `propuesta-diseno.ts`.
@@ -984,23 +1028,6 @@ export function ChatApp() {
             content: `Propuesta de diseño: ${propuesta.variantes.map((v) => v.nombre).join(" · ")}. Elige una para construir.`,
             createdAt: Date.now(),
             propuestaDiseno: propuesta,
-          });
-          return;
-        }
-        // ——— App nueva: ¿diseño con Tinta o app con código? (0 tokens) ———
-        if (
-          debeOfrecerTinta({
-            texto: text,
-            imagenes: attachments.length,
-            activada: useForja.getState().settings.tintaEnChat !== false,
-          })
-        ) {
-          addMessage(sessionId, {
-            id: uid(),
-            role: "assistant",
-            content: TEXTO_OFERTA_TINTA,
-            createdAt: Date.now(),
-            tintaOferta: { estado: "pendiente" },
           });
           return;
         }
@@ -1046,7 +1073,7 @@ export function ChatApp() {
 
       proceder();
     },
-    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo, clearDraft]
+    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo, clearDraft, runTinta]
   );
 
   /** Los errores que salieron mientras USABAS la página van al modelo.
@@ -1084,9 +1111,10 @@ export function ChatApp() {
       if (!activeSession || !previewMsg) {
         return { ok: false, motivo: "no hay ninguna vista previa abierta" };
       }
-      const r = aplicarEdicionTexto(previewMsg.content, original, nuevo);
+      const app = previewMsg.tintaApp;
+      const r = aplicarEdicionTexto(app?.html ?? previewMsg.content, original, nuevo);
       if (!r.ok || r.contenido == null) return { ok: false, motivo: r.motivo };
-      updateMessage(activeSession.id, previewMsg.id, { content: r.contenido });
+      updateMessage(activeSession.id, previewMsg.id, app ? { tintaApp: { ...app, html: r.contenido } } : { content: r.contenido });
       return { ok: true };
     },
     [activeSession, previewMsg, updateMessage]
@@ -1107,9 +1135,10 @@ export function ChatApp() {
       if (!activeSession || !previewMsg) {
         return { ok: false, motivo: "no hay ninguna vista previa abierta" };
       }
-      const r = aplicarAjustesEnFuente(previewMsg.content, cambios);
+      const app = previewMsg.tintaApp;
+      const r = aplicarAjustesEnFuente(app?.html ?? previewMsg.content, cambios);
       if (!r.ok || r.contenido == null) return { ok: false, motivo: r.motivo };
-      updateMessage(activeSession.id, previewMsg.id, { content: r.contenido });
+      updateMessage(activeSession.id, previewMsg.id, app ? { tintaApp: { ...app, html: r.contenido } } : { content: r.contenido });
       return { ok: true };
     },
     [activeSession, previewMsg, updateMessage]
@@ -1925,13 +1954,6 @@ export function ChatApp() {
                       deshabilitada={!!streamingMsgId}
                       onConstruir={(id, ajustes) => construirDesdePropuesta(m.id, id, ajustes)}
                     />
-                  ) : m.tintaOferta ? (
-                    <TintaCard
-                      oferta={m.tintaOferta}
-                      deshabilitada={!!streamingMsgId || m.tintaOferta.estado === "creando"}
-                      onTinta={() => void construirConTinta(m.id)}
-                      onCodigo={() => construirConCodigo(m.id)}
-                    />
                   ) : (
                   <MessageItem
                     msg={m}
@@ -2077,7 +2099,9 @@ export function ChatApp() {
             : senalados.length
               ? `¿Qué quieres cambiar de ${senalados.length === 1 ? etiquetaCorta(senalados[0]) : `estos ${senalados.length} elementos`}?`
             : previewOpen
-              ? "Pide cambios para la página… se verán en la vista previa"
+              ? previewMsg?.tintaApp
+                ? "Pide cambios para la app… se verán en la vista previa"
+                : "Pide cambios para la página… se verán en la vista previa"
               : settings.consensus
                 ? "Consenso: varios modelos responden y uno combina lo mejor…"
                 : settings.agentMode
@@ -2271,7 +2295,7 @@ export function ChatApp() {
             <PreviewPanel
               ref={previewPanelRef}
               code={previewCode}
-              source={previewMsg?.content ?? null}
+              source={previewSource}
               title={activeSession?.title ?? null}
               almacenId={activeSession?.id ?? null}
               streaming={previewStreaming}
@@ -2306,7 +2330,7 @@ export function ChatApp() {
             <PreviewPanel
               ref={previewPanelRef}
               code={previewCode}
-              source={previewMsg?.content ?? null}
+              source={previewSource}
               title={activeSession?.title ?? null}
               almacenId={activeSession?.id ?? null}
               streaming={previewStreaming}

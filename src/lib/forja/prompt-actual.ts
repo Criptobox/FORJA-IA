@@ -312,7 +312,7 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
     usaParches({
       nivel,
       agente: !!st.settings.agentMode || forjaWebActivo,
-      archivos: archivosVigentes((sesionActual?.messages ?? []).filter((m) => !m.propuestaDiseno && !m.tintaOferta)),
+      archivos: archivosVigentes((sesionActual?.messages ?? []).filter((m) => !m.propuestaDiseno)),
     })
       ? INSTRUCCION_PARCHE
       : null;

@@ -156,6 +156,15 @@ function buildReply(body: { messages?: MockMsg[]; tools?: unknown; model?: strin
   // devuelve una RECETA de bloques del catálogo, nunca HTML.
   const pideTinta = msgs.some((m) => typeof m.content === "string" && (m.content as string).includes("asistente de diseño de Estilos Tinta"));
   if (pideTinta) {
+    // Chat con FORJA WEB: seguimiento sobre la app que ya existe.
+    const ultimo = [...msgs].reverse().find((m) => m.role === "user");
+    const pedidoChat = typeof ultimo?.content === "string" ? (ultimo.content as string) : "";
+    if (pedidoChat.includes("Lo que pide ahora la persona")) {
+      if (/\?/.test(pedidoChat.split("\n")[0])) return "Usa la paleta mandarina con tarjetas grandes; si quieres la cambio.";
+      const oscuro = /oscur/i.test(pedidoChat);
+      const cambiada = { idea: "Cafetería con pedidos", bloques: [{ id: "h-search" }, { id: "c-coffee", copias: 3 }, { id: "a-coral" }, { id: "n-soft" }], paleta: "mandarina", tipografia: null, fondo: null, modo: oscuro ? "oscuro" : "claro", textos: { "h-search": ["Café Brisa"] } };
+      return "Hecho: " + (oscuro ? "la paso a modo oscuro" : "aplico el cambio") + ".\n```json\n" + JSON.stringify(cambiada) + "\n```";
+    }
     const receta = { idea: "Cafetería con pedidos", bloques: [{ id: "h-search" }, { id: "c-coffee", copias: 2 }, { id: "a-coral" }, { id: "n-soft" }], paleta: "mandarina", tipografia: null, fondo: null, modo: "claro" };
     return "¡Buena idea! Armo una cafetería con tarjetas grandes y barra inferior.\n```json\n" + JSON.stringify(receta) + "\n```";
   }

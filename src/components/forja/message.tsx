@@ -37,6 +37,7 @@ import { hayContexto, lineaContexto, detalleContexto } from "@/lib/forja/context
 import { hayFicha, lineasDeFicha, titularDeFicha } from "@/lib/forja/ficha-respuesta";
 import { agentStalled, parseAgentTrace } from "@/lib/forja/agent-loop";
 import { proyectoDeLaRespuesta } from "@/lib/forja/auto-revision";
+import { progresoTinta } from "@/lib/forja/tinta/forja-web";
 import { citasDe } from "@/lib/forja/evidencia";
 import { instructionLabel, TRANSLATE_LANGS, type TargetLang } from "@/lib/forja/recap";
 import { useAvailableModels } from "@/components/forja/model-picker";
@@ -427,7 +428,14 @@ export const MessageItem = memo(function MessageItem({
                 streaming && !msg.content && msg.reasoning && "text-muted-foreground"
               )}
             >
-              {msg.content ? (
+              {msg.tintaProgreso && streaming ? (
+                // FORJA WEB con Tinta: los pasos reales (biblioteca → piezas →
+                // equipo de agentes → vista previa), no el stream de texto.
+                <CreacionEnCurso
+                  progreso={progresoTinta(msg.tintaProgreso)}
+                  titulo={msg.tintaProgreso.cambio ? "Aplicando tu cambio" : "Creando tu app"}
+                />
+              ) : msg.content ? (
                 trace.active ? (
                   <div className={streaming ? "stream-cursor-wrap" : ""}>
                     <AgentTraceView
