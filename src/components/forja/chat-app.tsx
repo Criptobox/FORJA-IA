@@ -148,6 +148,7 @@ import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } f
 import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
 import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
 import { usaTinta, ultimaApp, resumenApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { candidatos } from "@/lib/forja/estudio/generador";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
 import {
   buscarContexto as buscarContextoTurno,
@@ -236,6 +237,15 @@ export function ChatApp() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [imageMode, setImageMode] = useState(false);
   const [focusProvider, setFocusProvider] = useState<ProviderId | null>(null);
+  // «Conectar una IA gratis» desde el mensaje del chat que avisa de que no hay ninguna.
+  useEffect(() => {
+    const abrir = () => {
+      setFocusProvider("gemini");
+      setSettingsOpen(true);
+    };
+    window.addEventListener("forja-abrir-proveedores", abrir);
+    return () => window.removeEventListener("forja-abrir-proveedores", abrir);
+  }, []);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ecoOpen, setEcoOpen] = useState(false);
   const [cerebroOpen, setCerebroOpen] = useState(false);
@@ -826,8 +836,9 @@ export function ChatApp() {
         const r = await turnoTinta({
           pedido,
           anterior,
-          // FORJA WEB no es un modelo: la receta la escribe la cadena Auto.
+          // FORJA WEB no es un modelo: si hace falta IA, la cadena Auto.
           modeloKey: null,
+          hayModelo: candidatos(null).length > 0,
           signal: ctrl.signal,
           cliente: m.cliente,
           pedirModelo: pedirAlModelo,
@@ -862,6 +873,8 @@ export function ChatApp() {
             ? "Diseño detenido. Escribe otra vez lo que quieres cuando quieras."
             : `No pude diseñar la app: ${e instanceof Error ? e.message : String(e)}`,
           error: !cancelado,
+          // sin ninguna IA conectada: el mensaje lleva el botón para conectarla
+          sinModelos: !cancelado && e instanceof Error && e.name === "SinModelosError",
           tintaProgreso: undefined,
         });
         motor?.mostrar(false);
@@ -999,7 +1012,12 @@ export function ChatApp() {
           const clave = ses?.modelKey ?? useForja.getState().settings.defaultModelKey;
           if (
             isForjaWebKey(clave ?? "") &&
-            usaTinta({ texto: text, hayApp: !!ultimaApp(ses?.messages ?? []), imagenes: attachments.length })
+            usaTinta({
+              texto: text,
+              hayApp: !!ultimaApp(ses?.messages ?? []),
+              imagenes: attachments.length,
+              sinIA: candidatos(null).length === 0,
+            })
           ) {
             void runTinta(sessionId, text);
             return;

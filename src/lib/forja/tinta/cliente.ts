@@ -44,6 +44,15 @@ export interface RespuestasTinta {
   leer: { ok: boolean; errores: string[]; avisos: string[]; receta: RecetaTinta | null; correccion: string };
   dibujar: DibujoTinta;
   equipo: DibujoTinta & { modo: "equipo" | "mezcla" | "critico"; plantilla: unknown };
+  catalogo: CatalogoTinta;
+}
+
+/** Lo que Tinta tiene para cambiar una app sin IA (`cambios-locales.ts`). */
+export interface CatalogoTinta {
+  paletas: { id: string; nombre: string; ambiente: string; acento: string; fondo: string }[];
+  tipografias: { id: string; nombre: string; tag: string }[];
+  fondos: { id: string; nombre: string; tag: string; grupo: string }[];
+  bloques: { id: string; rol: string; nombre: string }[];
 }
 
 export interface DatosTinta {
@@ -51,7 +60,9 @@ export interface DatosTinta {
   instrucciones: { idea: string; actual?: string };
   leer: { texto: string };
   dibujar: { receta: RecetaTinta; idea?: string };
-  equipo: { receta: RecetaTinta; idea?: string; nombre?: string };
+  /** sin receta: el equipo elige el diseño por sector, sin IA */
+  equipo: { receta?: RecetaTinta; idea?: string; nombre?: string };
+  catalogo: Record<string, never>;
 }
 
 export type AccionTinta = keyof RespuestasTinta;

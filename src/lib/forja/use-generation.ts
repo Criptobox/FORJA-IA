@@ -186,6 +186,10 @@ import type { SandboxSeed } from "./sandbox";
 import { textoParaModelo } from "./senalar";
 import { resumenRevisionDetalle, revisionDeDetalle } from "./motor-chat";
 
+/** En el chat cuando no hay ninguna IA conectada: el aviso flotante se pierde. */
+const SIN_MODELOS_TEXTO =
+  "Para responder eso necesito una IA conectada. Para crear no hace falta: pídeme «hazme una app para…» o «una web para…» y la arma la biblioteca de Forja sin gastar nada. Para conversar o pedir cambios con tus palabras, conecta una IA gratis en Ajustes ▸ Proveedores (Gemini o Groq se sacan en un minuto).";
+
 
 /** Cuántas veces puede saltar de modelo una MISMA respuesta.
  * Antes el salto se contaba siempre como el primero y los guardas de
@@ -615,6 +619,17 @@ export function useGeneration(ctx: CtxGeneracion) {
           toast.error(`${forjaWeb ? "FORJA WEB" : "Auto"} no tiene modelos disponibles`, {
             description: "Conecta al menos un proveedor gratis (Gemini, Groq, OpenRouter…) en Ajustes.",
             action: { label: "Abrir", onClick: () => { setFocusProvider("gemini"); setSettingsOpen(true); } },
+          });
+          // El aviso flotante se va solo (y en el móvil puede quedar tapado por
+          // otro): sin esto, el chat parecía no hacer nada. Queda en el chat.
+          addMessage(sessionId, {
+            id: uid(),
+            role: "assistant",
+            content: SIN_MODELOS_TEXTO,
+            createdAt: Date.now(),
+            error: true,
+            sinModelos: true,
+            ...(forjaWeb ? { viaForjaWeb: true } : {}),
           });
           return;
         }

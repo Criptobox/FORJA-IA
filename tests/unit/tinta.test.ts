@@ -155,7 +155,9 @@ describe("el resultado entra al Estudio", () => {
   });
 });
 
-import { progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { MODELO_LOCAL, progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { cambioLocal, recetaDePlantilla } from "@/lib/forja/tinta/cambios-locales";
+import type { CatalogoTinta } from "@/lib/forja/tinta/cliente";
 
 describe("FORJA WEB con Tinta: qué mensajes diseña Tinta", () => {
   const base = { hayApp: false, imagenes: 0 };
@@ -177,6 +179,10 @@ describe("FORJA WEB con Tinta: qué mensajes diseña Tinta", () => {
     expect(usaTinta({ hayApp: true, imagenes: 0, texto: "¿qué paleta usaste?" })).toBe(true);
     expect(usaTinta({ hayApp: true, imagenes: 1, texto: "hazla como esta foto" })).toBe(false);
     expect(usaTinta({ hayApp: true, imagenes: 0, texto: "   " })).toBe(false);
+  });
+  it("sin ninguna IA conectada, todo lo que sea crear lo hace Tinta (también una landing)", () => {
+    expect(usaTinta({ hayApp: false, imagenes: 0, sinIA: true, texto: "hazme una landing para mi barbería" })).toBe(true);
+    expect(usaTinta({ hayApp: false, imagenes: 0, sinIA: true, texto: "Hola, ¿qué tal?" })).toBe(false);
   });
 });
 
@@ -217,18 +223,20 @@ describe("FORJA WEB con Tinta: piezas puras", () => {
   });
 });
 
-describe("FORJA WEB con Tinta: un turno", () => {
+describe("FORJA WEB con Tinta: un turno (la IA solo si hace falta)", () => {
   const DIBUJO = { html: "<!doctype html><title>app</title>", pantallas: [{ id: "inicio", nombre: "Inicio" }], borrador: {} };
+  const PLANTILLA = { brief: "Café", blocks: [{ id: "h-search" }, { id: "c-coffee", repeat: 2 }, { id: "n-soft" }], palette: "mandarina", mode: "light" };
   const motor = (texto?: { ok: boolean }) =>
     canalFalso((accion, datos) => {
       if (accion === "instrucciones") return { ok: true, datos: { sistema: "SIS:" + JSON.stringify(datos), prompt: "" } };
+      if (accion === "catalogo") return { ok: true, datos: CATALOGO };
       if (accion === "leer") {
         const t = (datos as { texto: string }).texto;
         const ok = texto ? texto.ok : t.includes("bloques");
         return { ok: true, datos: { ok, errores: ok ? [] : ["sin JSON"], avisos: [], receta: ok ? RECETA : null, correccion: "Corrige" } };
       }
       if (accion === "dibujar") return { ok: true, datos: DIBUJO };
-      if (accion === "equipo") return { ok: true, datos: { ...DIBUJO, modo: "equipo", plantilla: {} } };
+      if (accion === "equipo") return { ok: true, datos: { ...DIBUJO, modo: "equipo", plantilla: PLANTILLA } };
       return { ok: false, error: "?" };
     });
   const lista = (f: ReturnType<typeof canalFalso>) => {
@@ -236,47 +244,136 @@ describe("FORJA WEB con Tinta: un turno", () => {
     setTimeout(() => f.avisar({ tipo: "tinta:listo", api: TINTA_API }), 0);
     return c;
   };
+  const base = { modeloKey: null, signal: new AbortController().signal };
+  const anterior: AppTinta = { receta: RECETA, pantallas: [], modelo: "x", llamadas: 0, version: 1 };
 
-  it("la primera versión pasa por el equipo de agentes", async () => {
+  it("la primera versión la hace el equipo sin IA (aunque haya una conectada)", async () => {
     const f = motor();
-    const pedir = vi.fn<PedirModelo>(async () => ({ texto: 'Va.\n```json\n{"bloques":[]}\n```', modelKey: "groq::m" }));
+    const pedir = vi.fn<PedirModelo>();
     const equipo = vi.fn();
-    const r = await turnoTinta({ pedido: "app de café", modeloKey: null, signal: new AbortController().signal, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
-    expect(r.texto).toBe("Va.");
-    expect(r.app).toMatchObject({ html: DIBUJO.html, modelo: "groq::m", llamadas: 1 });
-    expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones", "leer", "equipo"]);
+    const r = await turnoTinta({ ...base, pedido: "app de café", hayModelo: true, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
+    expect(pedir).not.toHaveBeenCalled();
+    expect(f.enviados.map((e) => e.accion)).toEqual(["equipo"]);
+    expect(f.enviados[0].datos).toEqual({ idea: "app de café" });
+    expect(r.app).toMatchObject({ html: DIBUJO.html, llamadas: 0, modelo: MODELO_LOCAL, receta: { blocks: PLANTILLA.blocks, palette: "mandarina" } });
+    expect(r.texto).toMatch(/sin gastar IA/);
     expect(equipo.mock.calls).toEqual([[true], [false]]);
   });
 
-  it("un cambio manda la receta actual y se redibuja sin el equipo", async () => {
+  it("un cambio que se entiende se aplica en local y se redibuja, sin IA", async () => {
+    const f = motor();
+    const pedir = vi.fn<PedirModelo>();
+    const r = await turnoTinta({ ...base, pedido: "ponla en modo oscuro", anterior, hayModelo: true, cliente: lista(f), pedirModelo: pedir });
+    expect(pedir).not.toHaveBeenCalled();
+    expect(f.enviados.map((e) => e.accion)).toEqual(["catalogo", "dibujar"]);
+    expect(r.texto).toBe("Hecho, sin gastar IA: modo oscuro.");
+    expect(r.app?.receta.mode).toBe("dark");
+  });
+
+  it("«otra versión» vuelve a llamar al equipo, sin IA", async () => {
+    const f = motor();
+    const r = await turnoTinta({ ...base, pedido: "hazme otra versión", anterior, hayModelo: false, cliente: lista(f), pedirModelo: vi.fn<PedirModelo>() });
+    expect(f.enviados.map((e) => e.accion)).toEqual(["catalogo", "equipo"]);
+    expect(r.app?.html).toBe(DIBUJO.html);
+  });
+
+  it("lo que no se entiende, sin IA conectada: dice qué se puede pedir y no toca la app", async () => {
+    const f = motor();
+    const r = await turnoTinta({ ...base, pedido: "hazla más divertida para niños", anterior, hayModelo: false, cliente: lista(f), pedirModelo: vi.fn<PedirModelo>() });
+    expect(r.app).toBeUndefined();
+    expect(r.texto).toMatch(/Sin IA conectada entiendo cambios como/);
+  });
+
+  it("lo que no se entiende, con IA: se le pasa la receta actual y se redibuja", async () => {
     const f = motor();
     const pedir = vi.fn<PedirModelo>(async () => ({ texto: 'Hecho.\n```json\n{"bloques":[]}\n```', modelKey: "groq::m" }));
-    const equipo = vi.fn();
-    const anterior: AppTinta = { receta: RECETA, pantallas: [], modelo: "x", llamadas: 1, version: 1 };
-    const r = await turnoTinta({ pedido: "ponla oscura", anterior, modeloKey: null, signal: new AbortController().signal, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
-    expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones", "leer", "dibujar"]);
-    expect((f.enviados[0].datos as { actual: string }).actual).toContain('"bloques"');
-    expect(pedir.mock.calls[0][0].usuario).toContain("ponla oscura");
-    expect(equipo).not.toHaveBeenCalled();
-    expect(r).toMatchObject({ texto: "Hecho.", app: { html: DIBUJO.html } });
+    const r = await turnoTinta({ ...base, pedido: "hazla más divertida para niños", anterior, hayModelo: true, cliente: lista(f), pedirModelo: pedir });
+    expect(f.enviados.map((e) => e.accion)).toEqual(["catalogo", "instrucciones", "leer", "dibujar"]);
+    expect((f.enviados[1].datos as { actual: string }).actual).toContain('"bloques"');
+    expect(r).toMatchObject({ texto: "Hecho.", app: { html: DIBUJO.html, llamadas: 1 } });
   });
 
-  it("con app hecha, una respuesta sin JSON es conversación: no se toca la app", async () => {
+  it("con IA, una respuesta sin JSON es conversación", async () => {
     const f = motor();
     const pedir = vi.fn<PedirModelo>(async () => ({ texto: "Usé la paleta mandarina.", modelKey: "groq::m" }));
-    const anterior: AppTinta = { receta: RECETA, pantallas: [], modelo: "x", llamadas: 1, version: 1 };
-    const r = await turnoTinta({ pedido: "¿qué paleta?", anterior, modeloKey: null, signal: new AbortController().signal, cliente: lista(f), pedirModelo: pedir });
+    const r = await turnoTinta({ ...base, pedido: "¿qué paleta usaste?", anterior, hayModelo: true, cliente: lista(f), pedirModelo: pedir });
     expect(r).toEqual({ texto: "Usé la paleta mandarina.", modelo: "groq::m", avisos: [] });
-    expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones"]);
   });
 
-  it("si la receta no sirve se corrige una vez, y si sigue sin servir falla claro", async () => {
+  it("si la IA no da una receta válida se corrige una vez y luego falla claro", async () => {
     const f = motor({ ok: false });
     const pedir = vi.fn<PedirModelo>(async () => ({ texto: "{nada}", modelKey: "groq::m" }));
     await expect(
-      turnoTinta({ pedido: "app de café", modeloKey: null, signal: new AbortController().signal, cliente: lista(f), pedirModelo: pedir })
+      turnoTinta({ ...base, pedido: "hazla más divertida", anterior, hayModelo: true, cliente: lista(f), pedirModelo: pedir })
     ).rejects.toThrow(/no devolvió un diseño válido/);
     expect(pedir).toHaveBeenCalledTimes(2);
-    expect(pedir.mock.calls[1][0].usuario).toContain("Corrige");
+  });
+});
+
+const CATALOGO: CatalogoTinta = {
+  paletas: [
+    { id: "mandarina", nombre: "Mandarina", ambiente: "", acento: "#ff7a1a", fondo: "#fff6ee" },
+    { id: "lavanda", nombre: "Lavanda", ambiente: "", acento: "#8b6cf0", fondo: "#f6f3ff" },
+    { id: "oceano", nombre: "Océano", ambiente: "", acento: "#1f7ae0", fondo: "#eef5ff" },
+    { id: "bosque", nombre: "Bosque", ambiente: "", acento: "#2f8f4e", fondo: "#eef7f0" },
+    { id: "cafe", nombre: "Café tostado", ambiente: "", acento: "#8a5a3c", fondo: "#f4ece1" },
+    { id: "grafito", nombre: "Grafito", ambiente: "", acento: "#555555", fondo: "#f2f2f2" },
+  ],
+  tipografias: [
+    { id: "elegante", nombre: "Elegante", tag: "" },
+    { id: "redondeada", nombre: "Redondeada", tag: "" },
+  ],
+  fondos: [{ id: "aurora", nombre: "Aurora", tag: "", grupo: "" }],
+  bloques: [
+    { id: "h-search", rol: "header", nombre: "Saludo + buscador" },
+    { id: "c-coffee", rol: "cards", nombre: "Producto con aire" },
+    { id: "a-coral", rol: "buttons", nombre: "Acción coral" },
+    { id: "n-soft", rol: "nav", nombre: "Barra esencial" },
+    { id: "w-calendario", rol: "widgets", nombre: "Calendario del mes" },
+    { id: "w-filtros", rol: "fields", nombre: "Búsqueda con filtros" },
+  ],
+};
+
+describe("cambios sin IA", () => {
+  const cambio = (t: string) => cambioLocal(t, RECETA, CATALOGO);
+  it("modo, color, paleta, letra y fondo", () => {
+    expect(cambio("ponla en modo oscuro")?.receta.mode).toBe("dark");
+    expect(cambio("más clarita, modo claro")?.receta.mode).toBe("light");
+    expect(cambio("hazla en azul")?.receta.palette).toBe("oceano");
+    expect(cambio("mejor verde")?.receta.palette).toBe("bosque");
+    expect(cambio("usa la paleta Lavanda")?.receta.palette).toBe("lavanda");
+    expect(cambio("pon la letra elegante")?.receta.font).toBe("elegante");
+    expect(cambio("cambia el fondo a aurora")?.receta.background).toBe("aurora");
+    expect(cambioLocal("quita el fondo", { ...RECETA, background: "aurora" }, CATALOGO)?.receta.background).toBeUndefined();
+  });
+  it("el nombre va a la cabecera y no se confunde con un color", () => {
+    const c = cambio("ponla en modo oscuro y llama a la cafetería Café Brisa");
+    expect(c?.receta.mode).toBe("dark");
+    expect(c?.receta.texts?.["h-search"]?.[0]).toBe("Café Brisa");
+    expect(c?.receta.palette).toBe("mandarina");
+    expect(cambio("llámala Pulso")?.receta.texts?.["h-search"]?.[0]).toBe("Pulso");
+  });
+  it("quitar y añadir piezas, más tarjetas", () => {
+    const sin = cambio("quita el botón coral");
+    expect(sin?.receta.blocks.map((b) => b.id)).toEqual(["h-search", "c-coffee", "n-soft"]);
+    const con = cambio("añade un calendario");
+    expect(con?.receta.blocks.map((b) => b.id)).toEqual(["h-search", "c-coffee", "a-coral", "w-calendario", "n-soft"]);
+    expect(cambio("pon más tarjetas")?.receta.blocks[1]).toEqual({ id: "c-coffee", repeat: 3 });
+    // la única tarjeta no se quita
+    expect(cambio("quita el producto")).toBeNull();
+  });
+  it("«otra versión» rehace; lo que no se entiende es null", () => {
+    expect(cambio("dame otra versión")?.rehacer).toBe(true);
+    expect(cambio("hazla más divertida para niños")).toBeNull();
+    expect(cambio("¿qué paleta usaste?")).toBeNull();
+  });
+  it("la plantilla del equipo se convierte en receta", () => {
+    expect(recetaDePlantilla({ brief: "x", blocks: [{ id: "a" }, { id: "b", repeat: 3 }], palette: "p", mode: "dark", id: "t1" }, "idea")).toEqual({
+      brief: "x",
+      blocks: [{ id: "a" }, { id: "b", repeat: 3 }],
+      palette: "p",
+      mode: "dark",
+    });
+    expect(recetaDePlantilla(null, "x")).toBeNull();
   });
 });

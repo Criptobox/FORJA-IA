@@ -23,6 +23,8 @@ export interface ChatMessage {
   viaForjaWeb?: boolean;
   createdAt: number;
   error?: boolean;
+  /** el error es que no hay ninguna IA conectada: el mensaje lleva el botón para conectarla */
+  sinModelos?: boolean;
   /** duración en ms de la generación */
   elapsedMs?: number;
   /** imágenes adjuntas (solo mensajes del usuario) */
