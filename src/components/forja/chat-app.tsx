@@ -1679,7 +1679,10 @@ export function ChatApp() {
           variant={isAutoKey(modelKey) ? "default" : "outline"}
           className={cn(
             "raise h-9 shrink-0 gap-1 px-2.5 text-xs",
-            isAutoKey(modelKey) && "forja-gradient-bg border-0 text-white hover:opacity-90"
+            isAutoKey(modelKey) && "forja-gradient-bg border-0 text-white hover:opacity-90",
+            // Con FORJA WEB, en el móvil sobra: no cabe junto al selector, y
+            // desde el propio selector se cambia de modo.
+            isForjaWebKey(modelKey) && "hidden sm:inline-flex"
           )}
           onClick={() => {
             if (isAutoKey(modelKey)) {

@@ -228,24 +228,25 @@ export function ModelPicker({
             // «shrink» y «min-w-0» anulan el shrink-0 del botón base: en pantallas
             // estrechas el selector debe encogerse, no empujar los iconos de la
             // cabecera fuera de la pantalla.
-            "raise h-9 min-w-0 max-w-[280px] shrink justify-between gap-2 rounded-xl border-border/70 bg-card/60 px-3 font-normal",
+            "raise h-9 min-w-0 max-w-[280px] shrink justify-between gap-1 overflow-hidden rounded-xl border-border/70 bg-card/60 px-2.5 font-normal sm:gap-2 sm:px-3",
             className
           )}
         >
           {selectedInfo || isAutoKey(value) || isForjaWebKey(value) ? (
-            <span className="flex min-w-0 items-center gap-2">
+            <span className="flex min-w-0 items-center gap-1.5 sm:gap-2">
               {isAutoKey(value) ? (
                 <>
-                  <Zap className="size-4 text-violet-500" />
-                  <span className="text-[13px] font-medium">Auto</span>
+                  <Zap className="size-4 shrink-0 text-violet-500" />
+                  <span className="truncate text-[13px] font-medium">Auto</span>
                   <span className="hidden truncate text-xs text-muted-foreground sm:inline">
                     · activado
                   </span>
                 </>
               ) : isForjaWebKey(value) ? (
                 <>
-                  <Globe className="size-4 text-forja-cyan" />
-                  <span className="text-[13px] font-medium">FORJA WEB</span>
+                  <Globe className="size-4 shrink-0 text-forja-cyan" />
+                  <span className="hidden whitespace-nowrap text-[13px] font-medium min-[430px]:inline">FORJA WEB</span>
+                  <span className="hidden whitespace-nowrap text-[13px] font-medium min-[360px]:inline min-[430px]:hidden">Web</span>
                   <span className="hidden truncate text-xs text-muted-foreground sm:inline">
                     · activado
                   </span>
@@ -271,7 +272,7 @@ export function ModelPicker({
               <span className="text-[13px]">Elige un modelo</span>
             </span>
           )}
-          <ChevronDown className="size-3.5 shrink-0 opacity-50" />
+          <ChevronDown className="hidden size-3.5 shrink-0 opacity-50 min-[360px]:block" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
