@@ -19,7 +19,6 @@ import {
   Settings,
   ShieldAlert,
   Zap,
-  Layers,
 } from "lucide-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { toast } from "sonner";
@@ -848,12 +847,6 @@ export function ChatApp() {
     [updateMessage, runGeneration]
   );
 
-  /** Modo Tinta: el siguiente mensaje se diseña con la biblioteca Tinta (equipo
-   *  de agentes), sin tarjeta previa y sea cual sea el encargo. Se apaga al usarlo. */
-  const [modoTinta, setModoTinta] = useState(false);
-  const modoTintaRef = useRef(false);
-  modoTintaRef.current = modoTinta;
-
   const send = useCallback(
     (textOverride?: string) => {
       const text = (textOverride ?? input).trim();
@@ -955,19 +948,6 @@ export function ChatApp() {
           });
           return;
         }
-        if (modoTintaRef.current && text) {
-          setModoTinta(false);
-          const ofertaId = uid();
-          addMessage(sessionId, {
-            id: ofertaId,
-            role: "assistant",
-            content: TEXTO_OFERTA_TINTA,
-            createdAt: Date.now(),
-            tintaOferta: { estado: "creando" },
-          });
-          void construirConTinta(ofertaId);
-          return;
-        }
         if (orquestaArmada) {
           setOrquestaArmada(false);
           // Un encargo de tres palabras no se reparte: serían seis llamadas para
@@ -1066,7 +1046,7 @@ export function ChatApp() {
 
       proceder();
     },
-    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo, clearDraft, construirConTinta]
+    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo, clearDraft]
   );
 
   /** Los errores que salieron mientras USABAS la página van al modelo.
@@ -1693,22 +1673,6 @@ export function ChatApp() {
           <Zap className="size-3.5" />
           Auto
         </Button>
-        <Button
-          size="sm"
-          variant={modoTinta ? "default" : "outline"}
-          className={cn("raise h-9 shrink-0 gap-1 px-2.5 text-xs", modoTinta && "border-0 bg-orange-500 text-white hover:bg-orange-500/90")}
-          onClick={() => {
-            setModoTinta((v) => !v);
-            requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>("textarea")?.focus());
-          }}
-          aria-pressed={modoTinta}
-          aria-label={modoTinta ? "Desactivar Tinta" : "Diseñar una app con Tinta"}
-          title="Tinta: describe la app y el equipo de agentes la arma con la biblioteca de diseño, con muy pocos tokens."
-          data-testid="boton-tinta"
-        >
-          <Layers className="size-3.5" />
-          <span className="hidden sm:inline">Tinta</span>
-        </Button>
         {/* Chips de estado: lo que está pasando ahora mismo, sin abrir un panel.
          *
          * Los dos solo salen cuando hay dato de verdad. El de Auto, cuando Auto
@@ -1928,10 +1892,6 @@ export function ChatApp() {
             recent={reciente}
             onResume={(id) => setActiveSession(id)}
             onOpenRadar={() => setRadarOpen(true)}
-            onTinta={() => {
-              setModoTinta(true);
-              requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>("textarea")?.focus());
-            }}
             onFill={(t) => {
               setInput(t);
               requestAnimationFrame(() => {
@@ -2086,7 +2046,6 @@ export function ChatApp() {
       )}
       <SenaladosBar senalados={senalados} onChange={setSenalados} />
       <ChatInput
-        {...(modoTinta ? { placeholder: "Describe la app y la arma Tinta con el equipo de agentes…" } : {})}
         value={input}
         onChange={setInput}
         onSend={() => send()}
