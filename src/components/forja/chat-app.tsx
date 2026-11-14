@@ -2113,7 +2113,7 @@ export function ChatApp() {
         }}
         placeholder={
           modoTinta
-            ? "Describe tu app y la arma Tinta…"
+            ? "Describe la app y la arma Tinta con el equipo de agentes…"
             : imageMode
             ? "Describe la imagen que quieres generar…"
             : senalados.length
