@@ -546,14 +546,20 @@ dialog.picker{width:min(580px,calc(100vw - 20px))}
 .pick-nav-inner{position:absolute;left:0;bottom:0;width:386px;transform:scale(var(--s,.4));transform-origin:0 100%;pointer-events:none}
 .pick-none{position:absolute;inset:0;display:grid;place-items:center;font-size:11.5px;color:var(--muted)}
 
-/* Selector de paletas: miniatura con la paleta puesta (fondo, tarjeta, texto, botón) y sus colores. */
-.pick-thumb-pal{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px;min-height:78px}
-.pal-card{display:grid;gap:5px;padding:8px;border-radius:10px;border:1px solid;min-width:0}
-.pal-line{display:block;height:5px;border-radius:3px;width:62%}
-.pal-line-2{width:88%;opacity:.4}
-.pal-btn{display:block;height:11px;border-radius:6px;width:56%;margin-top:2px}
-.pal-dots{display:grid;gap:4px}
-.pal-dots i{display:block;width:13px;height:13px;border-radius:50%;border:1px solid #0002}
+/* Selector de paletas: una mini pantalla con la paleta puesta y la barra de la regla 60-30-10 (principal · secundario · acento). */
+.pick-thumb-pal{display:grid;gap:7px;background:none;border:0;overflow:visible;border-radius:0}
+.pal-screen{display:grid;gap:6px;padding:8px;border-radius:12px;border:1px solid}
+.pal-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pal-ln{display:block;height:5px;border-radius:3px}
+.pal-av{display:block;width:11px;height:11px;border-radius:50%}
+.pal-card{display:grid;gap:5px;padding:7px;border-radius:9px;border:1px solid}
+.pal-btn{display:grid;align-items:center;justify-items:center;height:11px;width:58%;border-radius:6px;margin-top:2px}
+.pal-btn>i{display:block;height:3px;border-radius:2px}
+.pal-nav{display:flex;justify-content:center;gap:9px;padding:5px;border-radius:999px;border:1px solid}
+.pal-nav>i{display:block;width:8px;height:8px;border-radius:50%}
+.pal-rule{display:flex;height:19px;border-radius:10px;overflow:hidden;border:1px solid #0003}
+.pal-rule>span{display:grid;place-items:center;font-size:9.5px;font-weight:800;letter-spacing:-.2px;min-width:0}
+.pick-note{margin:0;padding:0 18px 8px;font-size:12px;line-height:1.45;color:var(--muted);flex:none}
 .pick-btn .pick-dots{display:inline-flex;flex:none}
 .pick-btn .pick-dots i{display:block;width:13px;height:13px;border-radius:50%;border:1px solid #0003;margin-left:-4px}
 .pick-btn .pick-dots i:first-child{margin-left:0}

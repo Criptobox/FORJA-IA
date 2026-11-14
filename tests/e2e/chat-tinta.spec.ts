@@ -296,24 +296,32 @@ test("Editor de Tinta: la Paleta se elige viendo cada paleta puesta, con filtro 
   await paleta.click();
   const hoja = motor.locator("#pickerDialog");
   await expect(hoja).toBeVisible();
-  // «Sin paleta» + las 66 paletas, cada una con su miniatura y sus colores
-  await expect(hoja.locator(".pick-card")).toHaveCount(67);
-  await expect(hoja.locator(".pick-card .pal-card").first()).toBeVisible();
-  await expect(hoja.locator(".pick-card .pal-dots i").first()).toBeVisible();
+  // «Sin paleta» + las 90 paletas, cada una con su mini pantalla y la barra de la regla 60-30-10
+  await expect(hoja.locator(".pick-card")).toHaveCount(91);
+  await expect(hoja.locator(".pick-note")).toContainText("Regla 60-30-10");
+  await expect(hoja.locator(".pick-card .pal-screen").first()).toBeVisible();
+  const regla = hoja.locator(".pick-card .pal-rule").first();
+  await expect(regla).toBeVisible();
+  await expect(regla.locator("span")).toHaveText(["60", "30", "10"]);
 
-  // filtro: solo oscuras (19) o solo claras (47); «Sin paleta» siempre a mano
+  // las paletas de las referencias: las 20 profesionales, la regla 60-30-10 y Marple
+  for (const nombre of ["Brisa marina", "Oro elegante", "Tormenta y naranja", "Desierto y señal", "Polar y racing", "Marple"]) {
+    await expect(hoja.locator(".pick-card", { hasText: nombre })).toHaveCount(1);
+  }
+
+  // filtro: solo oscuras (24) o solo claras (66); «Sin paleta» siempre a mano
   await hoja.getByRole("button", { name: "Oscuras" }).click();
-  await expect(hoja.locator(".pick-card:visible")).toHaveCount(20);
+  await expect(hoja.locator(".pick-card:visible")).toHaveCount(25);
   await hoja.getByRole("button", { name: "Claras" }).click();
-  await expect(hoja.locator(".pick-card:visible")).toHaveCount(48);
-  await hoja.getByRole("button", { name: "Todas" }).click();
   await expect(hoja.locator(".pick-card:visible")).toHaveCount(67);
+  await hoja.getByRole("button", { name: "Todas" }).click();
+  await expect(hoja.locator(".pick-card:visible")).toHaveCount(91);
 
-  // elegir una la aplica y el botón lo enseña
-  await hoja.getByRole("radio", { name: /Neón/ }).click();
+  // elegir una de las nuevas la aplica y el botón lo enseña
+  await hoja.getByRole("radio", { name: /Tormenta y naranja/ }).click();
   await expect(hoja).toBeHidden();
-  await expect(paleta).toContainText("Neón");
-  await expect(motor.locator(".toast, #toast").filter({ hasText: "Paleta «Neón» aplicada" }).first()).toBeVisible({ timeout: 10_000 });
+  await expect(paleta).toContainText("Tormenta y naranja");
+  await expect(motor.locator(".toast, #toast").filter({ hasText: "Paleta «Tormenta y naranja» aplicada" }).first()).toBeVisible({ timeout: 10_000 });
 
   // «Sin paleta» la quita
   await paleta.click();
