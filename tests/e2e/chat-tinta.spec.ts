@@ -272,3 +272,54 @@ test("Editor de Tinta: Letra y Barra inferior se eligen viendo una miniatura de 
   await motor.getByRole("button", { name: "Guardar y volver al chat" }).click();
   await expect(page.locator("p", { hasText: "Cambios del editor guardados, sin gastar IA." })).toBeVisible({ timeout: 30_000 });
 });
+
+test("Editor de Tinta: la Paleta se elige viendo cada paleta puesta, con filtro de claras y oscuras", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 412, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app de tienda de ropa");
+  await enviar(page);
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  await motor.locator("[data-eq=speed]").click();
+  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
+  await motor.locator("#eqGo").click();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
+  await page.getByTestId("editar-tinta").click();
+  await expect(motor.locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
+
+  const paleta = motor.locator(".pick-btn[data-pick=palPick]");
+  await expect(paleta).toBeVisible();
+  await paleta.click();
+  const hoja = motor.locator("#pickerDialog");
+  await expect(hoja).toBeVisible();
+  // «Sin paleta» + las 66 paletas, cada una con su miniatura y sus colores
+  await expect(hoja.locator(".pick-card")).toHaveCount(67);
+  await expect(hoja.locator(".pick-card .pal-card").first()).toBeVisible();
+  await expect(hoja.locator(".pick-card .pal-dots i").first()).toBeVisible();
+
+  // filtro: solo oscuras (19) o solo claras (47); «Sin paleta» siempre a mano
+  await hoja.getByRole("button", { name: "Oscuras" }).click();
+  await expect(hoja.locator(".pick-card:visible")).toHaveCount(20);
+  await hoja.getByRole("button", { name: "Claras" }).click();
+  await expect(hoja.locator(".pick-card:visible")).toHaveCount(48);
+  await hoja.getByRole("button", { name: "Todas" }).click();
+  await expect(hoja.locator(".pick-card:visible")).toHaveCount(67);
+
+  // elegir una la aplica y el botón lo enseña
+  await hoja.getByRole("radio", { name: /Neón/ }).click();
+  await expect(hoja).toBeHidden();
+  await expect(paleta).toContainText("Neón");
+  await expect(motor.locator(".toast, #toast").filter({ hasText: "Paleta «Neón» aplicada" }).first()).toBeVisible({ timeout: 10_000 });
+
+  // «Sin paleta» la quita
+  await paleta.click();
+  await hoja.getByRole("radio", { name: /Sin paleta/ }).click();
+  await expect(paleta).toContainText("Sin paleta");
+
+  await motor.getByRole("button", { name: "Guardar y volver al chat" }).click();
+  await expect(page.locator("p", { hasText: "Cambios del editor guardados, sin gastar IA." })).toBeVisible({ timeout: 30_000 });
+});

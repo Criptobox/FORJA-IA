@@ -534,7 +534,7 @@ dialog.picker{width:min(580px,calc(100vw - 20px))}
 .pick-card b{font-size:13px;letter-spacing:-.2px;line-height:1.25}
 .pick-card small{font-size:11px;color:var(--muted);line-height:1.35}
 .pick-card.on{outline:2px solid #ff704b;outline-offset:-2px}
-.pick-card.on b::after{content:' ✓';color:#ff704b}
+.pick-card.on>b::after{content:' ✓';color:#ff704b}
 .pick-card:focus-visible{outline:3px solid #ff704b;outline-offset:-1px}
 .pick-thumb{position:relative;overflow:hidden;border-radius:12px;border:1px solid #0000001a;background:var(--paper)}
 .pick-thumb-font{display:grid;place-items:center;min-height:116px;background:var(--white)}
@@ -545,3 +545,19 @@ dialog.picker{width:min(580px,calc(100vw - 20px))}
 .pick-thumb-nav{height:52px}
 .pick-nav-inner{position:absolute;left:0;bottom:0;width:386px;transform:scale(var(--s,.4));transform-origin:0 100%;pointer-events:none}
 .pick-none{position:absolute;inset:0;display:grid;place-items:center;font-size:11.5px;color:var(--muted)}
+
+/* Selector de paletas: miniatura con la paleta puesta (fondo, tarjeta, texto, botón) y sus colores. */
+.pick-thumb-pal{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px;min-height:78px}
+.pal-card{display:grid;gap:5px;padding:8px;border-radius:10px;border:1px solid;min-width:0}
+.pal-line{display:block;height:5px;border-radius:3px;width:62%}
+.pal-line-2{width:88%;opacity:.4}
+.pal-btn{display:block;height:11px;border-radius:6px;width:56%;margin-top:2px}
+.pal-dots{display:grid;gap:4px}
+.pal-dots i{display:block;width:13px;height:13px;border-radius:50%;border:1px solid #0002}
+.pick-btn .pick-dots{display:inline-flex;flex:none}
+.pick-btn .pick-dots i{display:block;width:13px;height:13px;border-radius:50%;border:1px solid #0003;margin-left:-4px}
+.pick-btn .pick-dots i:first-child{margin-left:0}
+.pick-filters{display:flex;gap:6px;padding:2px 14px 10px;flex:none}
+.pick-filters button{font:inherit;font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--white);color:var(--ink);cursor:pointer}
+.pick-filters button[aria-pressed=true]{background:#242422;color:#fff;border-color:transparent}
+.pick-card[hidden]{display:none!important}
