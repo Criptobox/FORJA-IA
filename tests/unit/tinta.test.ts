@@ -155,27 +155,128 @@ describe("el resultado entra al Estudio", () => {
   });
 });
 
-import { debeOfrecerTinta } from "@/lib/forja/tinta/chat";
+import { progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
 
-describe("Tinta en el chat: cuándo se ofrece", () => {
-  const base = { activada: true, imagenes: 0 };
-  it("al pedir una app nueva", () => {
-    expect(debeOfrecerTinta({ ...base, texto: "hazme una app para mi cafetería con pedidos" })).toBe(true);
-    expect(debeOfrecerTinta({ ...base, texto: "Crea una aplicación de rutinas para el gimnasio" })).toBe(true);
+describe("FORJA WEB con Tinta: qué mensajes diseña Tinta", () => {
+  const base = { hayApp: false, imagenes: 0 };
+  it("una app nueva", () => {
+    expect(usaTinta({ ...base, texto: "hazme una app para mi cafetería con pedidos" })).toBe(true);
+    expect(usaTinta({ ...base, texto: "Crea una aplicación de rutinas para el gimnasio" })).toBe(true);
+    expect(usaTinta({ ...base, texto: "crea una app para contar ovejas" })).toBe(true);
   });
-  it("no en apps de gestión de datos (eso lo hace mejor el código) ni fuera de los sectores de Tinta", () => {
-    expect(debeOfrecerTinta({ ...base, texto: "crea una app de lista de tareas" })).toBe(false);
-    expect(debeOfrecerTinta({ ...base, texto: "hazme una app de inventario para mi tienda" })).toBe(false);
-    expect(debeOfrecerTinta({ ...base, texto: "crea una app para contar ovejas" })).toBe(false);
+  it("no las apps de gestión de datos, ni webs, ni charlas, ni si se pide código", () => {
+    expect(usaTinta({ ...base, texto: "crea una app de lista de tareas" })).toBe(false);
+    expect(usaTinta({ ...base, texto: "hazme una app de inventario para mi tienda" })).toBe(false);
+    expect(usaTinta({ ...base, texto: "hazme una landing para mi cafetería" })).toBe(false);
+    expect(usaTinta({ ...base, texto: "Hola FORJA WEB" })).toBe(false);
+    expect(usaTinta({ ...base, texto: "hazme una app para mi cafetería en React" })).toBe(false);
+    expect(usaTinta({ ...base, texto: "hazme una app para mi cafetería con código" })).toBe(false);
   });
-  it("no en webs, retoques, charlas ni con «directo»", () => {
-    expect(debeOfrecerTinta({ ...base, texto: "hazme una landing para mi cafetería" })).toBe(false);
-    expect(debeOfrecerTinta({ ...base, texto: "cambia el color del botón de mi app" })).toBe(false);
-    expect(debeOfrecerTinta({ ...base, texto: "¿qué framework me recomiendas para una app?" })).toBe(false);
-    expect(debeOfrecerTinta({ ...base, texto: "hazme una app para mi gimnasio, directo" })).toBe(false);
+  it("con una app ya hecha, todo lo que se escribe es sobre ella", () => {
+    expect(usaTinta({ hayApp: true, imagenes: 0, texto: "ponla en modo oscuro" })).toBe(true);
+    expect(usaTinta({ hayApp: true, imagenes: 0, texto: "¿qué paleta usaste?" })).toBe(true);
+    expect(usaTinta({ hayApp: true, imagenes: 1, texto: "hazla como esta foto" })).toBe(false);
+    expect(usaTinta({ hayApp: true, imagenes: 0, texto: "   " })).toBe(false);
   });
-  it("no con imágenes de referencia ni si está apagado en Ajustes", () => {
-    expect(debeOfrecerTinta({ ...base, imagenes: 1, texto: "hazme una app para mi cafetería" })).toBe(false);
-    expect(debeOfrecerTinta({ ...base, activada: false, texto: "hazme una app para mi cafetería" })).toBe(false);
+});
+
+describe("FORJA WEB con Tinta: piezas puras", () => {
+  it("la receta vuelve al formato del modelo", () => {
+    const j = JSON.parse(recetaParaModelo({ ...RECETA, mode: "dark", texts: { "h-search": ["Hola"] } }));
+    expect(j).toEqual({
+      idea: "Cafetería",
+      bloques: [{ id: "h-search" }, { id: "c-coffee", copias: 2 }, { id: "a-coral" }, { id: "n-soft" }],
+      paleta: "mandarina",
+      tipografia: null,
+      fondo: null,
+      modo: "oscuro",
+      textos: { "h-search": ["Hola"] },
+    });
+  });
+  it("de la respuesta se enseña la frase, nunca la receta", () => {
+    expect(textoVisible('¡Hecho!\n```json\n{"bloques":[]}\n```')).toBe("¡Hecho!");
+    expect(textoVisible('Listo {"idea":"x","bloques":[{"id":"a"}]}')).toBe("Listo");
+    expect(textoVisible("Te explico {sin receta} aquí")).toBe("Te explico {sin receta} aquí");
+    expect(textoVisible("Arranco\n```json\n{\"bloques\":")).toBe("Arranco");
+  });
+  it("la app vigente es la del último mensaje con app", () => {
+    const a1 = { receta: RECETA, pantallas: [], modelo: "m", llamadas: 1, version: 1 } as AppTinta;
+    const a2 = { ...a1, version: 2 };
+    expect(ultimaApp([{ role: "assistant", tintaApp: a1 }, { role: "user" }, { role: "assistant", tintaApp: a2 }, { role: "assistant" }])).toBe(a2);
+    expect(ultimaApp([{ role: "assistant", tintaApp: a1, error: true }])).toBeNull();
+  });
+  it("resumen y panel de progreso", () => {
+    expect(resumenApp({ version: 1, pantallas: [{ id: "a", nombre: "A" }, { id: "b", nombre: "B" }] })).toMatch(/2 pantallas.*Pídeme cambios/);
+    expect(resumenApp({ version: 3, pantallas: [{ id: "a", nombre: "A" }] })).toBe("Versión 3 · 1 pantalla.");
+    const p = progresoTinta({ paso: "equipo", cambio: false });
+    expect(p.pasos.map((x) => x.estado)).toEqual(["done", "done", "done", "running", "pending"]);
+    expect(p.pasos[3].titulo).toMatch(/equipo de agentes/);
+    const c = progresoTinta({ paso: "corrigiendo", cambio: true });
+    expect(c.pasos[2]).toMatchObject({ estado: "running", meta: "ajustando" });
+    expect(progresoTinta({ paso: "listo", cambio: true }).pasos.every((x) => x.estado === "done")).toBe(true);
+  });
+});
+
+describe("FORJA WEB con Tinta: un turno", () => {
+  const DIBUJO = { html: "<!doctype html><title>app</title>", pantallas: [{ id: "inicio", nombre: "Inicio" }], borrador: {} };
+  const motor = (texto?: { ok: boolean }) =>
+    canalFalso((accion, datos) => {
+      if (accion === "instrucciones") return { ok: true, datos: { sistema: "SIS:" + JSON.stringify(datos), prompt: "" } };
+      if (accion === "leer") {
+        const t = (datos as { texto: string }).texto;
+        const ok = texto ? texto.ok : t.includes("bloques");
+        return { ok: true, datos: { ok, errores: ok ? [] : ["sin JSON"], avisos: [], receta: ok ? RECETA : null, correccion: "Corrige" } };
+      }
+      if (accion === "dibujar") return { ok: true, datos: DIBUJO };
+      if (accion === "equipo") return { ok: true, datos: { ...DIBUJO, modo: "equipo", plantilla: {} } };
+      return { ok: false, error: "?" };
+    });
+  const lista = (f: ReturnType<typeof canalFalso>) => {
+    const c = crearClienteTinta(f.canal);
+    setTimeout(() => f.avisar({ tipo: "tinta:listo", api: TINTA_API }), 0);
+    return c;
+  };
+
+  it("la primera versión pasa por el equipo de agentes", async () => {
+    const f = motor();
+    const pedir = vi.fn<PedirModelo>(async () => ({ texto: 'Va.\n```json\n{"bloques":[]}\n```', modelKey: "groq::m" }));
+    const equipo = vi.fn();
+    const r = await turnoTinta({ pedido: "app de café", modeloKey: null, signal: new AbortController().signal, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
+    expect(r.texto).toBe("Va.");
+    expect(r.app).toMatchObject({ html: DIBUJO.html, modelo: "groq::m", llamadas: 1 });
+    expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones", "leer", "equipo"]);
+    expect(equipo.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it("un cambio manda la receta actual y se redibuja sin el equipo", async () => {
+    const f = motor();
+    const pedir = vi.fn<PedirModelo>(async () => ({ texto: 'Hecho.\n```json\n{"bloques":[]}\n```', modelKey: "groq::m" }));
+    const equipo = vi.fn();
+    const anterior: AppTinta = { receta: RECETA, pantallas: [], modelo: "x", llamadas: 1, version: 1 };
+    const r = await turnoTinta({ pedido: "ponla oscura", anterior, modeloKey: null, signal: new AbortController().signal, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
+    expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones", "leer", "dibujar"]);
+    expect((f.enviados[0].datos as { actual: string }).actual).toContain('"bloques"');
+    expect(pedir.mock.calls[0][0].usuario).toContain("ponla oscura");
+    expect(equipo).not.toHaveBeenCalled();
+    expect(r).toMatchObject({ texto: "Hecho.", app: { html: DIBUJO.html } });
+  });
+
+  it("con app hecha, una respuesta sin JSON es conversación: no se toca la app", async () => {
+    const f = motor();
+    const pedir = vi.fn<PedirModelo>(async () => ({ texto: "Usé la paleta mandarina.", modelKey: "groq::m" }));
+    const anterior: AppTinta = { receta: RECETA, pantallas: [], modelo: "x", llamadas: 1, version: 1 };
+    const r = await turnoTinta({ pedido: "¿qué paleta?", anterior, modeloKey: null, signal: new AbortController().signal, cliente: lista(f), pedirModelo: pedir });
+    expect(r).toEqual({ texto: "Usé la paleta mandarina.", modelo: "groq::m", avisos: [] });
+    expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones"]);
+  });
+
+  it("si la receta no sirve se corrige una vez, y si sigue sin servir falla claro", async () => {
+    const f = motor({ ok: false });
+    const pedir = vi.fn<PedirModelo>(async () => ({ texto: "{nada}", modelKey: "groq::m" }));
+    await expect(
+      turnoTinta({ pedido: "app de café", modeloKey: null, signal: new AbortController().signal, cliente: lista(f), pedirModelo: pedir })
+    ).rejects.toThrow(/no devolvió un diseño válido/);
+    expect(pedir).toHaveBeenCalledTimes(2);
+    expect(pedir.mock.calls[1][0].usuario).toContain("Corrige");
   });
 });

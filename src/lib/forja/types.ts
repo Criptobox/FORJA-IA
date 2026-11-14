@@ -34,9 +34,11 @@ export interface ChatMessage {
   /** Propuesta de diseño antes de construir (`propuesta-diseno.ts`). Un
    * mensaje con esto es una tarjeta local: no viaja al modelo. */
   propuestaDiseno?: import("./propuesta-diseno").PropuestaDiseno;
-  /** Al pedir una app: elegir entre diseño con Tinta o app con código
-   * (`tinta/chat.ts`). Tarjeta local: no viaja al modelo. */
-  tintaOferta?: import("./tinta/chat").OfertaTinta;
+  /** FORJA WEB con Tinta (`tinta/forja-web.ts`): la app diseñada con la
+   * biblioteca. La vista previa la enseña; el texto es la frase del modelo. */
+  tintaApp?: import("./tinta/forja-web").AppTinta;
+  /** Mientras se diseña con Tinta: en qué paso va (no se guarda al terminar). */
+  tintaProgreso?: { paso: import("./tinta/forja-web").PasoTurno; cambio: boolean };
   /** En el mensaje del usuario: la dirección que eligió en la propuesta. */
   direccionElegida?: string;
   /** En el mensaje del usuario: datos que no dio y NO se deben inventar. */
@@ -320,9 +322,6 @@ export interface AppSettings {
   /** Antes de construir una web nueva, enseñar una propuesta de diseño (3
    * direcciones, secciones y datos) para elegir. Cero tokens. */
   propuestaDiseno?: boolean;
-  /** Al pedir una app nueva en el chat, ofrecer «Diseño con Tinta» (biblioteca
-   * de bloques + equipo de agentes, muy pocos tokens) antes de escribir código. */
-  tintaEnChat?: boolean;
   /** Proveedores a los que NO se manda nada, aunque tengan clave puesta.
    * Corta también los caminos automáticos —failover, panel, ejecutores—, que
    * son los que eligen por ti. Ver `vetados.ts`. */
@@ -369,7 +368,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   presupuestoUsd: { mensual: 5, diario: 1, tarea: 0.5 },
   // Design First (§4): se ve y se elige antes de gastar en construir.
   propuestaDiseno: true,
-  tintaEnChat: true,
   proveedoresVetados: [],
   // Todo concedido de salida: ver el porqué en `PERMISOS_POR_DEFECTO`.
   permisosAgente: { lee_proyecto: true, escribe_proyecto: true, ejecuta: true, red: true },
