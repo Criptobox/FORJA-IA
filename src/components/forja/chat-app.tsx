@@ -2086,6 +2086,7 @@ export function ChatApp() {
       )}
       <SenaladosBar senalados={senalados} onChange={setSenalados} />
       <ChatInput
+        {...(modoTinta ? { placeholder: "Describe la app y la arma Tinta con el equipo de agentes…" } : {})}
         value={input}
         onChange={setInput}
         onSend={() => send()}
@@ -2112,9 +2113,7 @@ export function ChatApp() {
           ventana: ventanaHud,
         }}
         placeholder={
-          modoTinta
-            ? "Describe la app y la arma Tinta con el equipo de agentes…"
-            : imageMode
+          imageMode
             ? "Describe la imagen que quieres generar…"
             : senalados.length
               ? `¿Qué quieres cambiar de ${senalados.length === 1 ? etiquetaCorta(senalados[0]) : `estos ${senalados.length} elementos`}?`
