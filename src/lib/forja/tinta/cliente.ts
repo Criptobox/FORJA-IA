@@ -45,6 +45,8 @@ export interface RespuestasTinta {
   dibujar: DibujoTinta;
   equipo: DibujoTinta & { modo: "equipo" | "mezcla" | "critico"; plantilla: unknown };
   catalogo: CatalogoTinta;
+  /** el editor completo de Tinta, con la app cargada; vuelve al guardar */
+  editar: DibujoTinta & { receta: RecetaTinta };
 }
 
 /** Lo que Tinta tiene para cambiar una app sin IA (`cambios-locales.ts`). */
@@ -59,10 +61,12 @@ export interface DatosTinta {
   ping: Record<string, never>;
   instrucciones: { idea: string; actual?: string };
   leer: { texto: string };
-  dibujar: { receta: RecetaTinta; idea?: string };
+  /** con borrador: se parte de lo editado a mano y se aplica el estilo de la receta */
+  dibujar: { receta: RecetaTinta; idea?: string; borrador?: unknown; textos?: Record<string, string[]> };
   /** sin receta: el equipo elige el diseño por sector, sin IA */
   equipo: { receta?: RecetaTinta; idea?: string; nombre?: string };
   catalogo: Record<string, never>;
+  editar: { receta: RecetaTinta; borrador?: unknown };
 }
 
 export type AccionTinta = keyof RespuestasTinta;

@@ -857,8 +857,8 @@ export function ChatApp() {
         // Solo la versión vigente guarda el HTML (pesa); las anteriores, la receta.
         const ahora = useForja.getState().sessions.find((x) => x.id === sessionId);
         for (const x of ahora?.messages ?? []) {
-          if (x.id !== assistantId && x.tintaApp?.html) {
-            updateMessage(sessionId, x.id, { tintaApp: { ...x.tintaApp, html: undefined } });
+          if (x.id !== assistantId && (x.tintaApp?.html || x.tintaApp?.borrador)) {
+            updateMessage(sessionId, x.id, { tintaApp: { ...x.tintaApp, html: undefined, borrador: undefined } });
           }
         }
         updateMessage(sessionId, assistantId, {
@@ -889,6 +889,57 @@ export function ChatApp() {
     },
     [addMessage, updateMessage, setStreamingMsgId, abortRef]
   );
+
+  /** «Editar con la biblioteca»: el editor completo de Tinta (bloques,
+   *  estilos, textos) a pantalla completa con la app cargada. Al guardar,
+   *  la app editada queda como nueva versión en el chat y en la vista previa. */
+  const editarAppTinta = useCallback(
+    async (msgId: string) => {
+      const st = useForja.getState();
+      const sessionId = st.activeSessionId;
+      const ses = sessionId ? st.sessions.find((x) => x.id === sessionId) : null;
+      const msg = ses?.messages.find((x) => x.id === msgId);
+      const app = msg?.tintaApp;
+      if (!sessionId || !ses || !app || streamingMsgId) return;
+      const { motorTinta } = await import("@/lib/forja/tinta/iframe");
+      const m = motorTinta();
+      m.mostrar(true);
+      try {
+        await m.cliente.listo();
+        const r = await m.cliente.pedir("editar", { receta: app.receta, ...(app.borrador ? { borrador: app.borrador } : {}) }, { ms: 4 * 60 * 60_000 });
+        const nueva: AppTinta = { ...app, receta: r.receta, html: r.html, pantallas: r.pantallas, borrador: r.borrador, llamadas: 0, version: (ultimaApp(ses.messages)?.version ?? app.version) + 1 };
+        for (const x of useForja.getState().sessions.find((y) => y.id === sessionId)?.messages ?? []) {
+          if (x.tintaApp?.html || x.tintaApp?.borrador) updateMessage(sessionId, x.id, { tintaApp: { ...x.tintaApp, html: undefined, borrador: undefined } });
+        }
+        addMessage(sessionId, {
+          id: uid(),
+          role: "assistant",
+          content: `Cambios del editor guardados, sin gastar IA.\n\n${resumenApp(nueva)}`,
+          createdAt: Date.now(),
+          viaForjaWeb: true,
+          model: app.modelo,
+          tintaApp: nueva,
+        });
+        stickToBottomRef.current = true;
+      } catch (e) {
+        const cancelado = typeof e === "object" && e !== null && (e as { cancelado?: boolean }).cancelado === true;
+        if (!cancelado && !(e instanceof Error && /Cancelado/.test(e.message))) {
+          toast.error("No se pudo abrir el editor", { description: e instanceof Error ? e.message : String(e) });
+        }
+      } finally {
+        m.mostrar(false);
+      }
+    },
+    [addMessage, updateMessage, streamingMsgId]
+  );
+  useEffect(() => {
+    const abrir = (ev: Event) => {
+      const id = (ev as CustomEvent<string>).detail;
+      if (typeof id === "string") void editarAppTinta(id);
+    };
+    window.addEventListener("forja-editar-tinta", abrir);
+    return () => window.removeEventListener("forja-editar-tinta", abrir);
+  }, [editarAppTinta]);
 
   const send = useCallback(
     (textOverride?: string) => {

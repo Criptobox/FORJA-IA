@@ -352,6 +352,9 @@ describe("cambios sin IA", () => {
     expect(c?.receta.texts?.["h-search"]?.[0]).toBe("Café Brisa");
     expect(c?.receta.palette).toBe("mandarina");
     expect(cambio("llámala Pulso")?.receta.texts?.["h-search"]?.[0]).toBe("Pulso");
+    // solo el texto que cambia viaja aparte: sobre lo editado a mano se aplica solo ese
+    expect(cambio("llámala Pulso")?.textos).toEqual({ "h-search": ["Pulso"] });
+    expect(cambio("ponla en modo oscuro")?.textos).toBeUndefined();
   });
   it("quitar y añadir piezas, más tarjetas", () => {
     const sin = cambio("quita el botón coral");

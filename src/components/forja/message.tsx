@@ -22,6 +22,7 @@ import {
   User,
   Volume2,
   VolumeX,
+  Palette,
 } from "lucide-react";
 import { etiquetaCorta } from "@/lib/forja/senalar";
 import { Markdown } from "./markdown";
@@ -476,6 +477,19 @@ export const MessageItem = memo(function MessageItem({
                 <div className={streaming ? "stream-cursor-wrap" : ""}>
                   {creacion && !streaming && proyecto && <CreacionEnCurso progreso={creacion} />}
                   <Markdown content={shown} colapsarCodigoGrande={!!proyecto} />
+                  {!streaming && msg.tintaApp?.html && (
+                    // La app vigente de FORJA WEB: se edita a mano en el editor
+                    // de Tinta (biblioteca de bloques, paletas, letras, textos).
+                    <button
+                      type="button"
+                      onClick={() => window.dispatchEvent(new CustomEvent("forja-editar-tinta", { detail: msg.id }))}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-[12.5px] font-medium transition hover:border-forja-violet/50 hover:bg-muted"
+                      data-testid="editar-tinta"
+                    >
+                      <Palette className="size-3.5 text-forja-violet" aria-hidden />
+                      Editar con la biblioteca
+                    </button>
+                  )}
                   {tooLong && (
                     <button
                       onClick={() => setExpanded((v) => !v)}

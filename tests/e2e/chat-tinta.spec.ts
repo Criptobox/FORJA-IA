@@ -190,3 +190,34 @@ test("FORJA WEB: «Detener» mientras diseña el equipo lo para y lo quita de la
   await page.keyboard.press("Enter");
   await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
 });
+
+test("FORJA WEB: «Editar con la biblioteca» abre el editor de Tinta con la app y al guardar vuelve como versión nueva", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 412, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app de tienda de ropa");
+  await enviar(page);
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  // la pantalla sigue al agente que trabaja (antes se quedaba arriba)
+  await expect(motor.locator(".ag.work")).toBeInViewport({ timeout: 15_000 });
+  await motor.locator("[data-eq=speed]").click();
+  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
+  await motor.locator("#eqGo").click();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
+
+  await page.getByTestId("editar-tinta").click();
+  await expect(motor.locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
+  // el editor de verdad: modo, letra y volver a la biblioteca de piezas
+  await expect(motor.getByRole("button", { name: /Oscuro/ }).first()).toBeVisible();
+  await motor.getByRole("button", { name: /Oscuro/ }).first().click();
+  await motor.getByRole("button", { name: "Guardar y volver al chat" }).click();
+  await expect(page.locator('iframe[title="Motor de diseño Tinta"]')).toHaveCSS("pointer-events", "none");
+  await expect(page.locator("p", { hasText: "Cambios del editor guardados, sin gastar IA." })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("p", { hasText: /Versión 2/ })).toBeVisible();
+  // solo la versión vigente ofrece editar
+  await expect(page.getByTestId("editar-tinta")).toHaveCount(1);
+});

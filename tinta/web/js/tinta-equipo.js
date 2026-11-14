@@ -84,8 +84,11 @@
       step = n; AGENTS.forEach((a, i) => setAgent(i, i < n ? (i === 7 ? 'disagree' : 'done') : i === n && n < 8 ? 'work' : 'wait'));
       const pct = Math.min(n, 8) / 8 * 100; $('eqBar').style.width = pct + '%'; $('eqSpine').style.height = pct + '%'; $('eqM2').textContent = Math.min(n, 8) + ' de 8'; dlg.querySelector('.bar').setAttribute('aria-valuenow', String(Math.min(n, 8)));
       $('eqM1').textContent = n >= 8 ? '✨ Equipo terminado' : 'Trabajando en equipo…'; if (n >= 8) aura('rgba(255, 98, 59, 0.25)');
-      $('eqChoose').classList.toggle('on', n >= 8); if (n >= 8) setTimeout(() => $('eqChoose').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 250);
+      $('eqChoose').classList.toggle('on', n >= 8); if (n >= 8) setTimeout(() => $('eqChoose').scrollIntoView({ behavior: suave(), block: 'center' }), 250);
+      /* La pantalla sigue al que está trabajando: si no, en el móvil se quedaba arriba y los de abajo no se veían. */
+      else if (n > 0) { const d = $('eqA' + n); if (d && d.scrollIntoView) d.scrollIntoView({ behavior: suave(), block: 'center' }); }
     }
+    function suave() { try { return matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'; } catch (e) { return 'smooth'; } }
     function tick() { if (timer) clearInterval(timer); timer = null; if (paused || step >= 8) return; timer = setInterval(() => { show(step + 1); if (step >= 8) { clearInterval(timer); timer = null; } }, speed === 1 ? 1850 : 900); }
     const sw = (id, p) => { $(id).innerHTML = [p.bg, p.surface, p.accent, p.accent2, p.ink].map(c => '<i style="background:' + c + '"></i>').join(''); };
     const sk = (id, p) => { const e = $(id); e.style.setProperty('--bgv', p.bg); e.style.setProperty('--cv', p.line); e.style.setProperty('--sv', p.surface); e.style.setProperty('--av', p.accent); };

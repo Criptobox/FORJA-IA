@@ -38,6 +38,9 @@ export interface AppTinta {
    *  anteriores conservan la receta, que basta para volver a dibujarlas. */
   html?: string;
   pantallas: { id: string; nombre: string }[];
+  /** borrador del editor de Tinta (con lo tocado a mano); como el HTML, solo
+   *  en la versión vigente */
+  borrador?: unknown;
   /** modelo real que escribió la receta (no se enseña: responde «Forja IA») */
   modelo: string;
   llamadas: number;
@@ -153,7 +156,7 @@ export async function turnoTinta(o: {
       const receta = recetaDePlantilla(eq.plantilla, idea);
       if (!receta) throw new ErrorTinta("El equipo no devolvió un diseño. Vuelve a intentarlo.");
       paso("listo");
-      return { receta, html: eq.html, pantallas: eq.pantallas, modelo: MODELO_LOCAL, llamadas: 0 };
+      return { receta, html: eq.html, pantallas: eq.pantallas, borrador: eq.borrador, modelo: MODELO_LOCAL, llamadas: 0 };
     } finally {
       o.mostrarEquipo?.(false);
     }
@@ -172,11 +175,20 @@ export async function turnoTinta(o: {
   }
   if (local) {
     paso("dibujando");
-    const d = await o.cliente.pedir("dibujar", { receta: local.receta, idea: local.receta.brief }, { signal: o.signal });
+    const d = await o.cliente.pedir(
+      "dibujar",
+      {
+        receta: local.receta,
+        idea: local.receta.brief,
+        ...(ant.borrador ? { borrador: ant.borrador } : {}),
+        ...(local.textos ? { textos: local.textos } : {}),
+      },
+      { signal: o.signal }
+    );
     paso("listo");
     return {
       texto: `Hecho, sin gastar IA: ${local.hechos.join(" · ")}.`,
-      app: { receta: local.receta, html: d.html, pantallas: d.pantallas, modelo: MODELO_LOCAL, llamadas: 0 },
+      app: { receta: local.receta, html: d.html, pantallas: d.pantallas, borrador: d.borrador, modelo: MODELO_LOCAL, llamadas: 0 },
       modelo: MODELO_LOCAL,
       avisos: [],
     };
@@ -214,7 +226,7 @@ export async function turnoTinta(o: {
   paso("dibujando");
   const d = await o.cliente.pedir("dibujar", { receta, idea: receta.brief || ant.receta.brief }, { signal: o.signal });
   paso("listo");
-  return { texto: textoVisible(r.texto) || "Hecho.", app: { receta, html: d.html, pantallas: d.pantallas, modelo: r.modelKey, llamadas }, modelo: r.modelKey, avisos: leido.avisos };
+  return { texto: textoVisible(r.texto) || "Hecho.", app: { receta, html: d.html, pantallas: d.pantallas, borrador: d.borrador, modelo: r.modelKey, llamadas }, modelo: r.modelKey, avisos: leido.avisos };
 }
 
 /** La última app de Tinta de la conversación (la que se está editando). */
