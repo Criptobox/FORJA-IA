@@ -12,6 +12,7 @@ import {
   Globe,
   History,
   KeyRound,
+  Layers,
   PenLine,
   Puzzle,
   Smartphone,
@@ -95,6 +96,7 @@ export function Welcome({
   onResume,
   onOpenRadar,
   onFill,
+  onTinta,
 }: {
   onPick: (text: string) => void;
   onOpenSettings: () => void;
@@ -111,6 +113,8 @@ export function Welcome({
   onOpenRadar?: () => void;
   /** rellenar el compositor SIN enviar (para el arrancador de errores) */
   onFill?: (text: string) => void;
+  /** activar el modo Tinta del chat (diseñar una app con la biblioteca y el equipo de agentes) */
+  onTinta?: () => void;
 }) {
   const providers = useForja((s) => s.providers);
   const settings = useForja((s) => s.settings);
@@ -269,6 +273,18 @@ export function Welcome({
               </button>
             );
           })}
+          {onTinta && (
+            <button
+              type="button"
+              className={cn(PILDORA, "border-orange-500/50")}
+              onClick={() => (anyProvider ? onTinta() : onOpenSettings())}
+              title={anyProvider ? "Describe tu app y el equipo de agentes la arma con la biblioteca Tinta, con muy pocos tokens" : "Primero conecta un proveedor"}
+              data-testid="atajo-tinta"
+            >
+              <Layers className="size-4" style={{ color: "#f97316" }} aria-hidden />
+              App con Tinta
+            </button>
+          )}
         </div>
 
         {recent && onResume && (
