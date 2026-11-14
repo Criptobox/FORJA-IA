@@ -236,6 +236,15 @@ export function ChatApp() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [imageMode, setImageMode] = useState(false);
   const [focusProvider, setFocusProvider] = useState<ProviderId | null>(null);
+  // «Conectar una IA gratis» desde el mensaje del chat que avisa de que no hay ninguna.
+  useEffect(() => {
+    const abrir = () => {
+      setFocusProvider("gemini");
+      setSettingsOpen(true);
+    };
+    window.addEventListener("forja-abrir-proveedores", abrir);
+    return () => window.removeEventListener("forja-abrir-proveedores", abrir);
+  }, []);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ecoOpen, setEcoOpen] = useState(false);
   const [cerebroOpen, setCerebroOpen] = useState(false);
@@ -862,6 +871,8 @@ export function ChatApp() {
             ? "Diseño detenido. Escribe otra vez lo que quieres cuando quieras."
             : `No pude diseñar la app: ${e instanceof Error ? e.message : String(e)}`,
           error: !cancelado,
+          // sin ninguna IA conectada: el mensaje lleva el botón para conectarla
+          sinModelos: !cancelado && e instanceof Error && e.name === "SinModelosError",
           tintaProgreso: undefined,
         });
         motor?.mostrar(false);

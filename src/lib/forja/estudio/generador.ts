@@ -47,6 +47,7 @@ export interface RespuestaModelo {
 export class SinModelosError extends Error {
   constructor() {
     super("No hay modelos conectados. Añade una clave gratis (Gemini, Groq, OpenRouter…) en Ajustes ▸ Proveedores.");
+    this.name = "SinModelosError";
   }
 }
 

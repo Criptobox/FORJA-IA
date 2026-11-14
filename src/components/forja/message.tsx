@@ -379,6 +379,15 @@ export const MessageItem = memo(function MessageItem({
             <div className="min-w-0">
               <p className="text-[12.5px] font-semibold text-foreground">Uy, se me apagó el fuego</p>
               <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+              {msg.sinModelos && (
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent("forja-abrir-proveedores"))}
+                  className="mt-2 rounded-lg bg-foreground px-3 py-1.5 text-[12px] font-semibold text-background transition hover:opacity-90"
+                >
+                  Conectar una IA gratis
+                </button>
+              )}
             </div>
           </div>
         ) : msg.generatedImage ? (
