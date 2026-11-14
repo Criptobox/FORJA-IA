@@ -125,19 +125,21 @@ test("el radar no interrumpe: solo la insignia, en el escritorio", async ({ page
   await expect(page.getByText(AVISO)).toHaveCount(0);
 });
 
-test("en el móvil la insignia va sobre el botón del menú, con su número", async ({ page }) => {
+test("en el móvil el botón del menú (los chats) no lleva el número del Radar", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await seed(page);
   await page.goto("/");
   await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
 
-  // sin barra lateral a la vista, el número tiene que estar en el menú
-  const menu = page.getByRole("button", { name: /Abrir conversaciones/ });
+  // el menú abre las conversaciones: las novedades del Radar no son suyas
+  const menu = page.getByRole("button", { name: "Abrir conversaciones", exact: true });
   await expect(menu).toBeVisible();
-  await expect(menu, "el botón dice cuántas novedades hay").toHaveAccessibleName(
-    /\d+ novedades en el Radar/
-  );
-  // y nada flotante, tampoco aquí
+  await expect(menu).toHaveText("");
+  // al abrirlo, son las conversaciones
+  await menu.click();
+  await expect(page.getByRole("dialog", { name: "Conversaciones" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  // y nada flotante
   await page.waitForTimeout(5_000);
   await expect(page.getByText(AVISO)).toHaveCount(0);
 });

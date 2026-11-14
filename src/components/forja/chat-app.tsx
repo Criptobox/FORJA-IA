@@ -137,7 +137,6 @@ import { classifyTask } from "@/lib/forja/task-router";
 import { useHealth } from "@/lib/forja/health";
 import { resumenCuota, tonoCuota, useQuota } from "@/lib/forja/quota";
 import { useUsage } from "@/lib/forja/usage";
-import { unseenRadarCount } from "@/lib/forja/free-radar";
 import { extractRepoFromText, isMostlyRepoLink } from "@/lib/forja/repo-cloud";
 import { cn } from "@/lib/utils";
 import {
@@ -277,8 +276,6 @@ export function ChatApp() {
    * se abre a pantalla completa desde el botón de la cabecera. */
   const estrecha = useMediaQuery(PANTALLA_ESTRECHA);
   // Novedades del radar sin ver: la insignia del botón del menú en el móvil.
-  const radarSeenIds = useForja((st) => st.radarSeenIds);
-  const radarPendientes = unseenRadarCount(radarSeenIds);
 
   // vista previa
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -1659,18 +1656,9 @@ export function ChatApp() {
             size="icon"
             className="relative size-8 lg:hidden"
             onClick={() => setSidebarOpen(true)}
-            aria-label={
-              radarPendientes > 0
-                ? `Abrir conversaciones · ${radarPendientes} novedades en el Radar`
-                : "Abrir conversaciones"
-            }
+            aria-label="Abrir conversaciones"
           >
             <Menu className="size-4.5" />
-            {radarPendientes > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-emerald-500 px-0.5 text-[8px] font-bold text-white">
-                {radarPendientes > 9 ? "9+" : radarPendientes}
-              </span>
-            )}
           </Button>
         )}
         <ModelPicker value={modelKey} onChange={setModelKey} />
@@ -1679,7 +1667,10 @@ export function ChatApp() {
           variant={isAutoKey(modelKey) ? "default" : "outline"}
           className={cn(
             "raise h-9 shrink-0 gap-1 px-2.5 text-xs",
-            isAutoKey(modelKey) && "forja-gradient-bg border-0 text-white hover:opacity-90"
+            isAutoKey(modelKey) && "forja-gradient-bg border-0 text-white hover:opacity-90",
+            // Con FORJA WEB, en el móvil sobra: no cabe junto al selector, y
+            // desde el propio selector se cambia de modo.
+            isForjaWebKey(modelKey) && "hidden sm:inline-flex"
           )}
           onClick={() => {
             if (isAutoKey(modelKey)) {
