@@ -41,9 +41,9 @@ export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { p
   const paso = pasos[actual];
   const estadoChispa = estadoChispaDe(progreso);
   const tituloChispa = {
-    listo: "Chispa celebra: ya está",
-    forjando: "Chispa forjando tu encargo",
-    pensando: "Chispa pensando tu encargo",
+    listo: "Lumen celebra: ya está",
+    forjando: "Lumen trabajando en tu encargo",
+    pensando: "Lumen pensando tu encargo",
   }[estadoChispa];
   return (
     <div className="fj-timeline-card fj-creacion" aria-live="polite" data-testid="creacion-en-curso">

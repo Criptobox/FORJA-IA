@@ -189,11 +189,14 @@ test.describe("Pantalla de inicio (saludo, Chispa y atajos)", () => {
     await expect(page.getByRole("heading", { name: /¿Qué quieres crear/ })).toBeVisible();
     await expect(page.getByTestId("chispa-inicio")).toBeVisible();
 
+    // un solo camino: ejemplos que crean sin IA, sin enlaces a otras pantallas
     const atajos = page.getByRole("group", { name: "Atajos para empezar" });
-    await expect(atajos.getByRole("link", { name: "Diseñar app" })).toHaveAttribute("href", "/forja");
+    await expect(atajos.getByRole("link")).toHaveCount(0);
+    await expect(atajos.getByRole("button")).toHaveCount(4);
+    await expect(page.getByText("No hace falta ninguna IA")).toBeVisible();
 
-    // «Web» envía su encargo de verdad (no solo rellena)
-    await atajos.getByRole("button", { name: "Web" }).click();
-    await expect(page.locator('[data-role="user"]').first()).toContainText("página de aterrizaje para una cafetería", { timeout: 30_000 });
+    // envía su encargo de verdad (no solo rellena)
+    await atajos.getByRole("button", { name: "Web para mi barbería" }).click();
+    await expect(page.locator('[data-role="user"]').first()).toContainText("Hazme una web para mi barbería", { timeout: 30_000 });
   });
 });

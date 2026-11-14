@@ -20,6 +20,8 @@ export interface CambioLocal {
   hechos: string[];
   /** pidió otra propuesta entera: se vuelve a llamar al equipo */
   rehacer?: boolean;
+  /** textos que cambian en este pedido (sobre lo editado a mano se aplican solo estos) */
+  textos?: Record<string, string[]>;
 }
 
 const MAX_BLOQUES = 14;
@@ -132,6 +134,7 @@ export function cambioLocal(pedido: string, receta: RecetaTinta, cat: CatalogoTi
   const t = normalizar(mNombre ? pedidoTal.replace(mNombre[0], " ") : pedidoTal);
   const r: RecetaTinta = { ...receta, blocks: receta.blocks.map((b) => ({ ...b })), ...(receta.texts ? { texts: { ...receta.texts } } : {}) };
   const hechos: string[] = [];
+  const textos: Record<string, string[]> = {};
   const rol = (id: string) => cat.bloques.find((b) => b.id === id)?.rol ?? "";
 
   if (/\b(otra (version|propuesta|opcion|idea)|otro diseno|hazla de nuevo|de cero|cambia(la)? (todo|entera)|diferente)\b/.test(t)) {
@@ -181,6 +184,7 @@ export function cambioLocal(pedido: string, receta: RecetaTinta, cat: CatalogoTi
     if (cab) {
       const prev = r.texts?.[cab.id] ?? [];
       r.texts = { ...(r.texts ?? {}), [cab.id]: [nombre, ...prev.slice(1)] };
+      textos[cab.id] = [nombre];
       hechos.push(`nombre «${nombre}»`);
     }
   }
@@ -224,7 +228,7 @@ export function cambioLocal(pedido: string, receta: RecetaTinta, cat: CatalogoTi
     hechos.push(`${n} ${n === 1 ? "tarjeta" : "tarjetas"}`);
   }
 
-  return hechos.length ? { receta: r, hechos } : null;
+  return hechos.length ? { receta: r, hechos, ...(Object.keys(textos).length ? { textos } : {}) } : null;
 }
 
 /** Plantilla que devuelve el equipo → receta (mismos campos). */

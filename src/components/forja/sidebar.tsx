@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   Activity,
+  ChevronDown,
   Sparkles,
   BookOpen,
   Box,
@@ -61,6 +62,9 @@ import {
 } from "@/lib/forja/app-version";
 import { cn } from "@/lib/utils";
 
+/** «Más herramientas» abierto o cerrado, en este dispositivo. */
+const CLAVE_MAS = "forja-mas-herramientas";
+
 export function Sidebar({
   onOpenSettings,
   onOpenLibrary,
@@ -118,6 +122,23 @@ export function Sidebar({
   const togglePin = useForja((s) => s.togglePin);
 
   const [query, setQuery] = useState("");
+  const [masAbierto, setMasAbiertoState] = useState(false);
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- preferencia guardada en este dispositivo
+      setMasAbiertoState(localStorage.getItem(CLAVE_MAS) === "1");
+    } catch {
+      /* sin almacenamiento: cerrado */
+    }
+  }, []);
+  const setMasAbierto = (v: boolean) => {
+    setMasAbiertoState(v);
+    try {
+      localStorage.setItem(CLAVE_MAS, v ? "1" : "0");
+    } catch {
+      /* sin almacenamiento: solo esta visita */
+    }
+  };
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
 
@@ -467,7 +488,18 @@ export function Sidebar({
          * prototipo: aquí arriba va la lista de conversaciones, y doce filas
          * se la comerían. Los grupos son lo que aporta; la fila ancha era
          * sitio que no tenemos. */}
-        {GRUPOS.map((g) => {
+        {/* Un solo camino: quien entra ve sus conversaciones y crea desde el
+            chat. Las herramientas siguen a un clic, recogidas. */}
+        <button
+          type="button"
+          onClick={() => setMasAbierto(!masAbierto)}
+          aria-expanded={masAbierto}
+          className="mt-2 flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-[11.5px] font-medium text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
+        >
+          Más herramientas
+          <ChevronDown className={cn("size-3.5 transition-transform", masAbierto && "rotate-180")} aria-hidden />
+        </button>
+        {masAbierto && GRUPOS.map((g) => {
           const items = g.items.filter((i) => i.onClick || i.href);
           if (!items.length) return null;
           return (

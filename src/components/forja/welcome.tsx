@@ -3,18 +3,15 @@
  * píldora junto al cuadro de escribir (calmado, el compositor manda). */
 import type { LucideIcon } from "lucide-react";
 import {
-  ArrowUpRight,
   Bug,
-  ChartColumn,
-  ClipboardPaste,
-  Gamepad2,
-  GitBranch,
+  Coffee,
+  Dumbbell,
+
   Globe,
   History,
-  KeyRound,
-  PenLine,
+
   Puzzle,
-  Smartphone,
+  ShoppingBag,
   Sparkles,
   Telescope,
 } from "lucide-react";
@@ -26,44 +23,13 @@ import { PROVIDERS } from "@/lib/forja/providers";
 import { makeModelKey } from "@/lib/forja/types";
 import { cn } from "@/lib/utils";
 
-const START = [
-  { name: "NVIDIA", color: "#76B900" },
-  { name: "Kimi", color: "#2563EB" },
-  { name: "TokenRouter", color: "#22D3EE" },
-];
-
-/** Atajos en píldora: cada uno rellena y envía un encargo, abre Repo Studio
- * o lleva al Estudio de diseño. Pocos y con icono de color, como en un
- * lanzador: la pantalla respira y el cuadro de escribir manda. */
-const ATAJOS: {
-  icon: LucideIcon;
-  color: string;
-  label: string;
-  text?: string;
-  openRepos?: boolean;
-  href?: string;
-}[] = [
-  {
-    icon: Globe,
-    color: "#2563eb",
-    label: "Web",
-    text: "Crea una página de aterrizaje para una cafetería de especialidad, en un solo archivo HTML con diseño moderno y animaciones",
-  },
-  { icon: Smartphone, color: "#8b5cf6", label: "Diseñar app", href: "/forja" },
-  {
-    icon: Gamepad2,
-    color: "#06b6d4",
-    label: "Juego",
-    text: "Crea el juego de la serpiente en un solo archivo HTML con controles táctiles, puntuación y diseño pulido",
-  },
-  {
-    icon: ChartColumn,
-    color: "#ec4899",
-    label: "Panel de datos",
-    text: "Crea un panel de gastos mensuales en HTML con gráficos animados y guardado en el navegador",
-  },
-  { icon: PenLine, color: "#10b981", label: "Escribir", text: "Ayúdame a redactar un correo profesional para mi jefe" },
-  { icon: GitBranch, color: "#f59e0b", label: "Repositorio", openRepos: true },
+/** Un solo camino: ejemplos que se envían tal cual y funcionan SIN IA (con
+ * FORJA WEB los arma el equipo con la biblioteca). Nada de abrir paneles. */
+const ATAJOS: { icon: LucideIcon; color: string; label: string; text: string }[] = [
+  { icon: Coffee, color: "#c2410c", label: "App para mi cafetería", text: "Hazme una app para mi cafetería con pedidos" },
+  { icon: Globe, color: "#2563eb", label: "Web para mi barbería", text: "Hazme una web para mi barbería" },
+  { icon: Dumbbell, color: "#16a34a", label: "App de gimnasio", text: "Hazme una app de rutinas para mi gimnasio" },
+  { icon: ShoppingBag, color: "#db2777", label: "Tienda de ropa", text: "Hazme una app de tienda de ropa" },
 ];
 
 /** «Buenos días / tardes / noches» según la hora del dispositivo. En el
@@ -89,8 +55,6 @@ export function Welcome({
   onPick,
   onOpenSettings,
   onOpenSkills,
-  onQuickSetup,
-  onOpenRepos,
   recent,
   onResume,
   onOpenRadar,
@@ -99,8 +63,6 @@ export function Welcome({
   onPick: (text: string) => void;
   onOpenSettings: () => void;
   onOpenSkills?: () => void;
-  onQuickSetup: (providerId: "aihubmix") => void;
-  onOpenRepos?: () => void;
   /** última conversación con mensajes, para «Continuar» (D3, PLAN-V7) */
   recent?: { id: string; title: string } | null;
   /** reanudar esa conversación (la activa, con su contexto delante) */
@@ -119,7 +81,6 @@ export function Welcome({
     const c = providers[p.id];
     return c?.enabled && (!!c.apiKey.trim() || !!p.keyless || !!p.keyOptional);
   });
-  const featured = PROVIDERS.find((p) => p.featured)!;
   const firstReady = PROVIDERS.find((p) => {
     const c = providers[p.id];
     return c?.enabled && (!!c.apiKey.trim() || !!p.keyless || !!p.keyOptional) && c.models.length > 0;
@@ -148,9 +109,9 @@ export function Welcome({
 
         <div className="stagger-in mt-4 mb-5 flex flex-col items-center sm:mt-6 sm:mb-7" style={{ "--stagger": 1 } as React.CSSProperties}>
           <p className="chispa-bocadillo mb-2" aria-hidden>
-            ¿Encendemos algo? 🔥
+            ¿Creamos algo? ✨
           </p>
-          <Chispa estado="inicio" size={124} titulo="Chispa, la llama de Forja, te saluda" />
+          <Chispa estado="inicio" size={124} titulo="Lumen, el guía de Forja, te saluda" />
           <div className="chispa-suelo" aria-hidden />
         </div>
 
@@ -164,62 +125,20 @@ export function Welcome({
           className="stagger-in mx-auto mt-1.5 max-w-xs text-pretty text-[13px] leading-relaxed text-muted-foreground"
           style={{ "--stagger": 3 } as React.CSSProperties}
         >
-          Escribe tu idea abajo y la ves nacer al lado.
+          Describe tu app o tu web y la ves nacer al lado. No hace falta ninguna IA: la diseña el equipo de Forja.
         </p>
 
         {!anyProvider && (
-          <div
-            className="stagger-in glow-accent mt-6 w-full rounded-2xl border border-border/70 bg-card/80 p-4 text-left shadow-sm backdrop-blur-sm"
+          <p
+            className="stagger-in mt-4 text-[12px] text-muted-foreground"
             style={{ "--stagger": 4 } as React.CSSProperties}
           >
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl forja-gradient-bg text-white shadow-md shadow-violet-500/20">
-                <KeyRound className="size-4" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-[13.5px] font-semibold tracking-tight">Conecta un modelo</h3>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {START.map((s) => (
-                    <span
-                      key={s.name}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/70 px-2 py-0.5 text-[11px] font-medium"
-                    >
-                      <span className="size-1.5 rounded-full" style={{ background: s.color }} />
-                      {s.name}
-                    </span>
-                  ))}
-                </div>
-                <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
-                  Pega el snippet de Build o el cliente OpenAI. Forja saca clave, URL y modelo.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    onClick={onOpenSettings}
-                    className="forja-gradient-bg h-8 border-0 text-white shadow-md shadow-violet-500/15 hover:opacity-90"
-                  >
-                    <ClipboardPaste className="size-3.5" /> Pegar snippet
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 border-border/70 text-xs"
-                    onClick={() => onQuickSetup("aihubmix")}
-                  >
-                    AiHubMix
-                  </Button>
-                  {/* Un solo control: un enlace con aspecto de botón (antes era un
-                      <button> dentro de un <a>, dos paradas de Tab y un clic ambiguo). */}
-                  <Button asChild size="sm" variant="ghost" className="h-8 text-xs text-muted-foreground">
-                    <a href={featured.keyUrl} target="_blank" rel="noreferrer">
-                      Obtener clave
-                      <ArrowUpRight className="size-3" />
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+            ¿Tienes una clave de IA?{" "}
+            <button type="button" onClick={onOpenSettings} className="font-medium text-foreground underline underline-offset-2">
+              Conéctala (opcional)
+            </button>{" "}
+            para pedir cambios con tus palabras.
+          </p>
         )}
 
         {anyProvider && !settings.defaultModelKey && firstReady && (
@@ -240,35 +159,12 @@ export function Welcome({
           aria-label="Atajos para empezar"
           role="group"
         >
-          {ATAJOS.map((a) => {
-            const icono = <a.icon className="size-4" style={{ color: a.color }} aria-hidden />;
-            if (a.href)
-              return (
-                <a key={a.label} href={a.href} className={PILDORA} title="Estudio de diseño: pantallas de app y webs">
-                  {icono}
-                  {a.label}
-                </a>
-              );
-            return (
-              <button
-                key={a.label}
-                type="button"
-                className={PILDORA}
-                onClick={() => {
-                  if (a.openRepos) {
-                    onOpenRepos?.();
-                    return;
-                  }
-                  if (anyProvider) onPick(a.text ?? "");
-                  else onOpenSettings();
-                }}
-                title={a.openRepos ? "Abrir Repo Studio" : anyProvider ? a.text : "Primero conecta un proveedor"}
-              >
-                {icono}
-                {a.label}
-              </button>
-            );
-          })}
+          {ATAJOS.map((a) => (
+            <button key={a.label} type="button" className={PILDORA} onClick={() => onPick(a.text)} title={a.text}>
+              <a.icon className="size-4" style={{ color: a.color }} aria-hidden />
+              {a.label}
+            </button>
+          ))}
         </div>
 
         {recent && onResume && (

@@ -43,15 +43,20 @@ test("la barra lateral está agrupada y no queda cajón de sastre", async ({ pag
   await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
 
   const lateral = page.locator("aside");
+  // un solo camino: de entrada solo las conversaciones; lo demás, recogido
+  const mas = lateral.getByRole("button", { name: "Más herramientas" });
+  await expect(mas).toHaveAttribute("aria-expanded", "false");
+  await expect(lateral.getByRole("button", { name: "Arena" })).toHaveCount(0);
+  await mas.click();
   for (const g of ["Proyectos", "Modelos", "Herramientas"]) {
     await expect(lateral.getByText(g, { exact: true })).toBeVisible();
   }
 
-  // lo que antes vivía escondido en «Más» ahora se ve sin abrir nada
+  // abierto, cada cosa en su grupo
   for (const b of ["Biblioteca", "Skills", "Arena", "Guía"]) {
     await expect(lateral.getByRole("button", { name: b })).toBeVisible();
   }
-  await expect(lateral.getByRole("button", { name: "Más" }), "el cajón de sastre").toHaveCount(0);
+  await expect(lateral.getByRole("button", { name: "Más", exact: true }), "el cajón de sastre").toHaveCount(0);
 });
 
 test("sin dato de cuota medido, la cabecera no enseña ningún porcentaje", async ({ page }) => {

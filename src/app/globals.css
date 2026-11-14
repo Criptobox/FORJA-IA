@@ -1293,6 +1293,21 @@ html[data-accent="naranja"] {
 @keyframes chispa-saluda { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-14deg); } }
 @keyframes chispa-gota { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(26px); opacity: 0; } }
 @keyframes chispa-humo { 0% { transform: translateY(10px) scale(0.6); opacity: 0; } 30% { opacity: 0.55; } 100% { transform: translateY(-34px) scale(1.4); opacity: 0; } }
+/* Lumen, el avatar principal (chispa.tsx): robot cubo como los agentes de
+   Tinta. Respira, parpadea su pantalla, la chispa de la antena ondea, saluda
+   con el brazo y, al trabajar, golpea y llena la barra de su pantalla. */
+.lumen { filter: drop-shadow(0 10px 12px rgb(60 40 20 / 0.18)); }
+.lumen.chispa--avatar { filter: drop-shadow(0 2px 3px rgb(60 40 20 / 0.25)); }
+.lumen.chispa--error { filter: drop-shadow(0 10px 12px rgb(120 40 30 / 0.2)); }
+.lumen-respira { transform-box: view-box; transform-origin: 100px 205px; animation: chispa-respira 3.4s ease-in-out infinite; }
+.lumen-chispa { transform-box: fill-box; transform-origin: 50% 90%; animation: chispa-llama 1.6s ease-in-out infinite; }
+.lumen-parpadeo { transform-box: fill-box; transform-origin: center; animation: chispa-parpadeo 4.5s infinite; }
+.lumen-saluda { transform-box: fill-box; transform-origin: 50% 0%; animation: lumen-saluda 1.6s ease-in-out infinite; }
+.lumen-golpe { transform-box: fill-box; transform-origin: 50% 0%; animation: lumen-golpe 0.9s cubic-bezier(0.5, 0, 0.3, 1) infinite; }
+.lumen-progreso { transform-box: fill-box; transform-origin: left center; animation: lumen-progreso 1.6s ease-in-out infinite; }
+@keyframes lumen-saluda { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-16deg); } }
+@keyframes lumen-golpe { 0%, 100% { transform: rotate(-10deg); } 55% { transform: rotate(14deg); } }
+@keyframes lumen-progreso { 0% { transform: scaleX(0.15); } 70%, 100% { transform: scaleX(1); } }
 /* sombra en el suelo que acompaña la respiración */
 .chispa-suelo {
   width: 46%;

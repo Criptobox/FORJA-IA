@@ -120,6 +120,8 @@ test("el radar no interrumpe: solo la insignia, en el escritorio", async ({ page
   await page.goto("/");
   await expect(page.getByPlaceholder("Escribe tu mensaje…")).toBeVisible({ timeout: 30_000 });
 
+  // el Radar vive en «Más herramientas» (un solo camino: recogido de entrada)
+  await page.getByRole("button", { name: "Más herramientas" }).click();
   await expect(page.getByRole("button", { name: /Radar/ })).toBeVisible();
   await page.waitForTimeout(5_000);
   await expect(page.getByText(AVISO)).toHaveCount(0);

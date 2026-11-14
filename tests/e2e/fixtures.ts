@@ -16,6 +16,8 @@ export const test = base.extend({
     await page.addInitScript(() => {
       try {
         localStorage.setItem("forja-preview-demo", "1");
+        // las pruebas usan las herramientas de la barra lateral: a la vista
+        localStorage.setItem("forja-mas-herramientas", "1");
       } catch {
         /* frame sin acceso a storage */
       }
