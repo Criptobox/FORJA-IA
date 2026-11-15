@@ -11,6 +11,7 @@ import {
   Check,
   Database,
   FlaskConical,
+  LayoutGrid,
   FolderGit2,
   Github,
   GraduationCap,
@@ -68,6 +69,7 @@ const CLAVE_MAS = "forja-mas-herramientas";
 export function Sidebar({
   onOpenSettings,
   onOpenLibrary,
+  onOpenBibliotecaDiseno,
   onOpenSkills,
   onOpenRadar,
   onOpenGithub,
@@ -89,6 +91,8 @@ export function Sidebar({
 }: {
   onOpenSettings: () => void;
   onOpenLibrary?: () => void;
+  /** la biblioteca de diseño de Tinta (bloques, paletas, letras): no es la de prompts */
+  onOpenBibliotecaDiseno?: () => void;
   onOpenSkills?: () => void;
   onOpenRadar?: () => void;
   onOpenGithub?: () => void;
@@ -199,6 +203,12 @@ export function Sidebar({
           href: "/forja?tab=ficha",
           title: "Va directo a la pestaña Ficha → Maqueta del Estudio",
         },
+        {
+          label: "Biblioteca de diseño",
+          icon: <LayoutGrid className="size-4" />,
+          onClick: onOpenBibliotecaDiseno,
+          title: "Biblioteca de diseño: más de 300 bloques, 90 paletas y 12 letras para armar tu app a mano, sin IA",
+        },
       ],
     },
     {
@@ -233,7 +243,7 @@ export function Sidebar({
       // dos filas más arriba: dos cosas con el mismo nombre en la misma barra.
       titulo: "Herramientas",
       items: [
-        { label: "Biblioteca", icon: <BookOpen className="size-4" />, onClick: onOpenLibrary, title: "Biblioteca de prompts" },
+        { label: "Prompts", icon: <BookOpen className="size-4" />, onClick: onOpenLibrary, title: "Tus prompts guardados (no es la biblioteca de diseño)" },
         { label: "Conocimiento", icon: <Database className="size-4" />, onClick: onOpenKnowledgeBase, title: "Knowledge Base: conecta tus cuentas de Google Drive e importa recursos, con categoría y etiquetas" },
         { label: "Skills", icon: <Puzzle className="size-4" />, onClick: onOpenSkills, title: "Skills: instrucciones que se suman al prompt de sistema" },
         { label: "Memoria", icon: <BrainCircuit className="size-4" />, onClick: onOpenFailures, title: "Memoria de fallos: reglas aprendidas de errores reales que el agente consulta antes de actuar" },

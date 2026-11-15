@@ -53,7 +53,7 @@ test("la barra lateral está agrupada y no queda cajón de sastre", async ({ pag
   }
 
   // abierto, cada cosa en su grupo
-  for (const b of ["Biblioteca", "Skills", "Arena", "Guía"]) {
+  for (const b of ["Prompts", "Biblioteca de diseño", "Skills", "Arena", "Guía"]) {
     await expect(lateral.getByRole("button", { name: b })).toBeVisible();
   }
   await expect(lateral.getByRole("button", { name: "Más", exact: true }), "el cajón de sastre").toHaveCount(0);

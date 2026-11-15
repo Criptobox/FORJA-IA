@@ -66,7 +66,9 @@ export interface DatosTinta {
   /** sin receta: el equipo elige el diseño por sector, sin IA */
   equipo: { receta?: RecetaTinta; idea?: string; nombre?: string };
   catalogo: Record<string, never>;
-  editar: { receta: RecetaTinta; borrador?: unknown };
+  /** receta y borrador: la app que se edita. `vacia`: la biblioteca sin ninguna
+   *  app, para elegir los bloques desde cero. `pagina`: por dónde se abre. */
+  editar: { receta?: RecetaTinta; borrador?: unknown; vacia?: boolean; pagina?: "bloques" | "pantalla" };
 }
 
 export type AccionTinta = keyof RespuestasTinta;

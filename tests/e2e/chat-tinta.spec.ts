@@ -331,3 +331,49 @@ test("Editor de Tinta: la Paleta se elige viendo cada paleta puesta, con filtro 
   await motor.getByRole("button", { name: "Guardar y volver al chat" }).click();
   await expect(page.locator("p", { hasText: "Cambios del editor guardados, sin gastar IA." })).toBeVisible({ timeout: 30_000 });
 });
+
+test("Biblioteca de diseño: se ve desde la bienvenida y el menú, y arma una app sin IA ni app previa", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 412, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /¿Qué quieres crear/ })).toBeVisible({ timeout: 60_000 });
+
+  // a la vista en la bienvenida (no confundirla con la de prompts)
+  await page.getByTestId("atajo-biblioteca").click();
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#motorEditBar")).toContainText("Biblioteca de diseño", { timeout: 30_000 });
+  // la galería de la biblioteca: plantillas, paletas, tipografías…
+  await expect(motor.getByRole("heading", { name: /Buen diseño/ })).toBeVisible();
+  await expect(motor.getByText("Paletas de color").first()).toBeVisible();
+  await expect(motor.getByText("90 diseños").first()).toBeVisible();
+
+  // sin elegir nada no hay app que usar
+  await motor.getByRole("button", { name: "Usar en mi chat" }).click();
+  await expect(motor.locator("#toast, .toast").filter({ hasText: "Elige al menos un bloque" }).first()).toBeVisible({ timeout: 10_000 });
+
+  // se elige una plantilla y se usa en el chat
+  await motor.getByText("Plantillas").first().click();
+  await motor.locator("[data-act=use-template]").nth(2).click();
+  await motor.getByRole("button", { name: "Usar en mi chat" }).click();
+  await expect(page.locator("p", { hasText: "Tu app, armada con los bloques que elegiste, sin gastar IA." })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible();
+  await expect(page.getByTestId("editar-tinta")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /Ver el diseño a pantalla completa/i })).toBeVisible();
+  await expect(page.locator('iframe[title="Motor de diseño Tinta"]')).toHaveCSS("pointer-events", "none");
+});
+
+test("Biblioteca de diseño: en el menú (Ecosistema) con su nombre, aparte de «Prompts»", async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /¿Qué quieres crear/ })).toBeVisible({ timeout: 60_000 });
+  await page.getByRole("button", { name: "Ecosistema" }).click();
+  const hoja = page.getByRole("dialog");
+  await expect(hoja.getByRole("button", { name: "Biblioteca de diseño" })).toBeVisible();
+  await expect(hoja.getByRole("button", { name: "Prompts" })).toBeVisible();
+  // ya no hay una «Biblioteca» sin apellidos que se confunda con la de diseño
+  await expect(hoja.getByRole("button", { name: "Biblioteca", exact: true })).toHaveCount(0);
+  await hoja.getByRole("button", { name: "Biblioteca de diseño" }).click();
+  await expect(page.frameLocator('iframe[title="Motor de diseño Tinta"]').locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
+});

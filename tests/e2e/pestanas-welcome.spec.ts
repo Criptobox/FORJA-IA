@@ -192,7 +192,9 @@ test.describe("Pantalla de inicio (saludo, Chispa y atajos)", () => {
     // un solo camino: ejemplos que crean sin IA, sin enlaces a otras pantallas
     const atajos = page.getByRole("group", { name: "Atajos para empezar" });
     await expect(atajos.getByRole("link")).toHaveCount(0);
-    await expect(atajos.getByRole("button")).toHaveCount(4);
+    // 4 ejemplos que crean sin IA + la biblioteca de diseño, a la vista
+    await expect(atajos.getByRole("button")).toHaveCount(5);
+    await expect(atajos.getByRole("button", { name: "Biblioteca de diseño" })).toBeVisible();
     await expect(page.getByText("No hace falta ninguna IA")).toBeVisible();
 
     // envía su encargo de verdad (no solo rellena)
