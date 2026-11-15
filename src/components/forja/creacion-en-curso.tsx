@@ -14,6 +14,7 @@
 import { Check } from "lucide-react";
 import { estadoChispaDe, type ProgresoCreacion } from "@/lib/forja/progreso-creacion";
 import { Chispa } from "./chispa";
+import { EquipoCreando } from "./equipo-creando";
 
 export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { progreso: ProgresoCreacion; titulo?: string }) {
   const { pasos, actual, terminado } = progreso;
@@ -78,6 +79,7 @@ export function CreacionEnCurso({ progreso, titulo = "Creando tu página" }: { p
           </div>
         </div>
       </div>
+      <EquipoCreando pasoId={paso.id} />
       <ul className="fj-timeline">
         {pasos.map((p) => (
           <li key={p.id} className={`fj-timeline-row fj-timeline-row--${p.estado}`} data-paso={p.id} data-estado={p.estado}>

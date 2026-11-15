@@ -79,6 +79,9 @@ test("mientras escribe, no se ve el HTML crudo creciendo: se ve el aviso de trab
   // …y Chispa forja SOLO cuando ya se escriben archivos (antes forjaba todo el rato)
   await expect(respuesta.locator('[data-paso="escribiendo"][data-estado="running"]')).toBeVisible({ timeout: 30_000 });
   await expect(respuesta.getByTestId("creacion-en-curso").getByTestId("chispa-forjando")).toBeVisible();
+  // el panel lleva al equipo de 8 agentes, no solo la mascota
+  await expect(respuesta.getByTestId("creacion-en-curso").getByTestId("equipo-creando")).toBeVisible();
+  await expect(respuesta.locator("[data-agente]")).toHaveCount(8);
   // …y en ese mismo momento el HTML crudo NO está visible en el chat: ni
   // como texto suelto ni como un <pre> con el código a medio escribir
   await expect(respuesta).not.toContainText("<!DOCTYPE");
