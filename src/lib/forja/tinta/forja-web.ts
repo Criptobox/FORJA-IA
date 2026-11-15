@@ -159,23 +159,58 @@ export async function turnoTinta(o: {
   paso("arrancando");
   await o.cliente.listo();
 
-  const conEquipo = async (idea: string): Promise<Omit<AppTinta, "version">> => {
+  const conEquipo = async (idea: string, recetaIA?: RecetaTinta, llamadas = 0, modelo = MODELO_LOCAL): Promise<Omit<AppTinta, "version">> => {
     paso("equipo");
     o.mostrarEquipo?.(true);
     try {
-      const eq = await o.cliente.pedir("equipo", { idea }, { ms: 15 * 60_000, signal: o.signal });
+      const eq = await o.cliente.pedir("equipo", recetaIA ? { idea, receta: recetaIA } : { idea }, { ms: 15 * 60_000, signal: o.signal });
       const receta = recetaDePlantilla(eq.plantilla, idea);
       if (!receta) throw new ErrorTinta("El equipo no devolvió un diseño. Vuelve a intentarlo.");
       paso("listo");
-      return { receta, html: eq.html, pantallas: eq.pantallas, borrador: eq.borrador, modelo: MODELO_LOCAL, llamadas: 0 };
+      return { receta, html: eq.html, pantallas: eq.pantallas, borrador: eq.borrador, modelo, llamadas };
     } finally {
       o.mostrarEquipo?.(false);
     }
   };
 
   if (!ant) {
+    // Con una IA conectada, ella decide el diseño (distinto cada vez según lo
+    // que se pida) y el equipo de agentes lo construye y lo revisa a la vista.
+    // Sin IA, o si no devuelve un diseño válido, el equipo lo elige por sector.
+    if (o.hayModelo) {
+      try {
+        paso("modelo");
+        const ins = await o.cliente.pedir("instrucciones", { idea: pedido }, { signal: o.signal });
+        const usuario = `Quiero esto: ${pedido}\n\nDiséñalo de forma propia para este encargo (paleta, tipografía, piezas y textos pensados para él, nada genérico). Responde con una frase y la receta.`;
+        let r = await o.pedirModelo({ sistema: ins.sistema, usuario, modeloKey: o.modeloKey, signal: o.signal, maxTokens: 2048 });
+        let llamadas = 1;
+        let leido = await o.cliente.pedir("leer", { texto: r.texto }, { signal: o.signal });
+        if (!leido.ok) {
+          paso("corrigiendo");
+          const otra = `${usuario}\n\nTu respuesta anterior fue:\n${r.texto.slice(0, 3000)}\n\n${leido.correccion}`;
+          r = await o.pedirModelo({ sistema: ins.sistema, usuario: otra, modeloKey: o.modeloKey, signal: o.signal, maxTokens: 2048 });
+          llamadas++;
+          leido = await o.cliente.pedir("leer", { texto: r.texto }, { signal: o.signal });
+        }
+        if (leido.ok && leido.receta) {
+          const app = await conEquipo(leido.receta.brief || pedido, leido.receta, llamadas, r.modelKey);
+          return { texto: textoVisible(r.texto) || "Diseñada con tu IA y revisada por el equipo.", app, modelo: r.modelKey, avisos: leido.avisos };
+        }
+      } catch (e) {
+        if (o.signal.aborted || (e as { cancelado?: boolean })?.cancelado) throw e;
+        // la IA falló (cuota, red…): sigue el equipo en local, sin perder el encargo
+      }
+    }
+    const intentoIA = o.hayModelo;
     const app = await conEquipo(pedido);
-    return { texto: "Diseñada por el equipo con la biblioteca de Forja, sin gastar IA.", app, modelo: MODELO_LOCAL, avisos: [] };
+    return {
+      texto: intentoIA
+        ? "Diseñada por el equipo con la biblioteca de Forja (la IA no dio un diseño válido, así que lo eligió el equipo por sector)."
+        : "Diseñada por el equipo con la biblioteca de Forja, sin gastar IA.",
+      app,
+      modelo: MODELO_LOCAL,
+      avisos: [],
+    };
   }
 
   const cat = await o.cliente.pedir("catalogo", {}, { signal: o.signal });
