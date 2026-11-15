@@ -394,3 +394,30 @@ test("con AUTO, una app nueva pide el diseño a la IA y lo construye el equipo d
   await expect.poll(() => cuerpos.length, { timeout: 30_000 }).toBeGreaterThan(0);
   expect(cuerpos.some((c) => c.includes(TINTA))).toBe(true);
 });
+
+test("el perfil y los ajustes de la app salen del sector, no una plantilla igual para todas", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app para mi cafetería con pedidos");
+  await enviar(page);
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  await motor.locator("[data-eq=speed]").click();
+  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
+  await motor.locator("#eqGo").click();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 60_000 });
+  const html = await page.evaluate(() => {
+    const st = JSON.parse(localStorage.getItem("forja-ai-v1") || "{}").state;
+    const m = (st.sessions ?? []).flatMap((s: { messages: { tintaApp?: { html?: string } }[] }) => s.messages).filter((x: { tintaApp?: unknown }) => x.tintaApp);
+    return m[m.length - 1]?.tintaApp?.html ?? "";
+  });
+  expect(html.length).toBeGreaterThan(1000);
+  // antes: «Alex Rivera», «Wi-Fi/Casa_5G» y «Modo oscuro» en todas las apps
+  expect(html).not.toContain("Alex Rivera");
+  expect(html).not.toContain("Casa_5G");
+  expect(html).toContain("Pedir sin cubiertos");
+});

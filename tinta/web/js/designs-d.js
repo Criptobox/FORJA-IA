@@ -4,7 +4,7 @@ D["list.settings"] = t => {
   const row = (i, col, n, r) => `<div class="r"><span class="ic" style="background:${col}">${ic(i, 18)}</span><b>${n}</b>${r}</div>`;
   const sw = on => `<span class="sw${on ? " on" : ""}"><i></i></span>`;
   return [`
-<div class="l"><div class="g">${row("wifi", t.c1, "Wi-Fi", `<small>Casa_5G</small>${ic("chevR", 16)}`)}${row("bell", t.c2, "Notificaciones", sw(true))}${row("moon", "#6366F1", "Modo oscuro", sw(false))}</div></div>`, `
+<div class="l"><div class="g">${row("folder", t.c1, "Mis cosas", `<small>3 en total</small>${ic("chevR", 16)}`)}${row("bell", t.c2, "Notificaciones", sw(true))}${row("sliders", "#6366F1", "Preferencia", sw(false))}</div></div>`, `
 .g{background:${t.c0};border-radius:${t.r};padding:4px 14px;box-shadow:0 4px 18px rgba(20,22,27,.06);border:1px solid rgba(0,0,0,.05)}
 .r{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #EEF0F3;color:#9AA0AA}.r:last-child{border:0}
 .ic{width:32px;height:32px;border-radius:9px;color:#fff;display:grid;place-items:center;flex:none}
