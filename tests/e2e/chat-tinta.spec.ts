@@ -421,3 +421,31 @@ test("el perfil y los ajustes de la app salen del sector, no una plantilla igual
   expect(html).not.toContain("Casa_5G");
   expect(html).toContain("Pedir sin cubiertos");
 });
+
+test("«Convertir en app completa» manda la maqueta a la IA como un encargo de código con el diseño ya decidido", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await seed(page);
+  const cuerpos = await contarLlamadas(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app para mi cafetería con pedidos");
+  await enviar(page);
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  await motor.locator("[data-eq=speed]").click();
+  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
+  await motor.locator("#eqGo").click();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 60_000 });
+  const antes = cuerpos.length;
+  await page.getByTestId("convertir-proyecto").click();
+  await expect(page.locator("p", { hasText: "Convierte esta maqueta en una app completa con código" }).first()).toBeVisible({ timeout: 20_000 });
+  await expect.poll(() => cuerpos.length, { timeout: 30_000 }).toBeGreaterThan(antes);
+  // al modelo le llega el diseño decidido, no el catálogo de Tinta
+  const nuevos = cuerpos.slice(antes);
+  expect(nuevos.some((c) => c.includes("Diseño ya decidido"))).toBe(true);
+  expect(nuevos.some((c) => c.includes(TINTA))).toBe(false);
+  // y con la arquitectura de app de varios archivos (Modo App)
+  expect(nuevos.some((c) => c.includes("Modo App"))).toBe(true);
+});

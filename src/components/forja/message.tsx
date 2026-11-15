@@ -23,6 +23,7 @@ import {
   Volume2,
   VolumeX,
   Palette,
+  Hammer,
 } from "lucide-react";
 import { etiquetaCorta } from "@/lib/forja/senalar";
 import { Markdown } from "./markdown";
@@ -488,6 +489,19 @@ export const MessageItem = memo(function MessageItem({
                     >
                       <Palette className="size-3.5 text-forja-violet" aria-hidden />
                       Editar con la biblioteca
+                    </button>
+                  )}
+                  {!streaming && msg.tintaApp?.html && (
+                    // De la maqueta al proyecto: la IA escribe el código con el
+                    // diseño ya decidido (pocas líneas), en varios archivos.
+                    <button
+                      type="button"
+                      onClick={() => window.dispatchEvent(new CustomEvent("forja-convertir-tinta", { detail: msg.id }))}
+                      className="ml-2 mt-3 inline-flex items-center gap-1.5 rounded-full border border-forja-violet/40 bg-forja-violet/10 px-3 py-1.5 text-[12.5px] font-medium transition hover:bg-forja-violet/20"
+                      data-testid="convertir-proyecto"
+                    >
+                      <Hammer className="size-3.5 text-forja-violet" aria-hidden />
+                      Convertir en app completa
                     </button>
                   )}
                   {tooLong && (

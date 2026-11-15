@@ -155,9 +155,10 @@ describe("el resultado entra al Estudio", () => {
   });
 });
 
-import { MODELO_LOCAL, esPedidoNuevo, progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { MODELO_LOCAL, esPedidoNuevo, promptProyectoDesdeApp, progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
 import { cambioLocal, recetaDePlantilla } from "@/lib/forja/tinta/cambios-locales";
 import type { CatalogoTinta } from "@/lib/forja/tinta/cliente";
+import { esEncargoDeApp } from "@/lib/forja/modo-app";
 
 describe("FORJA WEB con Tinta: qué mensajes diseña Tinta", () => {
   const base = { hayApp: false, imagenes: 0 };
@@ -419,5 +420,32 @@ describe("cambios sin IA", () => {
       mode: "dark",
     });
     expect(recetaDePlantilla(null, "x")).toBeNull();
+  });
+});
+
+describe("de la maqueta al proyecto", () => {
+  const app = {
+    receta: { brief: "tienda de ropa con catálogo", blocks: [{ id: "h-search" }], palette: "mandarina", font: "editorial", mode: "dark" as const, texts: { "h-search": ["Atelier Norte", "Ropa para todos los días"] } },
+    pantallas: [{ id: "inicio", nombre: "Inicio" }, { id: "carrito", nombre: "Carrito" }],
+  };
+  const cat = { paletas: [{ id: "mandarina", nombre: "Mandarina", ambiente: "", acento: "#ff7a1a", fondo: "#fff7ef" }], tipografias: [{ id: "editorial", nombre: "Editorial", tag: "" }], fondos: [], bloques: [] };
+  it("lleva el diseño ya decidido y pide código en varios archivos", () => {
+    const t = promptProyectoDesdeApp(app, cat);
+    expect(t).toContain("tienda de ropa con catálogo");
+    expect(t).toContain("Mandarina");
+    expect(t).toContain("#ff7a1a");
+    expect(t).toContain("modo oscuro");
+    expect(t).toContain("Inicio, Carrito");
+    expect(t).toContain("Atelier Norte");
+    expect(t).toMatch(/con código/);
+    expect(t.length).toBeLessThan(1200);
+  });
+  it("sale del camino de Tinta (es un encargo de código) y sigue siendo una app", () => {
+    const t = promptProyectoDesdeApp(app, cat);
+    expect(usaTinta({ texto: t, hayApp: true, imagenes: 0 })).toBe(false);
+    expect(esEncargoDeApp(t)).toBe(true);
+  });
+  it("sin catálogo sigue funcionando con los ids", () => {
+    expect(promptProyectoDesdeApp(app, null)).toContain("paleta «mandarina»");
   });
 });

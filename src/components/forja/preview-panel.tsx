@@ -1,5 +1,6 @@
 "use client";
 /** Forja IA — Panel de vista previa en vivo + mapa del proyecto */
+import { faltaReadme, readmeDelProyecto } from "@/lib/forja/readme-proyecto";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   Code2,
@@ -474,7 +475,10 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   }, [archivos, bundle]);
 
   const descargarZip = () => {
-    const zip = writeZip(archivos.map((f) => ({ path: f.path, data: encodeText(f.text) })));
+    const paths = archivos.map((f) => f.path);
+    const lista = archivos.map((f) => ({ path: f.path, data: encodeText(f.text) }));
+    if (faltaReadme(paths)) lista.push({ path: "README.md", data: encodeText(readmeDelProyecto(title, paths)) });
+    const zip = writeZip(lista);
     guardar(
       new Uint8Array(zip).buffer as ArrayBuffer,
       nombreDescarga(title, "zip"),
