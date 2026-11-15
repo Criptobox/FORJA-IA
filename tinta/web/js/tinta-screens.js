@@ -36,14 +36,29 @@
     /* Guardados y Perfil no necesitan buscador: usan la cabecera sencilla si existe. */
     const plain = ctx.plainHeaderId ? [{ id: ctx.plainHeaderId, repeat: 1, offset: 0, role: 'header' }] : header;
     const card = n => ctx.cardId ? [{ id: ctx.cardId, repeat: n, offset: 3, role: 'cards' }] : [];
+    /* El perfil no es el mismo en todas las apps: cada sector arma el suyo con piezas distintas
+       (anillo y medidor de meta en fitness, cifras y movimientos en finanzas, portada y listas en música…). */
+    const roleOf = id => /^(av-|lib-ava-)/.test(id) ? 'avatars' : /^lib-lis-/.test(id) ? 'list' : 'widget';
+    const sectorPerfil = PERFIL_BLOQUES[ctx.sectorId];
+    const perfilSector = sectorPerfil ? plain.concat(sectorPerfil.map(id => ({ id, repeat: 1, offset: 0, role: roleOf(id) })), ctx.actionId ? [{ id: ctx.actionId, repeat: 1, offset: 0, role: 'actions' }] : []) : null;
     return {
       explorar: header.concat(card(4)),
       guardados: plain.concat(ctx.cardId ? [{ id: ctx.cardId, repeat: 2, offset: 7, role: 'cards' }] : []),
-      perfil: plain.concat((ctx.avatarId || ctx.hasAvatar) ? [{ id: ctx.avatarId || 'lib-ava-3', repeat: 1, offset: 0, role: 'avatars' }] : [], ctx.hasList ? [{ id: 'lib-lis-1', repeat: 1, offset: 0, role: 'list' }] : [], ctx.actionId ? [{ id: ctx.actionId, repeat: 1, offset: 0, role: 'actions' }] : [])
+      perfil: perfilSector || plain.concat((ctx.avatarId || ctx.hasAvatar) ? [{ id: ctx.avatarId || 'lib-ava-3', repeat: 1, offset: 0, role: 'avatars' }] : [], ctx.hasList ? [{ id: 'lib-lis-1', repeat: 1, offset: 0, role: 'list' }] : [], ctx.actionId ? [{ id: ctx.actionId, repeat: 1, offset: 0, role: 'actions' }] : [])
     };
   }
+  const PERFIL_BLOQUES = {
+    fitness: ['av-anillo', 'w-gauge', 'w-semana', 'lib-lis-1'],
+    finanzas: ['av-iniciales', 'r-stats3', 'lib-lis-2', 'lib-lis-1'],
+    musica: ['av-portada', 'lib-lis-3', 'lib-lis-1'],
+    tienda: ['av-perfil', 'w-pasos', 'lib-lis-1'],
+    comida: ['av-fila', 'w-pasos', 'lib-lis-1'],
+    viajes: ['av-portada', 'w-pasos', 'lib-lis-1'],
+    salud: ['av-anillo', 'w-gauge', 'lib-lis-1'],
+    educacion: ['av-iniciales', 'w-gauge', 'w-semana', 'lib-lis-1']
+  };
   /* Texto de la acción principal en cada pantalla generada. */
   const ACTION_TEXT = { explorar: null, guardados: null, perfil: 'Editar mi perfil' };
-  root.TintaScreens = { IDS, LABELS, FLOWS, COMMERCE, flowsFor, resolve, mapNav, plan, ACTION_TEXT };
+  root.TintaScreens = { PERFIL_BLOQUES, IDS, LABELS, FLOWS, COMMERCE, flowsFor, resolve, mapNav, plan, ACTION_TEXT };
   if (typeof module !== 'undefined') module.exports = root.TintaScreens;
 })(typeof window !== 'undefined' ? window : globalThis);

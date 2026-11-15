@@ -1200,7 +1200,19 @@ export function ChatApp() {
       send(promptProyectoDesdeApp(app, cat));
     };
     window.addEventListener("forja-convertir-tinta", convertir);
-    return () => window.removeEventListener("forja-convertir-tinta", convertir);
+    // Cambiar entre la versión del equipo, la mezcla y la del Crítico: sale como
+    // un mensaje normal («Usa la versión del Crítico») y lo resuelve Tinta gratis.
+    const version = (ev: Event) => {
+      const modo = (ev as CustomEvent<"equipo" | "mezcla" | "critico">).detail;
+      send(
+        { equipo: "Vuelve a la versión del equipo", mezcla: "Usa la mezcla del equipo y el Crítico", critico: "Usa la versión del Crítico" }[modo]
+      );
+    };
+    window.addEventListener("forja-version-tinta", version);
+    return () => {
+      window.removeEventListener("forja-convertir-tinta", convertir);
+      window.removeEventListener("forja-version-tinta", version);
+    };
   }, [send]);
 
   /** Los errores que salieron mientras USABAS la página van al modelo.

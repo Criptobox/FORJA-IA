@@ -155,7 +155,7 @@ describe("el resultado entra al Estudio", () => {
   });
 });
 
-import { MODELO_LOCAL, esPedidoNuevo, promptProyectoDesdeApp, progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { MODELO_LOCAL, esPedidoNuevo, promptProyectoDesdeApp, versionPedida, progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
 import { cambioLocal, recetaDePlantilla } from "@/lib/forja/tinta/cambios-locales";
 import type { CatalogoTinta } from "@/lib/forja/tinta/cliente";
 import { esEncargoDeApp } from "@/lib/forja/modo-app";
@@ -258,7 +258,7 @@ describe("FORJA WEB con Tinta: un turno (la IA solo si hace falta)", () => {
         return { ok: true, datos: { ok, errores: ok ? [] : ["sin JSON"], avisos: [], receta: ok ? RECETA : null, correccion: "Corrige" } };
       }
       if (accion === "dibujar") return { ok: true, datos: DIBUJO };
-      if (accion === "equipo") return { ok: true, datos: { ...DIBUJO, modo: "equipo", plantilla: PLANTILLA } };
+      if (accion === "equipo") return { ok: true, datos: { ...DIBUJO, modo: "equipo", plantilla: PLANTILLA, informe: { lineas: ["a", "b", "c", "d", "e", "f", "g", "h"], critica: "Prefiero otra paleta", metricas: { A: "x", B: "y" }, versiones: { equipo: PLANTILLA, mezcla: PLANTILLA, critico: { ...PLANTILLA, palette: "noche" } } } } };
       return { ok: false, error: "?" };
     });
   const lista = (f: ReturnType<typeof canalFalso>) => {
@@ -272,26 +272,23 @@ describe("FORJA WEB con Tinta: un turno (la IA solo si hace falta)", () => {
   it("la primera versión sin IA conectada la hace el equipo por sector", async () => {
     const f = motor();
     const pedir = vi.fn<PedirModelo>();
-    const equipo = vi.fn();
-    const r = await turnoTinta({ ...base, pedido: "app de café", hayModelo: false, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
+    const r = await turnoTinta({ ...base, pedido: "app de café", hayModelo: false, cliente: lista(f), pedirModelo: pedir });
     expect(pedir).not.toHaveBeenCalled();
     expect(f.enviados.map((e) => e.accion)).toEqual(["equipo"]);
-    expect(f.enviados[0].datos).toEqual({ idea: "app de café" });
+    expect(f.enviados[0].datos).toEqual({ idea: "app de café", directo: true, modo: "mezcla" });
     expect(r.app).toMatchObject({ html: DIBUJO.html, llamadas: 0, modelo: MODELO_LOCAL, receta: { blocks: PLANTILLA.blocks, palette: "mandarina" } });
     expect(r.texto).toMatch(/sin gastar IA/);
-    expect(equipo.mock.calls).toEqual([[true], [false]]);
   });
 
   it("con una IA conectada, ella propone el diseño y el equipo lo construye", async () => {
     const f = motor();
     const pedir = vi.fn<PedirModelo>().mockResolvedValue({ texto: "Una tienda cálida. bloques", modelKey: "m::x" } as never);
-    const equipo = vi.fn();
-    const r = await turnoTinta({ ...base, pedido: "app de ropa", hayModelo: true, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
+    const r = await turnoTinta({ ...base, pedido: "app de ropa", hayModelo: true, cliente: lista(f), pedirModelo: pedir });
     expect(pedir).toHaveBeenCalledTimes(1);
     expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones", "leer", "equipo"]);
     expect(f.enviados[2].datos).toMatchObject({ receta: RECETA });
     expect(r.app).toMatchObject({ llamadas: 1, modelo: "m::x" });
-    expect(equipo.mock.calls).toEqual([[true], [false]]);
+    expect(f.enviados[2].datos).toMatchObject({ directo: true, modo: "equipo" });
   });
 
   it("si la IA falla, el equipo diseña en local y no se pierde el encargo", async () => {
@@ -317,6 +314,37 @@ describe("FORJA WEB con Tinta: un turno (la IA solo si hace falta)", () => {
     const r = await turnoTinta({ ...base, pedido: "hazme otra versión", anterior, hayModelo: false, cliente: lista(f), pedirModelo: vi.fn<PedirModelo>() });
     expect(f.enviados.map((e) => e.accion)).toEqual(["catalogo", "equipo"]);
     expect(r.app?.html).toBe(DIBUJO.html);
+  });
+
+  it("entiende cómo se pide cada versión", () => {
+    expect(versionPedida("Usa la versión del Crítico")).toBe("critico");
+    expect(versionPedida("Usa la mezcla del equipo y el Crítico")).toBe("mezcla");
+    expect(versionPedida("Vuelve a la versión del equipo")).toBe("equipo");
+    expect(versionPedida("quiero la del crítico")).toBe("critico");
+    expect(versionPedida("ponla en modo oscuro")).toBeNull();
+    expect(versionPedida("añade un carrito para el equipo de ventas")).toBeNull();
+  });
+  it("la primera versión trae el informe y cambiar de versión redibuja gratis", async () => {
+    const f = motor();
+    const pedir = vi.fn<PedirModelo>();
+    const c = lista(f);
+    const r1 = await turnoTinta({ ...base, pedido: "app de café", hayModelo: false, cliente: c, pedirModelo: pedir });
+    expect(r1.app?.informe?.lineas).toHaveLength(8);
+    expect(r1.app?.informe?.modo).toBe("equipo");
+    const f2 = motor();
+    const r2 = await turnoTinta({
+      ...base,
+      pedido: "Usa la versión del Crítico",
+      anterior: { ...(r1.app as AppTinta), version: 1 },
+      hayModelo: true,
+      cliente: lista(f2),
+      pedirModelo: pedir,
+    });
+    expect(pedir).not.toHaveBeenCalled();
+    expect(f2.enviados.map((e) => e.accion)).toEqual(["dibujar"]);
+    expect(r2.texto).toMatch(/sin gastar IA: versión del Crítico/);
+    expect(r2.app?.receta.palette).toBe("noche");
+    expect(r2.app?.informe?.modo).toBe("critico");
   });
 
   it("lo que no se entiende, sin IA conectada: dice qué se puede pedir y no toca la app", async () => {

@@ -102,3 +102,59 @@ export function EquipoCreando({ pasoId, terminado = false }: { pasoId: string; t
     </div>
   );
 }
+
+const VERSIONES = [
+  { modo: "equipo", etiqueta: "Versión del equipo" },
+  { modo: "mezcla", etiqueta: "Mezcla" },
+  { modo: "critico", etiqueta: "Versión del Crítico" },
+] as const;
+
+/** Lo que decidió cada agente y la objeción del Crítico, al terminar: es la
+ *  misma información que daba la pantalla del equipo, ahora en la respuesta. */
+export function InformeEquipo({
+  lineas,
+  critica,
+  modo,
+  onVersion,
+}: {
+  lineas: readonly string[];
+  critica: string;
+  modo: "equipo" | "mezcla" | "critico";
+  onVersion: (modo: "equipo" | "mezcla" | "critico") => void;
+}) {
+  return (
+    <details className="fj-informe mt-3 rounded-2xl border border-border/60 bg-card/60 p-3" data-testid="informe-equipo">
+      <summary className="cursor-pointer text-[12.5px] font-medium">Lo que decidió el equipo</summary>
+      <ul className="mt-2 space-y-1.5">
+        {AGENTES_EQUIPO.map((a, i) => (
+          <li key={a.id} className="flex items-start gap-2 text-[12px] leading-snug" data-agente={a.id}>
+            <span className="mt-0.5 shrink-0">
+              <Cubo color={a.color} activo={false} hecho />
+            </span>
+            <span className="min-w-0">
+              <strong style={{ color: a.color }}>{a.nombre}</strong>
+              <span className="text-muted-foreground"> · {i === 7 ? critica : (lineas[i] ?? "")}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="Versión del diseño">
+        {VERSIONES.map((v) => (
+          <button
+            key={v.modo}
+            type="button"
+            onClick={() => v.modo !== modo && onVersion(v.modo)}
+            aria-pressed={v.modo === modo}
+            data-testid={`version-${v.modo}`}
+            className={cn(
+              "rounded-full border px-3 py-1 text-[12px] font-medium transition",
+              v.modo === modo ? "border-forja-violet bg-forja-violet/15 text-foreground" : "border-border/70 hover:bg-muted"
+            )}
+          >
+            {v.etiqueta}
+          </button>
+        ))}
+      </div>
+    </details>
+  );
+}

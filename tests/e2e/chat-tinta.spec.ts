@@ -70,13 +70,15 @@ test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista 
   await expect(page.getByTestId("creacion-en-curso")).toContainText("Creando tu app", { timeout: 20_000 });
 
   // el equipo de agentes trabaja a la vista
-  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator('iframe[title="Motor de diseño Tinta"]')).toHaveCSS("pointer-events", "none");
 
+  // lo que decidió el equipo sale en la respuesta, sin otra pantalla encima:
+  // los 8 agentes y la objeción del Crítico, con las tres versiones
+  const informe = page.getByTestId("informe-equipo");
+  await expect(informe).toBeVisible();
+  await informe.locator("summary").click();
+  await expect(informe.locator("[data-agente]")).toHaveCount(8);
+  await expect(informe.getByTestId("version-equipo")).toHaveAttribute("aria-pressed", "true");
   // la respuesta es de Forja IA, sin la receta, y la app está en la vista previa
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText('"bloques"')).toHaveCount(0);
@@ -159,36 +161,35 @@ test("en el móvil, la app de Tinta se abre en la vista previa", async ({ page }
   await expect(caja).toBeVisible({ timeout: 60_000 });
   await caja.fill("hazme una app para mi gimnasio con rutinas");
   await page.keyboard.press("Enter");
-  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(ancho).toBeLessThanOrEqual(390);
 });
 
-test("FORJA WEB: «Detener» mientras diseña el equipo lo para y lo quita de la vista", async ({ page }) => {
+test("FORJA WEB: «Detener» mientras la IA propone el diseño lo para", async ({ page }) => {
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1400, height: 900 });
   await seed(page);
+  // el modelo tarda: da tiempo a pulsar «Detener»
+  let lento = true;
+  await page.route("**/api/mock-llm/**", async (route) => {
+    if (lento && route.request().method() === "POST") await new Promise((r) => setTimeout(r, 6000));
+    await route.continue();
+  });
   await page.goto("/");
   const caja = page.getByPlaceholder("Escribe tu mensaje…");
   await expect(caja).toBeVisible({ timeout: 60_000 });
   await caja.fill("hazme una app para mi cafetería con pedidos");
-  await page.keyboard.press("Enter");
-  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  // el equipo tapa la pantalla: se detiene desde su propio diálogo (Esc) o con «Detener»
-  await page.keyboard.press("Escape");
+  await enviar(page);
+  await expect(page.getByTestId("creacion-en-curso")).toBeVisible({ timeout: 20_000 });
+  await page.getByLabel("Detener generación").click();
   await expect(page.locator("p", { hasText: "Diseño detenido" })).toBeVisible({ timeout: 15_000 });
-  await expect(page.locator('iframe[title="Motor de diseño Tinta"]')).toHaveCSS("pointer-events", "none");
   await expect(page.getByLabel("Detener generación")).toHaveCount(0);
   // y se puede volver a pedir
+  lento = false;
   await caja.fill("hazme una app para mi cafetería con pedidos");
-  await page.keyboard.press("Enter");
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  await enviar(page);
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 60_000 });
 });
 
 test("FORJA WEB: «Editar con la biblioteca» abre el editor de Tinta con la app y al guardar vuelve como versión nueva", async ({ page }) => {
@@ -201,12 +202,6 @@ test("FORJA WEB: «Editar con la biblioteca» abre el editor de Tinta con la app
   await caja.fill("hazme una app de tienda de ropa");
   await enviar(page);
   const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  // la pantalla sigue al agente que trabaja (antes se quedaba arriba)
-  await expect(motor.locator(".ag.work")).toBeInViewport({ timeout: 15_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
 
   await page.getByTestId("editar-tinta").click();
@@ -232,10 +227,6 @@ test("Editor de Tinta: Letra y Barra inferior se eligen viendo una miniatura de 
   await caja.fill("hazme una app de tienda de ropa");
   await enviar(page);
   const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
   await page.getByTestId("editar-tinta").click();
   await expect(motor.locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
@@ -283,10 +274,6 @@ test("Editor de Tinta: la Paleta se elige viendo cada paleta puesta, con filtro 
   await caja.fill("hazme una app de tienda de ropa");
   await enviar(page);
   const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
   await page.getByTestId("editar-tinta").click();
   await expect(motor.locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
@@ -388,8 +375,6 @@ test("con AUTO, una app nueva pide el diseño a la IA y lo construye el equipo d
   await expect(caja).toBeVisible({ timeout: 60_000 });
   await caja.fill("hazme una app para mi cafetería con pedidos");
   await enviar(page);
-  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
   // con IA conectada, primero se le pide el diseño a ella
   await expect.poll(() => cuerpos.length, { timeout: 30_000 }).toBeGreaterThan(0);
   expect(cuerpos.some((c) => c.includes(TINTA))).toBe(true);
@@ -404,11 +389,6 @@ test("el perfil y los ajustes de la app salen del sector, no una plantilla igual
   await expect(caja).toBeVisible({ timeout: 60_000 });
   await caja.fill("hazme una app para mi cafetería con pedidos");
   await enviar(page);
-  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 60_000 });
   const html = await page.evaluate(() => {
     const st = JSON.parse(localStorage.getItem("forja-ai-v1") || "{}").state;
@@ -420,6 +400,11 @@ test("el perfil y los ajustes de la app salen del sector, no una plantilla igual
   expect(html).not.toContain("Alex Rivera");
   expect(html).not.toContain("Casa_5G");
   expect(html).toContain("Pedir sin cubiertos");
+  // la barra inferior y el perfil también hablan de la app (comida), no de otra
+  expect(html).not.toContain("Canales");
+  expect(html).not.toContain("Chat IA");
+  expect(html).not.toContain("Marta Soler");
+  expect(html).toContain("Pedidos");
 });
 
 test("«Convertir en app completa» manda la maqueta a la IA como un encargo de código con el diseño ya decidido", async ({ page }) => {
@@ -432,20 +417,34 @@ test("«Convertir en app completa» manda la maqueta a la IA como un encargo de 
   await expect(caja).toBeVisible({ timeout: 60_000 });
   await caja.fill("hazme una app para mi cafetería con pedidos");
   await enviar(page);
-  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 60_000 });
   const antes = cuerpos.length;
   await page.getByTestId("convertir-proyecto").click();
   await expect(page.locator("p", { hasText: "Convierte esta maqueta en una app completa con código" }).first()).toBeVisible({ timeout: 20_000 });
-  await expect.poll(() => cuerpos.length, { timeout: 30_000 }).toBeGreaterThan(antes);
   // al modelo le llega el diseño decidido, no el catálogo de Tinta
+  await expect.poll(() => cuerpos.slice(antes).some((c) => c.includes("Diseño ya decidido")), { timeout: 30_000 }).toBe(true);
   const nuevos = cuerpos.slice(antes);
-  expect(nuevos.some((c) => c.includes("Diseño ya decidido"))).toBe(true);
   expect(nuevos.some((c) => c.includes(TINTA))).toBe(false);
   // y con la arquitectura de app de varios archivos (Modo App)
   expect(nuevos.some((c) => c.includes("Modo App"))).toBe(true);
+});
+
+test("las tres versiones del equipo se cambian desde la respuesta, sin gastar IA", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await seed(page);
+  const cuerpos = await contarLlamadas(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app para mi cafetería con pedidos");
+  await enviar(page);
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 60_000 });
+  const antes = cuerpos.length;
+  const informe = page.getByTestId("informe-equipo");
+  await informe.locator("summary").click();
+  await informe.getByTestId("version-critico").click();
+  await expect(page.locator("p", { hasText: "Hecho, sin gastar IA: versión del Crítico." })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("informe-equipo").last().getByTestId("version-critico")).toHaveAttribute("aria-pressed", "true");
+  expect(cuerpos.length).toBe(antes);
 });

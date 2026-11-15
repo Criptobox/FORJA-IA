@@ -30,6 +30,7 @@ import { Markdown } from "./markdown";
 import { Chispa } from "./chispa";
 import { AgentAnswer, AgentTraceView } from "./agent-trace";
 import { CreacionEnCurso } from "./creacion-en-curso";
+import { InformeEquipo } from "./equipo-creando";
 import { esEncargoDeCreacion, progresoCreacion } from "@/lib/forja/progreso-creacion";
 import { esTurnoTrivial } from "@/lib/forja/turno-trivial";
 import { esEncargoDeApp } from "@/lib/forja/modo-app";
@@ -503,6 +504,14 @@ export const MessageItem = memo(function MessageItem({
                       <Hammer className="size-3.5 text-forja-violet" aria-hidden />
                       Convertir en app completa
                     </button>
+                  )}
+                  {!streaming && msg.tintaApp?.informe && (
+                    <InformeEquipo
+                      lineas={msg.tintaApp.informe.lineas}
+                      critica={msg.tintaApp.informe.critica}
+                      modo={msg.tintaApp.informe.modo}
+                      onVersion={(modo) => window.dispatchEvent(new CustomEvent("forja-version-tinta", { detail: modo }))}
+                    />
                   )}
                   {tooLong && (
                     <button
