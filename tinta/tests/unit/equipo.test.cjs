@@ -38,3 +38,7 @@ test('«otra versión» (semilla) cambia el diseño del mismo encargo', () => {
   const firmas = new Set([0, 1, 2, 3, 4].map(s => { const p = E.plan(env, 'app de ropa', null, s); return [p.A.blocks.map(b => b.id).join('+'), p.A.palette, p.A.font].join('|'); }));
   assert.ok(firmas.size >= 3, 'variedad con semilla: ' + firmas.size);
 });
+test('el sector se reconoce con palabras reales de negocios (pizzería, zapatería, dentista…)', () => {
+  const casos = { 'Crea una página web para una pizzería': 'comida', 'una heladería con pedidos': 'comida', 'tienda de zapatos online': 'tienda', 'web de un dentista': 'salud', 'academia de pilates': 'fitness', 'una app de karaoke': 'musica' };
+  for (const [idea, sector] of Object.entries(casos)) assert.equal(Sec.detect(idea) && Sec.detect(idea).id, sector, idea);
+});
