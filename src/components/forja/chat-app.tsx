@@ -148,7 +148,7 @@ import {
 import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } from "@/lib/forja/memoria-proyecto";
 import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
 import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
-import { usaTinta, ultimaApp, resumenApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { esPedidoNuevo, usaTinta, ultimaApp, resumenApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
 import { candidatos } from "@/lib/forja/estudio/generador";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
 import {
@@ -811,7 +811,8 @@ export function ChatApp() {
       const st = useForja.getState();
       const ses = st.sessions.find((x) => x.id === sessionId);
       if (!ses) return;
-      const anterior = ultimaApp(ses.messages);
+      // otra app o web nueva: no es un cambio sobre la que ya hay en la vista previa
+      const anterior = esPedidoNuevo(pedido) ? null : ultimaApp(ses.messages);
       const cambio = !!anterior;
       const assistantId = uid();
       const inicio = Date.now();
@@ -951,10 +952,22 @@ export function ChatApp() {
       const sessionId = ensureSession();
       const state = useForja.getState();
       const session = state.sessions.find((s) => s.id === sessionId);
+      // Con FORJA WEB, ¿lo resuelve Tinta (la biblioteca, sin escribir código)?
+      // Entonces no hay modelo escribiendo: ni skills ni modo agente tienen
+      // nada que mejorar, y sus avisos solo estorban.
+      const claveActual = session?.modelKey ?? state.settings.defaultModelKey;
+      const vaATinta =
+        isForjaWebKey(claveActual ?? "") &&
+        usaTinta({
+          texto: text,
+          hayApp: !!ultimaApp(session?.messages ?? []),
+          imagenes: attachments.length,
+          sinIA: candidatos(null).length === 0,
+        });
 
       // Primer mensaje de la conversación y modo agente apagado: si parece un
       // encargo de construir algo, se PROPONE. Nunca se activa solo.
-      if (!state.settings.agentMode && !session?.messages.length && !agentSugerido) {
+      if (!vaATinta && !state.settings.agentMode && !session?.messages.length && !agentSugerido) {
         const sug = suggestAgentMode(text);
         if (sug.suggest) {
           setAgentSugerido(true);
@@ -977,7 +990,7 @@ export function ChatApp() {
       // clasificaba el encargo para elegir modelo; aquí la misma señal sirve
       // para decir qué skill ayudaría. Se PROPONE: el clic es tuyo, y el
       // aviso trae el precio en caracteres para que decidas con el dato.
-      if (text) {
+      if (text && !vaATinta) {
         const tarea = classifyTask(text);
         const sugerencias = skillsSugeridas(tarea.kind, state.skills, skillsPropuestas.current);
         for (const sug of sugerencias) {
@@ -1062,21 +1075,9 @@ export function ChatApp() {
         // Con FORJA WEB elegido, una app nueva (o un cambio sobre la app que
         // ya está en la vista previa) la arma Tinta. Webs y landings siguen
         // con el sistema de FORJA WEB de siempre.
-        {
-          const ses = useForja.getState().sessions.find((x) => x.id === sessionId);
-          const clave = ses?.modelKey ?? useForja.getState().settings.defaultModelKey;
-          if (
-            isForjaWebKey(clave ?? "") &&
-            usaTinta({
-              texto: text,
-              hayApp: !!ultimaApp(ses?.messages ?? []),
-              imagenes: attachments.length,
-              sinIA: candidatos(null).length === 0,
-            })
-          ) {
-            void runTinta(sessionId, text);
-            return;
-          }
+        if (vaATinta) {
+          void runTinta(sessionId, text);
+          return;
         }
         // ——— Design First (Plan Maestro 2026 §4) ———
         // Web nueva sin identidad fijada: primero la propuesta (0 tokens), y

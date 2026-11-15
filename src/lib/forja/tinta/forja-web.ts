@@ -25,7 +25,7 @@ import { esEncargoUINueva } from "../design-directions";
 import { esEncargoDeApp } from "../modo-app";
 import { ErrorTinta, type ClienteTinta, type RecetaTinta } from "./cliente";
 import type { PedirModelo } from "./crear";
-import { AYUDA_SIN_IA, cambioLocal, recetaDePlantilla } from "./cambios-locales";
+import { AYUDA_SIN_IA, cambioLocal, normalizar, recetaDePlantilla } from "./cambios-locales";
 
 /** «modelo» de lo que se hace sin IA: la biblioteca. */
 export const MODELO_LOCAL = "forja::tinta";
@@ -65,11 +65,22 @@ export interface EntradaTinta {
   sinIA?: boolean;
 }
 
+/** «una web», «otra app», «una pequeña tienda»…: algo NUEVO, no «la app» que ya
+ *  está en la vista previa. Con la app delante, «crea un buscador en la app» es
+ *  un cambio; «crea una web para una panadería» es otro encargo. */
+const NUEVO_UI = /\b(?:una?|otra|otro|nueva|nuevo)\s+(?:[a-z]+\s+)?(?:web|pagina|sitio|landing|app|aplicacion|dashboard|portfolio|portafolio|tienda|blog)\b/;
+
+/** ¿Pide otra app o web (y no un cambio sobre la que ya hay)? */
+export function esPedidoNuevo(texto: string): boolean {
+  return esEncargoUINueva(texto ?? "") && NUEVO_UI.test(normalizar(texto ?? ""));
+}
+
 /** ¿Este mensaje con FORJA WEB lo resuelve Tinta? */
 export function usaTinta(e: EntradaTinta): boolean {
   const t = (e.texto ?? "").trim();
   if (!t || e.imagenes > 0 || PIDE_CODIGO.test(t)) return false;
-  if (e.hayApp) return true;
+  // con una app delante, todo es un cambio sobre ella… salvo que pida otra
+  if (e.hayApp && !esPedidoNuevo(t)) return true;
   if (e.sinIA) return esEncargoUINueva(t);
   return esEncargoUINueva(t) && esEncargoDeApp(t) && !APP_FUNCIONAL.test(t);
 }
@@ -230,10 +241,13 @@ export async function turnoTinta(o: {
 }
 
 /** La última app de Tinta de la conversación (la que se está editando). */
-export function ultimaApp<M extends { role: string; error?: boolean; tintaApp?: AppTinta }>(mensajes: M[]): AppTinta | null {
+export function ultimaApp<M extends { role: string; error?: boolean; content?: string; tintaApp?: AppTinta }>(mensajes: M[]): AppTinta | null {
   for (let i = mensajes.length - 1; i >= 0; i--) {
     const m = mensajes[i];
-    if (m.role === "assistant" && !m.error && m.tintaApp) return m.tintaApp;
+    if (m.role !== "assistant" || m.error) continue;
+    if (m.tintaApp) return m.tintaApp;
+    // una página escrita por la IA después: la vista previa ya es de ella, no de la app
+    if (/```html|<!doctype html/i.test(m.content ?? "")) return null;
   }
   return null;
 }

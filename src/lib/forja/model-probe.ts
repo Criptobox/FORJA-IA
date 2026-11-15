@@ -141,6 +141,17 @@ export function esFalloDeImagen(body = ""): boolean {
 
 export function pistaDelFallo(status: number, body = ""): string | null {
   const t = body.toLowerCase();
+  // ANTES que todo: si lo dijo el servidor de Forja, la culpa no es del modelo
+  // ni de la clave del proveedor, y la solución está en otro sitio.
+  if (t.includes("código de acceso requerido") || t.includes("codigo de acceso requerido")) {
+    return "Lo dijo tu servidor de Forja, no el proveedor: pide un código de acceso (FORJA_ACCESS_CODE). Ponlo en Ajustes → Chat. Tu clave no tiene nada que ver.";
+  }
+  if (t.includes("origen no permitido") || t.includes("origen no válido")) {
+    return "Lo dijo tu servidor de Forja, no el proveedor: rechaza la petición por el origen. Abre Forja desde la misma dirección en la que está desplegado.";
+  }
+  if (t.includes("destino no permitido")) {
+    return "Lo dijo tu servidor de Forja, no el proveedor: no deja llegar a esa dirección (protección contra accesos a la red interna). Revisa la URL de la API o usa la conexión «Directa».";
+  }
   if (t.includes("data policy") || t.includes("data-policy")) {
     return "No es que el modelo no exista: OpenRouter bloquea los modelos gratis hasta que aceptes su política de datos. Se activa en openrouter.ai/settings/privacy.";
   }
@@ -161,6 +172,12 @@ export function pistaDelFallo(status: number, body = ""): string | null {
     return "La clave no es válida o ha caducado. Es la clave, no el modelo.";
   }
   return null;
+}
+
+/** ¿Es el PROVEEDOR quien rechaza la clave? Un 401 que no es del servidor de
+ * Forja (ese pide el código de acceso, y lo dice con su propio texto). */
+export function proveedorRechazaLaClave(r: Pick<ProbeResult, "verdict" | "detail">): boolean {
+  return r.verdict === "sin-clave" && !/c[oó]digo de acceso requerido/i.test(r.detail ?? "");
 }
 
 /**

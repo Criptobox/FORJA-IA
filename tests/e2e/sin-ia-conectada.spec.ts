@@ -78,3 +78,36 @@ test("primera visita: sin ejemplo ni guía encima, FORJA WEB puesta y la bienven
   await expect(page.getByRole("button", { name: /Activar Auto|Desactivar Auto/ })).toBeHidden();
   await expect(page.locator("aside").getByRole("button", { name: "Más herramientas" })).toHaveAttribute("aria-expanded", "false");
 });
+
+test("sin IA, con una app hecha, pedir otra web es un encargo nuevo (sale el equipo), no un cambio", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 1300, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  const caja = page.getByRole("textbox", { name: "Mensaje" });
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app de tienda de ropa");
+  await enviar(page);
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  await motor.locator("[data-eq=speed]").click();
+  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
+  await motor.locator("#eqGo").click();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
+
+  // otra web: el equipo vuelve a trabajar; no se trata como cambio ni sale el texto de ayuda
+  const chat = page.getByRole("textbox", { name: "Mensaje" });
+  await chat.fill("Crea una web para una panadería");
+  await enviar(page);
+  await expect(page.getByTestId("creacion-en-curso")).toContainText("Creando tu app", { timeout: 20_000 });
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  await motor.locator("[data-eq=speed]").click();
+  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
+  await motor.locator("#eqGo").click();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toHaveCount(2, { timeout: 30_000 });
+  await expect(page.locator("p", { hasText: "Sin IA conectada entiendo cambios como" })).toHaveCount(0);
+  // sin IA no hay modelo escribiendo código: ni avisos de skills ni del modo agente
+  await expect(page.getByText(/suele ir mejor con|¿Activar el modo agente\?/)).toHaveCount(0);
+  // solo la última app ofrece editar
+  await expect(page.getByTestId("editar-tinta")).toHaveCount(1);
+});

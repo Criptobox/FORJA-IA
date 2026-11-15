@@ -79,6 +79,14 @@ export function construir() {
   html = html.replace("</body>", () => "<script>" + arranque + "</script></body>");
   html = html.replace("images/tinta-avatar.webp", () => uri("images/tinta-avatar.webp", "image/webp"));
   html = html.replace("icons/icon-192.png", () => uri("icons/icon-192.png", "image/png"));
+  // Dentro de FORJA el editor es de Forja: su marca, no la de Estilos.
+  html = html
+    .replace('<button class="wordmark" data-act="go" data-page="home" aria-label="Estilos, inicio">estilos<span>®</span></button>', '<button class="wordmark wordmark-forja" data-act="go" data-page="home" aria-label="Forja IA, inicio">Forja<span>IA</span></button>')
+    .replace("<title>Estilos — Dale forma a tu idea</title>", "<title>Forja IA — Editor de diseño</title>")
+    .replace('content="Estilos"><meta name="apple-mobile-web-app-status-bar-style"', 'content="Forja IA"><meta name="apple-mobile-web-app-status-bar-style"');
+  for (const marca of ['class="wordmark wordmark-forja"', "<title>Forja IA — Editor de diseño</title>"]) {
+    if (!html.includes(marca)) throw new Error(`No se pudo poner la marca de Forja en el editor (falta: ${marca})`);
+  }
   // Dentro de FORJA no existen el editor clásico ni la biblioteca de Estilos.
   html = html.replaceAll('<a href="biblioteca.html">Biblioteca completa</a>', "").replaceAll('<a href="agente.html">Editor clásico y proyectos</a>', "");
   const version = createHash("sha256").update(html).digest("hex").slice(0, 12);

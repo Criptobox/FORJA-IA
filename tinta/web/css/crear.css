@@ -517,3 +517,53 @@ html.tinta-motor,html.tinta-motor body{background:transparent!important}html.tin
 
 #motorEditBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:8px;max-width:calc(100vw - 24px);padding:8px 8px 8px 14px;border-radius:999px;background:#1f1d1a;color:#fff;font:600 13px/1.2 system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.28)}#motorEditBar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}#motorEditBar button{flex:none;border:0;border-radius:999px;padding:9px 13px;font:inherit;cursor:pointer;background:rgba(255,255,255,.14);color:#fff}#motorEditBar button.ok{background:#ff6a3d}
 @media (max-width:440px){#motorEditBar span{display:none}}
+/* Marca de Forja en el editor (la pone scripts/tinta-construir.mjs): «Forja» en tinta e «IA» en naranja, como en la app. */
+.wordmark.wordmark-forja{background:none;color:var(--ink);-webkit-text-fill-color:var(--ink);letter-spacing:-.04em}.wordmark.wordmark-forja>span{font-size:inherit;vertical-align:baseline;margin:0 0 0 .14em;letter-spacing:-.04em;color:#ff6a3d;-webkit-text-fill-color:#ff6a3d}
+
+/* Selector con miniaturas (Letra, Barra inferior): botón que enseña lo elegido y hoja con una muestra de cada opción. */
+.nav-pick .pick-btn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12.5px;font-weight:700;padding:8px 12px;min-height:40px;border-radius:12px;border:1px solid #dad7cd;background:#fff;color:#242421;max-width:220px;cursor:pointer}
+:root[data-theme=dark] .nav-pick .pick-btn{background:#28282c;border-color:#3a3a40;color:#f2f2f4}
+.pick-btn .pick-aa{font-size:18px;line-height:1;font-weight:700;flex:none}
+.pick-btn .pick-bar{flex:none;width:24px;height:10px;border-radius:5px;background:currentColor;opacity:.7}
+.pick-btn .pick-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pick-btn .pick-caret{opacity:.55;font-size:11px;flex:none}
+dialog.picker{width:min(580px,calc(100vw - 20px))}
+.pick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:8px 14px 18px;overflow:auto;align-content:start;-webkit-overflow-scrolling:touch}
+@media(min-width:540px){.pick-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.pick-card{display:grid;gap:5px;align-content:start;text-align:left;font:inherit;padding:8px;border-radius:18px;border:1px solid var(--line);background:var(--white);color:var(--ink);cursor:pointer;min-width:0}
+.pick-card b{font-size:13px;letter-spacing:-.2px;line-height:1.25}
+.pick-card small{font-size:11px;color:var(--muted);line-height:1.35}
+.pick-card.on{outline:2px solid #ff704b;outline-offset:-2px}
+.pick-card.on>b::after{content:' ✓';color:#ff704b}
+.pick-card:focus-visible{outline:3px solid #ff704b;outline-offset:-1px}
+.pick-thumb{position:relative;overflow:hidden;border-radius:12px;border:1px solid #0000001a;background:var(--paper)}
+.pick-thumb-font{display:grid;place-items:center;min-height:116px;background:var(--white)}
+.pick-sample{display:grid;gap:3px;padding:12px 10px 14px;text-align:center;color:var(--ink);min-width:0}
+.pick-sample strong{font-size:42px;line-height:1.05;font-weight:700}
+.pick-sample span{font-size:14.5px;line-height:1.2;font-weight:700;overflow-wrap:anywhere}
+.pick-sample small{font-size:11px;color:var(--muted);line-height:1.3}
+.pick-thumb-nav{height:52px}
+.pick-nav-inner{position:absolute;left:0;bottom:0;width:386px;transform:scale(var(--s,.4));transform-origin:0 100%;pointer-events:none}
+.pick-none{position:absolute;inset:0;display:grid;place-items:center;font-size:11.5px;color:var(--muted)}
+
+/* Selector de paletas: una mini pantalla con la paleta puesta y la barra de la regla 60-30-10 (principal · secundario · acento). */
+.pick-thumb-pal{display:grid;gap:7px;background:none;border:0;overflow:visible;border-radius:0}
+.pal-screen{display:grid;gap:6px;padding:8px;border-radius:12px;border:1px solid}
+.pal-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pal-ln{display:block;height:5px;border-radius:3px}
+.pal-av{display:block;width:11px;height:11px;border-radius:50%}
+.pal-card{display:grid;gap:5px;padding:7px;border-radius:9px;border:1px solid}
+.pal-btn{display:grid;align-items:center;justify-items:center;height:11px;width:58%;border-radius:6px;margin-top:2px}
+.pal-btn>i{display:block;height:3px;border-radius:2px}
+.pal-nav{display:flex;justify-content:center;gap:9px;padding:5px;border-radius:999px;border:1px solid}
+.pal-nav>i{display:block;width:8px;height:8px;border-radius:50%}
+.pal-rule{display:flex;height:19px;border-radius:10px;overflow:hidden;border:1px solid #0003}
+.pal-rule>span{display:grid;place-items:center;font-size:9.5px;font-weight:800;letter-spacing:-.2px;min-width:0}
+.pick-note{margin:0;padding:0 18px 8px;font-size:12px;line-height:1.45;color:var(--muted);flex:none}
+.pick-btn .pick-dots{display:inline-flex;flex:none}
+.pick-btn .pick-dots i{display:block;width:13px;height:13px;border-radius:50%;border:1px solid #0003;margin-left:-4px}
+.pick-btn .pick-dots i:first-child{margin-left:0}
+.pick-filters{display:flex;gap:6px;padding:2px 14px 10px;flex:none}
+.pick-filters button{font:inherit;font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--white);color:var(--ink);cursor:pointer}
+.pick-filters button[aria-pressed=true]{background:#242422;color:#fff;border-color:transparent}
+.pick-card[hidden]{display:none!important}

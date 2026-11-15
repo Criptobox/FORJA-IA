@@ -221,3 +221,113 @@ test("FORJA WEB: «Editar con la biblioteca» abre el editor de Tinta con la app
   // solo la versión vigente ofrece editar
   await expect(page.getByTestId("editar-tinta")).toHaveCount(1);
 });
+
+test("Editor de Tinta: Letra y Barra inferior se eligen viendo una miniatura de cada opción", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 412, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app de tienda de ropa");
+  await enviar(page);
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  await motor.locator("[data-eq=speed]").click();
+  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
+  await motor.locator("#eqGo").click();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
+  await page.getByTestId("editar-tinta").click();
+  await expect(motor.locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
+
+  // Letra: una hoja con una muestra escrita con cada letra, no una lista de nombres
+  const letra = motor.locator(".pick-btn[data-pick=fontPick]");
+  await expect(letra).toBeVisible();
+  await letra.click();
+  const hoja = motor.locator("#pickerDialog");
+  await expect(hoja).toBeVisible();
+  await expect(hoja.locator(".pick-card")).toHaveCount(13); // las 12 letras + «Original de cada bloque»
+  await expect(hoja.locator(".pick-card .pick-sample").first()).toBeVisible();
+  await expect(hoja.locator(".pick-card.on")).toHaveCount(1);
+  await hoja.getByRole("radio", { name: /Técnica/ }).click();
+  await expect(hoja).toBeHidden();
+  await expect(letra).toContainText("Técnica");
+
+  // Barra inferior: la barra de verdad, dibujada con tu paleta y tu modo
+  const barra = motor.locator(".pick-btn[data-pick=navPick]");
+  await barra.click();
+  await expect(hoja).toBeVisible();
+  expect(await hoja.locator(".pick-card").count()).toBeGreaterThan(5);
+  await expect(hoja.locator(".pick-card .pick-nav-inner").first()).toBeVisible();
+  await hoja.getByRole("radio", { name: /Isla en grafito/ }).click();
+  await expect(barra).toContainText("Isla en grafito");
+
+  // Esc cierra la hoja sin cambiar nada
+  await barra.click();
+  await expect(hoja).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(hoja).toBeHidden();
+  await expect(barra).toContainText("Isla en grafito");
+
+  await motor.getByRole("button", { name: "Guardar y volver al chat" }).click();
+  await expect(page.locator("p", { hasText: "Cambios del editor guardados, sin gastar IA." })).toBeVisible({ timeout: 30_000 });
+});
+
+test("Editor de Tinta: la Paleta se elige viendo cada paleta puesta, con filtro de claras y oscuras", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 412, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app de tienda de ropa");
+  await enviar(page);
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  await motor.locator("[data-eq=speed]").click();
+  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
+  await motor.locator("#eqGo").click();
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
+  await page.getByTestId("editar-tinta").click();
+  await expect(motor.locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
+
+  const paleta = motor.locator(".pick-btn[data-pick=palPick]");
+  await expect(paleta).toBeVisible();
+  await paleta.click();
+  const hoja = motor.locator("#pickerDialog");
+  await expect(hoja).toBeVisible();
+  // «Sin paleta» + las 90 paletas, cada una con su mini pantalla y la barra de la regla 60-30-10
+  await expect(hoja.locator(".pick-card")).toHaveCount(91);
+  await expect(hoja.locator(".pick-note")).toContainText("Regla 60-30-10");
+  await expect(hoja.locator(".pick-card .pal-screen").first()).toBeVisible();
+  const regla = hoja.locator(".pick-card .pal-rule").first();
+  await expect(regla).toBeVisible();
+  await expect(regla.locator("span")).toHaveText(["60", "30", "10"]);
+
+  // las paletas de las referencias: las 20 profesionales, la regla 60-30-10 y Marple
+  for (const nombre of ["Brisa marina", "Oro elegante", "Tormenta y naranja", "Desierto y señal", "Polar y racing", "Marple"]) {
+    await expect(hoja.locator(".pick-card", { hasText: nombre })).toHaveCount(1);
+  }
+
+  // filtro: solo oscuras (24) o solo claras (66); «Sin paleta» siempre a mano
+  await hoja.getByRole("button", { name: "Oscuras" }).click();
+  await expect(hoja.locator(".pick-card:visible")).toHaveCount(25);
+  await hoja.getByRole("button", { name: "Claras" }).click();
+  await expect(hoja.locator(".pick-card:visible")).toHaveCount(67);
+  await hoja.getByRole("button", { name: "Todas" }).click();
+  await expect(hoja.locator(".pick-card:visible")).toHaveCount(91);
+
+  // elegir una de las nuevas la aplica y el botón lo enseña
+  await hoja.getByRole("radio", { name: /Tormenta y naranja/ }).click();
+  await expect(hoja).toBeHidden();
+  await expect(paleta).toContainText("Tormenta y naranja");
+  await expect(motor.locator(".toast, #toast").filter({ hasText: "Paleta «Tormenta y naranja» aplicada" }).first()).toBeVisible({ timeout: 10_000 });
+
+  // «Sin paleta» la quita
+  await paleta.click();
+  await hoja.getByRole("radio", { name: /Sin paleta/ }).click();
+  await expect(paleta).toContainText("Sin paleta");
+
+  await motor.getByRole("button", { name: "Guardar y volver al chat" }).click();
+  await expect(page.locator("p", { hasText: "Cambios del editor guardados, sin gastar IA." })).toBeVisible({ timeout: 30_000 });
+});

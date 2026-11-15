@@ -74,7 +74,33 @@
     { id: 'burdeos-noche', name: 'Burdeos noche', mood: 'Oscura · vino y rosa', dark: true, bg: '#1d1015', surface: '#421b29', accent: '#d28b96', accent2: '#a64c61', ink: '#f1dde0', line: '#702b40' },
     { id: 'azul-acero', name: 'Azul acero', mood: 'Oscura · azul grisáceo', dark: true, bg: '#06141b', surface: '#11212d', accent: '#9ba8ab', accent2: '#4a5c6a', ink: '#ccd0cf', line: '#253745' },
     { id: 'cafe-moka', name: 'Café moka', mood: 'Oscura · chocolate y crema', dark: true, bg: '#211713', surface: '#493126', accent: '#e0c58e', accent2: '#b18a62', ink: '#f6eedb', line: '#78533b' },
-    { id: 'pastel-marino', name: 'Pastel marino', mood: 'Rosa y verde agua', bg: '#f1f7f7', surface: '#ffffff', accent: '#5d6b6b', accent2: '#f7cbca', ink: '#2c3535', line: '#d5e5e5' }
+    { id: 'pastel-marino', name: 'Pastel marino', mood: 'Rosa y verde agua', bg: '#f1f7f7', surface: '#ffffff', accent: '#5d6b6b', accent2: '#f7cbca', ink: '#2c3535', line: '#d5e5e5' },
+    /* De tus referencias (tercera tanda): las 20 paletas profesionales, la regla 60-30-10 (principal · secundario · acento) y Marple. */
+    { id: 'pro-minimal', name: 'Minimal moderno', mood: 'Minimalista · limpio y versátil', bg: '#f8fafc', surface: '#ffffff', accent: '#1f1f1f', accent2: '#9ca3af', ink: '#16181d', line: '#dddfe1' },
+    { id: 'pro-brisa', name: 'Brisa marina', mood: 'Fresca, serena y moderna', bg: '#f0f8fe', surface: '#ffffff', accent: '#0ea5e9', accent2: '#22d3ee', ink: '#11242c', line: '#d5dfe5' },
+    { id: 'pro-terrosos', name: 'Neutros terrosos', mood: 'Cálida, natural y equilibrada', bg: '#f8f5f0', surface: '#ffffff', accent: '#7c4a2e', accent2: '#c9b89a', ink: '#2c1b11', line: '#e0dbd5' },
+    { id: 'pro-vibras-atardecer', name: 'Vibras de atardecer', mood: 'Energética, positiva y vibrante', bg: '#fff7ed', surface: '#ffffff', accent: '#f97316', accent2: '#fbbf24', ink: '#3a1d12', line: '#e7ddd3' },
+    { id: 'pro-verde-forestal', name: 'Verde forestal', mood: 'Fresca, natural y profesional', bg: '#eefef3', surface: '#ffffff', accent: '#065f46', accent2: '#22c55e', ink: '#112c25', line: '#d3e5da' },
+    { id: 'pro-purpura-real', name: 'Púrpura real', mood: 'Elegante, creativa y audaz', bg: '#f6eeff', surface: '#ffffff', accent: '#6d28d9', accent2: '#a78bfa', ink: '#1c112c', line: '#dcd3e6' },
+    { id: 'pro-azul-corporativo', name: 'Azul corporativo', mood: 'Confiable, profesional y limpia', bg: '#edf4fe', surface: '#ffffff', accent: '#2563eb', accent2: '#60a5fa', ink: '#11192c', line: '#d3dae5' },
+    { id: 'pro-pastel-suave', name: 'Pastel suave', mood: 'Calma, amable y moderna', bg: '#fff7f5', surface: '#ffffff', accent: '#fca5a5', accent2: '#c7d2fe', ink: '#3a2540', line: '#e7dedf' },
+    { id: 'pro-vibrante', name: 'Vibrante y audaz', mood: 'Llamativa y enérgica', bg: '#f8f6ff', surface: '#ffffff', accent: '#3b82f6', accent2: '#8b5cf6', ink: '#1b1530', line: '#dddbe6' },
+    { id: 'pro-azul-mono', name: 'Azul monocromo', mood: 'Limpia, moderna y profesional', bg: '#ebf6fe', surface: '#ffffff', accent: '#0d47a1', accent2: '#64b5f6', ink: '#111c2c', line: '#d1dce5' },
+    { id: 'pro-grises-calidos', name: 'Grises cálidos', mood: 'Sutil, elegante y atemporal', bg: '#f3f4f6', surface: '#ffffff', accent: '#424242', accent2: '#9ca3af', ink: '#1c1c1e', line: '#d9dadc' },
+    { id: 'pro-ponche-tropical', name: 'Ponche tropical', mood: 'Divertida, fresca y viva', bg: '#fff7ee', surface: '#ffffff', accent: '#ff6b6b', accent2: '#4dd0e1', ink: '#3b1717', line: '#e7dcd4' },
+    { id: 'pro-retro', name: 'Retro vintage', mood: 'Nostálgica, cálida y con clase', bg: '#fffaea', surface: '#ffffff', accent: '#8d6e63', accent2: '#a5b4fc', ink: '#33241f', line: '#e7e0d2' },
+    { id: 'pro-brillo-neon', name: 'Brillo neón', mood: 'Oscura · neón audaz y futurista', dark: true, bg: '#0b0a16', surface: '#16142b', accent: '#00e5ff', accent2: '#ff00f5', ink: '#f4f4ff', line: '#2a2650' },
+    { id: 'pro-oscuro-dramatico', name: 'Oscuro dramático', mood: 'Oscura · premium y elegante', dark: true, bg: '#0f172a', surface: '#1f2a3f', accent: '#94a3b8', accent2: '#475569', ink: '#e6ecf3', line: '#334155' },
+    { id: 'pro-atardecer-suave', name: 'Atardecer suave', mood: 'Cálida, tranquila y moderna', bg: '#fef8dd', surface: '#ffffff', accent: '#f472b6', accent2: '#f59e0b', ink: '#3a1428', line: '#e6ddc7' },
+    { id: 'pro-menta-fresca', name: 'Menta fresca', mood: 'Limpia, fresca y relajante', bg: '#ecfdf5', surface: '#ffffff', accent: '#14b8a6', accent2: '#2dd4bf', ink: '#0f2e2a', line: '#d1e4dd' },
+    { id: 'pro-oro-elegante', name: 'Oro elegante', mood: 'Oscura · lujo y exclusividad', dark: true, bg: '#0e1420', surface: '#1a2233', accent: '#d4af37', accent2: '#fbbf24', ink: '#e9eaee', line: '#2a3345' },
+    { id: 'pro-atardecer-frio', name: 'Atardecer frío', mood: 'De moda, moderna y creativa', bg: '#fef1f8', surface: '#ffffff', accent: '#5a5df0', accent2: '#ec4899', ink: '#1d1546', line: '#e3d7e3' },
+    { id: 'pro-calma-invernal', name: 'Calma invernal', mood: 'Limpia, sutil y elegante', bg: '#f1f5f9', surface: '#ffffff', accent: '#2563eb', accent2: '#93c5fd', ink: '#0f1d38', line: '#d6dbe2' },
+    /* La regla 60-30-10: 60 % color principal (fondo), 30 % secundario, 10 % acento. `sec` fija el secundario tal como lo muestra la referencia; sin él se toma la tarjeta o el segundo acento, el que más se distinga del fondo. */
+    { id: 'regla-tormenta', name: 'Tormenta y naranja', mood: 'Regla 60-30-10 · gris tormenta, negro mate y naranja', dark: true, bg: '#4a4e54', surface: '#2f3239', accent: '#ff5f00', accent2: '#9aa0a8', ink: '#f4f5f7', line: '#62666d', sec: '#2f3239' },
+    { id: 'regla-desierto', name: 'Desierto y señal', mood: 'Regla 60-30-10 · arena, verde oliva y amarillo', bg: '#c6b79a', surface: '#e9e0cc', accent: '#ffd21f', accent2: '#5e6146', ink: '#262817', line: '#b3a68a', sec: '#5e6146' },
+    { id: 'regla-polar', name: 'Polar y racing', mood: 'Regla 60-30-10 · blanco polar, azul glaciar y rojo', bg: '#dfe0e4', surface: '#f6f7f9', accent: '#e4002b', accent2: '#9cb8ce', ink: '#1a2230', line: '#c7c9ce', sec: '#9cb8ce' },
+    { id: 'marple', name: 'Marple', mood: 'Oscura · carmesí, coral, durazno y crema', dark: true, bg: '#222421', surface: '#312829', accent: '#ff6766', accent2: '#ffb173', ink: '#ffe3b3', line: '#5b3a3c' }
   ];
   const HEX = /^#[0-9a-f]{6}$/i;
   const get = id => LIST.find(p => p.id === id) || null;
