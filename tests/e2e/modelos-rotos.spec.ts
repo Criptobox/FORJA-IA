@@ -187,7 +187,10 @@ test("pegar una clave sustituye la que había (no se quedan las dos juntas) y se
   await expect(guardada).toContainText("31 caracteres");
 
   // se pega la nueva con el cursor al final de la vieja: tiene que quedar SOLO la nueva
-  const campo = ajustes.locator('input[type="password"]').first();
+  const campo = ajustes.getByTestId("campo-clave-custom");
+  // no es un campo de contraseña: así el gestor de contraseñas no lo rellena ni le añade nada
+  await expect(campo).toHaveAttribute("type", "text");
+  await expect(campo).toHaveAttribute("autocomplete", "off");
   await campo.click();
   await page.keyboard.press("End");
   await campo.evaluate((el, clave) => {
@@ -197,4 +200,9 @@ test("pegar una clave sustituye la que había (no se quedan las dos juntas) y se
   }, "clave-nueva-que-si-vale-1234567890abcdef");
   await expect(guardada).toContainText("40 caracteres");
   await expect(guardada).toContainText("clave-nu");
+
+  // «Borrar la clave guardada» deja el campo vacío de un toque
+  await ajustes.getByRole("button", { name: "Borrar la clave guardada" }).click();
+  await expect(campo).toHaveValue("");
+  await expect(guardada).toHaveCount(0);
 });

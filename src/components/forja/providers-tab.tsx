@@ -800,7 +800,20 @@ export function ProvidersTab({
                   <div className="relative">
                     <KeyRound className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60" />
                     <Input
-                      type={showKey[def.id] ? "text" : "password"}
+                      // NO es type="password": el gestor de contraseñas del
+                      // navegador (Chrome en Android sobre todo) rellenaba solo
+                      // estos campos con una contraseña guardada —la misma en
+                      // todos los proveedores— o la añadía a la clave pegada, y
+                      // todo daba 401 sin que se viera por qué. Se oculta con
+                      // CSS y se marca para que ningún gestor lo toque.
+                      type="text"
+                      name={`forja-clave-${def.id}`}
+                      data-testid={`campo-clave-${def.id}`}
+                      data-lpignore="true"
+                      data-1p-ignore="true"
+                      data-form-type="other"
+                      inputMode="text"
+                      style={showKey[def.id] ? undefined : ({ WebkitTextSecurity: "disc" } as React.CSSProperties)}
                       value={cfg.apiKey}
                       onChange={(e) => {
                         const apiKey = e.target.value.trim();
@@ -842,6 +855,15 @@ export function ProvidersTab({
                       {showKey[def.id] ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
                   </div>
+                  {cfg.apiKey.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => setProviderConfig(def.id, { apiKey: "" })}
+                      className="text-[11px] font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    >
+                      Borrar la clave guardada
+                    </button>
+                  )}
                   {cfg.apiKey.trim() && (
                     // Qué quedó guardado de verdad (sin enseñarla entera) y lo que
                     // huele mal en ella: un marcador de la documentación, un
