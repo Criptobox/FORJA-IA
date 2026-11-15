@@ -485,6 +485,8 @@ test("fotos reales con degradado en los bordes: se aplican a la foto y quedan en
       new Promise<{ datos?: { html?: string; borrador?: Record<string, unknown> } }>((ok) => {
         const id = n++;
         const f = (ev: MessageEvent) => {
+          // solo lo que contesta el motor, desde su iframe y de este mismo origen
+          if (ev.origin !== location.origin || ev.source !== ifr.contentWindow) return;
           if (ev.data && ev.data.id === id) {
             window.removeEventListener("message", f);
             ok(ev.data);
