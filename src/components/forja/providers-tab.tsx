@@ -814,6 +814,16 @@ export function ProvidersTab({
                         if (looksLikeProviderSnippet(text) && applySnippet(text)) {
                           e.preventDefault();
                           setSnippetDraft("");
+                          return;
+                        }
+                        // Pegar una clave SUSTITUYE lo que hubiera: el campo va
+                        // oculto con puntos, y pegar detrás de la clave vieja
+                        // dejaba guardadas las dos juntas (115 caracteres en vez
+                        // de 70) sin que se viera. Todo daba 401.
+                        const clave = text.trim();
+                        if (clave.length >= 20 && !/\s/.test(clave)) {
+                          e.preventDefault();
+                          setProviderConfig(def.id, { apiKey: clave, enabled: true });
                         }
                       }}
                       placeholder={placeholderKey}
@@ -1090,6 +1100,21 @@ export function ProvidersTab({
                               ) : null}
                               Los modelos no tienen la culpa: no hace falta quitarlos.
                             </p>
+                            {(() => {
+                              // lo que dijo el proveedor, a la vista sin tener que abrir nada
+                              const dicho = fallos.find((f) => proveedorRechazaLaClave(f.r))?.r.detail?.trim();
+                              return dicho ? (
+                                <p>
+                                  Contestó:{" "}
+                                  <code className="break-all font-mono text-[10px]">{dicho.slice(0, 220)}</code>
+                                </p>
+                              ) : null;
+                            })()}
+                            {revisarClave(def.id, cfg.apiKey).map((aviso) => (
+                              <p key={aviso} className="font-medium text-amber-600 dark:text-amber-400">
+                                ⚠ {aviso}
+                              </p>
+                            ))}
                           </div>
                         )}
                         {pistas.map((pista) => {
@@ -1106,7 +1131,7 @@ export function ProvidersTab({
                             </div>
                           );
                         })}
-                        {rotos.length > 0 && !claveRechazada && (
+                        {rotos.length > 0 && (
                           <div className="flex flex-wrap items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-2.5 py-2">
                             <span className="min-w-0 flex-1 text-[11px] leading-snug text-muted-foreground">
                               <strong className="text-destructive">

@@ -4,7 +4,7 @@ import { huellaDeClave, revisarClave } from "../../src/lib/forja/clave-revisada"
 // Las claves de mentira se arman en memoria: el escáner de higiene del repo no admite ninguna literal.
 const DE_OPENAI = "sk" + "-proj-1234567890abcdefghijklmnop";
 const DE_GOOGLE = "AI" + "zaSyD-1234567890abcdefghijklmnop";
-const NVIDIA_BUENA = "nvapi-AbCdEf1234567890_ghijKLMNOP-qrstUVWXYZ0123456789abcdefgh";
+const NVIDIA_BUENA = "nvapi-AbCdEf1234567890_ghijKLMNOP-qrstUVWXYZ0123456789abcdefghIJKLMNgh";
 
 describe("huellaDeClave: se reconoce sin enseñarla entera", () => {
   it("enseña el inicio, el final y cuántos caracteres tiene", () => {
@@ -43,6 +43,11 @@ describe("revisarClave: lo que no puede ser una clave", () => {
     expect(revisarClave("gemini", DE_GOOGLE)).toEqual([]);
     // sin prefijo conocido, no se inventa uno
     expect(revisarClave("custom", "cualquier-clave-larga-1234567890")).toEqual([]);
+  });
+  it("una clave de NVIDIA más larga de lo normal: seguramente pegada encima de otra", () => {
+    const doble = NVIDIA_BUENA + NVIDIA_BUENA.slice(6, 51);
+    expect(doble.length).toBe(115);
+    expect(revisarClave("nvidia", doble).join(" ")).toMatch(/70 caracteres y esta tiene 115.*encima de otra/);
   });
   it("sin clave, nada que revisar", () => {
     expect(revisarClave("nvidia", "")).toEqual([]);
