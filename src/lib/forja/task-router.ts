@@ -112,8 +112,21 @@ function modelFit(kind: TaskKind, modelId: string): number {
   let n = 0;
   const hit = (...rx: RegExp[]) => rx.some((r) => r.test(id));
   if (kind === "web" || kind === "code") {
-    if (hit(/kimi-k3/, /coding-/, /coder/, /codestral/, /qwen3-coder/, /nemotron/)) n += 28;
+    if (hit(/kimi-k3/, /coding-/, /coder/, /codestral/, /qwen3-coder/)) n += 28;
+    // «nemotron» a secas ya no vale 28: los «nano»/«omni» (30B con 3B activos,
+    // multimodales y que razonan largo) salían los primeros para una web y se
+    // quedaban «pensando» sin entregar nada. Solo suben los grandes.
+    if (hit(/nemotron.*(super|ultra|49b|70b|253b)/)) n += 24;
+    else if (hit(/nemotron/)) n += 6;
     if (hit(/kimi/, /deepseek/, /qwen/)) n += 10;
+    if (hit(/(?:^|[^0-9.])(?:70|72|90|120|123|235|253|405|480)b/)) n += 8;
+    // Para escribir una web entera hacen falta modelos grandes, de texto y que
+    // contesten sin pensar minutos: los pequeños, los de visión y los que
+    // razonan largo van detrás (siguen en la cadena, como último recurso).
+    if (hit(/(?:^|[-_/ ])(?:nano|tiny|micro|mini|small|lite|omni)(?:[-_.:0-9]|$)/)) n -= 22;
+    if (hit(/(?:^|[^0-9.a-z])(?:[1-9]|1[0-4])b(?![a-z])/, /\ba[1-9]b\b/)) n -= 14;
+    if (hit(/(?:^|[-_/ ])(?:vl|vision|vlm)(?:[-_.:0-9]|$)/)) n -= 12;
+    if (hit(/reasoning|thinking/, /\br1\b/)) n -= 8;
   }
   if (kind === "reason") {
     if (hit(/r1/, /reason/, /nemotron/, /kimi-k3/, /\bo[134]\b/, /pro/)) n += 26;
