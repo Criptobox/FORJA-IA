@@ -148,7 +148,7 @@ import {
 import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } from "@/lib/forja/memoria-proyecto";
 import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
 import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
-import { esPedidoNuevo, usaTinta, ultimaApp, resumenApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { esPedidoNuevo, usaTinta, ultimaApp, resumenApp, promptProyectoDesdeApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
 import { candidatos } from "@/lib/forja/estudio/generador";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
 import {
@@ -1180,6 +1180,28 @@ export function ChatApp() {
     },
     [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo, clearDraft, runTinta]
   );
+
+  /** «Convertir en app completa»: la maqueta de Tinta pasa a la IA como un
+   *  encargo corto (diseño ya decidido) para que escriba el proyecto. */
+  useEffect(() => {
+    const convertir = async (ev: Event) => {
+      const id = (ev as CustomEvent<string>).detail;
+      const st = useForja.getState();
+      const ses = st.activeSessionId ? st.sessions.find((x) => x.id === st.activeSessionId) : null;
+      const app = ses?.messages.find((x) => x.id === id)?.tintaApp;
+      if (!app) return;
+      let cat = null;
+      try {
+        const { motorTinta } = await import("@/lib/forja/tinta/iframe");
+        cat = await motorTinta().cliente.pedir("catalogo", {}, { ms: 20_000 });
+      } catch {
+        // sin catálogo el encargo sale igual, solo con los ids de paleta y letra
+      }
+      send(promptProyectoDesdeApp(app, cat));
+    };
+    window.addEventListener("forja-convertir-tinta", convertir);
+    return () => window.removeEventListener("forja-convertir-tinta", convertir);
+  }, [send]);
 
   /** Los errores que salieron mientras USABAS la página van al modelo.
    *

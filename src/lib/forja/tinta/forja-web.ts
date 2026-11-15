@@ -23,7 +23,7 @@
  * Esta parte es pura: el motor (iframe) y la llamada al modelo se inyectan. */
 import { esEncargoUINueva } from "../design-directions";
 import { esEncargoDeApp } from "../modo-app";
-import { ErrorTinta, type ClienteTinta, type RecetaTinta } from "./cliente";
+import { ErrorTinta, type ClienteTinta, type RecetaTinta, type CatalogoTinta } from "./cliente";
 import type { PedirModelo } from "./crear";
 import { AYUDA_SIN_IA, cambioLocal, normalizar, recetaDePlantilla } from "./cambios-locales";
 
@@ -273,6 +273,31 @@ export async function turnoTinta(o: {
   const d = await o.cliente.pedir("dibujar", { receta, idea: receta.brief || ant.receta.brief }, { signal: o.signal });
   paso("listo");
   return { texto: textoVisible(r.texto) || "Hecho.", app: { receta, html: d.html, pantallas: d.pantallas, borrador: d.borrador, modelo: r.modelKey, llamadas }, modelo: r.modelKey, avisos: leido.avisos };
+}
+
+/** El encargo que convierte la maqueta de Tinta en un proyecto completo: la IA
+ *  recibe el diseño YA decidido (paleta, letra, pantallas) en pocas líneas y
+ *  escribe solo el código. «con código» saca el mensaje del camino de Tinta. */
+export function promptProyectoDesdeApp(app: Pick<AppTinta, "receta" | "pantallas">, cat?: CatalogoTinta | null): string {
+  const r = app.receta;
+  const pal = r.palette ? cat?.paletas.find((p) => p.id === r.palette) : undefined;
+  const fuente = r.font ? cat?.tipografias.find((f) => f.id === r.font) : undefined;
+  const diseno = [
+    pal ? `paleta «${pal.nombre}» (acento ${pal.acento}, fondo ${pal.fondo})` : r.palette ? `paleta «${r.palette}»` : "",
+    `modo ${r.mode === "dark" ? "oscuro" : "claro"}`,
+    fuente ? `tipografía ${fuente.nombre}` : r.font ? `tipografía ${r.font}` : "",
+  ].filter(Boolean);
+  const pantallas = app.pantallas.map((p) => p.nombre).filter(Boolean).slice(0, 12);
+  const textos = Object.values(r.texts ?? {}).flat().filter(Boolean).slice(0, 8);
+  return [
+    `Convierte esta maqueta en una app completa con código, con varios archivos (no la dibujes otra vez): ${r.brief || "mi app"}.`,
+    `Diseño ya decidido, respétalo: ${diseno.join(", ")}.`,
+    pantallas.length ? `Pantallas: ${pantallas.join(", ")}.` : "",
+    textos.length ? `Textos de la maqueta: ${textos.map((t) => `«${t}»`).join(", ")}.` : "",
+    "Que funcione de verdad: datos de ejemplo realistas guardados en el navegador, crear, editar y borrar, buscar y filtrar, formularios validados y una pantalla por ruta.",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /** La última app de Tinta de la conversación (la que se está editando). */

@@ -83,3 +83,36 @@ describe("buildTaskChain", () => {
     );
   });
 });
+
+describe("modelos para escribir una web entera", () => {
+  const modelos = [
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "qwen/qwen3-coder-480b-a35b-instruct",
+    "meta/llama-3.3-70b-instruct",
+    "deepseek-ai/deepseek-v3.1",
+    "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+    "microsoft/phi-4-mini-instruct",
+    "meta/llama-3.2-3b-instruct",
+    "meta/llama-3.2-11b-vision-instruct",
+  ];
+  const orden = () =>
+    buildTaskChain("web", { nvidia: { apiKey: "k", enabled: true, models: modelos } }, undefined, 10).map((c) => c.modelId);
+
+  it("el nano/omni que razona ya no sale el primero (se quedaba «pensando» sin entregar)", () => {
+    const o = orden();
+    expect(o[0]).not.toContain("nano-omni");
+    expect(o.indexOf("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning")).toBeGreaterThanOrEqual(4);
+  });
+  it("los grandes y de código van delante; los pequeños y de visión, al final", () => {
+    const o = orden();
+    expect(o.slice(0, 3)).toContain("qwen/qwen3-coder-480b-a35b-instruct");
+    for (const grande of ["meta/llama-3.3-70b-instruct", "deepseek-ai/deepseek-v3.1", "nvidia/llama-3.3-nemotron-super-49b-v1.5"]) {
+      expect(o.indexOf(grande)).toBeLessThan(o.indexOf("microsoft/phi-4-mini-instruct"));
+      expect(o.indexOf(grande)).toBeLessThan(o.indexOf("meta/llama-3.2-3b-instruct"));
+    }
+    expect(o.indexOf("meta/llama-3.2-11b-vision-instruct")).toBeGreaterThan(o.indexOf("meta/llama-3.3-70b-instruct"));
+  });
+  it("«gemini» no cuenta como «mini»", () => {
+    expect(scoreModel("web", "gemini", "gemini-3.7-flash")).toBeGreaterThan(scoreModel("web", "gemini", "gemma-3n-mini"));
+  });
+});
