@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { huellaDeClave, revisarClave } from "../../src/lib/forja/clave-revisada";
+import { huellaDeClave, limpiarClave, revisarClave } from "../../src/lib/forja/clave-revisada";
 
 // Las claves de mentira se arman en memoria: el escáner de higiene del repo no admite ninguna literal.
 const DE_OPENAI = "sk" + "-proj-1234567890abcdefghijklmnop";
@@ -51,5 +51,19 @@ describe("revisarClave: lo que no puede ser una clave", () => {
   });
   it("sin clave, nada que revisar", () => {
     expect(revisarClave("nvidia", "")).toEqual([]);
+  });
+});
+
+describe("limpiarClave", () => {
+  it("deja una clave sana igual y quita Bearer/comillas/espacios", () => {
+    const k = "nvapi-" + "a".repeat(64);
+    expect(limpiarClave("nvidia", k)).toBe(k);
+    expect(limpiarClave("nvidia", `Bearer "${k}"\n`)).toBe(k);
+  });
+  it("si hay dos piezas se queda con la última con el prefijo", () => {
+    const a = "nvapi-" + "a".repeat(64);
+    const b = "nvapi-" + "b".repeat(64);
+    expect(limpiarClave("nvidia", `${a} \n ${b}`)).toBe(b);
+    expect(limpiarClave("nvidia", `clave: ${a} fin`)).toBe(a);
   });
 });

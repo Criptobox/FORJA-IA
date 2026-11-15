@@ -62,3 +62,20 @@ export function revisarClave(proveedor: string, clave: string): string[] {
   }
   return avisos;
 }
+
+/** Deja la clave como se manda de verdad: sin «Bearer », comillas ni espacios.
+ * Si hay varias piezas separadas (una clave pegada detrás de otra, o la clave
+ * con texto de alrededor), se queda con la ÚLTIMA que tenga el prefijo del
+ * proveedor —la que se pegó más tarde—, o con la última pieza si no hay prefijo.
+ * Una clave sana sale idéntica. */
+export function limpiarClave(proveedor: string, clave: string): string {
+  const piezas = (clave ?? "")
+    .replace(/^\s*bearer\s+/i, "")
+    .split(/\s+/)
+    .map((x) => x.replace(/^["'“”‘’`]+|["'“”‘’`,;]+$/g, ""))
+    .filter(Boolean);
+  if (piezas.length <= 1) return piezas[0] ?? "";
+  const pref = PREFIJO[proveedor]?.prefijo;
+  const buenas = pref ? piezas.filter((x) => x.startsWith(pref)) : [];
+  return (buenas.length ? buenas : piezas)[(buenas.length ? buenas : piezas).length - 1];
+}

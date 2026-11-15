@@ -33,7 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import { permitido, quedaAlguno, alternarVeto } from "@/lib/forja/vetados";
 import { cn } from "@/lib/utils";
 import { PROVIDERS } from "@/lib/forja/providers";
-import { huellaDeClave, revisarClave } from "@/lib/forja/clave-revisada";
+import { huellaDeClave, limpiarClave, revisarClave } from "@/lib/forja/clave-revisada";
 import { fetchModels, probarZenSinClave, probeModel } from "@/lib/forja/chat-client";
 import {
   culpaConfirmadaDelModelo,
@@ -816,7 +816,7 @@ export function ProvidersTab({
                       style={showKey[def.id] ? undefined : ({ WebkitTextSecurity: "disc" } as React.CSSProperties)}
                       value={cfg.apiKey}
                       onChange={(e) => {
-                        const apiKey = e.target.value.trim();
+                        const apiKey = limpiarClave(def.id, e.target.value);
                         setProviderConfig(def.id, {
                           apiKey,
                           enabled: apiKey.length > 0 ? true : cfg.enabled,
@@ -873,6 +873,16 @@ export function ProvidersTab({
                       <p className="break-all font-mono text-[11px] text-muted-foreground">
                         Guardada: {huellaDeClave(cfg.apiKey)}
                       </p>
+                      {limpiarClave(def.id, cfg.apiKey) !== cfg.apiKey.trim() && (
+                        <button
+                          type="button"
+                          data-testid={`limpiar-clave-${def.id}`}
+                          onClick={() => setProviderConfig(def.id, { apiKey: limpiarClave(def.id, cfg.apiKey) })}
+                          className="text-[11px] font-medium text-forja-violet underline underline-offset-2"
+                        >
+                          Arreglar la clave guardada ({huellaDeClave(limpiarClave(def.id, cfg.apiKey))})
+                        </button>
+                      )}
                       {(def.keyless || def.keyOptional ? [] : revisarClave(def.id, cfg.apiKey)).map((aviso) => (
                         <p key={aviso} className="text-[11px] leading-snug text-amber-600 dark:text-amber-400">
                           ⚠ {aviso}
