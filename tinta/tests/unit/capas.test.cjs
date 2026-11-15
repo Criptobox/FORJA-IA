@@ -16,8 +16,8 @@ test('41 ilustraciones SVG de 240×140 sin texto, imágenes, enlaces ni scripts'
 test('Art.colors descarta colores inválidos y usa los de reserva', () => {
   const c = Art.colors({ a: 'red;x', b: '#112233' }); assert.match(c.a, /^#[0-9a-f]{6}$/i); assert.equal(c.b, '#112233');
 });
-test('18 categorías de la biblioteca con id único y subcategorías sin repetir', () => {
-  assert.equal(Tax.CATEGORIES.length, 18); assert.equal(new Set(Tax.CATEGORIES.map(c => c.id)).size, 18);
+test('19 categorías de la biblioteca con id único y subcategorías sin repetir', () => {
+  assert.equal(Tax.CATEGORIES.length, 19); assert.equal(new Set(Tax.CATEGORIES.map(c => c.id)).size, 19);
   for (const c of Tax.CATEGORIES) { const subs = Tax.subsFor(c, []); assert.equal(new Set(subs.map(s => s.id)).size, subs.length, c.id); }
 });
 test('figuras 3D: 14 personajes y robots cubo, SVG seguros y con ids que no se repiten entre figuras', () => {
