@@ -18,6 +18,7 @@ import {
   BrainCircuit,
   Database,
   FlaskConical,
+  LayoutGrid,
   FolderGit2,
   GraduationCap,
   Github,
@@ -100,6 +101,7 @@ export interface EcosistemaProps {
   onOpenRadar?: () => void;
   onOpenArena?: () => void;
   onOpenLibrary?: () => void;
+  onOpenBibliotecaDiseno?: () => void;
   onOpenKnowledgeBase?: () => void;
   onOpenSkills?: () => void;
   onOpenFailures?: () => void;
@@ -132,10 +134,11 @@ export function EcosistemaSheet(p: EcosistemaProps) {
     },
     {
       titulo: "Forja Lab",
-      cols: 2,
+      cols: 3,
       items: [
-        { label: "Estudio", hint: "Generación sin API", icon: <Hammer className="size-5" />, color: "#f59e0b", onClick: ir(() => router.push("/forja")) },
+        { label: "Estudio", hint: "Sin API", icon: <Hammer className="size-5" />, color: "#f59e0b", onClick: ir(() => router.push("/forja")) },
         { label: "Ficha → Maqueta", hint: "De ficha a página", icon: <FlaskConical className="size-5" />, color: "#ec4899", onClick: ir(() => router.push("/forja?tab=ficha")) },
+        { label: "Biblioteca de diseño", hint: "Bloques, paletas…", icon: <LayoutGrid className="size-5" />, color: "#8b5cf6", onClick: ir(p.onOpenBibliotecaDiseno) },
       ],
     },
     {
@@ -151,7 +154,7 @@ export function EcosistemaSheet(p: EcosistemaProps) {
       titulo: "Herramientas",
       cols: 3,
       items: [
-        { label: "Biblioteca", hint: "Prompts", icon: <BookOpen className="size-5" />, color: "#3b82f6", onClick: ir(p.onOpenLibrary) },
+        { label: "Prompts", hint: "Tus guardados", icon: <BookOpen className="size-5" />, color: "#3b82f6", onClick: ir(p.onOpenLibrary) },
         { label: "Conocimiento", hint: "Tu base", icon: <Database className="size-5" />, color: "#14b8a6", onClick: ir(p.onOpenKnowledgeBase) },
         { label: "Skills", hint: "Instrucciones", icon: <Puzzle className="size-5" />, color: "#a855f7", onClick: ir(p.onOpenSkills) },
         { label: "Memoria", hint: "Fallos", icon: <BrainCircuit className="size-5" />, color: "#f97316", onClick: ir(p.onOpenFailures) },

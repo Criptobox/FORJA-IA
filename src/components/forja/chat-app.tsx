@@ -891,34 +891,51 @@ export function ChatApp() {
     [addMessage, updateMessage, setStreamingMsgId, abortRef]
   );
 
-  /** «Editar con la biblioteca»: el editor completo de Tinta (bloques,
-   *  estilos, textos) a pantalla completa con la app cargada. Al guardar,
-   *  la app editada queda como nueva versión en el chat y en la vista previa. */
-  const editarAppTinta = useCallback(
-    async (msgId: string) => {
-      const st = useForja.getState();
-      const sessionId = st.activeSessionId;
-      const ses = sessionId ? st.sessions.find((x) => x.id === sessionId) : null;
-      const msg = ses?.messages.find((x) => x.id === msgId);
-      const app = msg?.tintaApp;
-      if (!sessionId || !ses || !app || streamingMsgId) return;
+  /** El editor completo de Tinta (biblioteca de bloques, paletas, letras,
+   *  estilos, textos) a pantalla completa. Sirve para dos cosas:
+   *  · «Editar con la biblioteca»: con la app del chat cargada (abre en «Tu pantalla»).
+   *  · «Biblioteca de diseño»: sin app, para elegir los bloques desde cero; con
+   *    una app en la vista previa, la abre cargada y por la galería de bloques.
+   *  Al guardar, la app queda como mensaje nuevo (versión siguiente) en el chat y
+   *  en la vista previa, sin gastar IA. */
+  const abrirEditorTinta = useCallback(
+    async (app: AppTinta | null, pagina: "bloques" | "pantalla") => {
+      if (streamingMsgId) return;
       const { motorTinta } = await import("@/lib/forja/tinta/iframe");
       const m = motorTinta();
       m.mostrar(true);
       try {
         await m.cliente.listo();
-        const r = await m.cliente.pedir("editar", { receta: app.receta, ...(app.borrador ? { borrador: app.borrador } : {}) }, { ms: 4 * 60 * 60_000 });
-        const nueva: AppTinta = { ...app, receta: r.receta, html: r.html, pantallas: r.pantallas, borrador: r.borrador, llamadas: 0, version: (ultimaApp(ses.messages)?.version ?? app.version) + 1 };
-        for (const x of useForja.getState().sessions.find((y) => y.id === sessionId)?.messages ?? []) {
+        const r = await m.cliente.pedir(
+          "editar",
+          app
+            ? { receta: app.receta, ...(app.borrador ? { borrador: app.borrador } : {}), pagina }
+            : { vacia: true, pagina },
+          { ms: 4 * 60 * 60_000 }
+        );
+        const sessionId = ensureSession();
+        const ses = useForja.getState().sessions.find((x) => x.id === sessionId);
+        const previa = ultimaApp(ses?.messages ?? []);
+        if (!ses?.messages.length) renameSession(sessionId, "App con la biblioteca");
+        const nueva: AppTinta = {
+          receta: { ...r.receta, brief: r.receta.brief || app?.receta.brief || "App con la biblioteca de Forja" },
+          html: r.html,
+          pantallas: r.pantallas,
+          borrador: r.borrador,
+          modelo: app?.modelo ?? "forja::tinta",
+          llamadas: 0,
+          version: (previa?.version ?? 0) + 1,
+        };
+        for (const x of ses?.messages ?? []) {
           if (x.tintaApp?.html || x.tintaApp?.borrador) updateMessage(sessionId, x.id, { tintaApp: { ...x.tintaApp, html: undefined, borrador: undefined } });
         }
         addMessage(sessionId, {
           id: uid(),
           role: "assistant",
-          content: `Cambios del editor guardados, sin gastar IA.\n\n${resumenApp(nueva)}`,
+          content: `${app ? "Cambios del editor guardados" : "Tu app, armada con los bloques que elegiste"}, sin gastar IA.\n\n${resumenApp(nueva)}`,
           createdAt: Date.now(),
           viaForjaWeb: true,
-          model: app.modelo,
+          model: nueva.modelo,
           tintaApp: nueva,
         });
         stickToBottomRef.current = true;
@@ -931,8 +948,23 @@ export function ChatApp() {
         m.mostrar(false);
       }
     },
-    [addMessage, updateMessage, streamingMsgId]
+    [addMessage, updateMessage, renameSession, ensureSession, streamingMsgId]
   );
+  const editarAppTinta = useCallback(
+    (msgId: string) => {
+      const st = useForja.getState();
+      const ses = st.activeSessionId ? st.sessions.find((x) => x.id === st.activeSessionId) : null;
+      const app = ses?.messages.find((x) => x.id === msgId)?.tintaApp;
+      if (app) void abrirEditorTinta(app, "pantalla");
+    },
+    [abrirEditorTinta]
+  );
+  /** «Biblioteca de diseño»: la galería de bloques, con la app del chat si la hay. */
+  const abrirBibliotecaTinta = useCallback(() => {
+    const st = useForja.getState();
+    const ses = st.activeSessionId ? st.sessions.find((x) => x.id === st.activeSessionId) : null;
+    void abrirEditorTinta(ultimaApp(ses?.messages ?? []), "bloques");
+  }, [abrirEditorTinta]);
   useEffect(() => {
     const abrir = (ev: Event) => {
       const id = (ev as CustomEvent<string>).detail;
@@ -1976,6 +2008,7 @@ export function ChatApp() {
         {!hasMessages ? (
           <Welcome
             onPick={(t) => send(t)}
+            onBiblioteca={abrirBibliotecaTinta}
             onOpenSettings={() => {
               setFocusProvider("gemini");
               setSettingsOpen(true);
@@ -2212,6 +2245,7 @@ export function ChatApp() {
         <Sidebar
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenLibrary={() => setLibraryOpen(true)}
+          onOpenBibliotecaDiseno={abrirBibliotecaTinta}
           onOpenSkills={() => setSkillsOpen(true)}
           onOpenRadar={() => setRadarOpen(true)}
           onOpenGithub={() => setGithubOpen(true)}
@@ -2243,6 +2277,10 @@ export function ChatApp() {
             onOpenLibrary={() => {
               setLibraryOpen(true);
               setSidebarOpen(false);
+            }}
+            onOpenBibliotecaDiseno={() => {
+              setSidebarOpen(false);
+              abrirBibliotecaTinta();
             }}
             onOpenUsage={() => {
               setUsageOpen(true);
@@ -2336,6 +2374,7 @@ export function ChatApp() {
         onOpenRadar={() => setRadarOpen(true)}
         onOpenArena={() => setArenaOpen(true)}
         onOpenLibrary={() => setLibraryOpen(true)}
+        onOpenBibliotecaDiseno={abrirBibliotecaTinta}
         onOpenKnowledgeBase={() => setKbOpen(true)}
         onOpenSkills={() => setSkillsOpen(true)}
         onOpenFailures={() => setFailuresOpen(true)}

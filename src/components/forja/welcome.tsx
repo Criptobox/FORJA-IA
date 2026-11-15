@@ -6,6 +6,7 @@ import {
   Bug,
   Coffee,
   Dumbbell,
+  LayoutGrid,
 
   Globe,
   History,
@@ -53,6 +54,7 @@ const PILDORA =
 
 export function Welcome({
   onPick,
+  onBiblioteca,
   onOpenSettings,
   onOpenSkills,
   recent,
@@ -61,6 +63,8 @@ export function Welcome({
   onFill,
 }: {
   onPick: (text: string) => void;
+  /** abre la biblioteca de diseño (bloques, paletas, letras) para armar la app a mano */
+  onBiblioteca?: () => void;
   onOpenSettings: () => void;
   onOpenSkills?: () => void;
   /** última conversación con mensajes, para «Continuar» (D3, PLAN-V7) */
@@ -165,6 +169,18 @@ export function Welcome({
               {a.label}
             </button>
           ))}
+          {onBiblioteca && (
+            <button
+              type="button"
+              className={cn(PILDORA, "border-forja-violet/40 text-forja-violet")}
+              onClick={onBiblioteca}
+              title="Elige tú los bloques, las paletas y las letras: más de 300 bloques, 90 paletas y 12 tipografías, sin IA"
+              data-testid="atajo-biblioteca"
+            >
+              <LayoutGrid className="size-4" aria-hidden />
+              Biblioteca de diseño
+            </button>
+          )}
         </div>
 
         {recent && onResume && (
