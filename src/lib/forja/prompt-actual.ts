@@ -6,6 +6,7 @@
  * su cuenta, el medidor enseñaría un número que no es el que viaja — y un
  * número falso es peor que no enseñar ninguno.
  */
+import { astryxPrompt } from "./web/astryx-base";
 import { useForja } from "./store";
 import { reglasActivas, useFailures } from "./failures";
 import { agentPrompt } from "./agent-loop";
@@ -276,9 +277,12 @@ export function entradaPromptActual(sessionId?: string): EntradaPrompt {
           })
         )
       : null;
+  // Base de oficio (tokens + detalles que suelen faltar), solo al construir una
+  // página: con el mismo criterio que el Design Architect, no en retoques.
+  const baseDiseno = forjaWebActivo && !trivial && porNivel.arquitecturaWeb ? astryxPrompt() : null;
   const forjaWeb =
     forjaWebActivo && !trivial
-      ? [FORJA_WEB_PROMPT, cerebroArquitectura].filter(Boolean).join("\n\n")
+      ? [FORJA_WEB_PROMPT, cerebroArquitectura, baseDiseno].filter(Boolean).join("\n\n")
       : null;
 
   // ——— Qué contexto viaja de verdad ———
