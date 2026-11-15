@@ -84,3 +84,73 @@ test("tras «Probar modelos», el que falla desaparece del selector del chat", a
   await expect(page.getByText("mock-mini-free").first()).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText("modelo-fantasma")).toHaveCount(0);
 });
+
+/** Reportado con captura: con NVIDIA salían «72 no contestaron — la clave no es
+ * válida» y «11 no responden», y se ofrecía quitar los 11. Cargar la lista de
+ * modelos de NVIDIA no necesita clave, así que «Listos» no demostraba nada. El
+ * panel no enseñaba qué clave había guardada ni lo que contestó cada modelo (solo
+ * al pasar el ratón, imposible en el móvil). Ahora lo dice claro. */
+test("con la clave rechazada en casi todos, el panel lo dice, enseña lo guardado y lo que contestó", async ({ page }) => {
+  await page.addInitScript(() => {
+    if (window.top !== window.self) return;
+    try {
+      localStorage.setItem(
+        "forja-ai-v1",
+        JSON.stringify({
+          state: {
+            sessions: [],
+            activeSessionId: null,
+            onboardingDone: true,
+            favorites: [],
+            radarSeenIds: [],
+            skills: [],
+            settings: { defaultModelKey: null, accessCode: "", agentModes: [], agentMode: false, ahorro: false, stream: false, onlyFree: false },
+            providers: {
+              custom: {
+                // lo que se guarda cuando se pega el ejemplo de la documentación
+                apiKey: "$NVIDIA_API_KEY",
+                baseUrl: "/api/mock-llm",
+                enabled: true,
+                models: ["mock-mini-free", "mock-big-free", "modelo-fantasma"],
+                useProxy: false,
+              },
+            },
+            version: 1,
+          },
+          version: 0,
+        })
+      );
+      localStorage.removeItem("forja-modelos-rotos-v1");
+    } catch {
+      /* marco sin acceso a localStorage */
+    }
+  });
+
+  await page.goto("/");
+  await expect(page.locator("textarea").first()).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Ajustes" }).first().click();
+  const ajustes = page.getByRole("dialog");
+  await ajustes.getByPlaceholder("Buscar proveedor o modelo…").fill("Personalizado");
+  await ajustes.getByRole("button", { name: /Personalizado/ }).first().click();
+
+  // antes de probar: lo guardado se ve, y avisa de que es un marcador
+  const guardada = ajustes.getByTestId("clave-guardada-custom");
+  await expect(guardada).toContainText("$NVIDIA_…EY · 15 caracteres");
+  await expect(guardada).toContainText("marcador");
+
+  await ajustes.getByRole("button", { name: "Probar modelos" }).click();
+
+  // todos con 401: se dice que es la clave y NO se ofrece quitar nada
+  const rechazada = ajustes.getByTestId("clave-rechazada");
+  await expect(rechazada).toBeVisible({ timeout: 30_000 });
+  await expect(rechazada).toContainText("rechazó tu clave");
+  await expect(rechazada).toContainText("3 de 3 modelos (HTTP 401)");
+  await expect(rechazada).toContainText("$NVIDIA_…EY · 15 caracteres");
+  await expect(ajustes.getByRole("button", { name: "Quitar los que fallan" })).toHaveCount(0);
+
+  // lo que contestó cada uno, al tocar (en el móvil no hay «pasar el ratón»)
+  await ajustes.getByText(/Ver lo que contestó cada uno \(3\)/).click();
+  const respuestas = ajustes.getByTestId("respuestas-del-proveedor");
+  await expect(respuestas).toContainText("HTTP 401");
+  await expect(respuestas).toContainText("Clave inválida");
+});

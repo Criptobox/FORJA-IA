@@ -33,6 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import { permitido, quedaAlguno, alternarVeto } from "@/lib/forja/vetados";
 import { cn } from "@/lib/utils";
 import { PROVIDERS } from "@/lib/forja/providers";
+import { huellaDeClave, revisarClave } from "@/lib/forja/clave-revisada";
 import { fetchModels, probarZenSinClave, probeModel } from "@/lib/forja/chat-client";
 import {
   culpaConfirmadaDelModelo,
@@ -40,6 +41,7 @@ import {
   mensajeProbe,
   modelosRotos,
   pistaDelFallo,
+  proveedorRechazaLaClave,
   probeAll,
   type ProbeResult,
 } from "@/lib/forja/model-probe";
@@ -457,7 +459,20 @@ export function ProvidersTab({
       );
 
       const rotos = modelosRotos(res);
-      const buenos = [...res.values()].filter((r) => esUtilizable(r.verdict)).length;
+      const todos = [...res.values()];
+      const buenos = todos.filter((r) => esUtilizable(r.verdict)).length;
+      // Casi todos con 401 y ninguno bueno: no es que los modelos fallen, es que
+      // el proveedor no acepta la clave. Decir «11 no sirven, quítalos» sería
+      // mandar a borrar lo único que está bien.
+      const rechazadas = todos.filter(proveedorRechazaLaClave).length;
+      if (!buenos && rechazadas > 0 && rechazadas * 2 >= todos.length) {
+        const nombre = PROVIDERS.find((p) => p.id === id)?.name ?? "El proveedor";
+        toast.error(`${nombre} rechazó tu clave`, {
+          description: `${rechazadas} de ${todos.length} modelos contestaron 401. Bajo la lista de modelos ves qué clave quedó guardada y lo que contestó cada uno.`,
+          duration: 12_000,
+        });
+        return;
+      }
       if (!rotos.length) {
         toast.success(`${buenos} de ${cfg.models.length} responden`, {
           description: "Ninguno hay que quitar.",
@@ -817,6 +832,22 @@ export function ProvidersTab({
                       {showKey[def.id] ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
                   </div>
+                  {cfg.apiKey.trim() && (
+                    // Qué quedó guardado de verdad (sin enseñarla entera) y lo que
+                    // huele mal en ella: un marcador de la documentación, un
+                    // «Bearer » de más, comillas… Es lo primero que se mira cuando
+                    // «Probar modelos» devuelve 401 en casi todos.
+                    <div className="space-y-0.5" data-testid={`clave-guardada-${def.id}`}>
+                      <p className="break-all font-mono text-[11px] text-muted-foreground">
+                        Guardada: {huellaDeClave(cfg.apiKey)}
+                      </p>
+                      {(def.keyless || def.keyOptional ? [] : revisarClave(def.id, cfg.apiKey)).map((aviso) => (
+                        <p key={aviso} className="text-[11px] leading-snug text-amber-600 dark:text-amber-400">
+                          ⚠ {aviso}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-1.5">
                     {def.keyUrl && (
                       <a href={def.keyUrl} target="_blank" rel="noreferrer" className="inline-flex">
@@ -1012,18 +1043,55 @@ export function ProvidersTab({
                      * ofrece quitar nada. */
                     const conPista: { modelo: string; pista: string }[] = [];
                     const rotos: string[] = [];
+                    const fallos: { modelo: string; r: NonNullable<(typeof probados)[string]> }[] = [];
+                    let probadosN = 0;
+                    let rechazos = 0;
+                    let hayBuenos = false;
                     for (const m of cfg.models) {
                       const r = probados[makeModelKey(def.id, m)];
                       if (!r) continue;
+                      probadosN++;
+                      if (esUtilizable(r.verdict)) hayBuenos = true;
+                      else fallos.push({ modelo: m, r });
+                      if (proveedorRechazaLaClave(r)) rechazos++;
                       const pista = pistaDelFallo(r.status, r.detail);
                       if (culpaConfirmadaDelModelo(r)) rotos.push(m);
                       else if (pista && !esUtilizable(r.verdict)) conPista.push({ modelo: m, pista });
                     }
+                    // casi todo con 401 y ninguno bueno: es la clave, no los modelos
+                    const claveRechazada = !hayBuenos && probadosN > 0 && rechazos > 0 && rechazos * 2 >= probadosN;
                     // una misma causa para varios modelos se dice una vez
-                    const pistas = [...new Set(conPista.map((c) => c.pista))];
-                    if (!rotos.length && !pistas.length) return null;
+                    const pistas = [...new Set(conPista.map((c) => c.pista))].filter(
+                      (p) => !(claveRechazada && p.startsWith("La clave no es válida"))
+                    );
+                    if (!fallos.length) return null;
                     return (
                       <div className="flex flex-col gap-2">
+                        {claveRechazada && (
+                          <div
+                            data-testid="clave-rechazada"
+                            className="space-y-1 rounded-lg border border-destructive/40 bg-destructive/5 px-2.5 py-2 text-[11px] leading-snug text-muted-foreground"
+                          >
+                            <p>
+                              <strong className="text-destructive">{def.name} rechazó tu clave</strong> en{" "}
+                              {rechazos} de {probadosN} modelos (HTTP 401). Lo guardado:{" "}
+                              <code className="break-all font-mono">{huellaDeClave(cfg.apiKey)}</code>.
+                            </p>
+                            <p>
+                              Lo normal: la clave caducó, está mal copiada, es de otra cuenta o se pegó un
+                              marcador. {def.keyUrl ? (
+                                <>
+                                  Genera una nueva en{" "}
+                                  <a href={def.keyUrl} target="_blank" rel="noreferrer" className="font-medium text-foreground underline underline-offset-2">
+                                    su página de claves
+                                  </a>{" "}
+                                  y pégala arriba.{" "}
+                                </>
+                              ) : null}
+                              Los modelos no tienen la culpa: no hace falta quitarlos.
+                            </p>
+                          </div>
+                        )}
                         {pistas.map((pista) => {
                           const cuantos = conPista.filter((c) => c.pista === pista).length;
                           return (
@@ -1038,14 +1106,14 @@ export function ProvidersTab({
                             </div>
                           );
                         })}
-                        {rotos.length > 0 && (
+                        {rotos.length > 0 && !claveRechazada && (
                           <div className="flex flex-wrap items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-2.5 py-2">
                             <span className="min-w-0 flex-1 text-[11px] leading-snug text-muted-foreground">
                               <strong className="text-destructive">
                                 {rotos.length} {rotos.length === 1 ? "no responde" : "no responden"}
                               </strong>{" "}
-                              — el proveedor no los reconoce o tu clave no llega a ellos. Pasa el
-                              ratón por encima de cada uno para ver lo que contestó.
+                              — el proveedor no los reconoce o tu clave no llega a ellos. Toca
+                              «Ver lo que contestó» para leer su respuesta.
                             </span>
                             <Button
                               type="button"
@@ -1062,6 +1130,32 @@ export function ProvidersTab({
                             </Button>
                           </div>
                         )}
+                        {/* Lo que contestó cada uno, al tocar: antes solo salía al pasar
+                            el ratón (un `title`), que en el móvil no existe. */}
+                        <details className="rounded-lg border border-border/50 px-2.5 py-1.5 text-[11px]" data-testid="respuestas-del-proveedor">
+                          <summary className="cursor-pointer select-none py-1 text-muted-foreground">
+                            Ver lo que contestó cada uno ({fallos.length})
+                          </summary>
+                          <ul className="mt-1.5 space-y-2 pb-1">
+                            {fallos.slice(0, 12).map(({ modelo, r }) => (
+                              <li key={modelo} className="break-words">
+                                <span className="font-mono">{modelo}</span>
+                                <span className="text-muted-foreground">
+                                  {" "}
+                                  · {r.status ? `HTTP ${r.status}` : "sin respuesta"} · {mensajeProbe(r.verdict)}
+                                </span>
+                                {r.detail?.trim() && (
+                                  <pre className="mt-0.5 whitespace-pre-wrap break-all rounded bg-muted/50 p-1.5 font-mono text-[10px] leading-snug">
+                                    {r.detail.trim()}
+                                  </pre>
+                                )}
+                              </li>
+                            ))}
+                            {fallos.length > 12 && (
+                              <li className="text-muted-foreground">… y {fallos.length - 12} más con la misma pinta.</li>
+                            )}
+                          </ul>
+                        </details>
                       </div>
                     );
                   })()}

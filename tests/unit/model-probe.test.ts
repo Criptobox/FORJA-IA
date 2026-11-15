@@ -7,6 +7,7 @@ import {
   mensajeProbe,
   modelosRotos,
   pistaDelFallo,
+  proveedorRechazaLaClave,
   esFalloDeImagen,
   probeAll,
   type ProbeResult,
@@ -214,5 +215,24 @@ describe("un modelo que no admite imágenes no es un modelo caído", () => {
   it("el «nadie lo sirve» de siempre sigue diciendo lo suyo", () => {
     const pista = pistaDelFallo(404, "No endpoints found for z-ai/glm-5.2:free") ?? "";
     expect(pista).toMatch(/ningún proveedor/i);
+  });
+});
+
+describe("lo que dice el servidor de Forja no se cuenta como fallo de la clave", () => {
+  it("el código de acceso del proxy llega como 401 y no es la clave del proveedor", () => {
+    const cuerpo = '{"error":"Código de acceso requerido","hint":"Configúralo en Ajustes → Chat"}';
+    expect(classifyProbe(401, cuerpo)).toBe("sin-clave");
+    expect(pistaDelFallo(401, cuerpo)).toMatch(/servidor de Forja.*FORJA_ACCESS_CODE/);
+    expect(proveedorRechazaLaClave({ verdict: "sin-clave", detail: cuerpo })).toBe(false);
+  });
+  it("el origen y el destino rechazados por el proxy llevan su propia pista (y no acusan al modelo)", () => {
+    expect(pistaDelFallo(403, '{"error":"Origen no permitido"}')).toMatch(/origen/);
+    expect(pistaDelFallo(403, '{"error":"Destino no permitido: red interna"}')).toMatch(/Directa/);
+    expect(culpaConfirmadaDelModelo({ verdict: "sin-permiso", status: 403, detail: '{"error":"Origen no permitido"}' })).toBe(false);
+  });
+  it("un 401 del proveedor sí es que rechaza la clave", () => {
+    expect(proveedorRechazaLaClave({ verdict: "sin-clave", detail: '{"status":401,"detail":"Authentication failed"}' })).toBe(true);
+    expect(proveedorRechazaLaClave({ verdict: "ok" })).toBe(false);
+    expect(proveedorRechazaLaClave({ verdict: "no-existe", detail: "404" })).toBe(false);
   });
 });
