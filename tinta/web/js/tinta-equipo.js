@@ -34,11 +34,25 @@
   const fontOk = (env, id) => !!id && env.fonts.some(f => f.id === id);
   const homeLength = t => t.blocks.reduce((n, b) => n + (b.repeat || 1), 0);
 
-  function plan(env, idea, aiTemplate) {
+  /* Hash estable de la idea: el mismo encargo da el mismo diseño, y encargos distintos del mismo sector, no. */
+  const hashDe = s => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; };
+  const FUENTES_VARIAS = ['jakarta', 'geometrica', 'humanista', 'redondeada', 'editorial', 'elegante', 'tecnica', 'clasica'];
+
+  function plan(env, idea, aiTemplate, seed) {
     const sector = env.sectorOf(idea), sid = sector ? sector.id : null, ranked = rankTemplates(env, idea, sid);
-    const base = aiTemplate || ranked[0];
-    const defPal = palOf(env, base.palette) || palOf(env, SECTOR_PALETTE[sid]) || env.palettes.find(p => !p.dark) || env.palettes[0];
-    const font = fontOk(env, base.font) ? base.font : (fontOk(env, SECTOR_FONT[sid]) ? SECTOR_FONT[sid] : 'jakarta');
+    /* Sin receta de la IA, la elección por sector varía con la idea (y con la semilla de «otra versión»):
+       plantilla entre las 3 mejores, paleta y tipografía entre varias que encajan. */
+    const h = hashDe(norm(idea)) + (seed ? seed * 2654435761 : 0), hh = h >>> 0;
+    const base = aiTemplate || ranked[hh % Math.min(3, ranked.length)];
+    let pal = palOf(env, base.palette);
+    if (!pal && !aiTemplate) {
+      const oscura = base.mode === 'dark', pool = env.palettes.filter(p => !!p.dark === oscura && !/^regla-/.test(p.id));
+      const opciones = [palOf(env, SECTOR_PALETTE[sid])].concat([0, 7, 13].map(k => pool.length ? pool[((hh >>> 3) + k) % pool.length] : null)).filter(Boolean);
+      pal = opciones.length ? opciones[hh % opciones.length] : null;
+    }
+    const defPal = pal || palOf(env, SECTOR_PALETTE[sid]) || env.palettes.find(p => !p.dark) || env.palettes[0];
+    const fuenteVaria = FUENTES_VARIAS.filter(f => fontOk(env, f))[(hh >>> 5) % FUENTES_VARIAS.length];
+    const font = fontOk(env, base.font) ? base.font : (fontOk(env, SECTOR_FONT[sid]) ? SECTOR_FONT[sid] : (!aiTemplate && fuenteVaria) || 'jakarta');
     const A = { id: 'equipo-a', sector: sid, name: base.name || 'Pantalla del equipo', brief: String(idea || '').trim() || base.brief, blocks: base.blocks.map(b => ({ ...b })), palette: defPal.id, font, background: base.background || null, mode: base.mode || null, texts: base.texts, fromRecipe: true, keepBrief: true };
     /* El Crítico: busca lo típico, lo largo y lo repetido, y propone otra versión. */
     const dark = !!defPal.dark || A.mode === 'dark', points = [], B = { ...A, id: 'equipo-b', blocks: A.blocks.map(b => ({ ...b })) };

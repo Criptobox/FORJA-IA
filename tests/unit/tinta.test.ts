@@ -268,17 +268,37 @@ describe("FORJA WEB con Tinta: un turno (la IA solo si hace falta)", () => {
   const base = { modeloKey: null, signal: new AbortController().signal };
   const anterior: AppTinta = { receta: RECETA, pantallas: [], modelo: "x", llamadas: 0, version: 1 };
 
-  it("la primera versión la hace el equipo sin IA (aunque haya una conectada)", async () => {
+  it("la primera versión sin IA conectada la hace el equipo por sector", async () => {
     const f = motor();
     const pedir = vi.fn<PedirModelo>();
     const equipo = vi.fn();
-    const r = await turnoTinta({ ...base, pedido: "app de café", hayModelo: true, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
+    const r = await turnoTinta({ ...base, pedido: "app de café", hayModelo: false, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
     expect(pedir).not.toHaveBeenCalled();
     expect(f.enviados.map((e) => e.accion)).toEqual(["equipo"]);
     expect(f.enviados[0].datos).toEqual({ idea: "app de café" });
     expect(r.app).toMatchObject({ html: DIBUJO.html, llamadas: 0, modelo: MODELO_LOCAL, receta: { blocks: PLANTILLA.blocks, palette: "mandarina" } });
     expect(r.texto).toMatch(/sin gastar IA/);
     expect(equipo.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it("con una IA conectada, ella propone el diseño y el equipo lo construye", async () => {
+    const f = motor();
+    const pedir = vi.fn<PedirModelo>().mockResolvedValue({ texto: "Una tienda cálida. bloques", modelKey: "m::x" } as never);
+    const equipo = vi.fn();
+    const r = await turnoTinta({ ...base, pedido: "app de ropa", hayModelo: true, cliente: lista(f), pedirModelo: pedir, mostrarEquipo: equipo });
+    expect(pedir).toHaveBeenCalledTimes(1);
+    expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones", "leer", "equipo"]);
+    expect(f.enviados[2].datos).toMatchObject({ receta: RECETA });
+    expect(r.app).toMatchObject({ llamadas: 1, modelo: "m::x" });
+    expect(equipo.mock.calls).toEqual([[true], [false]]);
+  });
+
+  it("si la IA falla, el equipo diseña en local y no se pierde el encargo", async () => {
+    const f = motor();
+    const pedir = vi.fn<PedirModelo>().mockRejectedValue(new Error("cuota"));
+    const r = await turnoTinta({ ...base, pedido: "app de ropa", hayModelo: true, cliente: lista(f), pedirModelo: pedir });
+    expect(f.enviados.map((e) => e.accion)).toEqual(["instrucciones", "equipo"]);
+    expect(r.app).toMatchObject({ llamadas: 0, modelo: MODELO_LOCAL });
   });
 
   it("un cambio que se entiende se aplica en local y se redibuja, sin IA", async () => {

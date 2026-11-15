@@ -83,9 +83,9 @@ test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista 
   await expect(page.getByText("mock-mini-free")).toHaveCount(0);
   await expect(vista(page).locator("body")).not.toBeEmpty({ timeout: 30_000 });
   await expect(vista(page).getByText("Café Brisa")).toHaveCount(0);
-  // la primera versión la hace el equipo: sin gastar IA
-  expect(cuerpos.filter((c) => c.includes(TINTA))).toHaveLength(0);
-  await expect(page.locator("p", { hasText: "sin gastar IA" }).first()).toBeVisible();
+  // la primera versión: se le pide el diseño a la IA y, si no sirve, el equipo lo elige
+  expect(cuerpos.some((c) => c.includes(TINTA))).toBe(true);
+  const llamadasIniciales = cuerpos.filter((c) => c.includes(TINTA)).length;
 
   // un cambio en el mismo chat: se redibuja sin el equipo y la vista previa cambia
   await expect(page.getByPlaceholder("Pide cambios para la app… se verán en la vista previa")).toBeVisible();
@@ -96,7 +96,7 @@ test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista 
   await expect(page.locator("p", { hasText: "Hecho, sin gastar IA: modo oscuro · nombre «Café Brisa»." })).toBeVisible();
   await expect(vista(page).getByText("Café Brisa")).not.toHaveCount(0, { timeout: 30_000 });
   // el cambio se entendió en local: tampoco gastó IA
-  expect(cuerpos.filter((c) => c.includes(TINTA))).toHaveLength(0);
+  expect(cuerpos.filter((c) => c.includes(TINTA))).toHaveLength(llamadasIniciales);
 
   // una pregunta no toca la app
   await chat.fill("¿qué paleta usaste?");
@@ -104,8 +104,8 @@ test("FORJA WEB: pedir una app la diseña Tinta con el equipo, sale en la vista 
   // eso no se entiende en local: va a la IA conectada, con la receta actual
   await expect(page.locator("p", { hasText: "Usa la paleta mandarina con tarjetas grandes" })).toBeVisible({ timeout: 30_000 });
   const pedidos = cuerpos.filter((c) => c.includes(TINTA));
-  expect(pedidos).toHaveLength(1);
-  expect(pedidos[0]).toContain("PANTALLA ACTUAL");
+  expect(pedidos).toHaveLength(llamadasIniciales + 1);
+  expect(pedidos[pedidos.length - 1]).toContain("PANTALLA ACTUAL");
   await expect(vista(page).getByText("Café Brisa")).not.toHaveCount(0);
   await page.screenshot({ path: "test-results/forja-web-tinta.png" });
   await expect(page.locator("p", { hasText: /Versión 3/ })).toHaveCount(0);
@@ -378,7 +378,7 @@ test("Biblioteca de diseño: en el menú (Ecosistema) con su nombre, aparte de �
   await expect(page.frameLocator('iframe[title="Motor de diseño Tinta"]').locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
 });
 
-test("con AUTO, una app nueva la diseña el equipo de Tinta y no cambia de modelo", async ({ page }) => {
+test("con AUTO, una app nueva pide el diseño a la IA y lo construye el equipo de Tinta (sin el panel viejo)", async ({ page }) => {
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1400, height: 900 });
   await seed(page, "auto::auto");
@@ -390,6 +390,7 @@ test("con AUTO, una app nueva la diseña el equipo de Tinta y no cambia de model
   await enviar(page);
   const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
   await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  // sin IA: ninguna llamada al modelo
-  expect(cuerpos.length).toBe(0);
+  // con IA conectada, primero se le pide el diseño a ella
+  await expect.poll(() => cuerpos.length, { timeout: 30_000 }).toBeGreaterThan(0);
+  expect(cuerpos.some((c) => c.includes(TINTA))).toBe(true);
 });
