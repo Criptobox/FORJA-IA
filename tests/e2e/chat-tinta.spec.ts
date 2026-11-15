@@ -377,3 +377,19 @@ test("Biblioteca de diseño: en el menú (Ecosistema) con su nombre, aparte de �
   await hoja.getByRole("button", { name: "Biblioteca de diseño" }).click();
   await expect(page.frameLocator('iframe[title="Motor de diseño Tinta"]').locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
 });
+
+test("con AUTO, una app nueva la diseña el equipo de Tinta y no cambia de modelo", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await seed(page, "auto::auto");
+  const cuerpos = await contarLlamadas(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app para mi cafetería con pedidos");
+  await enviar(page);
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
+  // sin IA: ninguna llamada al modelo
+  expect(cuerpos.length).toBe(0);
+});
