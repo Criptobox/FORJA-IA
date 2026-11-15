@@ -159,11 +159,11 @@ export async function turnoTinta(o: {
   paso("arrancando");
   await o.cliente.listo();
 
-  const conEquipo = async (idea: string, recetaIA?: RecetaTinta, llamadas = 0, modelo = MODELO_LOCAL): Promise<Omit<AppTinta, "version">> => {
+  const conEquipo = async (idea: string, recetaIA?: RecetaTinta, llamadas = 0, modelo = MODELO_LOCAL, semilla = 0): Promise<Omit<AppTinta, "version">> => {
     paso("equipo");
     o.mostrarEquipo?.(true);
     try {
-      const eq = await o.cliente.pedir("equipo", recetaIA ? { idea, receta: recetaIA } : { idea }, { ms: 15 * 60_000, signal: o.signal });
+      const eq = await o.cliente.pedir("equipo", { idea, ...(recetaIA ? { receta: recetaIA } : {}), ...(semilla ? { semilla } : {}) }, { ms: 15 * 60_000, signal: o.signal });
       const receta = recetaDePlantilla(eq.plantilla, idea);
       if (!receta) throw new ErrorTinta("El equipo no devolvió un diseño. Vuelve a intentarlo.");
       paso("listo");
@@ -216,7 +216,7 @@ export async function turnoTinta(o: {
   const cat = await o.cliente.pedir("catalogo", {}, { signal: o.signal });
   const local = cambioLocal(pedido, ant.receta, cat);
   if (local?.rehacer) {
-    const app = await conEquipo(ant.receta.brief || pedido);
+    const app = await conEquipo(ant.receta.brief || pedido, undefined, 0, MODELO_LOCAL, ant.version + 1);
     return { texto: "Otra propuesta del equipo, sin gastar IA.", app, modelo: MODELO_LOCAL, avisos: [] };
   }
   if (local) {

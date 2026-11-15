@@ -8,6 +8,7 @@
   'use strict';
   const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const ROLE_NAME = { header: 'cabeceras', cards: 'tarjetas', actions: 'botones', nav: 'barras', data: 'datos', widgets: 'widgets', list: 'listas', forms: 'formularios', inputs: 'campos', notices: 'avisos' };
+  const COMPACT_CAP = { cards: 10, header: 5, nav: 5, actions: 4 };
   const ROLE_CAP = { cards: 26, header: 14, nav: 14, actions: 8 }, DEF_CAP = 6;
   const MAX_BLOCKS = 14, MAX_TEXTS = 8, MAX_TEXT_LEN = 120;
 
@@ -61,14 +62,14 @@
       const score = b => (used.get(b.id) || 0) * 10 + words.filter(w => norm(b.name + ' ' + (b.desc || '')).includes(w)).length * 3;
       return blocks.filter(b => b.role !== 'flow').map((b, i) => ({ b, s: score(b), i })).sort((x, y) => y.s - x.s || x.i - y.i).map(x => x.b);
     }
-    function catalogText(idea) {
+    function catalogText(idea, compact) {
       const by = {}; ranked(idea).forEach(b => { (by[b.role] = by[b.role] || []).push(b); });
       const lines = [];
       ['header', 'cards', 'actions', 'nav'].concat(Object.keys(by).filter(r => !['header', 'cards', 'actions', 'nav', 'avatars', 'sheets'].includes(r))).forEach(r => {
-        if (!by[r]) return; const cap = ROLE_CAP[r] || DEF_CAP;
+        if (!by[r]) return; const cap = compact ? (COMPACT_CAP[r] || 3) : (ROLE_CAP[r] || DEF_CAP);
         lines.push((ROLE_NAME[r] || r) + ': ' + by[r].slice(0, cap).map(b => b.id + '=' + String(b.name).slice(0, 34)).join('; '));
       });
-      lines.push('paletas: ' + (env.palettes || []).map(p => p.id).join(', '));
+      lines.push('paletas: ' + (env.palettes || []).slice(0, compact ? 28 : 1e3).map(p => p.id).join(', '));
       lines.push('tipografias: ' + (env.fonts || []).map(p => p.id).join(', '));
       lines.push('fondos: ' + (env.backgrounds || []).map(p => p.id).join(', '));
       return lines.join('\n');
@@ -153,7 +154,8 @@
         'Si la persona pide crear o cambiar una app o pantalla, responde con una frase corta y UN bloque ```json con la receta (formato abajo). Si solo conversa o pregunta, responde sin JSON. No escribas HTML ni CSS.',
         '',
         'CATÁLOGO (id=nombre). Usa SOLO estos ids:',
-        catalogText(String(idea || '')),
+        /* Con una pantalla ya hecha (un cambio) basta un catálogo corto: menos tokens por cada petición. */
+        catalogText(String(idea || ''), !!current),
         '',
         'REGLAS DE LA RECETA',
         '- "bloques": de arriba abajo, entre 4 y ' + MAX_BLOCKS + '. Exactamente 1 cabecera primero, al menos 1 tarjeta, 1 barra al final.',

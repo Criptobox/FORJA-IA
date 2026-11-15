@@ -26,3 +26,15 @@ test('una propuesta de IA manda sobre la estructura', () => {
   const ai = { name: 'Propuesta de tu IA', blocks: [{ id: 'h-search' }, { id: 'c-coffee', repeat: 3 }, { id: 'a-coral' }, { id: 'n-soft' }], texts: { 'h-search': ['Hola'] } };
   const p = E.plan(env, 'cafetería', ai); assert.equal(p.aiUsed, true); assert.deepEqual(p.A.blocks.map(b => b.id), ['h-search', 'c-coffee', 'a-coral', 'n-soft']); assert.deepEqual(p.A.texts, { 'h-search': ['Hola'] });
 });
+test('sin IA, encargos distintos del mismo sector no salen iguales, y el mismo encargo sí', () => {
+  const ideas = ['app de ropa', 'tienda de zapatos', 'boutique de moda infantil', 'una app para mi tienda de vestidos', 'ropa deportiva online', 'tienda de abrigos'];
+  const firmas = new Set(ideas.map(i => { const p = E.plan(env, i); return [p.A.blocks.map(b => b.id).join('+'), p.A.palette, p.A.font].join('|'); }));
+  assert.ok(firmas.size >= 3, 'variedad: ' + firmas.size);
+  const a = E.plan(env, 'app de ropa'), b = E.plan(env, 'app de ropa');
+  assert.deepEqual([a.A.blocks, a.A.palette, a.A.font], [b.A.blocks, b.A.palette, b.A.font]);
+  ideas.forEach(i => { const p = E.plan(env, i); assert.deepEqual(T.problems(p.A, byId), [], i); assert.ok(P.get(p.A.palette) && F.get(p.A.font)); });
+});
+test('«otra versión» (semilla) cambia el diseño del mismo encargo', () => {
+  const firmas = new Set([0, 1, 2, 3, 4].map(s => { const p = E.plan(env, 'app de ropa', null, s); return [p.A.blocks.map(b => b.id).join('+'), p.A.palette, p.A.font].join('|'); }));
+  assert.ok(firmas.size >= 3, 'variedad con semilla: ' + firmas.size);
+});

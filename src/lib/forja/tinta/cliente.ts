@@ -64,7 +64,7 @@ export interface DatosTinta {
   /** con borrador: se parte de lo editado a mano y se aplica el estilo de la receta */
   dibujar: { receta: RecetaTinta; idea?: string; borrador?: unknown; textos?: Record<string, string[]> };
   /** sin receta: el equipo elige el diseño por sector, sin IA */
-  equipo: { receta?: RecetaTinta; idea?: string; nombre?: string };
+  equipo: { receta?: RecetaTinta; idea?: string; nombre?: string; semilla?: number };
   catalogo: Record<string, never>;
   /** receta y borrador: la app que se edita. `vacia`: la biblioteca sin ninguna
    *  app, para elegir los bloques desde cero. `pagina`: por dónde se abre. */

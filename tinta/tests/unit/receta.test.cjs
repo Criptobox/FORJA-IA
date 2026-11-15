@@ -43,3 +43,10 @@ test('acepta ids en claves en inglés', () => {
   const x = r.parse(JSON.stringify({ brief: 'x', blocks: [{ id: 'h-search' }, { id: 'c-coffee', repeat: 2 }, { id: 'n-soft' }], palette: P.LIST[1].id, mode: 'light' }));
   assert.equal(x.ok, true); assert.equal(x.recipe.mode, 'light'); assert.equal(x.recipe.blocks[1].repeat, 2);
 });
+
+test('en un cambio el catálogo va más corto que en el primer diseño (menos tokens)', () => {
+  const nuevo = r.chatSystem('una cafetería con pedidos', ''), cambio = r.chatSystem('una cafetería con pedidos', 'h-search, c-coffee×2, n-soft; paleta mandarina');
+  const catalogo = s => s.split('CATÁLOGO')[1].split('REGLAS')[0];
+  assert.ok(catalogo(cambio).length < catalogo(nuevo).length, 'cambio ' + catalogo(cambio).length + ' vs nuevo ' + catalogo(nuevo).length);
+  assert.match(cambio, /fondos:/); assert.match(cambio, /tipografias:/);
+});
