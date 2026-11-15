@@ -989,7 +989,9 @@ export function ChatApp() {
       // nada que mejorar, y sus avisos solo estorban.
       const claveActual = session?.modelKey ?? state.settings.defaultModelKey;
       const vaATinta =
-        isForjaWebKey(claveActual ?? "") &&
+        // También con AUTO: pedir una app y que el modo agente cambie de modelo
+        // sin lograr nada es peor que el equipo de diseño, que no necesita IA.
+        (isForjaWebKey(claveActual ?? "") || isAutoKey(claveActual ?? AUTO_MODEL_KEY)) &&
         usaTinta({
           texto: text,
           hayApp: !!ultimaApp(session?.messages ?? []),
