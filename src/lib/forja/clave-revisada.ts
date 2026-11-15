@@ -48,6 +48,14 @@ export function revisarClave(proveedor: string, clave: string): string[] {
   if (MARCADOR.test(t)) avisos.push("Parece un marcador del ejemplo de la documentación, no una clave real.");
   else if ([...t].length < 16) avisos.push("Es muy corta para ser una clave.");
 
+  // NVIDIA: «nvapi-» + 64 caracteres. Más larga suele ser una clave pegada
+  // encima de otra (el campo va oculto con puntos y no se ve lo que había).
+  if (proveedor === "nvidia" && !avisos.length && t.startsWith("nvapi-") && [...t].length !== 70) {
+    avisos.push(
+      `Las claves de NVIDIA suelen tener 70 caracteres y esta tiene ${[...t].length}: puede que se pegara encima de otra. Borra el campo entero y pégala de nuevo.`
+    );
+  }
+
   const p = PREFIJO[proveedor];
   if (p && !avisos.length && !t.startsWith(p.prefijo)) {
     avisos.push(`Las claves de este proveedor empiezan por «${p.prefijo}». ¿Es de otro?`);

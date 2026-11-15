@@ -154,3 +154,55 @@ test("con la clave rechazada en casi todos, el panel lo dice, enseña lo guardad
   await expect(respuestas).toContainText("HTTP 401");
   await expect(respuestas).toContainText("Clave inválida");
 });
+
+test("pegar una clave sustituye la que había (no se quedan las dos juntas) y se pueden quitar los que fallan", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.addInitScript(() => {
+    if (window.top !== window.self) return;
+    try {
+      localStorage.setItem(
+        "forja-ai-v1",
+        JSON.stringify({
+          state: {
+            sessions: [], activeSessionId: null, onboardingDone: true, favorites: [], radarSeenIds: [], skills: [],
+            settings: { defaultModelKey: null, accessCode: "", agentModes: [], agentMode: false, ahorro: false, stream: false, onlyFree: false },
+            providers: { custom: { apiKey: "clave-vieja-caducada-1234567890", baseUrl: "/api/mock-llm", enabled: true, models: ["mock-mini-free", "modelo-fantasma"], useProxy: false } },
+            version: 1,
+          },
+          version: 0,
+        })
+      );
+      localStorage.removeItem("forja-modelos-rotos-v1");
+    } catch {
+      /* marco sin acceso a localStorage */
+    }
+  });
+  await page.goto("/");
+  await expect(page.locator("textarea").first()).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Ajustes" }).first().click();
+  const ajustes = page.getByRole("dialog");
+  await ajustes.getByPlaceholder("Buscar proveedor o modelo…").fill("Personalizado");
+  await ajustes.getByRole("button", { name: /Personalizado/ }).first().click();
+  const guardada = ajustes.getByTestId("clave-guardada-custom");
+  await expect(guardada).toContainText("31 caracteres");
+
+  // se pega la nueva con el cursor al final de la vieja: tiene que quedar SOLO la nueva
+  const campo = ajustes.getByTestId("campo-clave-custom");
+  // no es un campo de contraseña: así el gestor de contraseñas no lo rellena ni le añade nada
+  await expect(campo).toHaveAttribute("type", "text");
+  await expect(campo).toHaveAttribute("autocomplete", "off");
+  await campo.click();
+  await page.keyboard.press("End");
+  await campo.evaluate((el, clave) => {
+    const dt = new DataTransfer();
+    dt.setData("text", clave);
+    el.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
+  }, "clave-nueva-que-si-vale-1234567890abcdef");
+  await expect(guardada).toContainText("40 caracteres");
+  await expect(guardada).toContainText("clave-nu");
+
+  // «Borrar la clave guardada» deja el campo vacío de un toque
+  await ajustes.getByRole("button", { name: "Borrar la clave guardada" }).click();
+  await expect(campo).toHaveValue("");
+  await expect(guardada).toHaveCount(0);
+});

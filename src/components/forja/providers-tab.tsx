@@ -800,7 +800,20 @@ export function ProvidersTab({
                   <div className="relative">
                     <KeyRound className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground/60" />
                     <Input
-                      type={showKey[def.id] ? "text" : "password"}
+                      // NO es type="password": el gestor de contraseñas del
+                      // navegador (Chrome en Android sobre todo) rellenaba solo
+                      // estos campos con una contraseña guardada —la misma en
+                      // todos los proveedores— o la añadía a la clave pegada, y
+                      // todo daba 401 sin que se viera por qué. Se oculta con
+                      // CSS y se marca para que ningún gestor lo toque.
+                      type="text"
+                      name={`forja-clave-${def.id}`}
+                      data-testid={`campo-clave-${def.id}`}
+                      data-lpignore="true"
+                      data-1p-ignore="true"
+                      data-form-type="other"
+                      inputMode="text"
+                      style={showKey[def.id] ? undefined : ({ WebkitTextSecurity: "disc" } as React.CSSProperties)}
                       value={cfg.apiKey}
                       onChange={(e) => {
                         const apiKey = e.target.value.trim();
@@ -814,6 +827,16 @@ export function ProvidersTab({
                         if (looksLikeProviderSnippet(text) && applySnippet(text)) {
                           e.preventDefault();
                           setSnippetDraft("");
+                          return;
+                        }
+                        // Pegar una clave SUSTITUYE lo que hubiera: el campo va
+                        // oculto con puntos, y pegar detrás de la clave vieja
+                        // dejaba guardadas las dos juntas (115 caracteres en vez
+                        // de 70) sin que se viera. Todo daba 401.
+                        const clave = text.trim();
+                        if (clave.length >= 20 && !/\s/.test(clave)) {
+                          e.preventDefault();
+                          setProviderConfig(def.id, { apiKey: clave, enabled: true });
                         }
                       }}
                       placeholder={placeholderKey}
@@ -832,6 +855,15 @@ export function ProvidersTab({
                       {showKey[def.id] ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
                   </div>
+                  {cfg.apiKey.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => setProviderConfig(def.id, { apiKey: "" })}
+                      className="text-[11px] font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    >
+                      Borrar la clave guardada
+                    </button>
+                  )}
                   {cfg.apiKey.trim() && (
                     // Qué quedó guardado de verdad (sin enseñarla entera) y lo que
                     // huele mal en ella: un marcador de la documentación, un
@@ -1090,6 +1122,21 @@ export function ProvidersTab({
                               ) : null}
                               Los modelos no tienen la culpa: no hace falta quitarlos.
                             </p>
+                            {(() => {
+                              // lo que dijo el proveedor, a la vista sin tener que abrir nada
+                              const dicho = fallos.find((f) => proveedorRechazaLaClave(f.r))?.r.detail?.trim();
+                              return dicho ? (
+                                <p>
+                                  Contestó:{" "}
+                                  <code className="break-all font-mono text-[10px]">{dicho.slice(0, 220)}</code>
+                                </p>
+                              ) : null;
+                            })()}
+                            {revisarClave(def.id, cfg.apiKey).map((aviso) => (
+                              <p key={aviso} className="font-medium text-amber-600 dark:text-amber-400">
+                                ⚠ {aviso}
+                              </p>
+                            ))}
                           </div>
                         )}
                         {pistas.map((pista) => {
@@ -1106,7 +1153,7 @@ export function ProvidersTab({
                             </div>
                           );
                         })}
-                        {rotos.length > 0 && !claveRechazada && (
+                        {rotos.length > 0 && (
                           <div className="flex flex-wrap items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-2.5 py-2">
                             <span className="min-w-0 flex-1 text-[11px] leading-snug text-muted-foreground">
                               <strong className="text-destructive">
