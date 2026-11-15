@@ -155,7 +155,7 @@ describe("el resultado entra al Estudio", () => {
   });
 });
 
-import { MODELO_LOCAL, progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
+import { MODELO_LOCAL, esPedidoNuevo, progresoTinta, recetaParaModelo, resumenApp, textoVisible, turnoTinta, ultimaApp, usaTinta, type AppTinta } from "@/lib/forja/tinta/forja-web";
 import { cambioLocal, recetaDePlantilla } from "@/lib/forja/tinta/cambios-locales";
 import type { CatalogoTinta } from "@/lib/forja/tinta/cliente";
 
@@ -179,6 +179,24 @@ describe("FORJA WEB con Tinta: qué mensajes diseña Tinta", () => {
     expect(usaTinta({ hayApp: true, imagenes: 0, texto: "¿qué paleta usaste?" })).toBe(true);
     expect(usaTinta({ hayApp: true, imagenes: 1, texto: "hazla como esta foto" })).toBe(false);
     expect(usaTinta({ hayApp: true, imagenes: 0, texto: "   " })).toBe(false);
+  });
+  it("con una app delante, pedir OTRA app o web es un encargo nuevo (lo hace el equipo), no un cambio", () => {
+    const nuevos = ["Crea una web para una panadería", "hazme una app para mi barbería", "hazme otra app, ahora de viajes", "Crea una pequeña tienda de ropa"];
+    for (const texto of nuevos) {
+      expect(esPedidoNuevo(texto), texto).toBe(true);
+      expect(usaTinta({ hayApp: true, imagenes: 0, sinIA: true, texto }), texto).toBe(true);
+    }
+    // con IA, una web nueva (no una app) sigue su camino de siempre: la IA escribe la página
+    expect(usaTinta({ hayApp: true, imagenes: 0, texto: "Crea una web para una panadería" })).toBe(false);
+    // …y una app de gestión de datos, el suyo (código)
+    expect(usaTinta({ hayApp: true, imagenes: 0, texto: "crea una app de lista de tareas" })).toBe(false);
+  });
+  it("con una app delante, los cambios siguen siendo cambios", () => {
+    const cambios = ["ponla en modo oscuro", "crea un buscador en la app", "añade un calendario", "quita el buscador", "hazla más divertida", "llámala Café Brisa", "otra versión", "haz la letra más grande"];
+    for (const texto of cambios) {
+      expect(esPedidoNuevo(texto), texto).toBe(false);
+      expect(usaTinta({ hayApp: true, imagenes: 0, sinIA: true, texto }), texto).toBe(true);
+    }
   });
   it("sin ninguna IA conectada, todo lo que sea crear lo hace Tinta (también una landing)", () => {
     expect(usaTinta({ hayApp: false, imagenes: 0, sinIA: true, texto: "hazme una landing para mi barbería" })).toBe(true);
@@ -210,6 +228,9 @@ describe("FORJA WEB con Tinta: piezas puras", () => {
     const a2 = { ...a1, version: 2 };
     expect(ultimaApp([{ role: "assistant", tintaApp: a1 }, { role: "user" }, { role: "assistant", tintaApp: a2 }, { role: "assistant" }])).toBe(a2);
     expect(ultimaApp([{ role: "assistant", tintaApp: a1, error: true }])).toBeNull();
+    // una página que escribió la IA después se queda la vista previa: ya no se edita la app
+    expect(ultimaApp([{ role: "assistant", tintaApp: a1 }, { role: "user" }, { role: "assistant", content: "Aquí va:\n```html\n<!doctype html><title>x</title>\n```" }])).toBeNull();
+    expect(ultimaApp([{ role: "assistant", tintaApp: a1 }, { role: "user" }, { role: "assistant", content: "Una charla sin código." }])).toBe(a1);
   });
   it("resumen y panel de progreso", () => {
     expect(resumenApp({ version: 1, pantallas: [{ id: "a", nombre: "A" }, { id: "b", nombre: "B" }] })).toMatch(/2 pantallas.*Pídeme cambios/);
