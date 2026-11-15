@@ -30,6 +30,15 @@ export interface RecetaTinta {
   sector?: string;
 }
 
+/** Lo que contó cada agente (8 líneas, una por especialista), la objeción del
+ *  Crítico y las tres versiones (plantillas del motor, sin tocar). */
+export interface InformeEquipoMotor {
+  lineas: string[];
+  critica: string;
+  metricas: { A: string; B: string };
+  versiones: { equipo: unknown; mezcla: unknown; critico: unknown };
+}
+
 export interface DibujoTinta {
   /** la app completa en un solo HTML, con todas sus pantallas enlazadas */
   html: string;
@@ -43,7 +52,7 @@ export interface RespuestasTinta {
   instrucciones: { sistema: string; prompt: string };
   leer: { ok: boolean; errores: string[]; avisos: string[]; receta: RecetaTinta | null; correccion: string };
   dibujar: DibujoTinta;
-  equipo: DibujoTinta & { modo: "equipo" | "mezcla" | "critico"; plantilla: unknown };
+  equipo: DibujoTinta & { modo: "equipo" | "mezcla" | "critico"; plantilla: unknown; informe?: InformeEquipoMotor };
   catalogo: CatalogoTinta;
   /** el editor completo de Tinta, con la app cargada; vuelve al guardar */
   editar: DibujoTinta & { receta: RecetaTinta };
@@ -64,7 +73,15 @@ export interface DatosTinta {
   /** con borrador: se parte de lo editado a mano y se aplica el estilo de la receta */
   dibujar: { receta: RecetaTinta; idea?: string; borrador?: unknown; textos?: Record<string, string[]> };
   /** sin receta: el equipo elige el diseño por sector, sin IA */
-  equipo: { receta?: RecetaTinta; idea?: string; nombre?: string; semilla?: number };
+  equipo: {
+    receta?: RecetaTinta;
+    idea?: string;
+    nombre?: string;
+    semilla?: number;
+    /** sin abrir la pantalla del equipo: lo decide y lo devuelve con su informe */
+    directo?: boolean;
+    modo?: "equipo" | "mezcla" | "critico";
+  };
   catalogo: Record<string, never>;
   /** receta y borrador: la app que se edita. `vacia`: la biblioteca sin ninguna
    *  app, para elegir los bloques desde cero. `pagina`: por dónde se abre. */

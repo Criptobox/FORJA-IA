@@ -37,11 +37,6 @@ test("sin IA conectada, una landing la hace Tinta con el equipo y se cambia en e
   await page.keyboard.press("Enter");
   // sin propuesta que luego no se puede construir: directo al equipo
   await expect(page.getByTestId("propuesta-diseno")).toHaveCount(0);
-  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
   // un cambio que se entiende sin IA
   const chat = page.getByRole("textbox", { name: "Mensaje" });
@@ -88,22 +83,12 @@ test("sin IA, con una app hecha, pedir otra web es un encargo nuevo (sale el equ
   await expect(caja).toBeVisible({ timeout: 60_000 });
   await caja.fill("hazme una app de tienda de ropa");
   await enviar(page);
-  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
 
   // otra web: el equipo vuelve a trabajar; no se trata como cambio ni sale el texto de ayuda
   const chat = page.getByRole("textbox", { name: "Mensaje" });
   await chat.fill("Crea una web para una panadería");
   await enviar(page);
-  await expect(page.getByTestId("creacion-en-curso")).toContainText("Creando tu app", { timeout: 20_000 });
-  await expect(motor.locator("#equipoDialog[open] .ag").first()).toBeVisible({ timeout: 60_000 });
-  await motor.locator("[data-eq=speed]").click();
-  await expect(motor.locator("#eqChoose.on")).toBeVisible({ timeout: 30_000 });
-  await motor.locator("#eqGo").click();
   await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toHaveCount(2, { timeout: 30_000 });
   await expect(page.locator("p", { hasText: "Sin IA conectada entiendo cambios como" })).toHaveCount(0);
   // sin IA no hay modelo escribiendo código: ni avisos de skills ni del modo agente

@@ -46,6 +46,27 @@ export interface AppTinta {
   llamadas: number;
   /** 1 la primera, y +1 en cada cambio */
   version: number;
+  /** lo que decidió el equipo y las tres versiones, para cambiar de una a otra
+   *  en el chat sin gastar IA */
+  informe?: InformeEquipo;
+}
+
+export type ModoEquipo = "equipo" | "mezcla" | "critico";
+export interface InformeEquipo {
+  lineas: string[];
+  critica: string;
+  modo: ModoEquipo;
+  versiones: Record<ModoEquipo, RecetaTinta>;
+}
+
+/** «Usa la versión del Crítico», «vuelve a la del equipo», «la mezcla»… */
+export function versionPedida(texto: string): ModoEquipo | null {
+  const t = normalizar(texto ?? "");
+  if (!/\b(version|usa|pon|prueba|vuelve|quiero|cambia)\b/.test(t) && !/^(la )?(mezcla|critico|equipo)$/.test(t.trim())) return null;
+  if (/\bmezcla\b/.test(t)) return "mezcla";
+  if (/\bcritic[oa]?\b/.test(t)) return "critico";
+  if (/\b(del equipo|version del equipo|la del equipo|equipo)\b/.test(t) && /\b(version|vuelve|la del)\b/.test(t)) return "equipo";
+  return null;
 }
 
 /** Apps de trabajo con datos: necesitan lógica, no solo pantallas. */
@@ -159,18 +180,33 @@ export async function turnoTinta(o: {
   paso("arrancando");
   await o.cliente.listo();
 
-  const conEquipo = async (idea: string, recetaIA?: RecetaTinta, llamadas = 0, modelo = MODELO_LOCAL, semilla = 0): Promise<Omit<AppTinta, "version">> => {
+  const conEquipo = async (
+    idea: string,
+    recetaIA?: RecetaTinta,
+    llamadas = 0,
+    modelo = MODELO_LOCAL,
+    semilla = 0
+  ): Promise<Omit<AppTinta, "version">> => {
+    // Los agentes trabajan dentro del panel «Creando…» del chat y el informe
+    // (lo que decidió cada uno y la objeción del Crítico) sale en la respuesta:
+    // ya no se abre otra pantalla encima.
     paso("equipo");
-    o.mostrarEquipo?.(true);
-    try {
-      const eq = await o.cliente.pedir("equipo", { idea, ...(recetaIA ? { receta: recetaIA } : {}), ...(semilla ? { semilla } : {}) }, { ms: 15 * 60_000, signal: o.signal });
-      const receta = recetaDePlantilla(eq.plantilla, idea);
-      if (!receta) throw new ErrorTinta("El equipo no devolvió un diseño. Vuelve a intentarlo.");
-      paso("listo");
-      return { receta, html: eq.html, pantallas: eq.pantallas, borrador: eq.borrador, modelo, llamadas };
-    } finally {
-      o.mostrarEquipo?.(false);
+    const modo: ModoEquipo = recetaIA ? "equipo" : "mezcla";
+    const eq = await o.cliente.pedir(
+      "equipo",
+      { idea, directo: true, modo, ...(recetaIA ? { receta: recetaIA } : {}), ...(semilla ? { semilla } : {}) },
+      { ms: 5 * 60_000, signal: o.signal }
+    );
+    const receta = recetaDePlantilla(eq.plantilla, idea);
+    if (!receta) throw new ErrorTinta("El equipo no devolvió un diseño. Vuelve a intentarlo.");
+    paso("listo");
+    let informe: InformeEquipo | undefined;
+    if (eq.informe) {
+      const v = (t: unknown) => recetaDePlantilla(t, idea);
+      const [a, m, c] = [v(eq.informe.versiones.equipo), v(eq.informe.versiones.mezcla), v(eq.informe.versiones.critico)];
+      if (a && m && c) informe = { lineas: eq.informe.lineas, critica: eq.informe.critica, modo: eq.modo, versiones: { equipo: a, mezcla: m, critico: c } };
     }
+    return { receta, html: eq.html, pantallas: eq.pantallas, borrador: eq.borrador, modelo, llamadas, ...(informe ? { informe } : {}) };
   };
 
   if (!ant) {
@@ -208,6 +244,22 @@ export async function turnoTinta(o: {
         ? "Diseñada por el equipo con la biblioteca de Forja (la IA no dio un diseño válido, así que lo eligió el equipo por sector)."
         : "Diseñada por el equipo con la biblioteca de Forja, sin gastar IA.",
       app,
+      modelo: MODELO_LOCAL,
+      avisos: [],
+    };
+  }
+
+  // Cambiar entre las versiones del equipo, la mezcla y el Crítico: gratis.
+  const quiere = ant.informe ? versionPedida(pedido) : null;
+  if (ant.informe && quiere) {
+    const receta = ant.informe.versiones[quiere];
+    paso("dibujando");
+    const d = await o.cliente.pedir("dibujar", { receta, idea: receta.brief }, { signal: o.signal });
+    paso("listo");
+    const nombre = { equipo: "del equipo", mezcla: "mezcla del equipo y el Crítico", critico: "del Crítico" }[quiere];
+    return {
+      texto: `Hecho, sin gastar IA: versión ${nombre}.`,
+      app: { receta, html: d.html, pantallas: d.pantallas, borrador: d.borrador, modelo: MODELO_LOCAL, llamadas: 0, informe: { ...ant.informe, modo: quiere } },
       modelo: MODELO_LOCAL,
       avisos: [],
     };
