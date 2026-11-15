@@ -9,6 +9,7 @@
  * anti-SSRF incluido) directamente a opencode.ai.
  *
  * Todo lo de este archivo es puro: se prueba sin red. */
+import { limpiarClave } from "./clave-revisada";
 
 /** Clave anónima que usa el propio OpenCode para sus modelos gratuitos. */
 export const ZEN_CLAVE_ANONIMA = "public";
@@ -24,7 +25,7 @@ export function esClaveOpcional(providerId: string): boolean {
 /** La clave que viaja de verdad: la tuya si la hay; si no, la anónima solo en
  * los proveedores de clave opcional. En el resto, vacía (como antes). */
 export function claveEfectiva(providerId: string, apiKey: string): string {
-  const k = (apiKey ?? "").trim();
+  const k = limpiarClave(providerId, apiKey ?? "");
   if (k) return k;
   return esClaveOpcional(providerId) ? ZEN_CLAVE_ANONIMA : "";
 }
