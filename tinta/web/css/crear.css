@@ -567,3 +567,5 @@ dialog.picker{width:min(580px,calc(100vw - 20px))}
 .pick-filters button{font:inherit;font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--white);color:var(--ink);cursor:pointer}
 .pick-filters button[aria-pressed=true]{background:#242422;color:#fff;border-color:transparent}
 .pick-card[hidden]{display:none!important}
+
+.borde-chips{display:flex;flex-wrap:wrap;gap:6px}.borde-chip{display:flex;align-items:center;gap:7px;padding:5px 11px 5px 5px;border:1px solid #d9d5ca;border-radius:999px;background:#fff;color:#242421;font-size:11px;cursor:pointer}.borde-chip[aria-pressed=true]{border-color:#ff704b;background:#fff1ec}.borde-chip:disabled{opacity:.45;cursor:not-allowed}.borde-pv{display:block;width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#ff704b,#ffb347 55%,#4aa0d8)}:root[data-theme=dark] .borde-chip{background:#1c1c1f;border-color:#404047;color:#f0efe9}:root[data-theme=dark] .borde-chip[aria-pressed=true]{background:#3a2a24;border-color:#ff704b}

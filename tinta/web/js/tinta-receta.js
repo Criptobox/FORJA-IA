@@ -7,7 +7,7 @@
 (function (root) {
   'use strict';
   const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  const ROLE_NAME = { header: 'cabeceras', cards: 'tarjetas', actions: 'botones', nav: 'barras', data: 'datos', widgets: 'widgets', list: 'listas', forms: 'formularios', inputs: 'campos', notices: 'avisos' };
+  const ROLE_NAME = { perfil: 'perfil', ajustes: 'ajustes', header: 'cabeceras', cards: 'tarjetas', actions: 'botones', nav: 'barras', data: 'datos', widgets: 'widgets', list: 'listas', forms: 'formularios', inputs: 'campos', notices: 'avisos' };
   const COMPACT_CAP = { cards: 10, header: 5, nav: 5, actions: 4 };
   const ROLE_CAP = { cards: 26, header: 14, nav: 14, actions: 8 }, DEF_CAP = 6;
   const MAX_BLOCKS = 14, MAX_TEXTS = 8, MAX_TEXT_LEN = 120;

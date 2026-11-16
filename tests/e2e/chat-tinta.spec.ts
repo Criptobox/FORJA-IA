@@ -448,3 +448,69 @@ test("las tres versiones del equipo se cambian desde la respuesta, sin gastar IA
   await expect(page.getByTestId("informe-equipo").last().getByTestId("version-critico")).toHaveAttribute("aria-pressed", "true");
   expect(cuerpos.length).toBe(antes);
 });
+
+test("Biblioteca de diseño: hay un apartado «Perfil y ajustes» con diseños de perfil, listas de ajustes y edición", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 412, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /¿Qué quieres crear/ })).toBeVisible({ timeout: 60_000 });
+  await page.getByTestId("atajo-biblioteca").click();
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#motorEditBar")).toContainText("Biblioteca de diseño", { timeout: 30_000 });
+  await motor.getByText("Perfil y ajustes").first().click();
+  for (const sub of ["Cabeceras de perfil", "Listas de ajustes", "Editar perfil y región"]) {
+    await expect(motor.getByText(sub)).not.toHaveCount(0, { timeout: 15_000 });
+  }
+  await expect(motor.getByText("Banda de color con actividad").first()).toBeVisible();
+  await expect(motor.getByText("Ajustes con avatar y lápiz").first()).toBeVisible();
+  await expect(motor.getByText("Idioma y región").first()).toBeVisible();
+});
+
+test("fotos reales con degradado en los bordes: se aplican a la foto y quedan en la app exportada", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1400, height: 900 });
+  await seed(page);
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app para mi cafetería con pedidos");
+  await enviar(page);
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 60_000 });
+  // el motor dibuja una tarjeta con foto: con cada degradado sale la foto con su máscara
+  const r = await page.evaluate(async () => {
+    const ifr = document.querySelector('iframe[title="Motor de diseño Tinta"]') as HTMLIFrameElement;
+    let n = 9000;
+    const pedir = (datos: unknown) =>
+      new Promise<{ datos?: { html?: string; borrador?: Record<string, unknown> } }>((ok) => {
+        const id = n++;
+        const f = (ev: MessageEvent) => {
+          // solo lo que contesta el motor, desde su iframe y de este mismo origen
+          if (ev.origin !== location.origin || ev.source !== ifr.contentWindow) return;
+          if (ev.data && ev.data.id === id) {
+            window.removeEventListener("message", f);
+            ok(ev.data);
+          }
+        };
+        window.addEventListener("message", f);
+        ifr.contentWindow!.postMessage({ tipo: "tinta:pedir", id, accion: "dibujar", datos }, location.origin);
+        setTimeout(() => ok({}), 20000);
+      });
+    const receta = { brief: "cafetería", blocks: [{ id: "h-minimal" }, { id: "c-coffee" }, { id: "n-soft" }], palette: "mandarina", font: "jakarta", mode: "light" };
+    const base = await pedir({ receta, idea: "cafetería" });
+    const foto = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    const salida: Record<string, { img: boolean; borde: boolean; mascara: boolean }> = {};
+    for (const borde of ["abajo", "lados", "vineta", "diagonal", "marco"]) {
+      const borrador = { ...(base.datos?.borrador ?? {}), assets: { "c-coffee": { images: [{ src: foto, alt: "Café", borde }], links: [] } } };
+      const m = await pedir({ receta, idea: "cafetería", borrador });
+      const h = m.datos?.html ?? "";
+      salida[borde] = { img: h.includes("<img"), borde: h.includes(`data-tinta-borde="${borde}"`), mascara: h.includes("mask-image") };
+    }
+    const sin = await pedir({ receta, idea: "cafetería", borrador: { ...(base.datos?.borrador ?? {}), assets: { "c-coffee": { images: [{ src: foto, alt: "Café" }], links: [] } } } });
+    return { salida, sinBorde: (sin.datos?.html ?? "").includes("data-tinta-borde=") };
+  });
+  for (const borde of ["abajo", "lados", "vineta", "diagonal", "marco"]) {
+    expect(r.salida[borde], borde).toEqual({ img: true, borde: true, mascara: true });
+  }
+  expect(r.sinBorde).toBe(false);
+});

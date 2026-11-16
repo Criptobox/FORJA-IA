@@ -38,8 +38,8 @@
     const card = n => ctx.cardId ? [{ id: ctx.cardId, repeat: n, offset: 3, role: 'cards' }] : [];
     /* El perfil no es el mismo en todas las apps: cada sector arma el suyo con piezas distintas
        (anillo y medidor de meta en fitness, cifras y movimientos en finanzas, portada y listas en música…). */
-    const roleOf = id => /^(av-|lib-ava-)/.test(id) ? 'avatars' : /^lib-lis-/.test(id) ? 'list' : 'widget';
-    const sectorPerfil = PERFIL_BLOQUES[ctx.sectorId];
+    const roleOf = id => /^(av-|lib-ava-)/.test(id) ? 'avatars' : /^pf-(aj-|editar|idioma)/.test(id) ? 'ajustes' : /^pf-/.test(id) ? 'perfil' : /^lib-lis-/.test(id) ? 'list' : 'widget';
+    const opciones = PERFIL_BLOQUES[ctx.sectorId], sectorPerfil = opciones ? opciones[(ctx.semilla || 0) % opciones.length] : null;
     const perfilSector = sectorPerfil ? plain.concat(sectorPerfil.map(id => ({ id, repeat: 1, offset: 0, role: roleOf(id) })), ctx.actionId ? [{ id: ctx.actionId, repeat: 1, offset: 0, role: 'actions' }] : []) : null;
     return {
       explorar: header.concat(card(4)),
@@ -47,15 +47,16 @@
       perfil: perfilSector || plain.concat((ctx.avatarId || ctx.hasAvatar) ? [{ id: ctx.avatarId || 'lib-ava-3', repeat: 1, offset: 0, role: 'avatars' }] : [], ctx.hasList ? [{ id: 'lib-lis-1', repeat: 1, offset: 0, role: 'list' }] : [], ctx.actionId ? [{ id: ctx.actionId, repeat: 1, offset: 0, role: 'actions' }] : [])
     };
   }
+  /* Cada sector tiene dos perfiles; la idea (su «semilla») elige uno. Las piezas «pf-» son de «Perfil y ajustes». */
   const PERFIL_BLOQUES = {
-    fitness: ['av-anillo', 'w-gauge', 'w-semana', 'lib-lis-1'],
-    finanzas: ['av-iniciales', 'r-stats3', 'lib-lis-2', 'lib-lis-1'],
-    musica: ['av-portada', 'lib-lis-3', 'lib-lis-1'],
-    tienda: ['av-perfil', 'w-pasos', 'lib-lis-1'],
-    comida: ['av-fila', 'w-pasos', 'lib-lis-1'],
-    viajes: ['av-portada', 'w-pasos', 'lib-lis-1'],
-    salud: ['av-anillo', 'w-gauge', 'lib-lis-1'],
-    educacion: ['av-iniciales', 'w-gauge', 'w-semana', 'lib-lis-1']
+    fitness: [['pf-tiles', 'w-semana', 'pf-aj-iconos'], ['av-anillo', 'w-gauge', 'w-semana', 'pf-aj-iconos']],
+    finanzas: [['pf-saldo', 'lib-lis-2', 'pf-aj-simple'], ['pf-datos', 'r-stats3', 'pf-aj-iconos']],
+    musica: [['pf-oscuro', 'lib-lis-3', 'pf-aj-iconos'], ['pf-bio', 'lib-lis-3', 'pf-aj-simple']],
+    tienda: [['pf-portada', 'w-pasos', 'pf-aj-iconos'], ['pf-banda', 'pf-aj-atajos', 'pf-aj-simple']],
+    comida: [['pf-banda', 'w-pasos', 'pf-aj-iconos'], ['pf-tiles', 'w-pasos', 'pf-aj-simple']],
+    viajes: [['pf-bio', 'w-pasos', 'pf-aj-simple'], ['pf-portada', 'pf-aj-atajos', 'pf-aj-iconos']],
+    salud: [['pf-datos', 'w-gauge', 'pf-aj-atajos'], ['pf-tiles', 'w-gauge', 'pf-aj-iconos']],
+    educacion: [['pf-portada', 'w-gauge', 'pf-aj-atajos'], ['pf-oscuro', 'w-semana', 'pf-aj-iconos']]
   };
   /* Texto de la acción principal en cada pantalla generada. */
   const ACTION_TEXT = { explorar: null, guardados: null, perfil: 'Editar mi perfil' };
