@@ -11,8 +11,8 @@ import { expect, test, type Page } from "./fixtures";
  * en el mensaje, no en un toast.
  */
 
-async function seed(page: Page) {
-  await page.addInitScript(() => {
+async function seed(page: Page, soloRotos = false) {
+  await page.addInitScript((soloRotos) => {
     if (window.top !== window.self) return;
     try {
       localStorage.setItem(
@@ -43,13 +43,17 @@ async function seed(page: Page) {
                 models: ["modelo-retirado-que-no-existe"],
                 useProxy: false,
               },
-              groq: {
-                apiKey: "test-key-123",
-                baseUrl: "/api/mock-llm",
-                enabled: true,
-                models: ["mock-mini-free"],
-                useProxy: false,
-              },
+              ...(soloRotos
+                ? {}
+                : {
+                    groq: {
+                      apiKey: "test-key-123",
+                      baseUrl: "/api/mock-llm",
+                      enabled: true,
+                      models: ["mock-mini-free"],
+                      useProxy: false,
+                    },
+                  }),
             },
             version: 1,
           },
@@ -60,7 +64,7 @@ async function seed(page: Page) {
     } catch {
       /* marco sin acceso */
     }
-  });
+  }, soloRotos);
 }
 
 test("el expediente cuenta qué falló antes de la respuesta que ves", async ({ page }) => {
@@ -86,15 +90,15 @@ test("el expediente cuenta qué falló antes de la respuesta que ves", async ({ 
   // el titular dice de una que respondió el segundo
   await expect(main).toContainText("2º modelo");
   // y el detalle nombra al que falló, con su código
-  await expect(main).toContainText("Antes fallaron");
+  await expect(main).toContainText("Intento 1");
   await expect(main).toContainText("modelo-retirado-que-no-existe");
-  await expect(main).toContainText("404");
+  await expect(main).toContainText("ese modelo ya no existe");
   // el que respondió también está
   await expect(main).toContainText("Respondió");
 
   // se cierra
   await boton.click();
-  await expect(main).not.toContainText("Antes fallaron");
+  await expect(main).not.toContainText("Intento 1");
 });
 
 test("el dinero del expediente nunca sale sin decir de cuándo es el precio", async ({ page }) => {
@@ -118,4 +122,20 @@ test("el dinero del expediente nunca sale sin decir de cuándo es el precio", as
   const conFecha = /precios de \d{4}-\d{2}-\d{2}/.test(linea);
   const sinDato = linea.includes("sin dato");
   expect(conFecha || sinDato).toBe(true);
+});
+
+test("cuando NO termina, «por qué» cuenta cada intento y su motivo en palabras", async ({ page }) => {
+  await seed(page, true);
+  await page.goto("/");
+  const input = page.locator("textarea").first();
+  await expect(input).toBeVisible({ timeout: 30_000 });
+  await input.fill("hola");
+  await page.getByRole("button", { name: "Enviar mensaje" }).click();
+  const boton = page.locator("main").getByRole("button", { name: "por qué" }).first();
+  await expect(boton).toBeVisible({ timeout: 60_000 });
+  await boton.click();
+  const main = page.locator("main");
+  await expect(main).toContainText("No terminó");
+  await expect(main).toContainText("Intento 1");
+  await expect(main).toContainText("ese modelo ya no existe");
 });
