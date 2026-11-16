@@ -24,7 +24,9 @@ describe("web de escritorio sin IA", () => {
     }
     expect(html).toContain("Reserva tu mesa");
     expect(html).toContain("Pendiente"); // no inventa teléfono ni dirección
-    expect(html).not.toMatch(/https?:\/\/(?!www\.w3\.org)/);
+    // ninguna dirección externa: lo único con «http» es el espacio de nombres del SVG del icono
+    const direcciones = html.split(/[\s"'<>()]+/).filter((t) => t.startsWith("http"));
+    expect(direcciones.every((t) => t === "http://www.w3.org/2000/svg")).toBe(true);
     expect(html).not.toMatch(/<script/i);
   });
   it("respeta el nombre que da la persona y no sale igual para encargos distintos", () => {
