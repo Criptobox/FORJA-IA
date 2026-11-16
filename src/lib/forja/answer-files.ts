@@ -273,3 +273,32 @@ export function nombreDescarga(titulo: string | null | undefined, extension: str
   const fecha = new Date().toISOString().slice(0, 10);
   return `${base || "forja"}-${fecha}.${extension}`;
 }
+
+/** Cambia el código de un archivo dentro de la respuesta (el último bloque con
+ *  esa ruta, que es el que vale). Es lo que guarda el editor de archivos de la
+ *  vista previa: el cambio queda en la respuesta, así que sale en el ZIP, en
+ *  GitHub y en lo que se le pida después a la IA. */
+export function reemplazarArchivo(
+  content: string,
+  path: string,
+  nuevo: string
+): { ok: true; contenido: string } | { ok: false; motivo: string } {
+  if (/```/.test(nuevo)) return { ok: false, motivo: "el código no puede llevar tres comillas invertidas seguidas (```)" };
+  const bs = bloquesConNombre(content).filter((b) => b.path === path);
+  const b = bs[bs.length - 1];
+  if (!b) return { ok: false, motivo: "ese archivo no está escrito en la respuesta" };
+  const trozo = content.slice(b.inicio, b.fin);
+  const nl = trozo.indexOf("\n");
+  const cierre = trozo.lastIndexOf("```");
+  if (nl < 0 || cierre <= nl) return { ok: false, motivo: "no encontré dónde empieza y acaba ese archivo" };
+  const cuerpo = nuevo.replace(/\s+$/, "");
+  return { ok: true, contenido: content.slice(0, b.inicio) + trozo.slice(0, nl + 1) + cuerpo + "\n" + trozo.slice(cierre) + content.slice(b.fin) };
+}
+
+/** Los archivos que de verdad están escritos en la respuesta (los que se pueden
+ *  editar), una vez cada uno: el último bloque con cada ruta. */
+export function archivosEditables(content: string | null | undefined): { path: string; text: string }[] {
+  const porRuta = new Map<string, string>();
+  for (const b of bloquesConNombre(content)) porRuta.set(b.path, b.text);
+  return [...porRuta].map(([path, text]) => ({ path, text }));
+}

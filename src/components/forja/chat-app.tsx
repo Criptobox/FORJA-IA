@@ -148,6 +148,7 @@ import {
 import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } from "@/lib/forja/memoria-proyecto";
 import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
 import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
+import { archivosEditables, reemplazarArchivo } from "@/lib/forja/answer-files";
 import { esPedidoNuevo, usaTinta, ultimaApp, resumenApp, promptProyectoDesdeApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
 import { candidatos } from "@/lib/forja/estudio/generador";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
@@ -1267,6 +1268,25 @@ export function ChatApp() {
     setMobilePreviewOpen(false);
     requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>("textarea[data-compositor]")?.focus());
   }, []);
+
+  /** Guarda un archivo editado a mano en la pestaña de código de la vista
+   *  previa: el cambio va a la respuesta (o a la app de Tinta), sin IA. */
+  const editarArchivoDePreview = useCallback(
+    (path: string, texto: string): { ok: boolean; motivo?: string } => {
+      if (!activeSession || !previewMsg) return { ok: false, motivo: "no hay ninguna vista previa abierta" };
+      const app = previewMsg.tintaApp;
+      if (app && !archivosEditables(previewMsg.content).length) {
+        if (path !== "index.html") return { ok: false, motivo: "esta app solo tiene index.html" };
+        updateMessage(activeSession.id, previewMsg.id, { tintaApp: { ...app, html: texto } });
+        return { ok: true };
+      }
+      const r = reemplazarArchivo(previewMsg.content, path, texto);
+      if (!r.ok) return { ok: false, motivo: r.motivo };
+      updateMessage(activeSession.id, previewMsg.id, { content: r.contenido });
+      return { ok: true };
+    },
+    [activeSession, previewMsg, updateMessage]
+  );
 
   /** Guarda en la respuesta los estilos tocados en la vista previa. */
   const editarEstiloDePreview = useCallback(
@@ -2452,6 +2472,7 @@ export function ChatApp() {
               onFixLive={arreglarErroresEnVivo}
               onEditText={editarTextoDePreview}
               onEditStyle={editarEstiloDePreview}
+              onEditFile={editarArchivoDePreview}
               onSenalar={senalarDePreview}
             />
           </ResizablePanel>
@@ -2487,6 +2508,7 @@ export function ChatApp() {
               onFixLive={arreglarErroresEnVivo}
               onEditText={editarTextoDePreview}
               onEditStyle={editarEstiloDePreview}
+              onEditFile={editarArchivoDePreview}
               onSenalar={senalarDePreview}
             />
           )}
