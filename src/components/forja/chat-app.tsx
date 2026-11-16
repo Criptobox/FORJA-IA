@@ -149,6 +149,7 @@ import { addDiseno, deArchivosForja, guardarMemoria, hayForjaEn, leerMemoria } f
 import { direccionDelProyecto, idsRecientes, pideCambioDeEstilo } from "@/lib/forja/contrato-diseno";
 import { construirPropuesta, datosPendientes, debeProponer, direccionElegida } from "@/lib/forja/propuesta-diseno";
 import { archivosEditables, reemplazarArchivo } from "@/lib/forja/answer-files";
+import { esPedidoDeWeb } from "@/lib/forja/web/landing-local";
 import { esPedidoNuevo, usaTinta, ultimaApp, resumenApp, promptProyectoDesdeApp, type AppTinta } from "@/lib/forja/tinta/forja-web";
 import { candidatos } from "@/lib/forja/estudio/generador";
 import { recomendarModelo } from "@/lib/forja/recomendacion";
@@ -807,6 +808,25 @@ export function ChatApp() {
    *  la biblioteca. La primera versión pasa por el equipo de agentes; cada
    *  cambio se redibuja sobre la receta actual. La respuesta es de «Forja IA»
    *  y la app sale en la vista previa. Ver `tinta/forja-web.ts`. */
+  /** Sin IA, una «página web» sale como web de escritorio completa (no como
+   *  app de móvil): la arma `landing-local.ts` y va al chat como index.html,
+   *  así se ve en la vista previa, se edita y se descarga como cualquier otra. */
+  const runWebLocal = useCallback(
+    async (sessionId: string, pedido: string) => {
+      const { landingLocal } = await import("@/lib/forja/web/landing-local");
+      const w = landingLocal(pedido);
+      addMessage(sessionId, {
+        id: uid(),
+        role: "assistant",
+        content: `Te preparé la web de **${w.marca}** sin gastar IA: portada, ventajas, catálogo, ofertas, opiniones, quiénes somos, formulario y pie. Lo que no sé de tu negocio (teléfono, dirección, horario) queda como «Pendiente»: cámbialo en la pestaña de código o pídeme cambios cuando conectes una IA.\n\n\`\`\`html — index.html\n${w.html}\n\`\`\``,
+        createdAt: Date.now(),
+        viaForjaWeb: true,
+        model: "forja::tinta",
+      });
+    },
+    [addMessage]
+  );
+
   const runTinta = useCallback(
     async (sessionId: string, pedido: string) => {
       const st = useForja.getState();
@@ -989,7 +1009,16 @@ export function ChatApp() {
       // Entonces no hay modelo escribiendo: ni skills ni modo agente tienen
       // nada que mejorar, y sus avisos solo estorban.
       const claveActual = session?.modelKey ?? state.settings.defaultModelKey;
+      // Sin ninguna IA, una página web (no una app) se arma en local como web
+      // de escritorio: ver `runWebLocal`.
+      const webLocal =
+        (isForjaWebKey(claveActual ?? "") || isAutoKey(claveActual ?? AUTO_MODEL_KEY)) &&
+        candidatos(null).length === 0 &&
+        attachments.length === 0 &&
+        !ultimaApp(session?.messages ?? []) &&
+        esPedidoDeWeb(text);
       const vaATinta =
+        !webLocal &&
         // También con AUTO: pedir una app y que el modo agente cambie de modelo
         // sin lograr nada es peor que el equipo de diseño, que no necesita IA.
         (isForjaWebKey(claveActual ?? "") || isAutoKey(claveActual ?? AUTO_MODEL_KEY)) &&
@@ -1002,7 +1031,7 @@ export function ChatApp() {
 
       // Primer mensaje de la conversación y modo agente apagado: si parece un
       // encargo de construir algo, se PROPONE. Nunca se activa solo.
-      if (!vaATinta && !state.settings.agentMode && !session?.messages.length && !agentSugerido) {
+      if (!vaATinta && !webLocal && !state.settings.agentMode && !session?.messages.length && !agentSugerido) {
         const sug = suggestAgentMode(text);
         if (sug.suggest) {
           setAgentSugerido(true);
@@ -1025,7 +1054,7 @@ export function ChatApp() {
       // clasificaba el encargo para elegir modelo; aquí la misma señal sirve
       // para decir qué skill ayudaría. Se PROPONE: el clic es tuyo, y el
       // aviso trae el precio en caracteres para que decidas con el dato.
-      if (text && !vaATinta) {
+      if (text && !vaATinta && !webLocal) {
         const tarea = classifyTask(text);
         const sugerencias = skillsSugeridas(tarea.kind, state.skills, skillsPropuestas.current);
         for (const sug of sugerencias) {
@@ -1110,6 +1139,10 @@ export function ChatApp() {
         // Con FORJA WEB elegido, una app nueva (o un cambio sobre la app que
         // ya está en la vista previa) la arma Tinta. Webs y landings siguen
         // con el sistema de FORJA WEB de siempre.
+        if (webLocal) {
+          void runWebLocal(sessionId, text);
+          return;
+        }
         if (vaATinta) {
           void runTinta(sessionId, text);
           return;
@@ -1179,7 +1212,7 @@ export function ChatApp() {
 
       proceder();
     },
-    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo, clearDraft, runTinta]
+    [input, attachments, docs, senalados, imageMode, agentSugerido, ensureSession, addMessage, runGeneration, runConsensus, runOrquesta, orquestaArmada, sendImage, setSettings, sandboxInitial, removeReglaNo, clearDraft, runTinta, runWebLocal]
   );
 
   /** «Convertir en app completa»: la maqueta de Tinta pasa a la IA como un
