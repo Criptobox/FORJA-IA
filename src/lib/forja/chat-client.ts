@@ -40,6 +40,20 @@ import {
   type ModeloZenProbado,
   type ResultadoSondeoZen,
 } from "./opencode-zen";
+import {
+  cabecerasDeRuta,
+  completoDeRuta,
+  cuerpoDePruebaZen,
+  cuerpoDeRuta,
+  esErrorDeRuta,
+  esFalloZen,
+  ordenDeRutas,
+  pathDeRuta,
+  recordarRuta,
+  rutaZen,
+  traductorDeRuta,
+  type RutaZen,
+} from "./zen-rutas";
 import { costeDeModelo } from "./precios";
 import { aligerarParaContexto, GGUF_PROVIDER_ID, type CuerpoOpenAI } from "./gguf-mensajes";
 import { EN_APK, estadoMotorNativo } from "./plataforma";
@@ -781,19 +795,30 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
       const extra: Record<string, string> = {};
       if (providerId === "openrouter") extra["HTTP-Referer"] = location.origin;
       if (providerId === "nvidia" && settings.stream) extra.Accept = "text/event-stream";
-      const req = buildRequest(endpoint(base, "/chat/completions"), opts, {
-        Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
-        ...extra,
-      });
+      // OpenCode Zen sirve cada modelo por SU endpoint (`/responses`,
+      // `/messages` o `/chat/completions`). El agente sigue hablando OpenAI y
+      // aquí solo se traduce el cable (zen-rutas.ts): el cuerpo de ida y los
+      // trozos de vuelta, que pasan por el mismo `handle` de siempre.
+      const rutaZ: RutaZen = providerId === "opencode" ? rutaZen(modelId) : "chat";
+      const cuerpoJson = JSON.stringify(rutaZ === "chat" ? body : cuerpoDeRuta(rutaZ, body));
+      const req = buildRequest(
+        endpoint(base, pathDeRuta(rutaZ)),
+        opts,
+        rutaZ === "chat"
+          ? { Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`, ...extra }
+          : cabecerasDeRuta(rutaZ, claveEfectiva(providerId, config.apiKey))
+      );
       const res = await loggedFetch(
         req.target,
-        { providerId, providerName: def.name, modelId, url: req.upstream, headers: req.logHeaders, body: JSON.stringify(body) },
-        { method: "POST", headers: req.headers, body: JSON.stringify(body), signal }
+        { providerId, providerName: def.name, modelId, url: req.upstream, headers: req.logHeaders, body: cuerpoJson },
+        { method: "POST", headers: req.headers, body: cuerpoJson, signal }
       );
       recordQuotaHeaders(providerId, res.headers);
       await assertOk(res, def.name);
       if (!settings.stream) {
-        const j = await res.json();
+        const j = (rutaZ === "chat" ? await res.json() : completoDeRuta(rutaZ, await res.json())) as {
+          choices?: { message?: { content?: string | null; tool_calls?: unknown[] } }[];
+        };
         anotarMotivo("openai", j);
         anotarUso(j);
         content = j.choices?.[0]?.message?.content ?? "";
@@ -810,9 +835,19 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
         }
         push();
       } else {
+        const traductor = rutaZ === "chat" ? null : traductorDeRuta(rutaZ);
+        const fallo = { texto: "" };
         await readSSE(res, (payload) => {
-          try { handle(JSON.parse(payload)); } catch { /* ignore */ }
+          let ev: unknown;
+          try { ev = JSON.parse(payload); } catch { return; }
+          for (const trozo of traductor ? traductor(ev) : [ev]) {
+            if (esFalloZen(trozo)) { fallo.texto = trozo.__zenError; continue; }
+            try { handle(trozo as Parameters<typeof handle>[0]); } catch { /* ignore */ }
+          }
         });
+        // Un error que llega dentro del stream (con HTTP 200) también corta:
+        // si no, la burbuja se quedaba vacía sin decir por qué.
+        if (fallo.texto) throw new Error(`${def.name}: ${fallo.texto}`);
       }
     }
   }
@@ -924,7 +959,7 @@ export async function probarZenSinClave(
   // Una llamada real por modelo (máx. 12, de 3 en 3 para no comerse el límite):
   // estar en el catálogo NO significa que Zen lo sirva. Los «-free» se retiran
   // sin avisar y entonces contesta 400 «Model is unavailable».
-  const candidatos = gratis.slice(0, 12);
+  const candidatos = gratis.slice(0, 16);
   const probados: ModeloZenProbado[] = [];
   const respuestas = new Map<string, { status: number; texto: string }>();
   let siguiente = 0;
@@ -934,20 +969,33 @@ export async function probarZenSinClave(
       const i = siguiente++;
       if (i >= candidatos.length || caidaDeRed) return;
       const modelo = candidatos[i];
-      const req = buildRequest(endpoint(base, "/chat/completions"), { config, providerId }, {
-        Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
-      });
       try {
-        const res = await fetch(req.target, {
-          method: "POST",
-          headers: req.headers,
-          // 16 y no 1: los modelos que razonan rechazan o truncan un tope diminuto
-          body: JSON.stringify({ model: modelo, max_tokens: 16, messages: [{ role: "user", content: "hi" }] }),
-          signal: AbortSignal.timeout(15_000),
-        });
-        const texto = res.ok ? "" : await res.text().catch(() => "");
-        respuestas.set(modelo, { status: res.status, texto });
-        probados.push({ id: modelo, veredicto: clasificarModeloZen(res.status, texto), status: res.status });
+        // Cada modelo vive en una ruta (`/chat/completions`, `/responses` o
+        // `/messages`): se prueba la suya y, si el fallo huele a «ruta
+        // equivocada», las otras. La que responde se recuerda para el chat.
+        let ultimo = { status: 0, texto: "" };
+        for (const ruta of ordenDeRutas(modelo)) {
+          const req = buildRequest(
+            endpoint(base, pathDeRuta(ruta)),
+            { config, providerId },
+            cabecerasDeRuta(ruta, claveEfectiva(providerId, config.apiKey))
+          );
+          const res = await fetch(req.target, {
+            method: "POST",
+            headers: req.headers,
+            body: JSON.stringify(cuerpoDePruebaZen(ruta, modelo)),
+            signal: AbortSignal.timeout(15_000),
+          });
+          const texto = res.ok ? "" : await res.text().catch(() => "");
+          ultimo = { status: res.status, texto };
+          if (res.ok) {
+            recordarRuta(modelo, ruta);
+            break;
+          }
+          if (!esErrorDeRuta(res.status, texto)) break;
+        }
+        respuestas.set(modelo, ultimo);
+        probados.push({ id: modelo, veredicto: clasificarModeloZen(ultimo.status, ultimo.texto), status: ultimo.status });
       } catch (e) {
         caidaDeRed = e instanceof Error ? e.message : "error de red";
       }
@@ -1093,8 +1141,16 @@ export async function probeModel(
       at: Date.now(),
     };
   }
-  const req = peticionDePrueba(providerId, config, modelId);
-  const body = JSON.stringify(cuerpoDePrueba(def.protocol, modelId));
+  const rutaZ: RutaZen = providerId === "opencode" ? rutaZen(modelId) : "chat";
+  const req =
+    rutaZ === "chat"
+      ? peticionDePrueba(providerId, config, modelId)
+      : buildRequest(
+          endpoint((config.baseUrl || def.baseUrl).trim(), pathDeRuta(rutaZ)),
+          { config, providerId },
+          cabecerasDeRuta(rutaZ, claveEfectiva(providerId, config.apiKey))
+        );
+  const body = JSON.stringify(rutaZ === "chat" ? cuerpoDePrueba(def.protocol, modelId) : cuerpoDePruebaZen(rutaZ, modelId));
 
   try {
     const res = await fetch(req.target, { method: "POST", headers: req.headers, body, signal });

@@ -10,6 +10,7 @@
  *
  * Todo lo de este archivo es puro: se prueba sin red. */
 import { limpiarClave } from "./clave-revisada";
+import { rutaSoportada } from "./zen-rutas";
 
 /** Clave anónima que usa el propio OpenCode para sus modelos gratuitos. */
 export const ZEN_CLAVE_ANONIMA = "public";
@@ -40,12 +41,15 @@ export function esModeloGratisZen(id: string): boolean {
   return /-free$/.test(m) || GRATIS_SIN_SUFIJO.includes(m);
 }
 
-/** Zen no usa el mismo endpoint para todos sus modelos: GPT va por
- * `/responses`, Claude/Qwen/MiniMax por `/messages` y Gemini por una ruta
- * propia. Forja IA habla `/chat/completions`, y contra esos modelos Zen
- * responde 400/404. Se apartan del catálogo en vez de dejar que fallen. */
-export function hablaChatCompletions(id: string): boolean {
-  return !/^(gpt-|o\d|claude|qwen|minimax|gemini)/i.test(id.trim());
+/** ¿Sabe Forja IA hablar con este modelo de Zen?
+ *
+ * Zen no usa el mismo endpoint para todos: GPT va por `/responses`,
+ * Claude/MiniMax por `/messages` y Gemini por una ruta propia. Antes solo se
+ * hablaba `/chat/completions` y todo lo demás se apartaba del catálogo; ahora
+ * `zen-rutas.ts` traduce `/responses` y `/messages`, así que solo queda fuera
+ * Gemini. */
+export function modeloSoportadoZen(id: string): boolean {
+  return rutaSoportada(id);
 }
 
 /** Saca el mensaje legible de un cuerpo de error (JSON de OpenAI o texto). */
@@ -144,7 +148,7 @@ export function clasificarRespuestaZen(
 
 /** Extrae los ids `-free` de la respuesta de `GET /models`. Pura. */
 export function modelosGratisDeCatalogo(ids: readonly string[]): string[] {
-  return [...new Set(ids.filter((id) => esModeloGratisZen(id) && hablaChatCompletions(id)))].sort();
+  return [...new Set(ids.filter((id) => esModeloGratisZen(id) && modeloSoportadoZen(id)))].sort();
 }
 
 /** Veredicto de una llamada de chat a UN modelo. Pura. Zen retira los `-free`
@@ -185,13 +189,12 @@ export function gratisDelCatalogoOficial(json: unknown): string[] {
 }
 
 /** Une el catálogo vivo de Zen (los `-free`) con el oficial (coste $0): lo que
- * salga en cualquiera de los dos, sin duplicados y solo lo que habla
- * `/chat/completions`. Luego cada uno se comprueba con una llamada real. */
+ * salga en cualquiera de los dos, sin duplicados y solo lo que Forja IA sabe hablar. Luego cada uno se comprueba con una llamada real. */
 export function unirGratisZen(vivos: readonly string[], oficiales: readonly string[]): string[] {
   const todos = new Set<string>();
   for (const id of [...vivos, ...oficiales]) {
     const limpio = id.trim();
-    if (limpio && hablaChatCompletions(limpio)) todos.add(limpio);
+    if (limpio && modeloSoportadoZen(limpio)) todos.add(limpio);
   }
   return [...todos].sort();
 }
