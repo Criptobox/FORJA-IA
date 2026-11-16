@@ -78,6 +78,45 @@ export type EstadoSondeoZen =
   | "servicio"
   | "otro";
 
+/** ¿Es el tope de uso GRATIS de Zen («Free usage limit reached»)? Es de la
+ * cuenta o de la conexión, no del modelo: si salta con uno, saltará con todos. */
+export function esTopeGratisZen(texto: string): boolean {
+  return /free usage limit|FreeUsageLimit/i.test(texto ?? "");
+}
+
+/** Tras un tope de uso gratis, cuánto se espera antes de volver a sondear. */
+export const ESPERA_TOPE_ZEN_MS = 10 * 60_000;
+const CLAVE_TOPE_ZEN = "forja-zen-tope";
+
+export interface AlmacenTope {
+  getItem(clave: string): string | null;
+  setItem(clave: string, valor: string): void;
+}
+
+function almacenTope(): AlmacenTope | null {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** Hasta cuándo (epoch ms) conviene no sondear Zen; 0 si no hay tope anotado. */
+export function topeZenHasta(almacen: AlmacenTope | null = almacenTope()): number {
+  if (!almacen) return 0;
+  const n = Number(almacen.getItem(CLAVE_TOPE_ZEN));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+/** Anota que Zen dijo «se acabó el uso gratis». */
+export function anotarTopeZen(ahora: number, esperaMs: number = ESPERA_TOPE_ZEN_MS, almacen: AlmacenTope | null = almacenTope()): void {
+  try {
+    almacen?.setItem(CLAVE_TOPE_ZEN, String(ahora + Math.max(60_000, esperaMs)));
+  } catch {
+    /* sin almacenamiento: solo se pierde la memoria del tope */
+  }
+}
+
 /** Qué pasó con UN modelo gratis al llamarlo de verdad. */
 export type VeredictoModeloZen = "funciona" | "retirado" | "limitado" | "requiere-clave" | "otro";
 

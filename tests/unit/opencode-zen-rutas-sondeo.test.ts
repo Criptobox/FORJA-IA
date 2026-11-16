@@ -12,6 +12,7 @@ vi.mock("../../src/lib/forja/attachment-blob", () => ({
 import { probarZenSinClave, probeModel } from "../../src/lib/forja/chat-client";
 import { probeTools, _clearToolsCacheForTests } from "../../src/lib/forja/tools-probe";
 import { rutaZen } from "../../src/lib/forja/zen-rutas";
+import { topeZenHasta, esTopeGratisZen } from "../../src/lib/forja/opencode-zen";
 import type { ProviderConfig } from "../../src/lib/forja/types";
 
 const cfg = (): ProviderConfig => ({ apiKey: "", enabled: false, models: [], useProxy: false }) as ProviderConfig;
@@ -104,5 +105,40 @@ describe("probeModel y probeTools usan la ruta del modelo", () => {
     await probeTools("opencode", cfg(), "gpt-5-nano");
     expect(cuerpo.max_output_tokens).toBe(16);
     expect((cuerpo.tools as { strict: boolean }[])[0].strict).toBe(false);
+  });
+});
+
+const TOPE = '{"type":"error","error":{"type":"FreeUsageLimitError","message":"Free usage limit reached. Free models work in OpenCode (https://opencode.ai); subscribe to OpenCode Go to keep going: https://opencode.ai/go"}}';
+
+describe("tope de uso gratis de Zen", () => {
+  it("reconoce el mensaje real de Zen", () => {
+    expect(esTopeGratisZen(TOPE)).toBe(true);
+    expect(esTopeGratisZen("Model is unavailable")).toBe(false);
+  });
+
+  it("al primer tope deja de probar (no es del modelo, es de la cuenta) y no vuelve a probar enseguida", async () => {
+    const ids = ["a-free", "b-free", "c-free", "d-free", "e-free", "f-free"];
+    const todos: Record<string, Partial<Record<string, Resp>>> = {};
+    for (const id of ids) todos[id] = { "/chat/completions": { status: 429, body: TOPE } };
+    const vistas = simular(ids, todos);
+    const r = await probarZenSinClave("opencode", cfg());
+    expect(vistas.length).toBeLessThanOrEqual(2); // los que ya iban en vuelo, no una ráfaga
+    expect(r.mensaje).toMatch(/agotó el uso gratis/);
+    expect(r.gratis).toEqual(expect.arrayContaining(ids)); // ninguno desaparece de la lista
+    expect(topeZenHasta()).toBeGreaterThan(Date.now());
+    // y un segundo «Probar» enseguida NO llama a Zen
+    const antes = vistas.length;
+    const r2 = await probarZenSinClave("opencode", cfg());
+    expect(vistas.length).toBe(antes);
+    expect(r2.mensaje).toMatch(/no vuelvo a probar/);
+  });
+
+  it("prueba como mucho 8 modelos", async () => {
+    const ids = Array.from({ length: 20 }, (_, i) => `m${String(i).padStart(2, "0")}-free`);
+    const todos: Record<string, Partial<Record<string, Resp>>> = {};
+    for (const id of ids) todos[id] = { "/chat/completions": { status: 200 } };
+    const vistas = simular(ids, todos);
+    await probarZenSinClave("opencode", cfg());
+    expect(vistas).toHaveLength(8);
   });
 });

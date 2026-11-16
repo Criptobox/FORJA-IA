@@ -130,13 +130,13 @@ describe("probarZenSinClave", () => {
     expect(auth.every((a) => a === "Bearer sk-mia")).toBe(true);
   });
 
-  it("llama como mucho a 16 y deja el resto en la lista sin comprobar", async () => {
-    const ids = Array.from({ length: 20 }, (_, i) => `m${String(i).padStart(2, "0")}-free`);
+  it("llama como mucho a 8 y deja el resto en la lista sin comprobar", async () => {
+    const ids = Array.from({ length: 15 }, (_, i) => `m${String(i).padStart(2, "0")}-free`);
     const { cuerpos } = simular(ids);
     const r = await probarZenSinClave("opencode", cfg());
-    expect(cuerpos.length).toBe(16);
-    expect(r.gratis.length).toBe(20);
-    expect(r.mensaje).toMatch(/\+4 sin comprobar/);
+    expect(cuerpos.length).toBe(8);
+    expect(r.gratis.length).toBe(15);
+    expect(r.mensaje).toMatch(/\+7 sin comprobar/);
   });
 
   it("un 500 de todos no se atribuye a la clave", async () => {

@@ -33,6 +33,9 @@ import {
   claveEfectiva,
   clasificarModeloZen,
   clasificarRespuestaZen,
+  anotarTopeZen,
+  esTopeGratisZen,
+  topeZenHasta,
   gratisDelCatalogoOficial,
   modelosGratisDeCatalogo,
   unirGratisZen,
@@ -382,9 +385,11 @@ async function assertOk(res: Response, providerName: string): Promise<void> {
       ? " — Zen exige una clave incluso para los modelos gratis: créala en opencode.ai/auth y pégala en Ajustes → OpenCode Zen"
       : res.status === 401 || res.status === 403
       ? " — revisa tu API key en Ajustes"
-      : res.status === 429
-        ? " — has superado el límite de peticiones o tu saldo"
-        : "";
+      : res.status === 429 && esTopeGratisZen(detail)
+        ? " — Zen agotó el uso gratis de este acceso (por IP o por clave) y no es un fallo de Forja: espera un rato, pega una clave en Ajustes → OpenCode Zen o cambia a otro proveedor gratis"
+        : res.status === 429
+          ? " — has superado el límite de peticiones o tu saldo"
+          : "";
   const short = detail.length > 300 ? detail.slice(0, 300) + "…" : detail;
   // Retry-After: se propaga para que el sistema de salud respete el enfriamiento sugerido
   const ra = Number(res.headers.get("retry-after"));
@@ -928,6 +933,18 @@ export async function probarZenSinClave(
   config: ProviderConfig
 ): Promise<ResultadoSondeoZen> {
   const conClave = !!config.apiKey.trim();
+  // Si Zen acaba de decir que se agotó el uso gratis, volver a probar solo gasta
+  // más cupo: se espera.
+  const esperaHasta = topeZenHasta();
+  if (esperaHasta > Date.now()) {
+    return {
+      estado: "otro",
+      gratis: [],
+      mensaje:
+        `Zen agotó el uso gratis hace poco: no vuelvo a probar hasta dentro de ${Math.ceil((esperaHasta - Date.now()) / 60_000)} min ` +
+        "para no gastar más. Puedes pegar una clave de opencode.ai/auth o usar otro proveedor gratis mientras tanto.",
+    };
+  }
   let gratis: string[] = [];
   // Catálogo oficial de OpenCode (coste $0 verificado). Si no se puede leer,
   // se sigue solo con el catálogo vivo de Zen: no es obligatorio.
@@ -959,15 +976,17 @@ export async function probarZenSinClave(
   // Una llamada real por modelo (máx. 12, de 3 en 3 para no comerse el límite):
   // estar en el catálogo NO significa que Zen lo sirva. Los «-free» se retiran
   // sin avisar y entonces contesta 400 «Model is unavailable».
-  const candidatos = gratis.slice(0, 16);
+  // Cada prueba gasta cupo gratis: pocas y de dos en dos, no una ráfaga.
+  const candidatos = gratis.slice(0, 8);
   const probados: ModeloZenProbado[] = [];
   const respuestas = new Map<string, { status: number; texto: string }>();
   let siguiente = 0;
   let caidaDeRed: string | null = null;
+  let topeGratis = false;
   const obrero = async () => {
     for (;;) {
       const i = siguiente++;
-      if (i >= candidatos.length || caidaDeRed) return;
+      if (i >= candidatos.length || caidaDeRed || topeGratis) return;
       const modelo = candidatos[i];
       try {
         // Cada modelo vive en una ruta (`/chat/completions`, `/responses` o
@@ -988,6 +1007,13 @@ export async function probarZenSinClave(
           });
           const texto = res.ok ? "" : await res.text().catch(() => "");
           ultimo = { status: res.status, texto };
+          if (res.status === 429 && esTopeGratisZen(texto)) {
+            // El tope es de la cuenta, no del modelo: seguir probando solo lo agrava.
+            topeGratis = true;
+            const ra = Number(res.headers.get("retry-after"));
+            anotarTopeZen(Date.now(), Number.isFinite(ra) && ra > 0 ? ra * 1000 : undefined);
+            break;
+          }
           if (res.ok) {
             recordarRuta(modelo, ruta);
             break;
@@ -1001,7 +1027,7 @@ export async function probarZenSinClave(
       }
     }
   };
-  await Promise.all(Array.from({ length: Math.min(3, candidatos.length) }, obrero));
+  await Promise.all(Array.from({ length: Math.min(2, candidatos.length) }, obrero));
   if (caidaDeRed && !probados.length) {
     return { estado: "servicio", gratis, mensaje: `No se pudo contactar con Zen: ${caidaDeRed}` };
   }
@@ -1015,9 +1041,12 @@ export async function probarZenSinClave(
   if (funcionan.length || limitados.length) {
     return {
       estado: "abierto",
-      gratis: candidatos.filter((id) => funcionan.includes(id) || limitados.includes(id)).concat(gratis.slice(candidatos.length)),
+      gratis: candidatos
+        .filter((id) => funcionan.includes(id) || limitados.includes(id) || (topeGratis && !probados.some((m) => m.id === id)))
+        .concat(gratis.slice(candidatos.length)),
       probados,
       mensaje:
+        (topeGratis ? "Zen dijo que se agotó el uso gratis: paré las pruebas para no gastar más (el resto queda sin comprobar). " : "") +
         `${funcionan.length + limitados.length} modelos gratis: ${funcionan.length} responden` +
         (limitados.length ? `, ${limitados.length} con límite de uso temporal` : "") +
         (fuera.length ? ` · fuera: ${fuera.map((m) => `${m.id} (${m.veredicto})`).join(", ")}` : "") +
