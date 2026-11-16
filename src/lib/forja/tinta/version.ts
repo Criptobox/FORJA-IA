@@ -1,2 +1,2 @@
 /** Huella del motor Tinta construido (la escribe scripts/tinta-construir.mjs; no se edita a mano). */
-export const TINTA_VERSION = "3364bc54c551";
+export const TINTA_VERSION = "d241ccb6bb20";

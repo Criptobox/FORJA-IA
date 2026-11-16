@@ -507,12 +507,15 @@ test("fotos reales con degradado en los bordes: se aplican a la foto y quedan en
       salida[borde] = { img: h.includes("<img"), borde: h.includes(`data-tinta-borde="${borde}"`), mascara: h.includes("mask-image") };
     }
     const sin = await pedir({ receta, idea: "cafetería", borrador: { ...(base.datos?.borrador ?? {}), assets: { "c-coffee": { images: [{ src: foto, alt: "Café" }], links: [] } } } });
-    return { salida, sinBorde: (sin.datos?.html ?? "").includes("data-tinta-borde=") };
+    const enc = await pedir({ receta, idea: "cafetería", borrador: { ...(base.datos?.borrador ?? {}), assets: { "c-coffee": { images: [{ src: foto, alt: "Café", encuadre: "arriba" }], links: [] } } } });
+    return { salida, sinBorde: (sin.datos?.html ?? "").includes("data-tinta-borde="), encuadre: (enc.datos?.html ?? "").includes("object-position: center top") || (enc.datos?.html ?? "").includes("object-position:center top") };
   });
   for (const borde of ["abajo", "lados", "vineta", "diagonal", "marco"]) {
     expect(r.salida[borde], borde).toEqual({ img: true, borde: true, mascara: true });
   }
   expect(r.sinBorde).toBe(false);
+  // y el encuadre elige qué parte de la foto se ve
+  expect(r.encuadre).toBe(true);
 });
 
 test("fotos libres: se buscan en Openverse desde el diálogo de fotos, se eligen con su crédito y llevan degradado", async ({ page }) => {
