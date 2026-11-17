@@ -57,6 +57,7 @@ import {
 import { useForja } from "@/lib/forja/store";
 import { GgufPanel } from "./gguf-panel";
 import { NativoPanel } from "./nativo-panel";
+import { OpenCodePanel } from "./opencode-panel";
 import { EN_APK } from "@/lib/forja/plataforma";
 import { useVault } from "@/lib/forja/vault";
 import { makeModelKey, type ProviderConfig, type ProviderId } from "@/lib/forja/types";
@@ -793,7 +794,8 @@ export function ProvidersTab({
                 <NativoPanel />
               </div>
             )}
-            {isOpen && def.id !== "gguf" && def.id !== "nativo" && (
+            {isOpen && def.id === "opencode-motor" && EN_APK && <OpenCodePanel />}
+            {isOpen && def.id !== "gguf" && def.id !== "nativo" && !(def.id === "opencode-motor" && EN_APK) && (
               <div className="space-y-3.5 border-t border-border/50 px-3 py-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">API key</Label>

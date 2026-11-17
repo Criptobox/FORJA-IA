@@ -5,6 +5,10 @@
     <!-- Para instalar la APK nueva desde dentro de la app (Android pide
          confirmarlo una vez en «Instalar apps desconocidas»). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Motor OpenCode: corre en un servicio en primer plano para que Android no lo
+         mate al pasar la app a segundo plano. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="false"
@@ -25,6 +29,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".RuntimeService"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

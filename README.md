@@ -372,17 +372,23 @@ Forja IA usa los modelos `-free` de [OpenCode Zen](https://opencode.ai/docs/zen)
 
 **Una ruta por modelo (`src/lib/forja/zen-rutas.ts`):** Zen sirve GPT por `/responses`, Claude y MiniMax por `/messages` y el resto por `/chat/completions`. Forja IA habla las tres: el agente sigue trabajando con herramientas en formato OpenAI y solo se traduce el cable (el cuerpo de ida y los eventos de vuelta), así que `write_file`, `edit_file`, `run_project`… funcionan igual con cualquier modelo gratis. «Probar» elige la ruta de cada modelo por su nombre y, si Zen contesta como si fuera otro endpoint (404/400), prueba las otras y **recuerda la que responde** (`forja-zen-rutas` en el navegador). Un modelo retirado, sin clave o con tope de uso no reintenta rutas. Solo Gemini (ruta propia) sigue fuera del selector.
 
-## Motor OpenCode del móvil: modelos gratis sin clave de API
+## Motor OpenCode dentro de la app Android: modelos gratis sin API ni contraseña
 
-Si instalas la app **OpenCode Mobile** (el OpenCode oficial dentro del teléfono), Forja IA puede usar sus modelos gratis a través de ese motor, **sin API key**. Es el cliente oficial quien accede a OpenCode, no una llamada anónima de un tercero, así que no depende del tope del acceso `public` de Zen.
+La APK de Forja IA lleva el **OpenCode oficial dentro** (Alpine + PRoot), igual que la app OpenCode Mobile. Se instala una vez, arranca solo y Forja IA carga sus modelos gratis y los usa: **sin API key y sin contraseña** (la contraseña local del servidor la lleva el puente nativo y solo la ve el origen propio de la interfaz, nunca los iframes de la vista previa). Es el cliente oficial quien accede a OpenCode, no una llamada anónima de un tercero, así que no depende del tope del acceso `public` de Zen.
 
-1. En OpenCode Mobile: **Ajustes → Conectar con Forja IA → Copiar contraseña**.
-2. En Forja IA: **Ajustes → Proveedores → OpenCode (motor del móvil)**. Pega la contraseña en «API key» (la URL es `http://127.0.0.1:4096`) y pulsa **Probar**: se cargan los modelos de coste cero del motor, con el formato `proveedor/modelo`.
-3. Elígelo en el selector como cualquier otro. La app OpenCode Mobile debe estar abierta o en segundo plano.
+1. Instala la APK (release `android-latest`).
+2. **Ajustes → Proveedores → OpenCode (motor del móvil) → Instalar el motor.** Descarga única de varios cientos de MB (Alpine y OpenCode), reanudable; mejor con Wi-Fi.
+3. Al terminar, los modelos de coste cero aparecen solos en el selector (`proveedor/modelo`) y, si no habías elegido ninguno, se deja uno por defecto. Las veces siguientes el motor arranca solo al abrir la app.
 
-**Cómo funciona (`src/lib/forja/opencode-motor.ts`):** cada respuesta es una sesión del motor (`/session`, `/session/:id/prompt_async`, flujo `/event`) que se borra al acabar, con las **herramientas propias del motor apagadas**. Forja IA pone las suyas (`write_file`, `edit_file`, `run_project`, Sandbox, QA…) por el camino XML, que es texto puro, así que el agente funciona igual con estos modelos. El motor es la pasarela a los modelos, no un segundo agente que escriba en otro sitio. Los modelos mostrados son solo los de coste cero declarado (los cuatro precios en 0).
+**Cómo funciona.** Lado nativo (`android/forja-app`): `OcRuntime.kt` y `RuntimeService.kt` son los de OpenCode Mobile (entorno Alpine, PRoot, servicio en primer plano que vigila y relanza el servidor) y `MotorOpenCode.kt` los envuelve con estados (`parado → instalando → arrancando → listo`) que avisan a la interfaz por el puente `ForjaAndroid`. Lado web: `opencode-nativo.ts` configura el proveedor cuando el motor está listo y `opencode-motor.ts` le pide cada respuesta por su API (`/session`, `/session/:id/prompt_async`, flujo `/event`). Las **herramientas propias del motor van apagadas** en cada petición: Forja IA pone las suyas (`write_file`, `edit_file`, `run_project`, Sandbox, QA…) por el camino XML, que es texto puro, así que el agente funciona igual. Solo se muestran modelos de coste cero declarado (los cuatro precios en 0).
 
-**Límites:** el motor aplica sus propios topes de uso gratis (un 429 llega al chat con su mensaje y el failover/Auto lo trata como cualquier cuota). La PWA de `criptobox.github.io` conecta a `127.0.0.1`, y Chrome puede pedir permiso de «red local» la primera vez. Si el motor está en otro dispositivo, cambia la URL del proveedor.
+**Por qué `targetSdk 28`.** Android solo deja ejecutar binarios de la carpeta de datos de la app con `targetSdk ≤ 28` (igual que Termux); es lo que hace posible PRoot. La app se instala a mano (APK), no por Play Store. La CI baja PRoot en cada compilación (`scripts/fetch-proot-android.py`) y comprueba que la APK lo lleve.
+
+**Límites.** El motor aplica sus propios topes de uso gratis (un 429 llega al chat con su mensaje y el failover/Auto lo trata como cualquier cuota). El motor ocupa memoria y batería mientras corre; «Detener motor» en el panel o «Detener servidor» en la notificación lo paran. Los cambios nativos no se probaron en un teléfono en el entorno de desarrollo: compila con GitHub Actions y comprueba la instalación.
+
+### Alternativa: conectar con la app OpenCode Mobile (navegador o PWA)
+
+Si usas Forja IA en el navegador, puedes apuntarla a la app **OpenCode Mobile** del mismo móvil: en esa app, **Ajustes → Conectar con Forja IA → Copiar contraseña**; en Forja IA, **Ajustes → Proveedores → OpenCode (motor del móvil)**, pega la contraseña en «API key» (URL `http://127.0.0.1:4096`) y pulsa **Probar**. Chrome puede pedir permiso de «red local» la primera vez. Funciona con la misma lógica (`opencode-motor.ts`).
 
 ## Integración opcional con servidor OpenCode (v4.70.5)
 

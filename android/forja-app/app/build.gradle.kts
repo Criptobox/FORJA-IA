@@ -15,7 +15,11 @@ android {
     defaultConfig {
         applicationId = "app.forja.ia"
         minSdk = 28
-        targetSdk = 35
+        // 28 A PROPÓSITO: el motor OpenCode corre dentro de PRoot (Alpine) y Android
+        // solo deja ejecutar binarios de la carpeta de datos de la app con
+        // targetSdk <= 28, igual que Termux. Es la misma razón por la que
+        // OpenCode Mobile usa 28. La app se instala a mano (APK), no por Play Store.
+        targetSdk = 28
         versionCode = codigoVersion
         versionName = nombreVersion
         // llama-server está compilado solo para arm64 (todos los móviles de

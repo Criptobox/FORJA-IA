@@ -40,6 +40,7 @@ class MainActivity : Activity() {
 
     private lateinit var web: WebView
     private lateinit var motor: MotorNativo
+    private lateinit var motorOc: MotorOpenCode
     private lateinit var actualizador: Actualizador
     private val principal = Handler(Looper.getMainLooper())
     private var canal: JavaScriptReplyProxy? = null
@@ -50,6 +51,7 @@ class MainActivity : Activity() {
     override fun onCreate(estado: Bundle?) {
         super.onCreate(estado)
         motor = MotorNativo(this) { e -> enviar(JSONObject().put("tipo", "motor").put("estado", e)) }
+        motorOc = MotorOpenCode(this) { e -> enviar(JSONObject().put("tipo", "opencode").put("estado", e)) }
         actualizador = Actualizador(this) { e -> enviar(e) }
 
         web = WebView(this)
@@ -101,6 +103,9 @@ class MainActivity : Activity() {
 
         instalarPuente()
         web.loadUrl("https://$DOMINIO/")
+        // Si el motor OpenCode ya está instalado, arranca solo (como en OpenCode
+        // Mobile). La primera instalación SÍ la pide la persona desde Ajustes.
+        if (motorOc.instalado()) thread(name = "opencode-arranque", isDaemon = true) { motorOc.arrancar(false) }
     }
 
     private fun instalarPuente() {
@@ -145,6 +150,9 @@ class MainActivity : Activity() {
                 }
             }
             "detener" -> thread(isDaemon = true) { motor.detener() }
+            "ocInstalar" -> thread(name = "opencode-instalar", isDaemon = true) { motorOc.arrancar(true) }
+            "ocIniciar" -> thread(name = "opencode-arranque", isDaemon = true) { motorOc.arrancar(false) }
+            "ocDetener" -> thread(name = "opencode-detener", isDaemon = true) { motorOc.detener() }
             "buscarActualizacion" -> actualizador.buscar()
             "instalarActualizacion" -> actualizador.instalar()
         }
@@ -240,6 +248,7 @@ class MainActivity : Activity() {
                 )
                 .put("modelos", modelos)
                 .put("motor", motor.estadoJson())
+                .put("opencode", motorOc.estadoJson())
         )
     }
 
@@ -269,7 +278,7 @@ class MainActivity : Activity() {
             (function () {
               var canal = window.ForjaNativo;
               if (!canal || window.ForjaAndroid) return;
-              var est = { info: null, modelos: [], motor: null };
+              var est = { info: null, modelos: [], motor: null, oc: null };
               var resolver;
               var listo = new Promise(function (r) { resolver = r; });
               function avisar(d) { window.dispatchEvent(new CustomEvent("forja-android", { detail: d })); }
@@ -279,11 +288,13 @@ class MainActivity : Activity() {
                 if (!d || typeof d !== "object" || typeof d.tipo !== "string") return;
                 if (d.tipo === "_estado") {
                   est = d;
+                  est.oc = d.opencode || null;
                   if (resolver) { resolver(); resolver = null; }
                   avisar({ tipo: "estado" });
                   return;
                 }
                 if (d.tipo === "motor") est.motor = d.estado;
+                if (d.tipo === "opencode") est.oc = d.estado;
                 avisar(d);
               };
               function enviar(op) {
@@ -294,6 +305,10 @@ class MainActivity : Activity() {
                 info: function () { return JSON.stringify(est.info); },
                 modelos: function () { return JSON.stringify(est.modelos || []); },
                 estadoMotor: function () { return JSON.stringify(est.motor); },
+                estadoOpenCode: function () { return JSON.stringify(est.oc); },
+                instalarOpenCode: function () { enviar("ocInstalar"); },
+                iniciarOpenCode: function () { enviar("ocIniciar"); },
+                detenerOpenCode: function () { enviar("ocDetener"); },
                 elegirModelo: function () { enviar("elegirModelo"); },
                 borrarModelo: function (n) { enviar("borrarModelo", n); },
                 iniciar: function (n, c, h) { enviar("iniciar", n, c, h); },

@@ -9,8 +9,9 @@
  * Fuera de la APK no hace nada. */
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { escucharAndroid, leerJson, puenteAndroid, type EstadoMotor, type ModeloNativo } from "@/lib/forja/plataforma";
+import { escucharAndroid, estadoOpenCodeNativo, leerJson, puenteAndroid, type EstadoMotor, type ModeloNativo } from "@/lib/forja/plataforma";
 import { aplicarMotorListo, useNativoAjustes } from "@/lib/forja/nativo";
+import { aplicarOpenCodeListo } from "@/lib/forja/opencode-nativo";
 
 export function ApkArranque() {
   useEffect(() => {
@@ -23,6 +24,24 @@ export function ApkArranque() {
         if (e.estado.estado === "error") {
           toast.error("El motor nativo no arrancó", {
             description: e.estado.detalle ?? "Mira Ajustes → Proveedores → Modelo nativo.",
+            duration: 10000,
+          });
+        }
+      }
+      if (e.tipo === "opencode") {
+        if (e.estado.estado === "listo") {
+          void aplicarOpenCodeListo(e.estado).then((modelos) => {
+            if (modelos.length) {
+              toast.success("Motor OpenCode listo", {
+                description: `${modelos.length} modelos gratis, sin clave de API. Ya puedes elegirlos en el selector.`,
+                duration: 8000,
+              });
+            }
+          });
+        }
+        if (e.estado.estado === "error") {
+          toast.error("El motor OpenCode no arrancó", {
+            description: e.estado.mensaje ?? "Mira Ajustes → Proveedores → OpenCode.",
             duration: 10000,
           });
         }
@@ -44,6 +63,10 @@ export function ApkArranque() {
     let vivo = true;
     void (puente.listo ?? Promise.resolve()).then(() => {
       if (!vivo) return;
+      // El motor OpenCode arranca solo si ya está instalado (lo hace el lado
+      // nativo); si ya estaba listo cuando abrió la interfaz, se aplica ahora.
+      const oc = estadoOpenCodeNativo();
+      if (oc?.estado === "listo") void aplicarOpenCodeListo(oc);
       const motor = leerJson<EstadoMotor | null>(puente.estadoMotor(), null);
       if (motor?.estado === "listo") {
         aplicarMotorListo(motor);

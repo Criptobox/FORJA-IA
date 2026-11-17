@@ -36,6 +36,13 @@ export interface PuenteAndroid {
   buscarActualizacion(): void;
   /** Descarga e instala la APK nueva; avisa con «descarga». */
   instalarActualizacion(): void;
+  /** JSON de `EstadoOpenCode` (el OpenCode oficial dentro de la app). Ausente en APK antiguas. */
+  estadoOpenCode?(): string;
+  /** Instala el motor OpenCode (descarga única) y lo arranca; avisa con «opencode». */
+  instalarOpenCode?(): void;
+  /** Arranca el motor si ya está instalado. */
+  iniciarOpenCode?(): void;
+  detenerOpenCode?(): void;
 }
 
 export interface InfoAndroid {
@@ -62,12 +69,31 @@ export interface EstadoMotor {
   detalle?: string;
 }
 
+/** El OpenCode oficial corriendo dentro de la app (Alpine + PRoot), como en OpenCode
+ * Mobile: sus modelos gratis se usan sin API key y sin que la persona toque
+ * ninguna contraseña (la lleva el puente nativo). */
+export interface EstadoOpenCode {
+  estado: "parado" | "instalando" | "arrancando" | "listo" | "error";
+  /** El entorno ya está descargado (no hace falta volver a instalar). */
+  instalado: boolean;
+  /** Permilles (0..1000) mientras se instala. */
+  progreso: number;
+  mensaje: string | null;
+  /** http://127.0.0.1:4096 */
+  url: string;
+  usuario: string;
+  /** Contraseña local del servidor: solo la ve el origen propio, nunca la persona. */
+  clave: string;
+  version: string;
+}
+
 export type EventoAndroid =
   /** Llegó una foto nueva (modelos, motor, info): vuelve a leerlas. */
   | { tipo: "estado" }
   | { tipo: "importando"; nombre: string; progreso: number }
   | { tipo: "importado"; nombre: string }
   | { tipo: "motor"; estado: EstadoMotor }
+  | { tipo: "opencode"; estado: EstadoOpenCode }
   | { tipo: "actualizacion"; disponible: boolean; version?: string; notas?: string; error?: string }
   | { tipo: "descarga"; progreso: number; error?: string }
   | { tipo: "error"; mensaje: string };
@@ -98,4 +124,10 @@ export function escucharAndroid(fn: (e: EventoAndroid) => void): () => void {
 export function estadoMotorNativo(): EstadoMotor | null {
   const p = puenteAndroid();
   return p ? leerJson<EstadoMotor | null>(p.estadoMotor(), null) : null;
+}
+
+/** Estado del motor OpenCode de la app, o null fuera de la APK (o en una APK sin él). */
+export function estadoOpenCodeNativo(): EstadoOpenCode | null {
+  const p = puenteAndroid();
+  return p && typeof p.estadoOpenCode === "function" ? leerJson<EstadoOpenCode | null>(p.estadoOpenCode(), null) : null;
 }

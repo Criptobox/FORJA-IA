@@ -138,3 +138,53 @@ describe("«no cabe» de llama-server", () => {
     expect(limiteDelMensaje(msg)).toEqual({ limite: 8192, pedido: 10022 });
   });
 });
+
+describe("motor OpenCode dentro de la APK (puente)", () => {
+  const oc = (estado: string, extra: Record<string, unknown> = {}) => ({
+    estado,
+    instalado: estado !== "parado",
+    progreso: 0,
+    mensaje: null,
+    url: "http://127.0.0.1:4096",
+    usuario: "opencode",
+    clave: "pw-local",
+    version: "1.2.3",
+    ...extra,
+  });
+
+  it("el script expone el motor y manda las órdenes que entiende MainActivity.kt", () => {
+    const { puente, enviados } = montar();
+    puente.instalarOpenCode?.();
+    puente.iniciarOpenCode?.();
+    puente.detenerOpenCode?.();
+    expect(enviados.slice(1)).toEqual([
+      { op: "ocInstalar", args: [] },
+      { op: "ocIniciar", args: [] },
+      { op: "ocDetener", args: [] },
+    ]);
+    // y MainActivity atiende exactamente esas tres órdenes
+    for (const op of ["ocInstalar", "ocIniciar", "ocDetener"]) expect(KOTLIN).toContain(`"${op}" ->`);
+  });
+
+  it("la foto inicial trae el estado del motor y los avisos lo actualizan", () => {
+    const { puente, eventos, nativo } = montar();
+    nativo({ tipo: "_estado", info: { version: "1" }, modelos: [], motor: null, opencode: oc("parado") });
+    expect(JSON.parse(puente.estadoOpenCode!()).estado).toBe("parado");
+    nativo({ tipo: "opencode", estado: oc("instalando", { progreso: 420, mensaje: "Descargando OpenCode" }) });
+    expect(JSON.parse(puente.estadoOpenCode!())).toMatchObject({ estado: "instalando", progreso: 420 });
+    expect(eventos.at(-1)).toMatchObject({ tipo: "opencode", estado: { estado: "instalando" } });
+    nativo({ tipo: "opencode", estado: oc("listo") });
+    expect(JSON.parse(puente.estadoOpenCode!()).clave).toBe("pw-local");
+  });
+
+  it("sin foto nativa del motor el estado es null (APK antigua o aún sin saber)", () => {
+    const { puente, nativo } = montar();
+    nativo({ tipo: "_estado", info: null, modelos: [], motor: null });
+    expect(JSON.parse(puente.estadoOpenCode!())).toBeNull();
+  });
+
+  it("el lado nativo manda el estado del motor en la foto y en los avisos", () => {
+    expect(KOTLIN).toContain('.put("opencode", motorOc.estadoJson())');
+    expect(KOTLIN).toContain('.put("tipo", "opencode")');
+  });
+});
