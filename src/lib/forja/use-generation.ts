@@ -1179,6 +1179,7 @@ export function useGeneration(ctx: CtxGeneracion) {
               status,
               decision: "",
               motivo: msg.slice(0, 140),
+              ms: Date.now() - attemptStart,
             });
             // La decisión (¿otro modelo? ¿otro proveedor? ¿me rindo?) vive en
             // `decisiones.ts`, sin React de por medio y con sus propios tests.
@@ -1232,6 +1233,13 @@ export function useGeneration(ctx: CtxGeneracion) {
               content: msg,
               error: true,
               elapsedMs: Date.now() - attemptStart,
+              // También cuando NO termina: «por qué» enseña cada intento, su
+              // motivo y lo que tardó. Era justo el caso sin explicación.
+              ficha: {
+                intentos: [...intentosFallidos],
+                charsSistema: contextoUsado.chars,
+                ms: Date.now() - attemptStart,
+              } satisfies FichaRespuesta,
             });
             if (decision.tipo === "failover") {
               attemptFailover(

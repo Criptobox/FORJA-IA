@@ -507,10 +507,66 @@ test("fotos reales con degradado en los bordes: se aplican a la foto y quedan en
       salida[borde] = { img: h.includes("<img"), borde: h.includes(`data-tinta-borde="${borde}"`), mascara: h.includes("mask-image") };
     }
     const sin = await pedir({ receta, idea: "cafetería", borrador: { ...(base.datos?.borrador ?? {}), assets: { "c-coffee": { images: [{ src: foto, alt: "Café" }], links: [] } } } });
-    return { salida, sinBorde: (sin.datos?.html ?? "").includes("data-tinta-borde=") };
+    const enc = await pedir({ receta, idea: "cafetería", borrador: { ...(base.datos?.borrador ?? {}), assets: { "c-coffee": { images: [{ src: foto, alt: "Café", encuadre: "arriba" }], links: [] } } } });
+    return { salida, sinBorde: (sin.datos?.html ?? "").includes("data-tinta-borde="), encuadre: (enc.datos?.html ?? "").includes("object-position: center top") || (enc.datos?.html ?? "").includes("object-position:center top") };
   });
   for (const borde of ["abajo", "lados", "vineta", "diagonal", "marco"]) {
     expect(r.salida[borde], borde).toEqual({ img: true, borde: true, mascara: true });
   }
   expect(r.sinBorde).toBe(false);
+  // y el encuadre elige qué parte de la foto se ve
+  expect(r.encuadre).toBe(true);
+});
+
+test("fotos libres: se buscan en Openverse desde el diálogo de fotos, se eligen con su crédito y llevan degradado", async ({ page }) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 412, height: 900 });
+  await seed(page);
+  // Openverse simulado: la búsqueda y las fotos (un PNG de 1×1)
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+  await page.route("https://api.openverse.org/**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json", "access-control-allow-origin": "*" },
+      body: JSON.stringify({
+        results: [
+          { url: "https://fotos.example/pizza-1.png", thumbnail: "https://fotos.example/pizza-1-mini.png", title: "Pizza al horno", creator: "Ana Ruiz", license: "by", license_version: "2.0" },
+          { url: "http://inseguro.example/x.png", thumbnail: "http://inseguro.example/x.png", title: "Insegura", creator: "X", license: "cc0" },
+        ],
+      }),
+    })
+  );
+  await page.route("https://fotos.example/**", (route) => route.fulfill({ status: 200, headers: { "content-type": "image/png" }, body: png }));
+  await page.goto("/");
+  const caja = page.getByPlaceholder("Escribe tu mensaje…");
+  await expect(caja).toBeVisible({ timeout: 60_000 });
+  await caja.fill("hazme una app para mi cafetería con pedidos");
+  await enviar(page);
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 60_000 });
+  await page.getByTestId("editar-tinta").click();
+  const motor = page.frameLocator('iframe[title="Motor de diseño Tinta"]');
+  await expect(motor.locator("#motorEditBar")).toBeVisible({ timeout: 30_000 });
+  // la primera pieza que tiene zona de foto («Foto / enlace»)
+  const dialogo = motor.locator("#mediaDialog");
+  const botones = motor.getByRole("button", { name: /^Imágenes y destinos de / });
+  const n = await botones.count();
+  let conFoto = false;
+  for (let k = 0; k < n && !conFoto; k++) {
+    await botones.nth(k).scrollIntoViewIfNeeded();
+    await botones.nth(k).click();
+    await expect(dialogo).toBeVisible();
+    conFoto = (await dialogo.locator("[data-media-q]").count()) > 0;
+    if (!conFoto) await dialogo.locator("[data-act=close-media]").click();
+  }
+  expect(conFoto).toBe(true);
+  await dialogo.locator("[data-media-q]").first().fill("pizza");
+  await dialogo.locator("[data-act=media-buscar]").first().click();
+  // solo las fotos HTTPS; la http se descarta
+  await expect(dialogo.locator(".media-foto")).toHaveCount(1, { timeout: 15_000 });
+  await dialogo.locator(".media-foto").first().click();
+  await expect(dialogo.locator("[data-media-image]").first()).toHaveValue("https://fotos.example/pizza-1.png");
+  await expect(dialogo.locator("[data-media-alt]").first()).toHaveValue(/Pizza al horno — foto de Ana Ruiz \(BY 2\.0, Openverse\)/);
+  // con la foto puesta ya se puede elegir el degradado
+  await dialogo.locator("[data-act=media-borde][data-borde=vineta]").first().click();
+  await expect(dialogo.locator("[data-act=media-borde][data-borde=vineta]").first()).toHaveAttribute("aria-pressed", "true");
 });

@@ -26,27 +26,33 @@ async function seed(page: Page) {
   });
 }
 
-test("sin IA conectada, una landing la hace Tinta con el equipo y se cambia en el chat", async ({ page }) => {
+test("sin IA conectada, una página web sale como web de escritorio completa (no como app de móvil)", async ({ page }) => {
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1300, height: 900 });
   await seed(page);
   await page.goto("/");
   const caja = page.getByRole("textbox", { name: "Mensaje" });
   await expect(caja).toBeVisible({ timeout: 60_000 });
-  await caja.fill("Hazme una landing para mi barbería");
+  await caja.fill("Hazme una landing para mi barbería llamada Navaja");
   await page.keyboard.press("Enter");
-  // sin propuesta que luego no se puede construir: directo al equipo
   await expect(page.getByTestId("propuesta-diseno")).toHaveCount(0);
-  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toBeVisible({ timeout: 30_000 });
-  // un cambio que se entiende sin IA
-  const chat = page.getByRole("textbox", { name: "Mensaje" });
-  await chat.fill("ponla en azul y en modo oscuro");
-  await enviar(page);
-  await expect(page.locator("p", { hasText: /Hecho, sin gastar IA: modo oscuro · paleta/ })).toBeVisible({ timeout: 30_000 });
-  // uno que no: dice qué se puede pedir, con el botón para conectar una IA
-  await chat.fill("hazla más divertida para niños");
-  await enviar(page);
-  await expect(page.locator("p", { hasText: "Sin IA conectada entiendo cambios como" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("p", { hasText: "sin gastar IA" }).first()).toBeVisible({ timeout: 30_000 });
+  // no es una app de Tinta: es una web con sus secciones, en la vista previa
+  await expect(page.locator("p", { hasText: /Listo: \d+ pantallas?/ })).toHaveCount(0);
+  const vista = page.frameLocator('iframe[title="Vista previa de la página generada"]');
+  await expect(vista.locator("h1")).toBeVisible({ timeout: 30_000 });
+  await expect(vista.locator(".logo")).toContainText("Navaja");
+  for (const id of ["#catalogo", "#ofertas", "#opiniones", "#contacto"]) await expect(vista.locator(id)).toHaveCount(1);
+  // el formulario funciona sin servidor
+  await vista.locator("form input").first().fill("Ana");
+  const resto = vista.locator("form input");
+  const n = await resto.count();
+  for (let i = 1; i < n; i++) {
+    const tipo = await resto.nth(i).getAttribute("type");
+    await resto.nth(i).fill(tipo === "email" ? "ana@correo.com" : tipo === "date" ? "2026-12-01" : tipo === "number" ? "2" : tipo === "tel" ? "600000000" : "algo");
+  }
+  await vista.locator("form button").click();
+  await expect(vista.locator("form .ok")).toContainText("Recibido");
 });
 
 test("sin IA conectada, una charla deja el aviso en el chat con el botón para conectarla", async ({ page }) => {

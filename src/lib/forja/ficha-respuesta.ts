@@ -27,7 +27,26 @@ export interface IntentoFallido {
   /** qué se decidió hacer: seguir en la cadena, saltar de proveedor, parar */
   decision: string;
   motivo?: string;
+  /** lo que tardó ese intento hasta fallar */
+  ms?: number;
 }
+
+/** El fallo en palabras: un 429 no le dice nada a nadie; «se acabó la cuota»,
+ *  sí. Solo traduce códigos que significan siempre lo mismo; si no, el texto
+ *  del proveedor (recortado) habla por sí mismo. */
+export function fallo(i: Pick<IntentoFallido, "status" | "motivo">): string {
+  const m = (i.motivo ?? "").toLowerCase();
+  if (i.status === 429 || /quota|rate.?limit|cuota|too many requests/.test(m)) return "se acabó su cuota";
+  if (i.status === 413 || /too (large|long)|context length|maximum context|tokens? (limit|exceed)|no le cabe/.test(m)) return "el encargo no le cabe";
+  if (i.status === 401 || i.status === 403) return "rechazó la clave";
+  if (i.status === 404 || /not found|no endpoints|does not exist/.test(m)) return "ese modelo ya no existe";
+  if (i.status >= 500) return "el proveedor falló por su lado";
+  if (i.status === 0) return /sin datos|inactiv|timeout|tiempo/.test(m) ? "se quedó callado demasiado tiempo" : "no contestó";
+  if (/vac[ií]a|empty/.test(m)) return "contestó vacío";
+  return (i.motivo ?? `error ${i.status}`).slice(0, 80);
+}
+
+const DECISION: Record<string, string> = { siguiente: "pasé al siguiente", failover: "cambié de proveedor", parar: "paré" };
 
 export interface FichaRespuesta {
   /** modelo que acabó respondiendo, «proveedor::modelo» */
@@ -62,14 +81,13 @@ export interface FichaRespuesta {
 export function lineasDeFicha(f: FichaRespuesta): { etiqueta: string; valor: string }[] {
   const out: { etiqueta: string; valor: string }[] = [];
   if (f.modelo) out.push({ etiqueta: "Respondió", valor: f.modelo });
-  if (f.intentos?.length) {
-    out.push({
-      etiqueta: "Antes fallaron",
-      valor: f.intentos
-        .map((i) => `${i.modelo} (${i.status || "sin respuesta"} → ${i.decision})`)
-        .join(" · "),
-    });
-  }
+  // Un intento por línea, con el motivo en palabras y lo que tardó: es lo que
+  // hace falta para saber por qué una web no terminó.
+  f.intentos?.forEach((i, k) => {
+    const t = i.ms != null ? ` · ${(i.ms / 1000).toFixed(1)} s` : "";
+    const d = DECISION[i.decision] ? ` → ${DECISION[i.decision]}` : "";
+    out.push({ etiqueta: `Intento ${k + 1}`, valor: `${i.modelo}: ${fallo(i)}${t}${d}` });
+  });
   if (f.mensajesEnviados != null) {
     out.push({ etiqueta: "Historial enviado", valor: `${f.mensajesEnviados} mensaje(s)` });
   }
@@ -112,7 +130,9 @@ export function hayFicha(f: FichaRespuesta | undefined): boolean {
  * llamativo de lo que pasó, no lo primero que haya. */
 export function titularDeFicha(f: FichaRespuesta): string | null {
   if (f.intentos?.length) {
-    return `Respondió el ${f.intentos.length + 1}º modelo: los ${f.intentos.length} anteriores fallaron.`;
+    return f.modelo
+      ? `Respondió el ${f.intentos.length + 1}º modelo: los ${f.intentos.length} anteriores fallaron.`
+      : `No terminó: fallaron ${f.intentos.length} ${f.intentos.length === 1 ? "modelo" : "modelos"} seguidos.`;
   }
   if (f.recortados) {
     return f.resumido

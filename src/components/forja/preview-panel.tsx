@@ -1,6 +1,7 @@
 "use client";
 /** Forja IA — Panel de vista previa en vivo + mapa del proyecto */
 import { faltaReadme, readmeDelProyecto } from "@/lib/forja/readme-proyecto";
+import { EditorArchivos } from "./editor-archivos";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   Code2,
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ProjectMapView } from "./project-map-view";
 import { cn } from "@/lib/utils";
-import { bundlePreview, filesFromAnswer, nombreDescarga } from "@/lib/forja/answer-files";
+import { archivosEditables, bundlePreview, filesFromAnswer, nombreDescarga } from "@/lib/forja/answer-files";
 import { encodeText } from "@/lib/forja/sandbox";
 import { writeZip } from "@/lib/forja/zip";
 import {
@@ -109,6 +110,8 @@ export interface PreviewPanelProps {
   /** Guarda en el código de la respuesta los estilos tocados en la vista
    *  previa (bloque `data-forja-ajustes`). Devuelve por qué no, si no. */
   onEditStyle?: (cambios: CambioEstilo[]) => { ok: boolean; motivo?: string };
+  /** Guarda un archivo editado a mano en la pestaña de código. */
+  onEditFile?: (path: string, texto: string) => { ok: boolean; motivo?: string };
   /** Tocaste un elemento en modo «señalar»: va al chat como referencia para
    *  que la IA sepa exactamente qué cambiar. */
   onSenalar?: (e: ElementoSenalado) => void;
@@ -142,6 +145,7 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   onEditText,
   almacenId,
   onEditStyle,
+  onEditFile,
   onSenalar,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -180,6 +184,12 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
    *  en otra máquina —o lo reciba por GitHub— ve qué está protegido y por
    *  qué, no solo quien tenía esta sesión de chat abierta. */
   const archivosRespuesta = useMemo(() => filesFromAnswer(source), [source]);
+  /** Lo que se puede editar a mano: los archivos escritos en la respuesta, o la
+   *  página entera si no hay archivos con nombre (una app de Tinta). */
+  const editables = useMemo(() => {
+    const a = archivosEditables(source);
+    return a.length ? a : painted ? [{ path: "index.html", text: painted }] : [];
+  }, [source, painted]);
   const archivos = useMemo(
     () =>
       reglas?.length
@@ -428,11 +438,14 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
   // Pintado imperativo en el iframe (evita re-montajes de React). Los datos
   // guardados se leen AQUÍ, al pintar, y no en el useMemo: si no, cada
   // escritura de la página recargaría el iframe.
+  // `tab` también: al volver de la pestaña de código (o del mapa) el iframe es
+  // NUEVO y se quedaba en blanco, porque nada de lo demás había cambiado —o
+  // había cambiado mientras no existía, como al guardar un archivo editado—.
   useEffect(() => {
     const el = iframeRef.current;
     if (!el) return;
     el.srcdoc = almacenId && paraPintar ? sembrarAlmacen(paraPintar, leerAlmacen(almacenId)) : paraPintar;
-  }, [paraPintar, reloadKey, almacenId]);
+  }, [paraPintar, reloadKey, almacenId, tab]);
 
   const openExternal = () => {
     const blob = new Blob([bundle], { type: "text/html" });
@@ -783,9 +796,13 @@ export const PreviewPanel = forwardRef<PreviewPanelHandle, PreviewPanelProps>(fu
           onRestoreSnapshot={onRestoreSnapshot}
         />
       ) : tab === "code" ? (
-        <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-4 font-mono text-[11px] leading-relaxed text-muted-foreground">
-          {painted}
-        </pre>
+        onEditFile && !streaming ? (
+          <EditorArchivos archivos={editables} onGuardar={onEditFile} />
+        ) : (
+          <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-4 font-mono text-[11px] leading-relaxed text-muted-foreground">
+            {painted}
+          </pre>
+        )
       ) : (
         <div ref={lienzoRef} className="relative min-h-0 flex-1 overflow-auto bg-muted/40 p-0 sm:p-3">
           {/* Con un ancho de dispositivo mayor que el panel, la página se
