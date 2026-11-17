@@ -146,8 +146,6 @@ describe("motor OpenCode dentro de la APK (puente)", () => {
     progreso: 0,
     mensaje: null,
     url: "http://127.0.0.1:4096",
-    usuario: "opencode",
-    clave: "pw-local",
     version: "1.2.3",
     ...extra,
   });
@@ -174,7 +172,7 @@ describe("motor OpenCode dentro de la APK (puente)", () => {
     expect(JSON.parse(puente.estadoOpenCode!())).toMatchObject({ estado: "instalando", progreso: 420 });
     expect(eventos.at(-1)).toMatchObject({ tipo: "opencode", estado: { estado: "instalando" } });
     nativo({ tipo: "opencode", estado: oc("listo") });
-    expect(JSON.parse(puente.estadoOpenCode!()).clave).toBe("pw-local");
+    expect(JSON.parse(puente.estadoOpenCode!()).estado).toBe("listo");
   });
 
   it("sin foto nativa del motor el estado es null (APK antigua o aún sin saber)", () => {
@@ -186,5 +184,46 @@ describe("motor OpenCode dentro de la APK (puente)", () => {
   it("el lado nativo manda el estado del motor en la foto y en los avisos", () => {
     expect(KOTLIN).toContain('.put("opencode", motorOc.estadoJson())');
     expect(KOTLIN).toContain('.put("tipo", "opencode")');
+  });
+});
+
+describe("llamadas al motor por el lado nativo (puente)", () => {
+  it("ocHttp y ocCancelar mandan las órdenes que entiende MainActivity.kt", () => {
+    const { puente, enviados } = montar();
+    puente.ocHttp!("oc1", "POST", "/session", '{"a":1}');
+    puente.ocHttp!("oc2", "GET", "/config/providers", null);
+    puente.ocCancelar!("oc1");
+    expect(enviados.slice(1)).toEqual([
+      { op: "ocHttp", args: ["oc1", "POST", "/session", '{"a":1}'] },
+      { op: "ocHttp", args: ["oc2", "GET", "/config/providers", null] },
+      { op: "ocCancelar", args: ["oc1"] },
+    ]);
+    expect(KOTLIN).toContain('"ocHttp" ->');
+    expect(KOTLIN).toContain('"ocCancelar" ->');
+  });
+
+  it("los avisos ocHttp del lado nativo llegan a la interfaz", () => {
+    const { eventos, nativo } = montar();
+    nativo({ tipo: "ocHttp", id: "oc1", fase: "cabecera", status: 200 });
+    nativo({ tipo: "ocHttp", id: "oc1", fase: "datos", texto: "hola" });
+    expect(eventos).toEqual([
+      { tipo: "ocHttp", id: "oc1", fase: "cabecera", status: 200 },
+      { tipo: "ocHttp", id: "oc1", fase: "datos", texto: "hola" },
+    ]);
+  });
+
+  it("la contraseña del servidor no viaja a la interfaz: solo la usa el lado nativo", () => {
+    const motorOc = readFileSync(join(process.cwd(), "android/forja-app/app/src/main/java/app/forja/ia/MotorOpenCode.kt"), "utf8");
+    // el estado que se manda a la interfaz no lleva clave ni usuario…
+    const estadoJson = motorOc.slice(motorOc.indexOf("fun estadoJson()"), motorOc.indexOf("private fun avisar"));
+    expect(estadoJson).not.toMatch(/serverPassword|"clave"|"usuario"/);
+    // …y se añade en la petición nativa
+    expect(motorOc).toContain('setRequestProperty("Authorization"');
+  });
+
+  it("el lado nativo solo atiende rutas del propio servidor", () => {
+    const motorOc = readFileSync(join(process.cwd(), "android/forja-app/app/src/main/java/app/forja/ia/MotorOpenCode.kt"), "utf8");
+    expect(motorOc).toContain('!ruta.startsWith("/") || ruta.startsWith("//")');
+    expect(motorOc).toContain('URL("http://127.0.0.1:${rt.port}$ruta")');
   });
 });

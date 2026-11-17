@@ -31,8 +31,6 @@ const listo = (extra: Partial<EstadoOpenCode> = {}): EstadoOpenCode => ({
   progreso: 1000,
   mensaje: null,
   url: "http://127.0.0.1:4096",
-  usuario: "opencode",
-  clave: "pw-local",
   version: "1.0.0",
   ...extra,
 });
@@ -53,18 +51,18 @@ describe("modeloPorDefecto", () => {
 });
 
 describe("aplicarOpenCodeListo", () => {
-  it("configura el proveedor con la URL y la contraseña del puente, carga los modelos y elige uno", async () => {
+  it("configura el proveedor con la URL del motor (sin contraseña en JS), carga los modelos y elige uno", async () => {
     fetchModels.mockResolvedValue(["opencode/big-pickle", "opencode/grok-code"]);
     const m = await aplicarOpenCodeListo(listo());
     expect(m).toEqual(["opencode/big-pickle", "opencode/grok-code"]);
     expect(est.providers["opencode-motor"]).toMatchObject({
       enabled: true,
-      apiKey: "pw-local",
+      apiKey: "",
       baseUrl: "http://127.0.0.1:4096",
       useProxy: false,
       models: ["opencode/big-pickle", "opencode/grok-code"],
     });
-    expect(fetchModels).toHaveBeenCalledWith("opencode-motor", expect.objectContaining({ apiKey: "pw-local", baseUrl: "http://127.0.0.1:4096" }));
+    expect(fetchModels).toHaveBeenCalledWith("opencode-motor", expect.objectContaining({ apiKey: "", baseUrl: "http://127.0.0.1:4096" }));
     expect(est.limpiados).toEqual(["opencode-motor"]);
     expect(est.settings.defaultModelKey).toBe("opencode-motor::opencode/big-pickle");
   });

@@ -153,6 +153,14 @@ class MainActivity : Activity() {
             "ocInstalar" -> thread(name = "opencode-instalar", isDaemon = true) { motorOc.arrancar(true) }
             "ocIniciar" -> thread(name = "opencode-arranque", isDaemon = true) { motorOc.arrancar(false) }
             "ocDetener" -> thread(name = "opencode-detener", isDaemon = true) { motorOc.detener() }
+            "ocHttp" -> {
+                val id = args.optString(0)
+                val metodo = args.optString(1, "GET").uppercase()
+                val ruta = args.optString(2)
+                val cuerpo = if (args.isNull(3)) null else args.optString(3)
+                thread(name = "opencode-http", isDaemon = true) { motorOc.pedir(id, metodo, ruta, cuerpo) { e -> enviar(e) } }
+            }
+            "ocCancelar" -> motorOc.cancelar(args.optString(0))
             "buscarActualizacion" -> actualizador.buscar()
             "instalarActualizacion" -> actualizador.instalar()
         }
@@ -309,6 +317,8 @@ class MainActivity : Activity() {
                 instalarOpenCode: function () { enviar("ocInstalar"); },
                 iniciarOpenCode: function () { enviar("ocIniciar"); },
                 detenerOpenCode: function () { enviar("ocDetener"); },
+                ocHttp: function (id, metodo, ruta, cuerpo) { enviar("ocHttp", id, metodo, ruta, cuerpo === undefined ? null : cuerpo); },
+                ocCancelar: function (id) { enviar("ocCancelar", id); },
                 elegirModelo: function () { enviar("elegirModelo"); },
                 borrarModelo: function (n) { enviar("borrarModelo", n); },
                 iniciar: function (n, c, h) { enviar("iniciar", n, c, h); },

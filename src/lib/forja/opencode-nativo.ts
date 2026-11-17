@@ -2,8 +2,8 @@
  *
  * Dentro de la APK corre el OpenCode oficial (Alpine + PRoot), igual que en la
  * app OpenCode Mobile. Cuando está listo, el proveedor «opencode-motor» pasa a
- * apuntar a él (URL y contraseña local que lleva el puente nativo), se cargan
- * sus modelos gratis y quedan activos: la persona no pega nada. Para el resto de
+ * apuntar a él (su URL local), se cargan sus modelos gratis y quedan activos: la
+ * persona no pega nada, y la contraseña del servidor no sale del lado nativo. Para el resto de
  * la app es un proveedor como cualquier otro (selector, Auto, failover, agente
  * por el camino XML; ver opencode-motor.ts). */
 import { useForja } from "./store";
@@ -29,9 +29,10 @@ export function aplicarOpenCodeListo(e: EstadoOpenCode): Promise<string[]> {
   if (cargando) return cargando;
   cargando = (async () => {
     const st = useForja.getState();
-    st.setProviderConfig(MOTOR_PROVIDER_ID, { enabled: true, apiKey: e.clave, baseUrl: e.url, useProxy: false });
+    // Sin contraseña en la configuración: las llamadas al motor las hace el lado nativo.
+    st.setProviderConfig(MOTOR_PROVIDER_ID, { enabled: true, apiKey: "", baseUrl: e.url, useProxy: false });
     const cfg = useForja.getState().providers[MOTOR_PROVIDER_ID];
-    const modelos = await fetchModels(MOTOR_PROVIDER_ID, { ...cfg, apiKey: e.clave, baseUrl: e.url });
+    const modelos = await fetchModels(MOTOR_PROVIDER_ID, { ...cfg, apiKey: "", baseUrl: e.url });
     if (modelos.length) {
       useModelosRotos.getState().limpiarProveedor(MOTOR_PROVIDER_ID);
       useForja.getState().setProviderConfig(MOTOR_PROVIDER_ID, { models: [...modelos], enabled: true });

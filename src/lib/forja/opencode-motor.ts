@@ -28,7 +28,26 @@ export const MOTOR_USUARIO = "opencode";
 /** Cuánto puede estar el flujo SIN ningún evento antes de darlo por muerto. */
 export const MOTOR_INACTIVIDAD_MS = 90_000;
 
+import { escucharAndroid, puenteAndroid } from "./plataforma";
+import { crearFetchNativo, esUrlLocalDelMotor, type FetchMotor } from "./opencode-puente";
+
 type Json = Record<string, unknown>;
+
+let fetchNativo: { puente: unknown; fetch: FetchMotor } | null = null;
+
+/** El `fetch` con el que se habla con el motor. Dentro de la APK, el del lado
+ * nativo (sin CORS ni contraseña en JavaScript); fuera de ella, el del
+ * navegador, que necesita la contraseña y que el motor permita el origen. */
+export function fetchDelMotor(url: string): FetchMotor {
+  const puente = puenteAndroid();
+  if (puente && typeof puente.ocHttp === "function" && typeof puente.ocCancelar === "function" && esUrlLocalDelMotor(url)) {
+    if (fetchNativo?.puente !== puente) {
+      fetchNativo = { puente, fetch: crearFetchNativo({ ocHttp: puente.ocHttp.bind(puente), ocCancelar: puente.ocCancelar.bind(puente) }, escucharAndroid) };
+    }
+    return fetchNativo.fetch;
+  }
+  return (u, init) => fetch(u, init);
+}
 
 /* ------------------------------------------------------------------ */
 /* conexión                                                            */
@@ -334,7 +353,7 @@ async function pedir(url: string, init: RequestInit, timeoutMs = 20_000): Promis
     else fuera.addEventListener("abort", () => control.abort(), { once: true });
   }
   try {
-    return await fetch(url, { ...init, signal: control.signal });
+    return await fetchDelMotor(url)(url, { ...init, signal: control.signal });
   } catch (e) {
     if (fuera?.aborted) throw e;
     throw errorMotor(mensajeDeConexion(urlDelMotor(url.replace(/(https?:\/\/[^/]+).*/, "$1"))));
@@ -466,7 +485,7 @@ export async function streamMotor(op: OpcionesMotor): Promise<string> {
   const flujo = new AbortController();
   const alAbortar = () => {
     flujo.abort();
-    void fetch(`${base}/session/${encodeURIComponent(sessionID)}/abort`, { method: "POST", headers: cab }).catch(() => {});
+    void fetchDelMotor(base)(`${base}/session/${encodeURIComponent(sessionID)}/abort`, { method: "POST", headers: cab }).catch(() => {});
   };
   if (op.signal.aborted) alAbortar();
   else op.signal.addEventListener("abort", alAbortar, { once: true });
@@ -476,7 +495,7 @@ export async function streamMotor(op: OpcionesMotor): Promise<string> {
   let ultimoRazonamiento = "";
   try {
     // 2) el flujo de eventos, abierto ANTES de pedir la respuesta
-    const eventos = await fetch(`${base}/event`, { headers: cabecerasMotor(op.config.apiKey, false), signal: flujo.signal }).catch((e) => {
+    const eventos = await fetchDelMotor(base)(`${base}/event`, { headers: cabecerasMotor(op.config.apiKey, false), signal: flujo.signal }).catch((e) => {
       if (op.signal.aborted) throw e;
       throw errorMotor(mensajeDeConexion(base));
     });
@@ -529,6 +548,6 @@ export async function streamMotor(op: OpcionesMotor): Promise<string> {
     op.signal.removeEventListener("abort", alAbortar);
     flujo.abort();
     // la sesión ya no hace falta: se borra para no llenar la lista de proyectos
-    void fetch(`${base}/session/${encodeURIComponent(sessionID)}`, { method: "DELETE", headers: cabecerasMotor(op.config.apiKey, false) }).catch(() => {});
+    void fetchDelMotor(base)(`${base}/session/${encodeURIComponent(sessionID)}`, { method: "DELETE", headers: cabecerasMotor(op.config.apiKey, false) }).catch(() => {});
   }
 }

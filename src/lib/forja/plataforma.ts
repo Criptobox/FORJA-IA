@@ -43,6 +43,10 @@ export interface PuenteAndroid {
   /** Arranca el motor si ya está instalado. */
   iniciarOpenCode?(): void;
   detenerOpenCode?(): void;
+  /** Petición HTTP al motor hecha por el lado nativo (sin CORS ni contraseña en JS); avisa con «ocHttp». */
+  ocHttp?(id: string, metodo: string, ruta: string, cuerpo: string | null): void;
+  /** Corta una petición `ocHttp` en curso. */
+  ocCancelar?(id: string): void;
 }
 
 export interface InfoAndroid {
@@ -70,8 +74,8 @@ export interface EstadoMotor {
 }
 
 /** El OpenCode oficial corriendo dentro de la app (Alpine + PRoot), como en OpenCode
- * Mobile: sus modelos gratis se usan sin API key y sin que la persona toque
- * ninguna contraseña (la lleva el puente nativo). */
+ * Mobile: sus modelos gratis se usan sin API key y sin contraseña: las llamadas
+ * al motor las hace el lado nativo (`ocHttp`), que es quien tiene la contraseña. */
 export interface EstadoOpenCode {
   estado: "parado" | "instalando" | "arrancando" | "listo" | "error";
   /** El entorno ya está descargado (no hace falta volver a instalar). */
@@ -81,11 +85,16 @@ export interface EstadoOpenCode {
   mensaje: string | null;
   /** http://127.0.0.1:4096 */
   url: string;
-  usuario: string;
-  /** Contraseña local del servidor: solo la ve el origen propio, nunca la persona. */
-  clave: string;
   version: string;
 }
+
+/** Respuesta a una petición `ocHttp`: cabecera (estado), trozos de texto y fin o error. */
+export type EventoOcHttp = { tipo: "ocHttp"; id: string } & (
+  | { fase: "cabecera"; status: number }
+  | { fase: "datos"; texto: string }
+  | { fase: "fin" }
+  | { fase: "error"; mensaje: string }
+);
 
 export type EventoAndroid =
   /** Llegó una foto nueva (modelos, motor, info): vuelve a leerlas. */
@@ -94,6 +103,7 @@ export type EventoAndroid =
   | { tipo: "importado"; nombre: string }
   | { tipo: "motor"; estado: EstadoMotor }
   | { tipo: "opencode"; estado: EstadoOpenCode }
+  | EventoOcHttp
   | { tipo: "actualizacion"; disponible: boolean; version?: string; notas?: string; error?: string }
   | { tipo: "descarga"; progreso: number; error?: string }
   | { tipo: "error"; mensaje: string };

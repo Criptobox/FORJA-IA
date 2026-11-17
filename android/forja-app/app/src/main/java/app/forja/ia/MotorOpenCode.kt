@@ -2,7 +2,12 @@ package app.forja.ia
 
 import android.content.Context
 import android.content.Intent
+import android.util.Base64
 import org.json.JSONObject
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -37,8 +42,8 @@ class MotorOpenCode(
         .put("progreso", progreso)
         .put("mensaje", mensaje ?: JSONObject.NULL)
         .put("url", "http://127.0.0.1:${rt.port}")
-        .put("usuario", if (OcRuntime.SECURE_SERVER) OcRuntime.SERVER_USER else "")
-        .put("clave", if (OcRuntime.SECURE_SERVER) rt.serverPassword() else "")
+        // La contraseña local NO se manda a la interfaz: las llamadas al motor las
+        // hace este lado (ver `pedir`) y es aquí donde se añade.
         .put("version", rt.installedVersion())
 
     private fun avisar(forzar: Boolean = true) {
@@ -90,6 +95,71 @@ class MotorOpenCode(
         } finally {
             ocupado.set(false)
         }
+    }
+
+    private val conexiones = ConcurrentHashMap<String, HttpURLConnection>()
+    private val cancelados = ConcurrentHashMap.newKeySet<String>()
+
+    /**
+     * Una petición HTTP al motor (solo a 127.0.0.1), hecha desde aquí y no desde
+     * el navegador: así no hay CORS, ni contenido mixto, ni permiso de red local,
+     * y la contraseña del servidor nunca llega a JavaScript. Va por el puente
+     * como una serie de avisos `ocHttp` con el mismo `id`: `cabecera` (estado),
+     * `datos` (texto a medida que llega: sirve también para los eventos SSE),
+     * y `fin` o `error`.
+     */
+    fun pedir(id: String, metodo: String, ruta: String, cuerpo: String?, aviso: (JSONObject) -> Unit) {
+        fun msg(fase: String) = JSONObject().put("tipo", "ocHttp").put("id", id).put("fase", fase)
+        // Solo rutas del propio servidor: nada de URLs completas ni de otros equipos.
+        if (!ruta.startsWith("/") || ruta.startsWith("//") || metodo !in setOf("GET", "POST", "PUT", "PATCH", "DELETE")) {
+            aviso(msg("error").put("mensaje", "Petición no permitida"))
+            return
+        }
+        var con: HttpURLConnection? = null
+        try {
+            con = URL("http://127.0.0.1:${rt.port}$ruta").openConnection() as HttpURLConnection
+            conexiones[id] = con
+            con.requestMethod = metodo
+            con.connectTimeout = 5_000
+            con.readTimeout = 0 // los flujos de eventos no tienen fin: se cortan con `cancelar`
+            if (OcRuntime.SECURE_SERVER) {
+                val credencial = "${OcRuntime.SERVER_USER}:${rt.serverPassword()}"
+                con.setRequestProperty("Authorization", "Basic " + Base64.encodeToString(credencial.toByteArray(Charsets.UTF_8), Base64.NO_WRAP))
+            }
+            con.setRequestProperty("Accept", "*/*")
+            if (cuerpo != null) {
+                con.doOutput = true
+                con.setRequestProperty("Content-Type", "application/json")
+                con.outputStream.use { it.write(cuerpo.toByteArray(Charsets.UTF_8)) }
+            }
+            val status = con.responseCode
+            aviso(msg("cabecera").put("status", status))
+            val flujo = if (status < 400) con.inputStream else con.errorStream
+            if (flujo != null) {
+                InputStreamReader(flujo, Charsets.UTF_8).use { lector ->
+                    val buf = CharArray(4096)
+                    while (true) {
+                        val n = lector.read(buf)
+                        if (n < 0) break
+                        aviso(msg("datos").put("texto", String(buf, 0, n)))
+                    }
+                }
+            }
+            aviso(msg("fin"))
+        } catch (e: Exception) {
+            // Si lo cortó la interfaz (`cancelar`), no es un error que contar.
+            if (!cancelados.remove(id)) aviso(msg("error").put("mensaje", e.message ?: "Sin conexión con el motor"))
+        } finally {
+            conexiones.remove(id)
+            con?.disconnect()
+        }
+    }
+
+    /** Corta una petición en curso (la interfaz dejó de esperarla). */
+    fun cancelar(id: String) {
+        val con = conexiones.remove(id) ?: return
+        cancelados.add(id)
+        Thread { try { con.disconnect() } catch (_: Exception) { } }.start()
     }
 
     /** Para el servidor (el servicio en primer plano se quita). */
