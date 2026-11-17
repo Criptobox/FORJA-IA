@@ -16,6 +16,7 @@ on:
       - "package-lock.json"
       - "next.config.ts"
       - "scripts/build-android-web.mjs"
+      - "scripts/fetch-proot-android.py"
       - ".github/workflows/android.yml"
   workflow_dispatch:
 
@@ -100,6 +101,14 @@ jobs:
           cp build-llama/bin/llama-server "$APP/jniLibs/arm64-v8a/libllama-server.so"
           du -sh "$APP/assets/web" "$APP/jniLibs/arm64-v8a/libllama-server.so"
 
+      - name: Bajar PRoot (motor OpenCode dentro de la app)
+        run: |
+          # PRoot de Termux (arm64) como librerías nativas: es lo que permite
+          # correr el OpenCode oficial (Alpine) dentro del móvil, sin servidor.
+          python3 scripts/fetch-proot-android.py
+          ls -la android/forja-app/app/src/main/jniLibs/arm64-v8a
+          cat android/forja-app/app/src/main/assets/proot_libs.txt
+
       - name: Clave de firma (secreto del repo)
         env:
           FORJA_KEYSTORE_B64: ${{ secrets.FORJA_KEYSTORE_B64 }}
@@ -148,7 +157,7 @@ jobs:
           cp android/forja-app/app/build/outputs/apk/release/app-release.apk forja-ia.apk
           ls -la forja-ia.apk
           # Sin esto, una APK que abre la interfaz en blanco pasaba como buena.
-          for f in assets/web/index.html assets/web/_next/static lib/arm64-v8a/libllama-server.so; do
+          for f in assets/web/index.html assets/web/_next/static lib/arm64-v8a/libllama-server.so lib/arm64-v8a/libproot.so lib/arm64-v8a/libproot-loader.so assets/proot_libs.txt; do
             if ! unzip -l forja-ia.apk | grep -q " $f"; then
               echo "::error::La APK no lleva $f"
               exit 1

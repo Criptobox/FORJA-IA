@@ -368,7 +368,31 @@ Forja IA usa los modelos `-free` de [OpenCode Zen](https://opencode.ai/docs/zen)
 
 **Modo agente con modelos que razonan (DeepSeek, MiMo, los de Zen):** al pedir una herramienta, estos modelos exigen recibir su propio razonamiento (`reasoning_content`) de vuelta en la siguiente llamada; si no, la API contesta 400 aunque un «Hola» funcione. Forja IA lo guarda y lo reenvía solo a proveedores donde está documentado (`src/lib/forja/razonamiento-tools.ts`), para no romper a los que rechazan campos desconocidos.
 
-**Qué se verifica y qué no:** Zen ha admitido y rechazado el acceso anónimo en momentos distintos, así que Forja IA **no lo da por hecho**: cuenta lo que Zen responda en ese momento. Que el modelo use las herramientas lo decide la prueba de herramientas de cada modelo, como en el resto de proveedores. Zen sirve GPT por `/responses`, Claude, Qwen y MiniMax por `/messages` y Gemini por otra ruta; Forja IA habla `/chat/completions`, así que esos modelos se apartan de la lista (darían 400) y quedan fuera hasta que se soporte su endpoint. Si algo da error, el mensaje de Zen se muestra tal cual.
+**Qué se verifica y qué no:** Zen ha admitido y rechazado el acceso anónimo en momentos distintos, así que Forja IA **no lo da por hecho**: cuenta lo que Zen responda en ese momento. Que el modelo use las herramientas lo decide la prueba de herramientas de cada modelo, como en el resto de proveedores.
+
+**Una ruta por modelo (`src/lib/forja/zen-rutas.ts`):** Zen sirve GPT por `/responses`, Claude y MiniMax por `/messages` y el resto por `/chat/completions`. Forja IA habla las tres: el agente sigue trabajando con herramientas en formato OpenAI y solo se traduce el cable (el cuerpo de ida y los eventos de vuelta), así que `write_file`, `edit_file`, `run_project`… funcionan igual con cualquier modelo gratis. «Probar» elige la ruta de cada modelo por su nombre y, si Zen contesta como si fuera otro endpoint (404/400), prueba las otras y **recuerda la que responde** (`forja-zen-rutas` en el navegador). Un modelo retirado, sin clave o con tope de uso no reintenta rutas. Solo Gemini (ruta propia) sigue fuera del selector.
+
+## Motor OpenCode dentro de la app Android: modelos gratis sin API ni contraseña
+
+La APK de Forja IA lleva el **OpenCode oficial dentro** (Alpine + PRoot), igual que la app OpenCode Mobile. Se instala una vez, arranca solo y Forja IA carga sus modelos gratis y los usa: **sin API key y sin contraseña** (la contraseña local del servidor la lleva el puente nativo y solo la ve el origen propio de la interfaz, nunca los iframes de la vista previa). Es el cliente oficial quien accede a OpenCode, no una llamada anónima de un tercero, así que no depende del tope del acceso `public` de Zen.
+
+1. Instala la APK (release `android-latest`).
+2. **Ajustes → Proveedores → OpenCode (motor del móvil) → Instalar el motor.** Descarga única de varios cientos de MB (Alpine y OpenCode), reanudable; mejor con Wi-Fi.
+3. Al terminar, los modelos de coste cero aparecen solos en el selector (`proveedor/modelo`) y, si no habías elegido ninguno, se deja uno por defecto. Las veces siguientes el motor arranca solo al abrir la app.
+
+**Cómo funciona.** Lado nativo (`android/forja-app`): `OcRuntime.kt` y `RuntimeService.kt` son los de OpenCode Mobile (entorno Alpine, PRoot, servicio en primer plano que vigila y relanza el servidor) y `MotorOpenCode.kt` los envuelve con estados (`parado → instalando → arrancando → listo`) que avisan a la interfaz por el puente `ForjaAndroid`. Lado web: `opencode-nativo.ts` configura el proveedor cuando el motor está listo y `opencode-motor.ts` le pide cada respuesta por su API (`/session`, `/session/:id/prompt_async`, flujo `/event`). **Dentro de la APK esas llamadas no las hace el navegador sino el lado nativo** (`ForjaAndroid.ocHttp`, `opencode-puente.ts`): así no hay CORS, ni contenido mixto (https → http), ni permiso de red local, y la contraseña del servidor no pasa nunca por JavaScript (solo la añade Kotlin en cada petición, y solo atiende rutas de `127.0.0.1`). Las **herramientas propias del motor van apagadas** en cada petición: Forja IA pone las suyas (`write_file`, `edit_file`, `run_project`, Sandbox, QA…) por el camino XML, que es texto puro, así que el agente funciona igual. Solo se muestran modelos de coste cero declarado (los cuatro precios en 0).
+
+**Si el modelo falla, se dice.** OpenCode no devuelve un error cuando un modelo está caído o con tope de uso: reintenta solo y avisa con un estado `retry`. Forja IA lo reconoce: un mensaje de tope (`limit`, `quota`, `usage`…) corta al momento con un 429 y el texto del motor (entra en el sistema de salud y el failover); otros fallos, tras 3 reintentos. Además, si en 60 s no llega ningún evento de la sesión (los latidos no cuentan) se corta explicando qué eventos llegaron.
+
+**Puerto propio.** El servidor del motor de la APK no usa el 4096 de OpenCode Mobile sino uno propio (4196 si está libre), guardado en un archivo para el servicio y la interfaz, de modo que pueden convivir las dos apps. «Listo» solo se da si el servidor acepta las credenciales propias: un servidor ajeno que contesta 401 no cuenta.
+
+**Por qué `targetSdk 28`.** Android solo deja ejecutar binarios de la carpeta de datos de la app con `targetSdk ≤ 28` (igual que Termux); es lo que hace posible PRoot. La app se instala a mano (APK), no por Play Store. La CI baja PRoot en cada compilación (`scripts/fetch-proot-android.py`) y comprueba que la APK lo lleve.
+
+**Límites.** El motor aplica sus propios topes de uso gratis (un 429 llega al chat con su mensaje y el failover/Auto lo trata como cualquier cuota). El motor ocupa memoria y batería mientras corre; «Detener motor» en el panel o «Detener servidor» en la notificación lo paran. Los cambios nativos no se probaron en un teléfono en el entorno de desarrollo: compila con GitHub Actions y comprueba la instalación.
+
+### Alternativa: conectar con la app OpenCode Mobile (navegador o PWA)
+
+Si usas Forja IA en el navegador, puedes apuntarla a la app **OpenCode Mobile** del mismo móvil: en esa app, **Ajustes → Conectar con Forja IA → Copiar contraseña**; en Forja IA, **Ajustes → Proveedores → OpenCode (motor del móvil)**, pega la contraseña en «API key» (URL `http://127.0.0.1:4096`) y pulsa **Probar**. Chrome puede pedir permiso de «red local» la primera vez. Funciona con la misma lógica (`opencode-motor.ts`).
 
 ## Integración opcional con servidor OpenCode (v4.70.5)
 

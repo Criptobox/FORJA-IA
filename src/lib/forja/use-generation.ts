@@ -180,6 +180,7 @@ import {
   addDiseno as addDisenoMemoria,
 } from "./memoria-proyecto";
 import { useAgentTools } from "./use-agent-tools";
+import { pausaDeLaCadena, textoEnPausa } from "./sin-modelos";
 import { normalizarPermisos } from "./tool-permissions";
 import type { AjustesGenerados } from "./use-system-prompt";
 import type { SandboxSeed } from "./sandbox";
@@ -616,8 +617,24 @@ export function useGeneration(ctx: CtxGeneracion) {
         // que ya dijeron «no admito imágenes» salen, los que lo parecen suben.
         if (imagenesTurno > 0) chain = ordenarParaVision(chain, useCapacidades.getState().sinVision);
         if (chain.length === 0) {
+          // ¿No hay ninguna IA, o las que hay están en pausa por cuota? Con solo
+          // Zen conectado, un 429 la deja en pausa y antes decía «conecta una IA».
+          const sinCooldowns = buildTaskChain(
+            task.kind,
+            state.providers,
+            (pid, mid) => (sinPresupuesto && !isFreeModel(pid, mid)) || estaRoto(rotos, makeModelKey(pid, mid)),
+            6,
+            null,
+            useUsage.getState().byModel
+          );
+          const enPausa = pausaDeLaCadena(sinCooldowns, health.entries, health.providerEntries, (p, m) => makeModelKey(p as ProviderId, m));
+          const textoSin = enPausa
+            ? textoEnPausa(enPausa, (id) => PROVIDER_MAP[id as ProviderId]?.name ?? id)
+            : SIN_MODELOS_TEXTO;
           toast.error(`${forjaWeb ? "FORJA WEB" : "Auto"} no tiene modelos disponibles`, {
-            description: "Conecta al menos un proveedor gratis (Gemini, Groq, OpenRouter…) en Ajustes.",
+            description: enPausa
+              ? `En pausa por cuota (vuelven en ~${Math.max(1, Math.ceil(enPausa.ms / 60_000))} min).`
+              : "Conecta al menos un proveedor gratis (Gemini, Groq, OpenRouter…) en Ajustes.",
             action: { label: "Abrir", onClick: () => { setFocusProvider("gemini"); setSettingsOpen(true); } },
           });
           // El aviso flotante se va solo (y en el móvil puede quedar tapado por
@@ -625,7 +642,7 @@ export function useGeneration(ctx: CtxGeneracion) {
           addMessage(sessionId, {
             id: uid(),
             role: "assistant",
-            content: SIN_MODELOS_TEXTO,
+            content: textoSin,
             createdAt: Date.now(),
             error: true,
             sinModelos: true,

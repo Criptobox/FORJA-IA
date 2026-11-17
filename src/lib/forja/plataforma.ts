@@ -36,6 +36,17 @@ export interface PuenteAndroid {
   buscarActualizacion(): void;
   /** Descarga e instala la APK nueva; avisa con «descarga». */
   instalarActualizacion(): void;
+  /** JSON de `EstadoOpenCode` (el OpenCode oficial dentro de la app). Ausente en APK antiguas. */
+  estadoOpenCode?(): string;
+  /** Instala el motor OpenCode (descarga única) y lo arranca; avisa con «opencode». */
+  instalarOpenCode?(): void;
+  /** Arranca el motor si ya está instalado. */
+  iniciarOpenCode?(): void;
+  detenerOpenCode?(): void;
+  /** Petición HTTP al motor hecha por el lado nativo (sin CORS ni contraseña en JS); avisa con «ocHttp». */
+  ocHttp?(id: string, metodo: string, ruta: string, cuerpo: string | null): void;
+  /** Corta una petición `ocHttp` en curso. */
+  ocCancelar?(id: string): void;
 }
 
 export interface InfoAndroid {
@@ -62,12 +73,37 @@ export interface EstadoMotor {
   detalle?: string;
 }
 
+/** El OpenCode oficial corriendo dentro de la app (Alpine + PRoot), como en OpenCode
+ * Mobile: sus modelos gratis se usan sin API key y sin contraseña: las llamadas
+ * al motor las hace el lado nativo (`ocHttp`), que es quien tiene la contraseña. */
+export interface EstadoOpenCode {
+  estado: "parado" | "instalando" | "arrancando" | "listo" | "error";
+  /** El entorno ya está descargado (no hace falta volver a instalar). */
+  instalado: boolean;
+  /** Permilles (0..1000) mientras se instala. */
+  progreso: number;
+  mensaje: string | null;
+  /** http://127.0.0.1:4096 */
+  url: string;
+  version: string;
+}
+
+/** Respuesta a una petición `ocHttp`: cabecera (estado), trozos de texto y fin o error. */
+export type EventoOcHttp = { tipo: "ocHttp"; id: string } & (
+  | { fase: "cabecera"; status: number }
+  | { fase: "datos"; texto: string }
+  | { fase: "fin" }
+  | { fase: "error"; mensaje: string }
+);
+
 export type EventoAndroid =
   /** Llegó una foto nueva (modelos, motor, info): vuelve a leerlas. */
   | { tipo: "estado" }
   | { tipo: "importando"; nombre: string; progreso: number }
   | { tipo: "importado"; nombre: string }
   | { tipo: "motor"; estado: EstadoMotor }
+  | { tipo: "opencode"; estado: EstadoOpenCode }
+  | EventoOcHttp
   | { tipo: "actualizacion"; disponible: boolean; version?: string; notas?: string; error?: string }
   | { tipo: "descarga"; progreso: number; error?: string }
   | { tipo: "error"; mensaje: string };
@@ -98,4 +134,10 @@ export function escucharAndroid(fn: (e: EventoAndroid) => void): () => void {
 export function estadoMotorNativo(): EstadoMotor | null {
   const p = puenteAndroid();
   return p ? leerJson<EstadoMotor | null>(p.estadoMotor(), null) : null;
+}
+
+/** Estado del motor OpenCode de la app, o null fuera de la APK (o en una APK sin él). */
+export function estadoOpenCodeNativo(): EstadoOpenCode | null {
+  const p = puenteAndroid();
+  return p && typeof p.estadoOpenCode === "function" ? leerJson<EstadoOpenCode | null>(p.estadoOpenCode(), null) : null;
 }

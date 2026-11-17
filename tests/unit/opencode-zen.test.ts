@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ZEN_CLAVE_ANONIMA,
   detalleDeError,
-  hablaChatCompletions,
+  modeloSoportadoZen,
   claveEfectiva,
   clasificarModeloZen,
   clasificarRespuestaZen,
@@ -41,15 +41,15 @@ describe("modelos gratis de Zen", () => {
   it("filtra, deduplica y ordena el catálogo", () => {
     expect(modelosGratisDeCatalogo(["b-free", "gpt-5", "a-free", "b-free"])).toEqual(["a-free", "b-free"]);
   });
-  it("incluye big-pickle (gratis sin sufijo) y aparta los que no usan /chat/completions", () => {
-    const cat = ["big-pickle", "mimo-v2.5-free", "minimax-m2.7-free", "gpt-5-nano-free", "claude-haiku-4-5", "qwen3.6-free"];
-    expect(modelosGratisDeCatalogo(cat)).toEqual(["big-pickle", "mimo-v2.5-free"]);
+  it("incluye big-pickle (gratis sin sufijo) y los que Zen sirve por /responses y /messages", () => {
+    const cat = ["big-pickle", "mimo-v2.5-free", "minimax-m2.7-free", "gpt-5-nano-free", "claude-haiku-4-5", "qwen3.6-free", "gemini-3-flash-free"];
+    // claude-haiku-4-5 no es gratis (sin sufijo -free); gemini aún no se habla
+    expect(modelosGratisDeCatalogo(cat)).toEqual(["big-pickle", "gpt-5-nano-free", "mimo-v2.5-free", "minimax-m2.7-free", "qwen3.6-free"]);
   });
-  it("reconoce las familias que Zen sirve por otro endpoint", () => {
-    for (const id of ["gpt-5", "claude-sonnet-4-6", "qwen3.6-plus", "minimax-m2.7-free", "gemini-3-flash"])
-      expect(hablaChatCompletions(id)).toBe(false);
-    for (const id of ["deepseek-v4-flash-free", "mimo-v2.5-free", "glm-4.7-free", "kimi-k2", "big-pickle"])
-      expect(hablaChatCompletions(id)).toBe(true);
+  it("solo aparta lo que Forja IA todavía no habla (Gemini)", () => {
+    expect(modeloSoportadoZen("gemini-3-flash")).toBe(false);
+    for (const id of ["gpt-5-nano", "claude-sonnet-4-6", "qwen3.6-plus", "minimax-m2.7-free", "deepseek-v4-flash-free", "mimo-v2.5-free", "glm-4.7-free", "kimi-k2", "big-pickle"])
+      expect(modeloSoportadoZen(id)).toBe(true);
   });
   it("detalleDeError saca el mensaje del JSON de OpenAI o devuelve el texto", () => {
     expect(detalleDeError('{"error":{"message":"model not supported"}}')).toBe("model not supported");
@@ -141,10 +141,11 @@ describe("catálogo oficial (models.dev)", () => {
     expect(gratisDelCatalogoOficial({})).toEqual([]);
     expect(gratisDelCatalogoOficial({ opencode: { models: 3 } })).toEqual([]);
   });
-  it("une vivo + oficial, sin duplicados y sin los de otro endpoint", () => {
-    expect(unirGratisZen(["beam-free", "x-free"], ["beam-free", "big-pickle", "minimax-m2.7-free"])).toEqual([
+  it("une vivo + oficial, sin duplicados, con los de /messages y sin los que no se hablan", () => {
+    expect(unirGratisZen(["beam-free", "x-free"], ["beam-free", "big-pickle", "minimax-m2.7-free", "gemini-3-flash-free"])).toEqual([
       "beam-free",
       "big-pickle",
+      "minimax-m2.7-free",
       "x-free",
     ]);
   });

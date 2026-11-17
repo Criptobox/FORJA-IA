@@ -138,3 +138,115 @@ describe("«no cabe» de llama-server", () => {
     expect(limiteDelMensaje(msg)).toEqual({ limite: 8192, pedido: 10022 });
   });
 });
+
+describe("motor OpenCode dentro de la APK (puente)", () => {
+  const oc = (estado: string, extra: Record<string, unknown> = {}) => ({
+    estado,
+    instalado: estado !== "parado",
+    progreso: 0,
+    mensaje: null,
+    url: "http://127.0.0.1:4096",
+    version: "1.2.3",
+    ...extra,
+  });
+
+  it("el script expone el motor y manda las órdenes que entiende MainActivity.kt", () => {
+    const { puente, enviados } = montar();
+    puente.instalarOpenCode?.();
+    puente.iniciarOpenCode?.();
+    puente.detenerOpenCode?.();
+    expect(enviados.slice(1)).toEqual([
+      { op: "ocInstalar", args: [] },
+      { op: "ocIniciar", args: [] },
+      { op: "ocDetener", args: [] },
+    ]);
+    // y MainActivity atiende exactamente esas tres órdenes
+    for (const op of ["ocInstalar", "ocIniciar", "ocDetener"]) expect(KOTLIN).toContain(`"${op}" ->`);
+  });
+
+  it("la foto inicial trae el estado del motor y los avisos lo actualizan", () => {
+    const { puente, eventos, nativo } = montar();
+    nativo({ tipo: "_estado", info: { version: "1" }, modelos: [], motor: null, opencode: oc("parado") });
+    expect(JSON.parse(puente.estadoOpenCode!()).estado).toBe("parado");
+    nativo({ tipo: "opencode", estado: oc("instalando", { progreso: 420, mensaje: "Descargando OpenCode" }) });
+    expect(JSON.parse(puente.estadoOpenCode!())).toMatchObject({ estado: "instalando", progreso: 420 });
+    expect(eventos.at(-1)).toMatchObject({ tipo: "opencode", estado: { estado: "instalando" } });
+    nativo({ tipo: "opencode", estado: oc("listo") });
+    expect(JSON.parse(puente.estadoOpenCode!()).estado).toBe("listo");
+  });
+
+  it("sin foto nativa del motor el estado es null (APK antigua o aún sin saber)", () => {
+    const { puente, nativo } = montar();
+    nativo({ tipo: "_estado", info: null, modelos: [], motor: null });
+    expect(JSON.parse(puente.estadoOpenCode!())).toBeNull();
+  });
+
+  it("el lado nativo manda el estado del motor en la foto y en los avisos", () => {
+    expect(KOTLIN).toContain('.put("opencode", motorOc.estadoJson())');
+    expect(KOTLIN).toContain('.put("tipo", "opencode")');
+  });
+});
+
+describe("llamadas al motor por el lado nativo (puente)", () => {
+  it("ocHttp y ocCancelar mandan las órdenes que entiende MainActivity.kt", () => {
+    const { puente, enviados } = montar();
+    puente.ocHttp!("oc1", "POST", "/session", '{"a":1}');
+    puente.ocHttp!("oc2", "GET", "/config/providers", null);
+    puente.ocCancelar!("oc1");
+    expect(enviados.slice(1)).toEqual([
+      { op: "ocHttp", args: ["oc1", "POST", "/session", '{"a":1}'] },
+      { op: "ocHttp", args: ["oc2", "GET", "/config/providers", null] },
+      { op: "ocCancelar", args: ["oc1"] },
+    ]);
+    expect(KOTLIN).toContain('"ocHttp" ->');
+    expect(KOTLIN).toContain('"ocCancelar" ->');
+  });
+
+  it("los avisos ocHttp del lado nativo llegan a la interfaz", () => {
+    const { eventos, nativo } = montar();
+    nativo({ tipo: "ocHttp", id: "oc1", fase: "cabecera", status: 200 });
+    nativo({ tipo: "ocHttp", id: "oc1", fase: "datos", texto: "hola" });
+    expect(eventos).toEqual([
+      { tipo: "ocHttp", id: "oc1", fase: "cabecera", status: 200 },
+      { tipo: "ocHttp", id: "oc1", fase: "datos", texto: "hola" },
+    ]);
+  });
+
+  it("la contraseña del servidor no viaja a la interfaz: solo la usa el lado nativo", () => {
+    const motorOc = readFileSync(join(process.cwd(), "android/forja-app/app/src/main/java/app/forja/ia/MotorOpenCode.kt"), "utf8");
+    // el estado que se manda a la interfaz no lleva clave ni usuario…
+    const estadoJson = motorOc.slice(motorOc.indexOf("fun estadoJson()"), motorOc.indexOf("private fun avisar"));
+    expect(estadoJson).not.toMatch(/serverPassword|"clave"|"usuario"/);
+    // …y se añade en la petición nativa
+    expect(motorOc).toContain('setRequestProperty("Authorization"');
+  });
+
+  it("el lado nativo solo atiende rutas del propio servidor", () => {
+    const motorOc = readFileSync(join(process.cwd(), "android/forja-app/app/src/main/java/app/forja/ia/MotorOpenCode.kt"), "utf8");
+    expect(motorOc).toContain('!ruta.startsWith("/") || ruta.startsWith("//")');
+    expect(motorOc).toContain('URL("http://127.0.0.1:${rt.port}$ruta")');
+  });
+});
+
+describe("el motor de la APK no comparte puerto con OpenCode Mobile", () => {
+  const rt = readFileSync(join(process.cwd(), "android/forja-app/app/src/main/java/app/forja/ia/OcRuntime.kt"), "utf8");
+
+  it("el puerto es propio (no el 4096) y se guarda en un archivo para el servicio y la interfaz", () => {
+    expect(rt).not.toMatch(/val port = 4096/);
+    expect(rt).toContain('File(ctx.filesDir, "server.port")');
+    expect(rt).toMatch(/listOf\(4196, 4296, 4396\)/);
+  });
+
+  it("antes de arrancar comprueba que el puerto esté libre y el servidor usa el elegido", () => {
+    expect(rt).toContain("fun ensureFreePort()");
+    expect(rt).toContain("val p = ensureFreePort()");
+    expect(rt).toContain('--port $p \\$C');
+  });
+
+  it("«listo» exige que el servidor acepte las credenciales propias (un 401 es de otro)", () => {
+    const listo = rt.slice(rt.indexOf("fun serverReady()"), rt.indexOf("fun tailLog"));
+    expect(listo).toContain('setRequestProperty("Authorization"');
+    expect(listo).toContain("responseCode in 200..299");
+    expect(listo).not.toContain("100..599");
+  });
+});

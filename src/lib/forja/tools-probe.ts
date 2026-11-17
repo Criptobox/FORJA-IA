@@ -33,6 +33,7 @@ import { translateTools } from "./tools-translate";
 import { TOOL_CATALOG, type ToolDef } from "./tools-catalog";
 import { recordQuotaHeaders } from "./quota";
 import { claveEfectiva } from "./opencode-zen";
+import { cabecerasDeRuta, cuerpoDeRuta, pathDeRuta, rutaZen, type RutaZen } from "./zen-rutas";
 import { GGUF_PROVIDER_ID } from "./gguf-mensajes";
 import { soportaHerramientas } from "./gguf-local";
 
@@ -183,6 +184,12 @@ export async function probeTools(
     }
   }
 
+  // Motor OpenCode del móvil: sus herramientas propias van apagadas en cada
+  // petición y Forja IA usa las suyas por el camino XML (texto puro).
+  if (providerId === "opencode-motor") {
+    return { support: "no", verdict: "ok", status: 200, ms: 0, at: Date.now() };
+  }
+
   // Si ya estaba en cache, se devuelve sin tocar la red.
   const cached = getCachedToolsProbe(providerId, config, modelId);
   if (cached) return cached;
@@ -208,8 +215,17 @@ export async function probeTools(
     path = "/chat/completions";
     extra = { Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}` };
   }
+  // OpenCode Zen: el modelo puede vivir en `/responses` o `/messages`; la
+  // prueba va por SU ruta (el cuerpo OpenAI se traduce igual que en el chat).
+  const rutaZ: RutaZen = providerId === "opencode" ? rutaZen(modelId) : "chat";
+  if (rutaZ !== "chat") {
+    path = pathDeRuta(rutaZ);
+    extra = cabecerasDeRuta(rutaZ, claveEfectiva(providerId, config.apiKey));
+  }
   const req = buildRequest(endpoint(base, path), { config, providerId }, extra);
-  const bodyObj = cuerpoConTools(def.protocol, modelId, catalogo);
+  const bodyBase = cuerpoConTools(def.protocol, modelId, catalogo);
+  // /responses no admite menos de 16 tokens de salida.
+  const bodyObj = bodyBase && rutaZ !== "chat" ? cuerpoDeRuta(rutaZ, { ...bodyBase, max_tokens: 16 }) : bodyBase;
   if (!bodyObj) {
     // Catálogo vacío (no debería pasar): lo tratamos como NO.
     const result: ToolsProbeResult = {

@@ -33,6 +33,9 @@ import {
   claveEfectiva,
   clasificarModeloZen,
   clasificarRespuestaZen,
+  anotarTopeZen,
+  esTopeGratisZen,
+  topeZenHasta,
   gratisDelCatalogoOficial,
   modelosGratisDeCatalogo,
   unirGratisZen,
@@ -40,6 +43,27 @@ import {
   type ModeloZenProbado,
   type ResultadoSondeoZen,
 } from "./opencode-zen";
+import {
+  cabecerasDeRuta,
+  completoDeRuta,
+  cuerpoDePruebaZen,
+  cuerpoDeRuta,
+  esErrorDeRuta,
+  esFalloZen,
+  ordenDeRutas,
+  pathDeRuta,
+  recordarRuta,
+  rutaZen,
+  traductorDeRuta,
+  type RutaZen,
+} from "./zen-rutas";
+import {
+  leerModelosMotor,
+  MOTOR_PROVIDER_ID,
+  sondearMotor,
+  streamMotor,
+  type MensajeMotor,
+} from "./opencode-motor";
 import { costeDeModelo } from "./precios";
 import { aligerarParaContexto, GGUF_PROVIDER_ID, type CuerpoOpenAI } from "./gguf-mensajes";
 import { EN_APK, estadoMotorNativo } from "./plataforma";
@@ -368,9 +392,11 @@ async function assertOk(res: Response, providerName: string): Promise<void> {
       ? " — Zen exige una clave incluso para los modelos gratis: créala en opencode.ai/auth y pégala en Ajustes → OpenCode Zen"
       : res.status === 401 || res.status === 403
       ? " — revisa tu API key en Ajustes"
-      : res.status === 429
-        ? " — has superado el límite de peticiones o tu saldo"
-        : "";
+      : res.status === 429 && esTopeGratisZen(detail)
+        ? " — Zen agotó el uso gratis de este acceso (por IP o por clave) y no es un fallo de Forja: espera un rato, pega una clave en Ajustes → OpenCode Zen o cambia a otro proveedor gratis"
+        : res.status === 429
+          ? " — has superado el límite de peticiones o tu saldo"
+          : "";
   const short = detail.length > 300 ? detail.slice(0, 300) + "…" : detail;
   // Retry-After: se propaga para que el sistema de salud respete el enfriamiento sugerido
   const ra = Number(res.headers.get("retry-after"));
@@ -441,6 +467,27 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
   if (dePago) {
     const vd = veredictoDinero(leerLibro(), normalizarLimites(settings.presupuestoUsd), Date.now());
     if (!vd.ok) throw new Error(vd.motivo ?? "Presupuesto alcanzado");
+  }
+
+  // Motor OpenCode del móvil: no es una API de chat compatible con nadie. Se le
+  // pide una respuesta de texto por su propia API y las herramientas las pone
+  // Forja IA por el camino XML (ver opencode-motor.ts y tools-probe.ts).
+  if (providerId === MOTOR_PROVIDER_ID) {
+    const texto = await streamMotor({
+      config,
+      modelId,
+      messages: messages as unknown as readonly MensajeMotor[],
+      systemPrompt: settings.systemPrompt,
+      signal,
+      onDelta: (t) => streamOpts.onDelta(t),
+      onReasoning: streamOpts.onReasoning,
+      onUsage: streamOpts.onUsage
+        ? (u) => streamOpts.onUsage?.({ entrada: u.entrada, salida: u.salida, cacheLeido: u.cacheLeido, cacheEscrito: u.cacheEscrito })
+        : undefined,
+      onFinish: (m) => streamOpts.onFinish?.(m === "fin" ? "fin" : "desconocido"),
+    });
+    streamOpts.onDone(texto);
+    return texto;
   }
 
   let content = "";
@@ -781,19 +828,30 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
       const extra: Record<string, string> = {};
       if (providerId === "openrouter") extra["HTTP-Referer"] = location.origin;
       if (providerId === "nvidia" && settings.stream) extra.Accept = "text/event-stream";
-      const req = buildRequest(endpoint(base, "/chat/completions"), opts, {
-        Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
-        ...extra,
-      });
+      // OpenCode Zen sirve cada modelo por SU endpoint (`/responses`,
+      // `/messages` o `/chat/completions`). El agente sigue hablando OpenAI y
+      // aquí solo se traduce el cable (zen-rutas.ts): el cuerpo de ida y los
+      // trozos de vuelta, que pasan por el mismo `handle` de siempre.
+      const rutaZ: RutaZen = providerId === "opencode" ? rutaZen(modelId) : "chat";
+      const cuerpoJson = JSON.stringify(rutaZ === "chat" ? body : cuerpoDeRuta(rutaZ, body));
+      const req = buildRequest(
+        endpoint(base, pathDeRuta(rutaZ)),
+        opts,
+        rutaZ === "chat"
+          ? { Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`, ...extra }
+          : cabecerasDeRuta(rutaZ, claveEfectiva(providerId, config.apiKey))
+      );
       const res = await loggedFetch(
         req.target,
-        { providerId, providerName: def.name, modelId, url: req.upstream, headers: req.logHeaders, body: JSON.stringify(body) },
-        { method: "POST", headers: req.headers, body: JSON.stringify(body), signal }
+        { providerId, providerName: def.name, modelId, url: req.upstream, headers: req.logHeaders, body: cuerpoJson },
+        { method: "POST", headers: req.headers, body: cuerpoJson, signal }
       );
       recordQuotaHeaders(providerId, res.headers);
       await assertOk(res, def.name);
       if (!settings.stream) {
-        const j = await res.json();
+        const j = (rutaZ === "chat" ? await res.json() : completoDeRuta(rutaZ, await res.json())) as {
+          choices?: { message?: { content?: string | null; tool_calls?: unknown[] } }[];
+        };
         anotarMotivo("openai", j);
         anotarUso(j);
         content = j.choices?.[0]?.message?.content ?? "";
@@ -810,9 +868,19 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
         }
         push();
       } else {
+        const traductor = rutaZ === "chat" ? null : traductorDeRuta(rutaZ);
+        const fallo = { texto: "" };
         await readSSE(res, (payload) => {
-          try { handle(JSON.parse(payload)); } catch { /* ignore */ }
+          let ev: unknown;
+          try { ev = JSON.parse(payload); } catch { return; }
+          for (const trozo of traductor ? traductor(ev) : [ev]) {
+            if (esFalloZen(trozo)) { fallo.texto = trozo.__zenError; continue; }
+            try { handle(trozo as Parameters<typeof handle>[0]); } catch { /* ignore */ }
+          }
         });
+        // Un error que llega dentro del stream (con HTTP 200) también corta:
+        // si no, la burbuja se quedaba vacía sin decir por qué.
+        if (fallo.texto) throw new Error(`${def.name}: ${fallo.texto}`);
       }
     }
   }
@@ -850,6 +918,8 @@ export async function fetchModels(providerId: ProviderId, config: ProviderConfig
   // El modelo local no tiene servidor que preguntar: sus «modelos» son los
   // .gguf guardados en este navegador.
   if (providerId === GGUF_PROVIDER_ID) return refrescarModelos();
+  // El motor del móvil: sus modelos gratis salen de su propio catálogo.
+  if (providerId === MOTOR_PROVIDER_ID) return leerModelosMotor(config);
   const def = getProvider(providerId);
   const base = (config.baseUrl || def.baseUrl).trim();
 
@@ -893,6 +963,18 @@ export async function probarZenSinClave(
   config: ProviderConfig
 ): Promise<ResultadoSondeoZen> {
   const conClave = !!config.apiKey.trim();
+  // Si Zen acaba de decir que se agotó el uso gratis, volver a probar solo gasta
+  // más cupo: se espera.
+  const esperaHasta = topeZenHasta();
+  if (esperaHasta > Date.now()) {
+    return {
+      estado: "otro",
+      gratis: [],
+      mensaje:
+        `Zen agotó el uso gratis hace poco: no vuelvo a probar hasta dentro de ${Math.ceil((esperaHasta - Date.now()) / 60_000)} min ` +
+        "para no gastar más. Puedes pegar una clave de opencode.ai/auth o usar otro proveedor gratis mientras tanto.",
+    };
+  }
   let gratis: string[] = [];
   // Catálogo oficial de OpenCode (coste $0 verificado). Si no se puede leer,
   // se sigue solo con el catálogo vivo de Zen: no es obligatorio.
@@ -924,36 +1006,58 @@ export async function probarZenSinClave(
   // Una llamada real por modelo (máx. 12, de 3 en 3 para no comerse el límite):
   // estar en el catálogo NO significa que Zen lo sirva. Los «-free» se retiran
   // sin avisar y entonces contesta 400 «Model is unavailable».
-  const candidatos = gratis.slice(0, 12);
+  // Cada prueba gasta cupo gratis: pocas y de dos en dos, no una ráfaga.
+  const candidatos = gratis.slice(0, 8);
   const probados: ModeloZenProbado[] = [];
   const respuestas = new Map<string, { status: number; texto: string }>();
   let siguiente = 0;
   let caidaDeRed: string | null = null;
+  let topeGratis = false;
   const obrero = async () => {
     for (;;) {
       const i = siguiente++;
-      if (i >= candidatos.length || caidaDeRed) return;
+      if (i >= candidatos.length || caidaDeRed || topeGratis) return;
       const modelo = candidatos[i];
-      const req = buildRequest(endpoint(base, "/chat/completions"), { config, providerId }, {
-        Authorization: `Bearer ${claveEfectiva(providerId, config.apiKey)}`,
-      });
       try {
-        const res = await fetch(req.target, {
-          method: "POST",
-          headers: req.headers,
-          // 16 y no 1: los modelos que razonan rechazan o truncan un tope diminuto
-          body: JSON.stringify({ model: modelo, max_tokens: 16, messages: [{ role: "user", content: "hi" }] }),
-          signal: AbortSignal.timeout(15_000),
-        });
-        const texto = res.ok ? "" : await res.text().catch(() => "");
-        respuestas.set(modelo, { status: res.status, texto });
-        probados.push({ id: modelo, veredicto: clasificarModeloZen(res.status, texto), status: res.status });
+        // Cada modelo vive en una ruta (`/chat/completions`, `/responses` o
+        // `/messages`): se prueba la suya y, si el fallo huele a «ruta
+        // equivocada», las otras. La que responde se recuerda para el chat.
+        let ultimo = { status: 0, texto: "" };
+        for (const ruta of ordenDeRutas(modelo)) {
+          const req = buildRequest(
+            endpoint(base, pathDeRuta(ruta)),
+            { config, providerId },
+            cabecerasDeRuta(ruta, claveEfectiva(providerId, config.apiKey))
+          );
+          const res = await fetch(req.target, {
+            method: "POST",
+            headers: req.headers,
+            body: JSON.stringify(cuerpoDePruebaZen(ruta, modelo)),
+            signal: AbortSignal.timeout(15_000),
+          });
+          const texto = res.ok ? "" : await res.text().catch(() => "");
+          ultimo = { status: res.status, texto };
+          if (res.status === 429 && esTopeGratisZen(texto)) {
+            // El tope es de la cuenta, no del modelo: seguir probando solo lo agrava.
+            topeGratis = true;
+            const ra = Number(res.headers.get("retry-after"));
+            anotarTopeZen(Date.now(), Number.isFinite(ra) && ra > 0 ? ra * 1000 : undefined);
+            break;
+          }
+          if (res.ok) {
+            recordarRuta(modelo, ruta);
+            break;
+          }
+          if (!esErrorDeRuta(res.status, texto)) break;
+        }
+        respuestas.set(modelo, ultimo);
+        probados.push({ id: modelo, veredicto: clasificarModeloZen(ultimo.status, ultimo.texto), status: ultimo.status });
       } catch (e) {
         caidaDeRed = e instanceof Error ? e.message : "error de red";
       }
     }
   };
-  await Promise.all(Array.from({ length: Math.min(3, candidatos.length) }, obrero));
+  await Promise.all(Array.from({ length: Math.min(2, candidatos.length) }, obrero));
   if (caidaDeRed && !probados.length) {
     return { estado: "servicio", gratis, mensaje: `No se pudo contactar con Zen: ${caidaDeRed}` };
   }
@@ -967,9 +1071,12 @@ export async function probarZenSinClave(
   if (funcionan.length || limitados.length) {
     return {
       estado: "abierto",
-      gratis: candidatos.filter((id) => funcionan.includes(id) || limitados.includes(id)).concat(gratis.slice(candidatos.length)),
+      gratis: candidatos
+        .filter((id) => funcionan.includes(id) || limitados.includes(id) || (topeGratis && !probados.some((m) => m.id === id)))
+        .concat(gratis.slice(candidatos.length)),
       probados,
       mensaje:
+        (topeGratis ? "Zen dijo que se agotó el uso gratis: paré las pruebas para no gastar más (el resto queda sin comprobar). " : "") +
         `${funcionan.length + limitados.length} modelos gratis: ${funcionan.length} responden` +
         (limitados.length ? `, ${limitados.length} con límite de uso temporal` : "") +
         (fuera.length ? ` · fuera: ${fuera.map((m) => `${m.id} (${m.veredicto})`).join(", ")}` : "") +
@@ -1093,8 +1200,29 @@ export async function probeModel(
       at: Date.now(),
     };
   }
-  const req = peticionDePrueba(providerId, config, modelId);
-  const body = JSON.stringify(cuerpoDePrueba(def.protocol, modelId));
+  if (providerId === MOTOR_PROVIDER_ID) {
+    // Preguntar al motor no gasta ninguna llamada a un modelo: se mira si
+    // responde y si ese modelo sigue en su catálogo gratis.
+    const s = await sondearMotor(config);
+    const esta = s.modelos.includes(modelId);
+    return {
+      verdict: s.estado === "ok" ? (esta ? "ok" : "no-existe") : s.estado === "clave" ? "sin-clave" : s.estado === "sin-conexion" ? "sin-red" : "caido",
+      status: s.status,
+      detail: s.estado === "ok" && !esta ? "El motor ya no lo ofrece gratis" : s.estado === "ok" ? undefined : s.mensaje,
+      ms: Date.now() - empezó,
+      at: Date.now(),
+    };
+  }
+  const rutaZ: RutaZen = providerId === "opencode" ? rutaZen(modelId) : "chat";
+  const req =
+    rutaZ === "chat"
+      ? peticionDePrueba(providerId, config, modelId)
+      : buildRequest(
+          endpoint((config.baseUrl || def.baseUrl).trim(), pathDeRuta(rutaZ)),
+          { config, providerId },
+          cabecerasDeRuta(rutaZ, claveEfectiva(providerId, config.apiKey))
+        );
+  const body = JSON.stringify(rutaZ === "chat" ? cuerpoDePrueba(def.protocol, modelId) : cuerpoDePruebaZen(rutaZ, modelId));
 
   try {
     const res = await fetch(req.target, { method: "POST", headers: req.headers, body, signal });
