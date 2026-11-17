@@ -100,9 +100,12 @@ test("tocar el titular en la vista previa lo cambia, y el cambio queda en el có
   // pasaba sin haber mirado nunca la pestaña «Código» de verdad —el panel de
   // la vista previa es HERMANO de <main>, no está dentro—. Con el código del
   // chat ahora colapsado por defecto, hay que mirar el `<pre>` de la pestaña
-  // «Código» en sí, que es lo que esta prueba dice comprobar.
+  // «Código» en sí, que es lo que esta prueba dice comprobar. Desde que esa
+  // pestaña es un editor de archivos, el código vive en su <textarea>.
   await page.getByRole("button", { name: "Alternar código" }).click();
-  await expect(page.locator("pre")).toContainText("Mi titular nuevo");
+  await expect
+    .poll(async () => page.getByTestId("editor-codigo").inputValue())
+    .toContain("Mi titular nuevo");
 });
 
 test("un texto que aparece dos veces se rechaza con el motivo, no se adivina", async ({ page }) => {

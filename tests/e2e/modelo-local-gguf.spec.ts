@@ -144,7 +144,8 @@ test("un encargo de página con el agente cabe en el contexto del modelo local",
   );
   const r = await ultimaRespuesta(page);
   expect(r.contenido, "sin el error de contexto").not.toMatch(/no cabe|ocupa \d+ tokens/);
-  expect(r.error).toBe(false);
+  // si falla, que el motivo salga en el informe (en CI no hay otra forma de verlo)
+  expect(r.error, `respuesta con error: ${r.contenido.slice(0, 600)}`).toBe(false);
   await expect(page.getByText(/no está respondiendo/)).toHaveCount(0);
 
   // El contador ya no dice «≈83»: cuenta también las instrucciones fijas.
