@@ -55,6 +55,11 @@ android {
 
     buildFeatures { buildConfig = true }
 
+    // targetSdk 28 es deliberado (ver arriba): la app no va a Google Play, y esta
+    // regla solo avisa de eso. Solo se apaga ella; el resto de comprobaciones
+    // fatales de lint siguen activas.
+    lint { disable += "ExpiredTargetSdkVersion" }
+
     // Por defecto, Android descarta de los assets las carpetas que empiezan
     // por «_» (patrón «<dir>_*»), y Next pone TODO su JS y CSS en «_next/»:
     // la app abría el HTML sin estilos ni lógica. Mismo patrón sin esa regla.
