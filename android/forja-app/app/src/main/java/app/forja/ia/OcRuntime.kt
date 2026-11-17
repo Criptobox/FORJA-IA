@@ -21,7 +21,37 @@ class OcRuntime(private val ctx: Context) {
     private val stageBin = File(ctx.filesDir, "stage_opencode")
     private val nativeDir = ctx.applicationInfo.nativeLibraryDir
     val logFile = File(ctx.filesDir, "server.log")
-    val port = 4096
+    /**
+     * Puerto del servidor: propio de esta app y guardado en un archivo para que lo lean
+     * el servicio y la interfaz. NO es el 4096 de OpenCode Mobile: si esa app está
+     * instalada y su motor activo, compartir puerto hacía que aquí "contestara" un
+     * servidor ajeno (con otra contraseña) y todo daba 401.
+     */
+    private val portFile = File(ctx.filesDir, "server.port")
+    val port: Int get() = savedPort().takeIf { it in 1024..65535 } ?: pickPort()
+
+    private fun savedPort(): Int = try { portFile.readText().trim().toInt() } catch (_: Exception) { 0 }
+
+    private fun portFree(p: Int): Boolean = try {
+        java.net.ServerSocket().use { s ->
+            s.reuseAddress = true
+            s.bind(java.net.InetSocketAddress("127.0.0.1", p))
+            true
+        }
+    } catch (_: Exception) { false }
+
+    private fun pickPort(): Int {
+        val chosen = listOf(4196, 4296, 4396).firstOrNull { portFree(it) }
+            ?: java.net.ServerSocket(0, 0, java.net.InetAddress.getByName("127.0.0.1")).use { it.localPort }
+        try { portFile.writeText(chosen.toString()) } catch (_: Exception) { }
+        return chosen
+    }
+
+    /** Antes de arrancar: si el puerto guardado lo ocupa otro programa, se elige otro. */
+    fun ensureFreePort(): Int {
+        val p = savedPort()
+        return if (p in 1024..65535 && portFree(p)) p else pickPort()
+    }
 
     companion object {
         /** Protege el servidor local con contraseña (HTTP Basic). Si ves 401 en toda la app, pon false y recompila. */
@@ -330,10 +360,11 @@ class OcRuntime(private val ctx: Context) {
         // Forja IA (PWA y app Android) habla con este servidor desde otro origen. El motor ya
         // acepta localhost/127.0.0.1; los demás se añaden con --cors, pero SOLO si esta versión
         // del binario lo admite: un flag desconocido haría fallar el arranque y la app entera.
+        val p = ensureFreePort()
         val cmd = "mkdir -p /root/projects && cd /root/projects && C=''; " +
             "if opencode web --help 2>&1 | grep -q -- '--cors'; then " +
             "C='--cors https://criptobox.github.io --cors https://appassets.androidplatform.net'; fi; " +
-            "exec opencode web --hostname 127.0.0.1 --port $port \$C"
+            "exec opencode web --hostname 127.0.0.1 --port $p \$C"
         val pb = ProcessBuilder(guestCmd(cmd, serverEnv()))
             .redirectErrorStream(true).redirectOutput(logFile)
         pb.environment().putAll(env())
@@ -345,7 +376,13 @@ class OcRuntime(private val ctx: Context) {
         val c = URL("http://127.0.0.1:$port/session").openConnection() as HttpURLConnection
         c.connectTimeout = 800
         c.readTimeout = 2000
-        try { c.responseCode in 100..599 } finally { c.disconnect() }
+        // Listo = contesta Y acepta NUESTRAS credenciales. Un 401 es de un servidor ajeno
+        // (otro OpenCode en el móvil), no del nuestro: no se da por listo.
+        if (SECURE_SERVER) {
+            val credencial = "$SERVER_USER:${serverPassword()}"
+            c.setRequestProperty("Authorization", "Basic " + android.util.Base64.encodeToString(credencial.toByteArray(), android.util.Base64.NO_WRAP))
+        }
+        try { c.responseCode in 200..299 } finally { c.disconnect() }
     } catch (e: Exception) { false }
 
     fun tailLog(n: Int): String = try {

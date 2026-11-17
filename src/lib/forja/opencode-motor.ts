@@ -364,7 +364,11 @@ async function pedir(url: string, init: RequestInit, timeoutMs = 20_000): Promis
 
 function errorHttp(res: Response, cuerpo: string): Error {
   const detalle = cuerpo.slice(0, 200);
-  if (res.status === 401) return errorMotor("El motor rechazó la contraseña. Cópiala de nuevo desde la app OpenCode Mobile (Ajustes → Conectar con Forja IA).", 401);
+  if (res.status === 401) {
+    // Dentro de la APK no hay contraseña que copiar: la pone el lado nativo.
+    if (puenteAndroid()?.ocHttp) return errorMotor("El motor del móvil no aceptó la conexión. Detenlo y vuelve a iniciarlo en Ajustes → OpenCode (motor del móvil).", 401);
+    return errorMotor("El motor rechazó la contraseña. Cópiala de nuevo desde la app OpenCode Mobile (Ajustes → Conectar con Forja IA).", 401);
+  }
   return errorMotor(`El motor respondió ${res.status}${detalle ? `: ${detalle}` : ""}`, res.status);
 }
 

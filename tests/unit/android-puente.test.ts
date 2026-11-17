@@ -227,3 +227,26 @@ describe("llamadas al motor por el lado nativo (puente)", () => {
     expect(motorOc).toContain('URL("http://127.0.0.1:${rt.port}$ruta")');
   });
 });
+
+describe("el motor de la APK no comparte puerto con OpenCode Mobile", () => {
+  const rt = readFileSync(join(process.cwd(), "android/forja-app/app/src/main/java/app/forja/ia/OcRuntime.kt"), "utf8");
+
+  it("el puerto es propio (no el 4096) y se guarda en un archivo para el servicio y la interfaz", () => {
+    expect(rt).not.toMatch(/val port = 4096/);
+    expect(rt).toContain('File(ctx.filesDir, "server.port")');
+    expect(rt).toMatch(/listOf\(4196, 4296, 4396\)/);
+  });
+
+  it("antes de arrancar comprueba que el puerto esté libre y el servidor usa el elegido", () => {
+    expect(rt).toContain("fun ensureFreePort()");
+    expect(rt).toContain("val p = ensureFreePort()");
+    expect(rt).toContain('--port $p \\$C');
+  });
+
+  it("«listo» exige que el servidor acepte las credenciales propias (un 401 es de otro)", () => {
+    const listo = rt.slice(rt.indexOf("fun serverReady()"), rt.indexOf("fun tailLog"));
+    expect(listo).toContain('setRequestProperty("Authorization"');
+    expect(listo).toContain("responseCode in 200..299");
+    expect(listo).not.toContain("100..599");
+  });
+});
