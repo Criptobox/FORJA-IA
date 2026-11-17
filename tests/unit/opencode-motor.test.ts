@@ -2,6 +2,8 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 import {
   aplicarEventoMotor,
   adoptarPendientes,
+  errorPorReintentos,
+  resumenDeEventos,
   cabecerasMotor,
   guionDeConversacion,
   herramientasApagadas,
@@ -329,5 +331,82 @@ describe("catálogo y sondeo", () => {
     const r = await sondearMotor({ apiKey: "k" });
     expect(r.estado).toBe("otro");
     expect(r.mensaje).toMatch(/ningún modelo gratis/);
+  });
+});
+
+const reintento = (intento: number, mensaje: string) => ({ type: "session.status", properties: { sessionID: SES, status: { type: "retry", attempt: intento, message: mensaje, next: Date.now() + 5000 } } });
+const latido = { type: "server.heartbeat", properties: {} };
+
+describe("reintentos del motor (modelo caído o con tope de uso)", () => {
+  it("el reductor guarda el último reintento y cuenta los eventos propios y los ajenos", () => {
+    const e = nuevoEstadoMotor(SES);
+    aplicarEventoMotor(e, { type: "server.connected", properties: {} });
+    aplicarEventoMotor(e, latido);
+    expect(e.eventosSesion).toBe(0); // ni la conexión ni los latidos son progreso
+    aplicarEventoMotor(e, reintento(2, "Free usage limit reached"));
+    expect(e.reintento).toEqual({ mensaje: "Free usage limit reached", intento: 2 });
+    expect(e.eventosSesion).toBe(1);
+    expect(e.vistos).toEqual({ "server.connected": 1, "server.heartbeat": 1, "session.status": 1 });
+    expect(resumenDeEventos(e)).toBe("eventos recibidos: server.connected×1, server.heartbeat×1, session.status×1");
+    expect(resumenDeEventos(nuevoEstadoMotor(SES))).toMatch(/ningún evento/);
+  });
+
+  it("un mensaje de tope se corta al primer reintento, con código 429", () => {
+    const e = nuevoEstadoMotor(SES);
+    aplicarEventoMotor(e, reintento(1, "Free usage limit reached. Free models work in OpenCode"));
+    expect(errorPorReintentos(e, "opencode/beam-free")).toMatchObject({ status: 429, mensaje: expect.stringContaining("opencode/beam-free") });
+  });
+
+  it("otro fallo se tolera unos reintentos y luego se rinde (sin código)", () => {
+    const e = nuevoEstadoMotor(SES);
+    aplicarEventoMotor(e, reintento(1, "Model is unavailable"));
+    expect(errorPorReintentos(e, "m")).toBeNull();
+    aplicarEventoMotor(e, reintento(3, "Model is unavailable"));
+    const r = errorPorReintentos(e, "m");
+    expect(r?.status).toBeUndefined();
+    expect(r?.mensaje).toMatch(/3 reintentos/);
+  });
+
+  it("«generate» o «accurate» no son un tope de uso (solo rate limit, limit, quota…)", () => {
+    const e = nuevoEstadoMotor(SES);
+    aplicarEventoMotor(e, reintento(1, "Failed to generate a response"));
+    expect(errorPorReintentos(e, "m")).toBeNull();
+    aplicarEventoMotor(e, reintento(1, "Rate limit exceeded"));
+    expect(errorPorReintentos(e, "m")?.status).toBe(429);
+  });
+
+  it("si ya hay texto no se corta aunque haya habido reintentos", () => {
+    const e = nuevoEstadoMotor(SES);
+    aplicarEventoMotor(e, msg("a1", "assistant"));
+    aplicarEventoMotor(e, parte("pt", "a1", "text", "ya respondió"));
+    aplicarEventoMotor(e, reintento(5, "rate limit"));
+    expect(errorPorReintentos(e, "m")).toBeNull();
+  });
+});
+
+describe("streamMotor ante un modelo que no responde", () => {
+  const pide = (extra: object = {}) =>
+    streamMotor({ config: { apiKey: "" }, modelId: "opencode/beam-free", messages: [{ role: "user", content: "hola" }], signal: new AbortController().signal, onDelta: () => {}, ...extra });
+
+  it("un reintento por tope de uso acaba en un error 429 claro, no en puntos suspensivos", async () => {
+    const { vistos } = motorSimulado({ eventos: [estado(SES, "busy"), reintento(1, "Free usage limit reached. Free models work in OpenCode")] });
+    await expect(pide()).rejects.toMatchObject({ status: 429, message: expect.stringMatching(/opencode\/beam-free[\s\S]*tope de uso/) });
+    // y se borra la sesión del motor para que deje de reintentar
+    expect(vistos.some((v) => v.metodo === "DELETE" && v.ruta === `/session/${SES}`)).toBe(true);
+  });
+
+  it("un reintento suelto que se recupera responde normal", async () => {
+    motorSimulado({ eventos: [estado(SES, "busy"), reintento(1, "Overloaded"), msg("a1", "assistant"), parte("pt", "a1", "text", "Hola al fin"), estado(SES, "idle")] });
+    expect(await pide()).toBe("Hola al fin");
+  });
+
+  it("si solo llegan latidos, el vigilante corta y explica qué llegó", async () => {
+    motorSimulado({ eventos: [latido, latido] });
+    await expect(pide({ sinProgresoMs: 80 })).rejects.toThrow(/no empezó a responder[\s\S]*server\.heartbeat×2/);
+  });
+
+  it("si el motor no manda nada de la sesión pero sí reintenta con otro mensaje, lo cita", async () => {
+    motorSimulado({ eventos: [estado(SES, "busy"), reintento(1, "Provider is overloaded")] });
+    await expect(pide({ sinProgresoMs: 80 })).rejects.toThrow(/dice: Provider is overloaded/);
   });
 });
