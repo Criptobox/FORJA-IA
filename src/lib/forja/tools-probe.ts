@@ -184,6 +184,12 @@ export async function probeTools(
     }
   }
 
+  // Motor OpenCode del móvil: sus herramientas propias van apagadas en cada
+  // petición y Forja IA usa las suyas por el camino XML (texto puro).
+  if (providerId === "opencode-motor") {
+    return { support: "no", verdict: "ok", status: 200, ms: 0, at: Date.now() };
+  }
+
   // Si ya estaba en cache, se devuelve sin tocar la red.
   const cached = getCachedToolsProbe(providerId, config, modelId);
   if (cached) return cached;

@@ -230,6 +230,9 @@ export type ProviderId =
   // llama.cpp nativo dentro de la APK de Android (android/forja-app): el
   // mismo motor, compilado para el móvil y servido en 127.0.0.1.
   | "nativo"
+  // OpenCode corriendo dentro del móvil (app «OpenCode Mobile»): los modelos
+  // gratis de OpenCode SIN clave de API, por el motor oficial. Ver opencode-motor.ts.
+  | "opencode-motor"
   | "custom";
 
 /** Protocolo de API que habla el proveedor */

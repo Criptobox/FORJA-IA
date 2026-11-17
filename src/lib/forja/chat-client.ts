@@ -57,6 +57,13 @@ import {
   traductorDeRuta,
   type RutaZen,
 } from "./zen-rutas";
+import {
+  leerModelosMotor,
+  MOTOR_PROVIDER_ID,
+  sondearMotor,
+  streamMotor,
+  type MensajeMotor,
+} from "./opencode-motor";
 import { costeDeModelo } from "./precios";
 import { aligerarParaContexto, GGUF_PROVIDER_ID, type CuerpoOpenAI } from "./gguf-mensajes";
 import { EN_APK, estadoMotorNativo } from "./plataforma";
@@ -460,6 +467,27 @@ export async function streamChat(opts: StreamOptions): Promise<string> {
   if (dePago) {
     const vd = veredictoDinero(leerLibro(), normalizarLimites(settings.presupuestoUsd), Date.now());
     if (!vd.ok) throw new Error(vd.motivo ?? "Presupuesto alcanzado");
+  }
+
+  // Motor OpenCode del móvil: no es una API de chat compatible con nadie. Se le
+  // pide una respuesta de texto por su propia API y las herramientas las pone
+  // Forja IA por el camino XML (ver opencode-motor.ts y tools-probe.ts).
+  if (providerId === MOTOR_PROVIDER_ID) {
+    const texto = await streamMotor({
+      config,
+      modelId,
+      messages: messages as unknown as readonly MensajeMotor[],
+      systemPrompt: settings.systemPrompt,
+      signal,
+      onDelta: (t) => streamOpts.onDelta(t),
+      onReasoning: streamOpts.onReasoning,
+      onUsage: streamOpts.onUsage
+        ? (u) => streamOpts.onUsage?.({ entrada: u.entrada, salida: u.salida, cacheLeido: u.cacheLeido, cacheEscrito: u.cacheEscrito })
+        : undefined,
+      onFinish: (m) => streamOpts.onFinish?.(m === "fin" ? "fin" : "desconocido"),
+    });
+    streamOpts.onDone(texto);
+    return texto;
   }
 
   let content = "";
@@ -890,6 +918,8 @@ export async function fetchModels(providerId: ProviderId, config: ProviderConfig
   // El modelo local no tiene servidor que preguntar: sus «modelos» son los
   // .gguf guardados en este navegador.
   if (providerId === GGUF_PROVIDER_ID) return refrescarModelos();
+  // El motor del móvil: sus modelos gratis salen de su propio catálogo.
+  if (providerId === MOTOR_PROVIDER_ID) return leerModelosMotor(config);
   const def = getProvider(providerId);
   const base = (config.baseUrl || def.baseUrl).trim();
 
@@ -1166,6 +1196,19 @@ export async function probeModel(
       verdict: hay ? "ok" : "no-existe",
       status: hay ? 200 : 404,
       detail: hay ? undefined : "El archivo .gguf ya no está en este navegador",
+      ms: Date.now() - empezó,
+      at: Date.now(),
+    };
+  }
+  if (providerId === MOTOR_PROVIDER_ID) {
+    // Preguntar al motor no gasta ninguna llamada a un modelo: se mira si
+    // responde y si ese modelo sigue en su catálogo gratis.
+    const s = await sondearMotor(config);
+    const esta = s.modelos.includes(modelId);
+    return {
+      verdict: s.estado === "ok" ? (esta ? "ok" : "no-existe") : s.estado === "clave" ? "sin-clave" : s.estado === "sin-conexion" ? "sin-red" : "caido",
+      status: s.status,
+      detail: s.estado === "ok" && !esta ? "El motor ya no lo ofrece gratis" : s.estado === "ok" ? undefined : s.mensaje,
       ms: Date.now() - empezó,
       at: Date.now(),
     };

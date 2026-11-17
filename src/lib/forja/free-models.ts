@@ -12,7 +12,7 @@ import type { ProviderId } from "./types";
 import { esClaveOpcional } from "./opencode-zen";
 
 /** Proveedores cuya API completa tiene capa gratuita (sin coste, con límites de tasa) */
-export const FULL_FREE_TIER: ProviderId[] = ["gemini", "groq", "ollama", "cerebras", "gguf", "nativo"];
+export const FULL_FREE_TIER: ProviderId[] = ["gemini", "groq", "ollama", "cerebras", "gguf", "nativo", "opencode-motor"];
 
 /** Crédito de prueba o plan experimental: todos sus modelos cuentan como gratis aquí */
 export const TRIAL_FREE_TIER: ProviderId[] = ["nvidia", "kimi", "mistral"];
@@ -28,6 +28,7 @@ export const KEYLESS_PROVIDERS: ProviderId[] = [
   "llamafile",
   "gguf",
   "nativo",
+  "opencode-motor",
 ];
 
 /** Modelos gratis conocidos además de los que llevan sufijo -free / :free */
@@ -84,6 +85,9 @@ export const FAILOVER_ORDER: ProviderId[] = [
   "zai",
   "aihubmix",
   "opencode",
+  // El motor del móvil: solo ofrece modelos de coste cero (los filtra él mismo) y
+  // solo entra en la cadena si TÚ has cargado modelos suyos con «Probar».
+  "opencode-motor",
   "kimi",
   "nvidia",
   "mistral",

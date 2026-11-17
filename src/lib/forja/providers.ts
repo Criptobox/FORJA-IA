@@ -389,6 +389,23 @@ export const PROVIDERS: ProviderDef[] = [
     hint: "Importa un .gguf y arráncalo desde este panel. Solo funciona dentro de la app Android de Forja.",
     docsUrl: "https://github.com/ggml-org/llama.cpp",
   },
+  /** El OpenCode oficial corriendo en el móvil (app «OpenCode Mobile»). Es el motor
+   * quien accede a los modelos gratis de OpenCode: sin clave de API. La «clave»
+   * de este panel es la contraseña local del motor, no una API key. */
+  {
+    id: "opencode-motor",
+    name: "OpenCode (motor del móvil)",
+    tagline: "Modelos gratis de OpenCode sin clave de API · por la app OpenCode Mobile",
+    protocol: "openai",
+    baseUrl: "http://127.0.0.1:4096",
+    defaultModels: [],
+    color: "#0EA5E9",
+    directByDefault: true,
+    keyless: true,
+    featured: true,
+    hint: "Abre la app OpenCode Mobile → Ajustes → «Conectar con Forja IA» y copia la contraseña. Pégala aquí en «API key» y pulsa «Probar»: se cargan los modelos gratis del motor. La app debe estar abierta o en segundo plano.",
+    docsUrl: "https://github.com/Criptobox/OpenCode-mobile",
+  },
   {
     id: "custom",
     name: "Personalizado",
